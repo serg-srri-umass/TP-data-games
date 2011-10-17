@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+  <title>Chainsaw</title>
+  <script src='jquery.js'></script>
+  <script src='raphael-min.js'></script>
+  <script src='game.js'></script>
+  <script>
+   $(function(){
+     game = new Chainsaw($('canvas')[0]); 
+   });
+  </script>
+  <style type='text/css'>
+  body{
+    color: #000;
+  }
+  input[type=button]{
+    padding:10px;
+    font-size:20px;
+  }
+  #container{
+    width:600px;   
+  }
+  #fuel{
+    float: right;
+    width:200px;
+  }
+    #fuel #labels{
+      list-style: none;
+      margin: 0px;
+      padding: 0px;
+      width: 48px;
+      float: left; 
+    }
+    #fuel #tank{
+      border: 1px solid #000;
+      width: 150px;
+      float: right;
+      height:100px;
+      margin-bottom:20px;
+    }
+  #header{
+
+  }
+    #header h1{
+      font-size: 60px;
+      color: #669035;
+      margin: 0px;
+      padding: 0px;
+    }
+  #canvas{
+    width:600px;
+    height: 330px;
+    cursor: default;
+    border: 1px solid #000;
+    clear: both;
+    background-color: #ead1aa;
+    position:relative;
+  }
+  #footer{
+
+  }
+  #footer #referencelog{
+    width:100px;
+    border-bottom:3px solid #000;
+  }
+  #nav{
+    width:200px;
+    float:left;
+  }
+  #info{
+    width:100px;
+  }
+  #stats{
+    width:200px;
+    float:right;
+    text-align:center;
+  }
+    #stats #accepted{
+      margin: 20px auto 0px auto;
+      width: 70px;  
+      padding:5px;
+      border:2px solid #000;
+    }
+  
+  </style>
+</head>
+<body>
+  <div id='container'> 
+    
+    <div id='fuel'> 
+      Fuel level:
+      <ul id='labels'>
+        <li id='arrow'>&nbsp;</li> 
+        <li>40</li>
+        <li>30</li>
+        <li>20</li>
+        <li>10</li>
+        <li>0</li>
+      </ul>
+      <div id='tank'></div>
+    </div>
+    
+    <div id='header'>
+      <h1>CHAINSAW</h1>
+      <input type='button' value='Start' id='startButton'> 
+      Player's Name:
+      <input type='text' id='playername' value='Player' />
+    </div>
+      
+    <div id='canvas'></div>
+
+    <div id='footer'>
+      <div id='nav'>
+        <input type='button' id='stopButton' value='Stop' /><br />
+        <input type='button' id='changeLevel' value='Change Level' />
+      </div>
+      <div id='info'> 
+        Reference log: <div id='referencelog'>this long</div>
+      </div>
+      <div id='stats'>
+        Number of accepted pieces:
+        <div id='accepted'>0</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
