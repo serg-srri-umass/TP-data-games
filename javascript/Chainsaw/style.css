@@ -62,7 +62,15 @@ input[type=button]{
     float: right;
     height:100px;
     margin-bottom:20px;
+    position:relative;
   }
+    #fuel #tank #contents{
+      width:150px;
+      height:100px;
+      background-color: #943634;
+      position:absolute;
+      bottom:0px;
+    }
 #header{
 
 }
