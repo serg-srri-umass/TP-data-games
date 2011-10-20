@@ -7,14 +7,21 @@
   <script src='js/chainsaw.js' charset="utf-8"></script>
   <script>
    $(function(){
-     game = new Chainsaw($('#canvas')[0]); 
+     chain = new Chainsaw($('#canvas')[0]); 
    });
   </script>
   <link href="style.css" media="screen" rel="stylesheet" type="text/css" />
 </head>
 <body>
+  <div id='overlay'>
+    <div id='levelselect'>
+      <div id='leveltitle'>Choose Game Level</div>
+      <input type='button' data-level='practice' value='Practice' disabled/>
+      <input type='button' data-level='directional' value='Directional Cut' />
+      <input type='button' data-level='free' value='Free Cut' disabled />
+    </div>
+  </div> 
   <div id='container'> 
-    
     <div id='fuel'> 
       Fuel level:
       <ul id='labels'>
