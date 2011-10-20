@@ -23,8 +23,8 @@ window.Chainsaw = (function(){
 
     // The fuel meter
     this.fuel = {
-      initial: 40, // You start with this much
-      current: 40,
+      initial: 100, // You start with this much
+      current: 100,
       timer: null
     };
 
@@ -35,7 +35,7 @@ window.Chainsaw = (function(){
       cutEdgeLabel1: null,
       cutEdgeLabel2: null,
       levelLabel: null,
-      fuelTank: $('#fuel #tank'),
+      fuelTank: $('#fuel #tank #contents'),
       startButton: $("#startButton").click(function(){
         this.startGame();
       }.bind(this)),
@@ -43,8 +43,9 @@ window.Chainsaw = (function(){
         this.endGame();
       }.bind(this)),
       changeLevelButton: $("#changeLevel").click(function(){
-        alert("Changed level!"); 
-      }),
+        this.levelSelect.container.fadeIn(200);
+      }.bind(this)),
+
       acceptedCuts: $("#accepted")
     }
 
@@ -69,7 +70,7 @@ window.Chainsaw = (function(){
 
   Chainsaw.prototype.startGame = function(){
     this.fuel.current = this.fuel.initial;
-    // this.fuel.timer = setInterval(function(){ this.timerStep(); }, 200);
+    this.fuel.timer = setInterval(function(){ this.timerStep(); }.bind(this), 200);
     this.game.inProgress = true;
     this.generateLogs();
     this.ui.acceptedCuts.html('0');
@@ -78,15 +79,15 @@ window.Chainsaw = (function(){
 
   Chainsaw.prototype.timerStep = function(){
     console.log(this);
-      this.fuel.current--;
-      this.ui.fuelTank.height(this.fuel.current);
-      if(this.fuel <= 0){
-        this.endGame(); 
-      }
-
+    this.fuel.current = this.fuel.current - 1.4;
+    this.ui.fuelTank.height(this.fuel.current);
+    if(this.fuel.current <= 0){
+      this.endGame(); 
+    }
   }
 
   Chainsaw.prototype.endGame = function(){
+    if(!this.game.inProgress){ return false; }
     clearInterval(this.fuel.timer);
     this.game.inProgress = false;
     this.analyzeCuts();
