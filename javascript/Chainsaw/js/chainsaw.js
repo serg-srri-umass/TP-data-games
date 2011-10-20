@@ -29,7 +29,6 @@ window.Chainsaw = (function(){
       current: 100,
       timer: null
     };
-
     
 
     this.ui = {
@@ -49,6 +48,11 @@ window.Chainsaw = (function(){
       }.bind(this)),
 
       acceptedCuts: $("#accepted")
+    }
+
+    this.sounds = {
+      cutting: new Audio("assets/start.mp3"),
+      finished: new Audio("assets/stop.mp3")
     }
 
     var self = this;
@@ -77,7 +81,7 @@ window.Chainsaw = (function(){
     this.generateLogs();
     this.ui.acceptedCuts.html('0');
     this.canvasEl.addClass('active');
-
+    this.sounds.cutting.play();
   };
 
   Chainsaw.prototype.timerStep = function(){
@@ -95,6 +99,8 @@ window.Chainsaw = (function(){
     this.game.inProgress = false;
     this.analyzeCuts();
     this.canvasEl.removeClass('active');
+    this.sounds.cutting.pause();
+    this.sounds.finished.play();
 
   };
   
@@ -211,16 +217,15 @@ window.Chainsaw = (function(){
           this.paper.text((cut+previousCut)/2, log.y + 18, "✓")
                     .attr({ fill: '#00FF00', 'font-size': 16 });
 
-          console.log("Valid cut of length " + (cut-previousCut));
           accepted++; 
           
         }else{ 
           // invalid cut
           this.paper.text((cut+previousCut)/2, log.y + 18, "X")
                     .attr({ fill: 'red', 'font-size': 16});
-          console.log("Invalid cut of length " + (cut-previousCut)); 
         }
         previousCut = cut;
+
       }.bind(this));
     }.bind(this));
     this.ui.acceptedCuts.html(accepted);

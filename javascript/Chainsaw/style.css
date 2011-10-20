@@ -48,7 +48,7 @@ input[type=button]{
 
 #fuel{
   float: right;
-  width:200px;
+  width:150px;
 }
   #fuel #labels{
     list-style: none;
@@ -59,14 +59,14 @@ input[type=button]{
   }
   #fuel #tank{
     border: 1px solid #000;
-    width: 150px;
+    width: 80px;
     float: right;
     height:100px;
     margin-bottom:20px;
     position:relative;
   }
     #fuel #tank #contents{
-      width:150px;
+      width:80px;
       height:100px;
       background-color: #943634;
       position:absolute;
