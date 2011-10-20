@@ -24,11 +24,11 @@ window.Chainsaw = (function(){
     // The fuel meter
     this.fuel = {
       initial: 40, // You start with this much
-      current: 40
+      current: 40,
+      timer: null
     };
 
     
-    var game = this; // TODO fix
 
     this.ui = {
       cutDownArrow: null,
@@ -37,29 +37,57 @@ window.Chainsaw = (function(){
       levelLabel: null,
       fuelTank: $('#fuel #tank'),
       startButton: $("#startButton").click(function(){
-        game.startGame();
-      }),
+        this.startGame();
+      }.bind(this)),
       stopButton: $("#stopButton").click(function(){
-        game.endGame();
-      }),
+        this.endGame();
+      }.bind(this)),
       changeLevelButton: $("#changeLevel").click(function(){
         alert("Changed level!"); 
       }),
       acceptedCuts: $("#accepted")
     }
+
+    var self = this;
+    this.levelSelect = {
+      container: $('#overlay'),
+      buttons: $('#levelselect input[type=button]').click(function(){
+        self.selectLevel(this.dataset.level);
+      })
+    }
+      
     
 
     this.generateLogs();
 
   };
 
+  Chainsaw.prototype.selectLevel = function(level){
+    this.game.level = level;
+    this.levelSelect.container.fadeOut(200);
+  }
+
   Chainsaw.prototype.startGame = function(){
+    this.fuel.current = this.fuel.initial;
+    // this.fuel.timer = setInterval(function(){ this.timerStep(); }, 200);
     this.game.inProgress = true;
     this.generateLogs();
+    this.ui.acceptedCuts.html('0');
 
   };
 
+  Chainsaw.prototype.timerStep = function(){
+    console.log(this);
+      this.fuel.current--;
+      this.ui.fuelTank.height(this.fuel.current);
+      if(this.fuel <= 0){
+        this.endGame(); 
+      }
+
+  }
+
   Chainsaw.prototype.endGame = function(){
+    clearInterval(this.fuel.timer);
     this.game.inProgress = false;
     this.analyzeCuts();
 
@@ -81,9 +109,10 @@ window.Chainsaw = (function(){
         x: randomX,
         y: 75 * i + 40,
         cuts: [],
-        active: true,
+        active: (i == 0) ? true : false,
         direction: (i % 2 == 0) ? 'right' : 'left',
-        lastCut: (i % 2 == 0) ? 0 : randomWidth
+        lastCut: (i % 2 == 0) ? 0 : randomWidth,
+        cutSurface: null
       });
 
       // Add the end of each log as a 'cut'
@@ -100,21 +129,18 @@ window.Chainsaw = (function(){
 
     var svgLogs = this.paper.set(); // A Raphael set of the log elements
 
-    var game = this; // NOT OK. TODO fix this soon with .call
-
     // Loop through the logs
     $.each(this.logs.list, function(i,log){
 
       // Create SVG elements
-      svgLogs.push(game.paper.rect(log.x, log.y, log.width, log.height));
+      svgLogs.push(this.paper.rect(log.x, log.y, log.width, log.height));
 
-      if (log.active) { // Draw 'active' rectangle, give it functionality
-        game.paper.rect(log.x, log.y, log.width, 5).mouseover(function(e){
-          game.tryCut(e);
-        }).attr({ fill: '#764d13' });
-      }
+      log.cutSurface = this.paper.rect(log.x, log.y, log.width, 5).mouseover(function(e){
+        this.tryCut(e);
+      }.bind(this)).attr({ fill: '#764d13' });
+      if(!log.active){ log.cutSurface.hide(); }
 
-    });
+    }.bind(this));
 
     svgLogs.attr({ fill: this.logs.color });
 
@@ -127,9 +153,8 @@ window.Chainsaw = (function(){
   Chainsaw.prototype.tryCut = function(e){
     if(e.which != 1 || !this.game.inProgress){ return null; } // We only care if the mouse is down and the game is in progress
 
-    var x = e.layerX,
-        y = e.layerY,
-        game = this; // TODO fix this
+    var x = e.offsetX,
+        y = e.offsetY;
          
     $.each(this.logs.list, function(i,log){
       if(x > log.x && x < (log.x + log.width) && y > log.y-5 && y < log.y + 15 && log.active){ // Fits within a cut boundary
@@ -141,27 +166,33 @@ window.Chainsaw = (function(){
         }
 
         // It' a cut!
-        game.paper.rect(x, log.y+5, 2, 30)
+        this.paper.rect(x, log.y+5, 2, 30)
                   .attr({ fill: 'white', 'stroke-width': 0});
 
         log.cuts.push(x);
         log.lastCut = x;
 
-        game.ui.cutDownArrow.attr({x: x-10, y: log.y-33});
+        this.ui.cutDownArrow.attr({x: x-10, y: log.y-33});
 
         // Now let's see if it's time to move to the next log
-        if(game.game.level != 'free'){
+        if(this.game.level != 'free' && i != this.logs.count - 1){
+          if((log.direction == 'right' && (log.x + log.width - x) < 80) ||
+             (log.direction == 'left' && (x - log.x) < 80)){ // We're getting pretty close to the edge
+            log.active = false;
+            log.cutSurface.hide();
+            this.logs.list[i+1].active = true;
+            this.logs.list[i+1].cutSurface.show();
+          }
              
         }
 
 
       }
-    });
+    }.bind(this));
 
   };
 
   Chainsaw.prototype.analyzeCuts = function(){ // Analyze the cuts made for validity
-    var game = this;
     var accepted = 0;
     $.each(this.logs.list, function(i, log){ // Loop through each log
       var previousCut = log.x; // First 'cut' is the start of the log
@@ -169,10 +200,10 @@ window.Chainsaw = (function(){
       log.cuts = log.cuts.sort(function(a,b){ return a-b; }); // Sort the cuts in ascending order
 
       $.each(log.cuts, function(j, cut){
-        if(Math.abs((cut - previousCut) - game.referenceLog.length) < game.referenceLog.tolerance){
+        if(Math.abs((cut - previousCut) - this.referenceLog.length) < this.referenceLog.tolerance){
           // The cut was valid
 
-          game.paper.text((cut+previousCut)/2, log.y + 18, "✓")
+          this.paper.text((cut+previousCut)/2, log.y + 18, "✓")
                     .attr({ fill: '#00FF00', 'font-size': 16 });
 
           console.log("Valid cut of length " + (cut-previousCut));
@@ -180,13 +211,13 @@ window.Chainsaw = (function(){
           
         }else{ 
           // invalid cut
-          game.paper.text((cut+previousCut)/2, log.y + 18, "X")
+          this.paper.text((cut+previousCut)/2, log.y + 18, "X")
                     .attr({ fill: 'red', 'font-size': 16});
           console.log("Invalid cut of length " + (cut-previousCut)); 
         }
         previousCut = cut;
-      });
-    });
+      }.bind(this));
+    }.bind(this));
     this.ui.acceptedCuts.html(accepted);
   };
 
