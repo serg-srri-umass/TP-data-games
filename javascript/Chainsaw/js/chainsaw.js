@@ -1,6 +1,8 @@
 window.Chainsaw = (function(){
   function Chainsaw(canvasEl){ // constructor
-    this.paper = Raphael(canvasEl, 600, 330); // initiate Raphael
+    this.canvasEl = canvasEl;
+    this.paper = Raphael(canvasEl[0], 600, 330); // initiate Raphael
+    document.onselectstart = function () { return false; };
   
     // Define some game variables 
     this.game = {
@@ -74,6 +76,7 @@ window.Chainsaw = (function(){
     this.game.inProgress = true;
     this.generateLogs();
     this.ui.acceptedCuts.html('0');
+    this.canvasEl.addClass('active');
 
   };
 
@@ -91,6 +94,7 @@ window.Chainsaw = (function(){
     clearInterval(this.fuel.timer);
     this.game.inProgress = false;
     this.analyzeCuts();
+    this.canvasEl.removeClass('active');
 
   };
   

@@ -7,7 +7,7 @@
   <script src='js/chainsaw.js' charset="utf-8"></script>
   <script>
    $(function(){
-     chain = new Chainsaw($('#canvas')[0]); 
+     chain = new Chainsaw($('#canvas')); 
    });
   </script>
   <link href="style.css" media="screen" rel="stylesheet" type="text/css" />
@@ -54,12 +54,13 @@
         <input type='button' id='changeLevel' value='Change Level' />
       </div>
       <div id='info'> 
-        Reference log: <div id='referencelog'>this long</div>
+        Reference log: <div id='referencelog'></div>
       </div>
       <div id='stats'>
         Number of accepted pieces:
         <div id='accepted'>0</div>
       </div>
+      <div class='clear'>&nbsp;</div>
     </div>
   </div>
 </body>

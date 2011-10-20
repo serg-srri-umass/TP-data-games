@@ -11,6 +11,7 @@ input[type=button]{
 #container{
   width:600px;   
   z-index:100;
+  margin:20px;
 }
 #overlay{
   width:100%;
@@ -83,17 +84,23 @@ input[type=button]{
 #canvas{
   width:600px;
   height: 330px;
-  cursor: default;
   border: 1px solid #000;
   clear: both;
   background-color: #ead1aa;
   position:relative;
 }
+#canvas.active{
+  cursor:url(cursor.gif), auto;
+}
+#canvas.inactive{
+  cursor:default;
+}
 #footer{
-
+  width:600px;
 }
 #footer #referencelog{
   width:75px;
+  height:25px;
   border-bottom:3px solid #000;
 }
 #nav{
@@ -101,7 +108,8 @@ input[type=button]{
   float:left;
 }
 #info{
-  width:100px;
+  width:200px;
+  float:left;
 }
 #stats{
   width:200px;
@@ -115,3 +123,4 @@ input[type=button]{
     border:2px solid #000;
   }
 
+.clear{ clear:both; }
