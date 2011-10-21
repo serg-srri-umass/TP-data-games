@@ -21,16 +21,18 @@
 			import spark.core.SpriteVisualElement;
 			import spark.events.TextOperationEvent;
 			
+			public var flashGasTank:MovieClip;
+			public var sawdustParticles:MovieClip;
+			public var dynamicLog1:MovieClip;
+			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kRepeatSound:int		= 0;		// Play sound repeatedly.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
 			public static const kTotalUpdates:Number	= kTimeLimit * kUpdatesPerSecond; // Total number of updates.
 			public static const kUpdateInterval:Number	= 1000 / kUpdatesPerSecond; // Milliseconds between updates.
-			public static const kAlphaOpaque:Number		= 1;		// Opaque 
-			public static const kFuelColor:uint			= 0x943634;	// Color of saw fuel.
+			public static const kAlphaOpaque:Number		= 1;		// Opaque
 			public static const kBlack:uint				= 0x000000;	// Black color.
 			public static const kWhite:uint				= 0xFFFFFF;	// White color.
-			public static const kFuelBorderWeight:Number= 1;		// Border weight of saw fuel rectangle.
 			public static const kReferenceLength:Number	= 75;		// Reference length in pixels of 16" piece.
 			public static const kPercentAllowance:Number= ((1.0/8.0)*100);		// Percent allowed above or below accepted cut length.
 			public static const kConvertToInches:Number	= 16.0/kReferenceLength;// Used to convert pixel length to 16".
@@ -41,9 +43,10 @@
 			public static const kLogStartY:Number		= 38;		// Starting Y of top log.
 			public static const kLogOffsetY:int			= 69;		// Y offset from previous log.
 			public static const kFuelCapacity:Number	= 40;		// Units of fuel when full.
-			public static const kPracticeLevel:uint		= 0;		// Practice level.
-			public static const kDirectionalCutLevel:uint= 1;		// Directional cut level.
-			public static const kFreeCutLevel:uint		= 2;		// Free cut level.
+			//levels
+			public static const kPracticeLevel:uint		  = 0;		// Practice level.
+			public static const kDirectionalCutLevel:uint = 1;		// Directional cut level.
+			public static const kFreeCutLevel:uint		  = 2;		// Free cut level.
 			
 			// Collection names according to level played.
 			public static const kCollectionDirCutPieces:String	= "CutPieces - Directional Cut Level";
@@ -64,14 +67,12 @@
 			// Create a timer to update the fuel level display and game duration.
 			private var mFuelTimer:Timer = new Timer(kUpdateInterval, kTotalUpdates);
 			
-			// Used for drawing the fuel level.
-			private var mFuelSprite:SpriteVisualElement	= new SpriteVisualElement();	
 			// Used for drawing the down arrow.
-			private var mArrowSprite:SpriteVisualElement= new SpriteVisualElement();
+			private var mArrowSprite:SpriteVisualElement = new SpriteVisualElement();
 			private var mArrowBitmapData:BitmapData;
-			// Used for drawing fuel level arrow.
-			private var mFuelArrowSprite:SpriteVisualElement= new SpriteVisualElement();
-			private var mFuelArrowBitmapData:BitmapData;
+			
+			//the sawdust pile
+			private var mSawdustSprite:SawdustSprite = new SawdustSprite();
 
 			private var mFirstGame:Boolean			= true;	// Used for initial operations.
 			private var mGameLevel:uint				= 0;	// Current game level.
@@ -82,8 +83,6 @@
 			private var mLogsPerGame:uint			= 4;	// Number of logs being used in each game.
 			private var mFuelUsed:Number			= 0;	// Stores how many units of fuel have been used.
 			private var mChainsawCursorID:Number	= 0;	// Holds a cursor ID.
-			private var mSawFuelWidth:Number		= 0;	// Width of saw fuel rectangle.
-			private var mSawFuelHeight:Number		= 0;	// Height of saw fuel rectangle.
 			private var mGameNumber:uint			= 0;	// Keeps track of games since app launch. Practice level ignored.
 			private var mCurrentLog:uint			= 1;	// Current log being cut. 1 based.
 			private var mLastLog:uint				= 0;	// Number of log at most recent cut. 1 based. 0 before cuts.
@@ -116,7 +115,8 @@
 			
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
-			//	No copyright information found. (10/14/2011)
+			// Converted from .ani format to .swf.
+//			[Embed(source="../assets/Chainsaw Cursor 2.swf")]
 			// Converted from .ani format to .png.
 			[Embed(source="../assets/Chainsaw Cursor 2.png")]
 			private var mChainsawCursor:Class;
@@ -126,35 +126,30 @@
 			[Bindable]
 			private var mLengthImage:Class;
 			
+			// Embed tape measure image
+			[Embed(source="../assets/tape_measure.png")]
+			[Bindable]
+			private var mTapeMeasureImage:Class;
+			
 			// Embed the down arrow image file.
 			[Embed(source="../assets/Down Arrow Small.png")]
 			[Bindable]
 			private var mDownArrowImage:Class;
 			
-			// Embed the fuel level arrow image file.
-			// From http://glyphish.com on 12/17/2010 and modified. License info from site follows (10/14/2011):
-			// 	"License: Free set published under a Creative Commons Attribution license:
-			//	simply provide a note and a link back to the Glyphish website. Glyphish Pro does not 
-			//	require attribution and can be used in an unlimited number of projects."
-			[Embed(source="../assets/Fuel Level Arrow.png")]
+			//Embed sawdust pile image
+			[Embed(source="../assets/sawdust_pile.png")]
 			[Bindable]
-			private var mFuelArrowImage:Class;
+			private var mSawdustPile:Class;
 			
 			// From http://www.hark.com/clips/dvghjtvdvr-chainsaw-clip on 12/11/2010
 			// Converted from .m4a format to .mp3.
 //			[Embed("../src/assets/Chainsaw Sound.mp3")]
 			// From http://www.pacdv.com/sounds/machine_sound_effects/chain-saw-2.mp3 on 12/12/2010
-			// Use info from site follows: (10/14/2011)
-			// 	"You may use the sound effects on this web site free of charge in your video, film, 
-			//	audio and multimedia productions (but do not re-sell them or post on a web site for download)."
 			// Using most of clip but not when engine shuts down.
 			[Embed("../src/assets/Chainsaw Sound Longer.mp3")]
 			private var ChainsawMP3:Class;
 			
 			// From http://www.pacdv.com/sounds/machine_sound_effects/chain-saw-2.mp3 on 12/12/2010
-			// Use info from site follows: (10/14/2011)
-			// 	"You may use the sound effects on this web site free of charge in your video, film, 
-			//	audio and multimedia productions (but do not re-sell them or post on a web site for download)."
 			// Using only end of clip when engine shuts down.
 			[Embed("../src/assets/Chainsaw Engine Stops no Fade In.mp3")]
 			private var EngineStopsMP3:Class;
@@ -162,7 +157,7 @@
 
 			// startUp() is called when the creation of this class is complete
 			// and sets up necessary parameters for game initiation.
-			private	function startUp():void	
+			private	function startUp():void
 			{
 				// Arrays store individual cuts on each log for use in free cut levels.
 				var log1Cuts:Array = new Array();		
@@ -207,36 +202,17 @@
 				mArrowSprite.y = mLogArray[0][0].y - mArrowBitmapData.height;			// Start at top edge of first log.
 				mLogYardContainer.addElement(mArrowSprite);
 				
-				mSawFuelWidth		= mSawFuelContainer.width;	// Width of saw fuel rectangle.
-				mSawFuelHeight		= mSawFuelContainer.height;	// Height of saw fuel rectangle.
-
-				// Draw fuel display as full at start.
-				mFuelSprite.graphics.clear();
-				mFuelSprite.graphics.beginFill(kFuelColor, kAlphaOpaque);
-				mFuelSprite.graphics.drawRect(	0, 
-												0, 
-												mSawFuelWidth - 1 * kFuelBorderWeight, 
-												mSawFuelHeight - (2 * kFuelBorderWeight)); // Draw fuel.
-				mFuelSprite.graphics.endFill();
+				//TODO sawdust pile sprite
+				mSawdustSprite.init();
+				mSawdustSprite.scaleX = .2;
+				mSawdustSprite.scaleY = .2;
+				mSawdustSprite.x = 100;
+				//addElement(mSawdustSprite); //TODO
 				
-				// Add sprite visual elements to the fuel container to enable drawing.
-				mSawFuelContainer.addElement(mFuelSprite);
 				
-				// Load and draw the bitmap of the saw fuel arrow
-				mFuelArrowBitmapData = new mFuelArrowImage().bitmapData;
-				mFuelArrowSprite.alpha = 0.5;
-				mFuelArrowSprite.graphics.clear();
-				mFuelArrowSprite.graphics.beginBitmapFill(mFuelArrowBitmapData);
-				mFuelArrowSprite.graphics.drawRect(0, 0, mFuelArrowBitmapData.width, mFuelArrowBitmapData.height);
-				mFuelArrowSprite.graphics.endFill();
-				mFuelArrowSprite.x = -(1 * mFuelArrowBitmapData.width);	// Start away from the left edge of fuel.
-				mFuelArrowSprite.y = -(mFuelArrowBitmapData.height/2);	// Start at top of fuel.
-				mSawFuelContainer.addElement(mFuelArrowSprite);
-				
-				// Create a modal and display game level modal dialog.
-				// Listen for clicks on level buttons in dialog.
 				mLevelWindow = new GameLevelWindow();
-				chooseGameLevel();
+				//chooseGameLevel();
+				//practiceLevel(new Event(Event.INIT));//start game in pratice mode by default
 			}
 			
 			// clearGame() resets the game according to the current level and clears remnants of
@@ -290,19 +266,7 @@
 				}
 				
 				// Set fuel height back to top of fuel container.
-				mSawFuelHeight = mSawFuelContainer.height;
-				
-				// Draw fuel display.
-				mFuelSprite.graphics.clear();
-				mFuelSprite.graphics.beginFill(kFuelColor, kAlphaOpaque);
-				mFuelSprite.graphics.drawRect(	0, 
-					0, 
-					mSawFuelWidth - 1 * kFuelBorderWeight, 
-					mSawFuelHeight - (2 * kFuelBorderWeight)); // Draw fuel.
-				mFuelSprite.graphics.endFill();
-				
-				// Move fuel level arrow to top.
-				mFuelArrowSprite.y = - (mFuelArrowBitmapData.height/2);
+				flashGasTank['resetDrop']();
 				
 				mFuelUsed = 0;		// Initialize the fuel used to zero.
 			}
@@ -348,7 +312,6 @@
 				mCutEdgeLeftLabel.visible	= true;	// Show "Cut Edge" labels.
 				mCutEdgeRightLabel.visible	= true;
 				mArrowSprite.visible		= true; // Show cut location arrow.
-				
 			}
 			
 			// directionalCutLevel() sets the current game level to directional cut.
@@ -371,35 +334,7 @@
 
 				if (!mDirCutCollectionCreated)
 				{
-					// Create collection for individual cut pieces.
-					ScriptInterface.NewCollectionWithAttributes(
-						kCollectionDirCutPieces,
-						[
-							"PieceNumber",		// Piece number starting with 1 since launch of application.
-							"Player",			// Name of the player.
-							"GameNumber",		// Game number starting with 1 since launch of application.
-							"Length",			// Length of cut piece.
-							"Accepted",			// True if cut piece is within accepted range of cut length.
-							"EndPiece",			// Yes if this piece is an end piece.
-							"LogNumber",		// Number of log from which piece was cut.
-							"FuelLeftAmount",	// Raw amount of fuel left at the time of piece creation.
-							"FuelLeftPercent"	// Percent of fuel left at the time of piece creation.
-						]
-					);
-					
-					// Create collection for each game.
-					ScriptInterface.NewCollectionWithAttributes(
-						kCollectionDirCutGames,
-						[
-							"GameNumber",		// Game number starting with 1 since launch of application.
-							"Player",			// Name of the player.
-							"PiecesAccepted",	// Number of pieces accepted.
-							"PiecesRejected",	// Number of pieces rejected.
-							"FuelLeftAmount",	// Raw amount of fuel left.
-							"FuelLeftPercent"	// Percent of fuel left.
-						]
-					);
-
+					createCollection(kCollectionDirCutPieces, kCollectionDirCutGames);
 					mDirCutCollectionCreated = true;
 				}
 			}
@@ -424,39 +359,49 @@
 
 				if (!mFreeCutCollectionCreated)
 				{
-					// Create collection for individual cut pieces.
-					ScriptInterface.NewCollectionWithAttributes(
-						kCollectionFreeCutPieces,
-						[
-							"PieceNumber",		// Piece number starting with 1 since launch of application.
-							"Player",			// Name of the player.
-							"GameNumber",		// Game number starting with 1 since launch of application.
-							"Length",			// Length of cut piece.
-							"Accepted",			// True if cut piece is within accepted range of cut length.
-							"LogNumber",		// Number of log from which piece was cut.
-							"FuelLeftAmount",	// Raw amount of fuel left at the time of piece creation.
-							"FuelLeftPercent"	// Percent of fuel left at the time of piece creation.
-//							"LogThickness"		// Thickness of log from which piece was cut.
-						]
-					);
-					
-					// Create collection for each game.
-					ScriptInterface.NewCollectionWithAttributes(
-						kCollectionFreeCutGames,
-						[
-							"GameNumber",		// Game number starting with 1 since launch of application.
-							"Player",			// Name of the player.
-							"PiecesAccepted",	// Number of pieces accepted.
-							"PiecesRejected",	// Number of pieces rejected.
-							"FuelLeftAmount",	// Raw amount of fuel left.
-							"FuelLeftPercent"	// Percent of fuel left.
-						]
-					);
-					
+					createCollection(kCollectionFreeCutPieces, kCollectionFreeCutGames);
 					mFreeCutCollectionCreated = true;
 				}
 			}
 			
+			private function genericLevel(iEvent:Event):void
+			{
+				
+			}
+			
+			//called by directionalCutLevel() and freeCutLevel()
+			private function createCollection(collection1:String, collection2:String):void
+			{
+				// Create collection for individual cut pieces.
+				ScriptInterface.NewCollectionWithAttributes(
+					collection1,
+					[
+						"PieceNumber",		// Piece number starting with 1 since launch of application.
+						"Player",			// Name of the player.
+						"GameNumber",		// Game number starting with 1 since launch of application.
+						"Length",			// Length of cut piece.
+						"Accepted",			// True if cut piece is within accepted range of cut length.
+						"LogNumber",		// Number of log from which piece was cut.
+						"FuelLeftAmount",	// Raw amount of fuel left at the time of piece creation.
+						"FuelLeftPercent"	// Percent of fuel left at the time of piece creation.
+					]
+				);
+				
+				// Create collection for each game.
+				ScriptInterface.NewCollectionWithAttributes(
+					collection2,
+					[
+						"GameNumber",		// Game number starting with 1 since launch of application.
+						"Player",			// Name of the player.
+						"PiecesAccepted",	// Number of pieces accepted.
+						"PiecesRejected",	// Number of pieces rejected.
+						"FuelLeftAmount",	// Raw amount of fuel left.
+						"FuelLeftPercent"	// Percent of fuel left.
+					]
+				);
+			}
+			
+			//**TRISTAN: This is a quad array swap... the logs don't change just where they are in the array and on screen...
 			// randomizeLogOrder() randomly resorts the logs in the log array.
 			protected function randomizeLogOrder():void
 			{
@@ -609,6 +554,7 @@
 				{
 					mFuelTimer.stop();													// Stop fuel timer.
 					mFuelTimer.removeEventListener(TimerEvent.TIMER, timerListener);	// Stop listening.
+					flashGasTank['pauseDrop']();	//stop gas tank animation
 				}
 				
 				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
@@ -801,6 +747,7 @@
 			}
 			
 			// timerListener() is called to update the fuel level display and game duration.
+			// now just updates the mFuelUsed
 			protected function timerListener(iEvent:TimerEvent):void
 			{
 				// Increment the units of fuel used at the start, as this amount was used since 
@@ -810,33 +757,14 @@
 				// If there is still fuel left, provide updates and effects used during game play.
 				if (mFuelUsed < kTotalUpdates)
 				{
-					// Calculate fuel height based on fuel usage.
-					var heightUsed:Number = mSawFuelContainer.height * (mFuelUsed / kTotalUpdates);
-					mSawFuelHeight = mSawFuelContainer.height - heightUsed;
-						
-					// Draw fuel display.
-					mFuelSprite.graphics.clear();
-					mFuelSprite.graphics.beginFill(kFuelColor, kAlphaOpaque);
-					mFuelSprite.graphics.drawRect(	0, 
-													heightUsed, 
-													mSawFuelWidth - 1 * kFuelBorderWeight, 
-													mSawFuelHeight - (2 * kFuelBorderWeight)); // Draw fuel.
-					mFuelSprite.graphics.endFill();
-					
-					// Move fuel level arrow.
-					mFuelArrowSprite.y = heightUsed - (mFuelArrowBitmapData.height/2); // Move to top of used fuel.
+					//removed old code that just updates the fuel display
+					//no longer needed with new fuel tank
 				}
 				// Fuel has been consumed and game is over.
 				else
 				{
 					endGame();
-					
-					// Draw empty fuel display.
-					mFuelSprite.graphics.clear();
-					
-					// Move fuel level arrow.
-					mFuelArrowSprite.y = mSawFuelContainer.height - (mFuelArrowBitmapData.height/2); // Move to bottom of used fuel.
-				}				
+				}
 			}
 
 			// onClickStartButton() is called whenever the start button is pressed.
@@ -876,9 +804,12 @@
 				if (mGameLevel != kPracticeLevel)
 				{
 					mFuelTimer.addEventListener(TimerEvent.TIMER, timerListener);
-				
+					
+					
 					mFuelTimer.reset();	// Reset the timer to run until fuel runs out.
 					mFuelTimer.start(); // Start the timer, now that all variables are set up.
+					flashGasTank['initGasTank'](kTimeLimit * 24);
+					flashGasTank['startDrop']();
 				}
 			}
 			
@@ -960,6 +891,9 @@
 					// Otherwise the user can keep cutting this log.
 					else
 						mArrowSprite.x = newArrowXPosition;	// Move arrow to location just selected.
+						mSawdustSprite.x = mArrowSprite.x;
+						mSawdustSprite.y = mArrowSprite.y+220;
+						//need to create new SawdustSprite() for each cut at the same x location of the cut and y location below log
 					
 					var pieceLength:Number	= 0; // Length of piece player has just cut (in pixels).
 					
@@ -1053,6 +987,8 @@
 				// If mouse is down, cut log at mouseover x position.
 				if (iEvent.buttonDown)
 				{
+					sawdustParticles['startParticleAnim']();//starts emitting particles
+					
 					if (mGameLevel == kFreeCutLevel)
 						cutLogFreely(mLogArray.indexOf(mLogDetails1) + 1, iEvent.localX);	
 					else
@@ -1063,20 +999,7 @@
 					}
 				}				
 			}
-			
-			// onLog1BottomMouseOver() is called when the mouse is over log 1's bottom edge.
-/*			protected function onLog1BottomMouseOver(iEvent:MouseEvent):void
-			{
-				// If mouse is down, cut log 1 at mouseover x position.
-				if (iEvent.buttonDown)
-				{
-					var topToBottom:Boolean = false;	// Cut bottom to top.
 					
-					// Cut log. Pass in log top that is to be cut after this log, if any.
-					cutLogInOrder(mCurrentLog, mLog1, mLog1Bottom, iEvent.localX, mLeftToRight, topToBottom, mLog2Bottom);	
-				}				
-			}
-*/			
 			// onLog1TopMouseDown() is called when the mouse is clicked on log 1's top edge.
 			protected function onLog1TopMouseDown(iEvent:MouseEvent):void
 			{
@@ -1091,15 +1014,6 @@
 				}
 			}
 			
-/*			// onLog1BottomMouseDown() is called when the mouse is clicked on log 1's bottom edge.
-			protected function onLog1BottomMouseDown(iEvent:MouseEvent):void
-			{
-				var topToBottom:Boolean = false;	// Cut bottom to top.
-
-				// Cut log. Pass in log top that is to be cut after this log, if any.
-				cutLogInOrder(mCurrentLog, mLog1, mLog1Bottom, iEvent.localX, mLeftToRight, topToBottom, mLog2Bottom);	
-			}
-*/			
 			// onLog2TopMouseOver() is called when the mouse is over log 1's top edge.
 			protected function onLog2TopMouseOver(iEvent:MouseEvent):void
 			{
@@ -1116,20 +1030,7 @@
 					}
 				}
 			}
-			
-			// onLog2BottomMouseOver() is called when the mouse is over log 1's bottom edge.
-/*			protected function onLog2BottomMouseOver(iEvent:MouseEvent):void
-			{
-				// If mouse is down, cut log 2 at mouseover x position.
-				if (iEvent.buttonDown)
-				{
-					var topToBottom:Boolean = false; 	// Cut bottom to top.
 					
-				// Cut log. Pass in log top that is to be cut after this log, if any.
-					cutLogInOrder(mCurrentLog, mLog2, mLog2Bottom, iEvent.localX, mLeftToRight, topToBottom, null);	
-				}
-			}
-*/			
 			// onLog2TopMouseDown() is called when the mouse is clicked on log 2's top edge.
 			protected function onLog2TopMouseDown(iEvent:MouseEvent):void
 			{
@@ -1144,16 +1045,6 @@
 				}
 			}
 			
-			// onLog2BottomMouseDown() is called when the mouse is clicked on log 2's bottom edge.
-/*			protected function onLog2BottomMouseDown(iEvent:MouseEvent):void
-			{
-				// Cut log. Pass in log top that is to be cut after this log, if any.
-				var topToBottom:Boolean = false; 	// Cut bottom to top.
-
-				cutLogInOrder(mCurrentLog, mLog2, mLog2Bottom, iEvent.localX, mLeftToRight, topToBottom, null);	
-				
-			}
-*/			
 			// onLog3TopMouseOver() is called when the mouse is over log 3's slider.
 			protected function onLog3TopMouseOver(iEvent:MouseEvent):void
 			{
@@ -1234,7 +1125,36 @@
 			{
 				chooseGameLevel();
 			}
+			
 
+			//initialize Tristan's gas tank SWF
+			protected function initGasTank():void{
+				flashGasTank = mFuelIcon.content as MovieClip;
+			}
+			
+			protected function initLog1():void{
+				dynamicLog1 = mDynamicLog.content as MovieClip;
+			}
+			
+			protected function initParticles():void
+			{
+				sawdustParticles = mSawdustParticles.content as MovieClip;
+				sawdustParticles['stopParticleAnim']();
+				addEventListener(MouseEvent.MOUSE_MOVE, mouseMoved);
+				addEventListener(MouseEvent.ROLL_OUT, mouseReleased);
+			}
+			
+			protected function mouseMoved(event:MouseEvent):void
+			{
+				sawdustParticles.x = event.stageX;
+				sawdustParticles.y = event.stageY;
+				sawdustParticles.enabled = false;
+				//sawdustParticles['mouseFollow'](event);
+			}
+			protected function mouseReleased(event:MouseEvent):void
+			{
+				sawdustParticles['stopParticleAnim']();
+			}
 		]]>
 	</fx:Script>
 
@@ -1248,6 +1168,7 @@
 	<s:Button			id="mStopButton" x="18.5" y="484" label="Stop" enabled="false" click="onClickStopButton(event)" fontWeight="bold" fontSize="14" width="90" height="29"/>
 	<s:Button			id="mChangeLevelButton" x="18.5" y="519" label="Change Level" enabled="true" click="onClickChangeLevelButton(event)" fontWeight="bold" fontSize="12" width="100" height="29" chromeColor="#4E8E54"/>
 	<s:BorderContainer	id="mLogYardContainer" x="15" y="147" width="597" height="324" backgroundColor="#EAD1AA">
+		<s:SWFLoader		id="mDynamicLog" x="54" y="38" source="../src/assets/DynamicLog.swf" complete="initLog1()"/>
 		<s:BorderContainer	id="mLog1" x="54" y="38" width="337" height="35" backgroundColor="#C09256" borderVisible="false"/>
 		<s:BorderContainer	id="mLog1Top" x="54" y="38" width="337" height="5" backgroundColor="#764D13" borderVisible="false" visible="true" mouseOver="onLog1TopMouseOver(event)" mouseDown="onLog1TopMouseDown(event)" backgroundAlpha="1.0" enabled = "false"/>
 		<!-- 	<s:BorderContainer	id="mLog1Bottom" x="56" y="{100+35}" width="337" height="5" backgroundColor="#C09256" borderVisible="false" visible="true" mouseOver="onLog1BottomMouseOver(event)" mouseDown="onLog1BottomMouseDown(event)" backgroundAlpha="0.0"/> -->
@@ -1266,15 +1187,14 @@
 	<s:BorderContainer	id="mAcceptedPiecesBox" x="465" y="513" width="75" height="35" borderWeight="2" dropShadowVisible="true">
 		<s:Label			id="mAcceptedPiecesValue" x="10" y="8" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="51" textAlign="center" visible="false"/>
 	</s:BorderContainer>
-	<s:Label			id="mReferenceLengthLabel" x="195" y="486" text="Reference Length" fontSize="16" fontWeight="bold"/>
-	<s:BorderContainer	id="mSawFuelContainer" x="510.5" y="13" width="65" height="120" contentBackgroundColor="#000000" dropShadowVisible="false" borderColor="#000000" borderVisible="true" borderWeight="{kFuelBorderWeight}"/>
+	
+	<s:Label			id="mReferenceLengthLabel" x="205" y="486" text="Target Length" fontSize="16" fontWeight="bold"/>
 	<mx:Image			id="mReferenceLengthImage" x="223" y="515" source="{mLengthImage}"/>
-	<s:Label			id="mFuelLevelLabel" x="474" y="133" text="FUEL LEVEL" rotation="-90" fontWeight="bold" fontSize="18" height="19" width="120" textAlign="center" color="#377F2F" alpha="0.25"/>
-	<s:Label			id="mFuelMeasureTop" x="491" y="10" text="40-" textAlign="right" fontFamily="Courier New"/>
-	<s:Label			id="mFuelMeasureHigh" x="491" y="39.75" text="30-" textAlign="right" fontFamily="Courier New"/>
-	<s:Label			id="mFuelMeasureMiddle" x="491" y="69.5" text="20-" textAlign="right" fontFamily="Courier New"/>
-	<s:Label			id="mFuelMeasureLow" x="491" y="99.25" text="10-" textAlign="right" fontFamily="Courier New"/>
-	<s:Label			id="mFuelMeasureBottom" x="491" y="129" text=" 0-" textAlign="right" fontFamily="Courier New"/>
+	<mx:Image			id="mReferenceLengthImage2" x="223" y="515" source="{mTapeMeasureImage}"/>
+	
+	<s:SWFLoader 		id="mFuelIcon" x="497" y="21" width="106" height="118" source="../src/assets/GasTank.swf" complete="initGasTank()"/>
+	<s:SWFLoader		id="mSawdustParticles" x="0" y="0" width="100" height="100" source="../src/assets/particles.swf" complete="initParticles()"/>
+	
 	<s:Label			id="mPlayersNameLabel" x="140.5" y="100.5" text="PLAYER'S NAME:" fontFamily="Arial" fontSize="16" fontWeight="bold" color="#7B9453"/>
 	<s:TextInput		id="mPlayerTextInput" x="281" y="94" width="132" text="Player" color="#7B9453" fontSize="16" enabled="true" change="onChangePlayerTextInput(event)" textAlign="left" fontWeight="bold"/>
 </s:Application>
