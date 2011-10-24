@@ -55,7 +55,8 @@ window.Chainsaw = (function(){
       finished: new Audio("assets/stop.mp3")
     }
 
-    var self = this;
+    var self = this; // Not a big fan of the fact that we have to do this,
+                     // can't really find a better solution for now though
     this.levelSelect = {
       container: $('#overlay'),
       buttons: $('#levelselect input[type=button]').click(function(){
@@ -63,9 +64,7 @@ window.Chainsaw = (function(){
       })
     }
       
-    
-
-    this.generateLogs();
+    this .generateLogs();
 
   };
 
@@ -75,6 +74,7 @@ window.Chainsaw = (function(){
   }
 
   Chainsaw.prototype.startGame = function(){
+    if(this.game.inProgress) this.endGame()
     this.fuel.current = this.fuel.initial;
     this.fuel.timer = setInterval(function(){ this.timerStep(); }.bind(this), 200);
     this.game.inProgress = true;
@@ -85,7 +85,6 @@ window.Chainsaw = (function(){
   };
 
   Chainsaw.prototype.timerStep = function(){
-    console.log(this);
     this.fuel.current = this.fuel.current - 1.4;
     this.ui.fuelTank.height(this.fuel.current);
     if(this.fuel.current <= 0){
@@ -94,7 +93,7 @@ window.Chainsaw = (function(){
   }
 
   Chainsaw.prototype.endGame = function(){
-    if(!this.game.inProgress){ return false; }
+    if(!this.game.inProgress) return; 
     clearInterval(this.fuel.timer);
     this.game.inProgress = false;
     this.analyzeCuts();
@@ -120,7 +119,7 @@ window.Chainsaw = (function(){
         x: randomX,
         y: 75 * i + 40,
         cuts: [],
-        active: (i == 0) ? true : false,
+        active: (i == 0 || this.game.level == 'free') ? true : false,
         direction: (i % 2 == 0) ? 'right' : 'left',
         lastCut: (i % 2 == 0) ? 0 : randomWidth,
         cutSurface: null
@@ -162,18 +161,20 @@ window.Chainsaw = (function(){
 
   // this function handles mouse movement over the cutting area
   Chainsaw.prototype.tryCut = function(e){
-    if(e.which != 1 || !this.game.inProgress){ return null; } // We only care if the mouse is down and the game is in progress
+    if(e.which != 1 || !this.game.inProgress) return;  // We only care if the mouse is down and the game is in progress
 
     var x = e.offsetX,
         y = e.offsetY;
          
     $.each(this.logs.list, function(i,log){
-      if(x > log.x && x < (log.x + log.width) && y > log.y-5 && y < log.y + 15 && log.active){ // Fits within a cut boundary
+      if(x > log.x && x < (log.x + log.width) && 
+         y > log.y-5 && y < log.y + 15 && log.active){ // Fits within a cut boundary
 
+          
         if((log.direction == 'right' && x < log.lastCut) ||
            (log.direction == 'left' && x > log.lastCut)){
           console.log("Invalid cut direction");
-          return false; // You're cutting in the wrong direction
+          if(this.game.level != 'free') return false; // You're cutting in the wrong direction
         }
 
         // It' a cut!
@@ -187,7 +188,7 @@ window.Chainsaw = (function(){
 
         // Now let's see if it's time to move to the next log
         if(this.game.level != 'free' && i != this.logs.count - 1){
-          if((log.direction == 'right' && (log.x + log.width - x) < 80) ||
+          if((log.direction == 'right' && (log.x + log.width - x) < 80) || // TODO real number here
              (log.direction == 'left' && (x - log.x) < 80)){ // We're getting pretty close to the edge
             log.active = false;
             log.cutSurface.hide();
@@ -211,17 +212,20 @@ window.Chainsaw = (function(){
       log.cuts = log.cuts.sort(function(a,b){ return a-b; }); // Sort the cuts in ascending order
 
       $.each(log.cuts, function(j, cut){
+        var labelX = (cut+previousCut)/2, 
+            labelY = log.y + 18; // The x and y position of the checkmark/X labels
+
         if(Math.abs((cut - previousCut) - this.referenceLog.length) < this.referenceLog.tolerance){
           // The cut was valid
 
-          this.paper.text((cut+previousCut)/2, log.y + 18, "✓")
+          this.paper.text(labelX, labelY, "✓")
                     .attr({ fill: '#00FF00', 'font-size': 16 });
 
           accepted++; 
           
         }else{ 
           // invalid cut
-          this.paper.text((cut+previousCut)/2, log.y + 18, "X")
+          this.paper.text(labelX, labelY, "X")
                     .attr({ fill: 'red', 'font-size': 16});
         }
         previousCut = cut;
