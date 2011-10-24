@@ -76,7 +76,7 @@ window.Chainsaw = (function(){
   Chainsaw.prototype.startGame = function(){
     if(this.game.inProgress) this.endGame()
     this.fuel.current = this.fuel.initial;
-    this.fuel.timer = setInterval(function(){ this.timerStep(); }.bind(this), 200);
+    if(this.game.level != 'practice') this.fuel.timer = setInterval(function(){ this.timerStep(); }.bind(this), 200);
     this.game.inProgress = true;
     this.generateLogs();
     this.ui.acceptedCuts.html('0');
@@ -94,7 +94,7 @@ window.Chainsaw = (function(){
 
   Chainsaw.prototype.endGame = function(){
     if(!this.game.inProgress) return; 
-    clearInterval(this.fuel.timer);
+    if(this.game.level != 'practice') clearInterval(this.fuel.timer);
     this.game.inProgress = false;
     this.analyzeCuts();
     this.canvasEl.removeClass('active');
