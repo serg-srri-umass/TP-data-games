@@ -35,7 +35,16 @@ window.Chainsaw = (function(){
       cutDownArrow: null,
       cutEdgeLabel1: null,
       cutEdgeLabel2: null,
-      levelLabel: null,
+      levelLabel: (function(){ 
+        var niceName = function(){switch(this.game.level){ 
+          case 'free': return "Free cut"; break;
+          case 'practice': return "Practice Level"; break;
+          case 'directional': return "Directional Cut Level"; break;
+        }}.bind(this)();
+        this.paper.text(this.paper.width/2, this.paper.height - 20, niceName)
+                  .attr({ fill: '#000', 'font-size': 16 })
+      }.bind(this)),
+
       fuelTank: $('#fuel #tank #contents'),
       startButton: $("#startButton").click(function(){
         this.startGame();
@@ -64,7 +73,7 @@ window.Chainsaw = (function(){
       })
     }
       
-    this .generateLogs();
+    this.generateLogs();
 
   };
 
@@ -75,6 +84,12 @@ window.Chainsaw = (function(){
 
   Chainsaw.prototype.startGame = function(){
     if(this.game.inProgress) this.endGame()
+
+    // UI Stuff
+    this.ui.startButton.attr('disabled', 'disabled');
+    this.ui.stopButton.removeAttr('disabled');
+    this.ui.changeLevelButton.attr('disabled', 'disabled');
+
     this.fuel.current = this.fuel.initial;
     if(this.game.level != 'practice') this.fuel.timer = setInterval(function(){ this.timerStep(); }.bind(this), 200);
     this.game.inProgress = true;
@@ -94,6 +109,10 @@ window.Chainsaw = (function(){
 
   Chainsaw.prototype.endGame = function(){
     if(!this.game.inProgress) return; 
+    this.ui.startButton.removeAttr('disabled');
+    this.ui.stopButton.attr('disabled', 'disabled');
+    this.ui.changeLevelButton.removeAttr('disabled');
+
     if(this.game.level != 'practice') clearInterval(this.fuel.timer);
     this.game.inProgress = false;
     this.analyzeCuts();
@@ -129,14 +148,23 @@ window.Chainsaw = (function(){
       this.logs.list[i].cuts.push(this.logs.list[i].width + this.logs.list[i].x);
     }
 
-    this.renderLogs();
+    this.render();
     
+  };
+
+  Chainsaw.prototype.render = function(){
+    this.paper.clear();
+    this.renderLogs();
+    this.renderLabels();  
+  };
+  
+  Chainsaw.prototype.renderLabels = function(){
+    this.ui.levelLabel(); //TODO fix -- not okay
+    this.ui.cutDownArrow = this.paper.image("assets/Down\ Arrow\ Small.png", 0, 0, 20, 33)
+                                     .attr({ x: this.logs.list[0].x-10, y: this.logs.list[0].y-33});
   };
   
   Chainsaw.prototype.renderLogs = function(){
-
-    this.paper.clear();
-
     var svgLogs = this.paper.set(); // A Raphael set of the log elements
 
     // Loop through the logs
@@ -153,10 +181,6 @@ window.Chainsaw = (function(){
     }.bind(this));
 
     svgLogs.attr({ fill: this.logs.color });
-
-    this.ui.cutDownArrow = this.paper.image("assets/Down\ Arrow\ Small.png", 0, 0, 20, 33)
-                                     .attr({ x: this.logs.list[0].x-10, y: this.logs.list[0].y-33});
-    
   };
 
   // this function handles mouse movement over the cutting area
@@ -166,15 +190,14 @@ window.Chainsaw = (function(){
     var x = e.offsetX,
         y = e.offsetY;
          
-    $.each(this.logs.list, function(i,log){
+    $.each(this.logs.list, function(i,log){               // Loop through each log, and:
       if(x > log.x && x < (log.x + log.width) && 
-         y > log.y-5 && y < log.y + 15 && log.active){ // Fits within a cut boundary
+         y > log.y-5 && y < log.y + 15 && log.active){    // - Test that it fits within a cut boundary
 
-          
         if((log.direction == 'right' && x < log.lastCut) ||
-           (log.direction == 'left' && x > log.lastCut)){
+           (log.direction == 'left' && x > log.lastCut)){ // - Test that we're cutting in the right direction
           console.log("Invalid cut direction");
-          if(this.game.level != 'free') return false; // You're cutting in the wrong direction
+          if(this.game.level != 'free') return false; 
         }
 
         // It' a cut!
@@ -201,6 +224,10 @@ window.Chainsaw = (function(){
 
       }
     }.bind(this));
+
+  };
+
+  Chainsaw.prototype.finishCut = function(log, x){ //TODO
 
   };
 

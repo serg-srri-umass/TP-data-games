@@ -102,6 +102,7 @@ input[type=button]{
   width:75px;
   height:25px;
   border-bottom:3px solid #000;
+  margin:auto;
 }
 #nav{
   width:200px;
@@ -110,6 +111,7 @@ input[type=button]{
 #info{
   width:200px;
   float:left;
+  text-align:center;
 }
 #stats{
   width:200px;
