@@ -15,6 +15,7 @@ package common
 		}
 		
 		// Taken from http://blog.controul.com/2009/04/standard-normal-distribution-in-as3/ on 11/19/2010
+		// No copyright information found on website.
 		/**
 		 *	Seeds the prng.
 		 */
