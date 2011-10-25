@@ -372,20 +372,39 @@
 			//called by directionalCutLevel() and freeCutLevel()
 			private function createCollection(collection1:String, collection2:String):void
 			{
-				// Create collection for individual cut pieces.
-				ScriptInterface.NewCollectionWithAttributes(
-					collection1,
-					[
-						"PieceNumber",		// Piece number starting with 1 since launch of application.
-						"Player",			// Name of the player.
-						"GameNumber",		// Game number starting with 1 since launch of application.
-						"Length",			// Length of cut piece.
-						"Accepted",			// True if cut piece is within accepted range of cut length.
-						"LogNumber",		// Number of log from which piece was cut.
-						"FuelLeftAmount",	// Raw amount of fuel left at the time of piece creation.
-						"FuelLeftPercent"	// Percent of fuel left at the time of piece creation.
-					]
-				);
+				if(collection1==kCollectionDirCutPieces){//has the extra attribute, isEndPiece
+					// Create collection for individual cut pieces.
+					ScriptInterface.NewCollectionWithAttributes(
+						collection1,
+						[
+							"PieceNumber",		// Piece number starting with 1 since launch of application.
+							"Player",			// Name of the player.
+							"GameNumber",		// Game number starting with 1 since launch of application.
+							"Length",			// Length of cut piece.
+							"Accepted",			// True if cut piece is within accepted range of cut length.
+							"EndPiece",			// Yes if this piece is an end piece.
+							"LogNumber",		// Number of log from which piece was cut.
+							"FuelLeftAmount",	// Raw amount of fuel left at the time of piece creation.
+							"FuelLeftPercent"	// Percent of fuel left at the time of piece creation.
+						]
+					);
+				}
+				else {
+					// Create collection for individual cut pieces.
+					ScriptInterface.NewCollectionWithAttributes(
+						collection1,
+						[
+							"PieceNumber",		// Piece number starting with 1 since launch of application.
+							"Player",			// Name of the player.
+							"GameNumber",		// Game number starting with 1 since launch of application.
+							"Length",			// Length of cut piece.
+							"Accepted",			// True if cut piece is within accepted range of cut length.
+							"LogNumber",		// Number of log from which piece was cut.
+							"FuelLeftAmount",	// Raw amount of fuel left at the time of piece creation.
+							"FuelLeftPercent"	// Percent of fuel left at the time of piece creation.
+						]
+					);
+				}
 				
 				// Create collection for each game.
 				ScriptInterface.NewCollectionWithAttributes(
@@ -506,10 +525,14 @@
 					var fuelLeftPercent:Number		= fuelLeftFraction * 100;
 					var pieceNumber:uint 			= iPieceNumber == 0 ? mPieceNumber : iPieceNumber;
 					
+					var collectionName:String;
+					
 					// Send info on cut pieces to TinkerPlots/Fathom.
 					if (mGameLevel == kDirectionalCutLevel)
 					{
 						var isEnd:String 			= iIsEndPiece ? "Yes" : "No";
+						
+						collectionName = kCollectionDirCutPieces;//TODO replace these AddCaseToCollectionWithValues() calls with a single one
 						
 						ScriptInterface.AddCaseToCollectionWithValues(
 							kCollectionDirCutPieces, 
@@ -529,6 +552,8 @@
 					}
 					else
 					{
+						collectionName = kCollectionFreeCutPieces;//TODO
+						
 						ScriptInterface.AddCaseToCollectionWithValues(
 							kCollectionFreeCutPieces, 
 							[
@@ -599,19 +624,7 @@
 										mLogArray[ii][2][j].mCutX,	// X cut location on log. 0 if end piece.
 										mLogArray[ii][2][j].mCutNumber// Cut number. 
 									);
-									
-/*							recordPieceStatus(	
-								length,						// Piece length.
-								ii + 1, 					// Number of log (1 is at top).
-								isEnd, 						// True if end piece.
-								leftToRight,				// True if cutting left to right.
-								prevCut == 0,				// True if measuring on new log for first time.
-								mLogArray[ii][2][j].mFuelUsed,// Raw fuel left at the time of piece creation.
-								prevCut,					// Cut before this cut or game end.
-								mLogArray[ii][2][j].mCutX,	// X cut location on log. 0 if end piece.
-								pieceNumber					// Piece number. 
-								);
-*/							
+							
 							pieceStatusArray.push(pieceStatus);
 							prevCut = mLogArray[ii][2][j].mCutX;	// Save previous cut position.
 							
@@ -637,19 +650,6 @@
 										mLogArray[ii][2][j].mCutNumber// Cut number.  
 									);
 								
-								// Transmit to TinkerPlots/Fathom.
-/*								recordPieceStatus(	
-									lastLength,					// Piece length.
-									ii + 1, 					// Number of log (1 is at top).
-									isEnd, 						// True if end piece.
-									leftToRight,				// True if cutting left to right.
-									false,						// True if measuring on new log for first time.
-									mLogArray[ii][2][j].mFuelUsed, // Raw fuel left at the time of piece creation.
-									prevCut,					// Cut before this cut or game end.
-									0,							// X cut location on log. 0 if end piece.
-									pieceNumber					// Piece number. 
-								);
-*/								
 								pieceStatusArray.push(endPieceStatus);
 							}
 						}
