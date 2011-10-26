@@ -154,6 +154,11 @@
 			[Embed("../src/assets/Chainsaw Engine Stops no Fade In.mp3")]
 			private var EngineStopsMP3:Class;
 			private var mEngineStopsSound:SoundAsset = new EngineStopsMP3() as SoundAsset;
+			
+			
+			[Embed("../src/assets/Chainsaw Sound Longer.mp3")]
+			private var ChainsawSoundMP3:Class;
+			private var mChainsawSound2:SoundAsset = new ChainsawSoundMP3() as SoundAsset;
 
 			// startUp() is called when the creation of this class is complete
 			// and sets up necessary parameters for game initiation.
@@ -362,11 +367,6 @@
 					createCollection(kCollectionFreeCutPieces, kCollectionFreeCutGames);
 					mFreeCutCollectionCreated = true;
 				}
-			}
-			
-			private function genericLevel(iEvent:Event):void
-			{
-				
 			}
 			
 			//called by directionalCutLevel() and freeCutLevel()
@@ -1149,9 +1149,18 @@
 				sawdustParticles.x = event.stageX;
 				sawdustParticles.y = event.stageY;
 				sawdustParticles.enabled = false;
-				//sawdustParticles['mouseFollow'](event);
+				sawdustParticles['mouseFollow'](event);
 			}
 			protected function mouseReleased(event:MouseEvent):void
+			{
+				sawdustParticles['stopParticleAnim']();
+			}
+			protected function mouseOverLog(event:MouseEvent):void
+			{
+				if(event.buttonDown)
+					sawdustParticles['startParticleAnim']();
+			}
+			protected function mouseOutLog(event:MouseEvent):void
 			{
 				sawdustParticles['stopParticleAnim']();
 			}
@@ -1169,7 +1178,7 @@
 	<s:Button			id="mChangeLevelButton" x="18.5" y="519" label="Change Level" enabled="true" click="onClickChangeLevelButton(event)" fontWeight="bold" fontSize="12" width="100" height="29" chromeColor="#4E8E54"/>
 	<s:BorderContainer	id="mLogYardContainer" x="15" y="147" width="597" height="324" backgroundColor="#EAD1AA">
 		<s:SWFLoader		id="mDynamicLog" x="54" y="38" source="../src/assets/DynamicLog.swf" complete="initLog1()"/>
-		<s:BorderContainer	id="mLog1" x="54" y="38" width="337" height="35" backgroundColor="#C09256" borderVisible="false"/>
+		<s:BorderContainer	id="mLog1" x="54" y="38" width="337" height="35" backgroundColor="#C09256" borderVisible="false" mouseOver="mouseOverLog(event)" mouseOut="mouseOutLog(event)"/>
 		<s:BorderContainer	id="mLog1Top" x="54" y="38" width="337" height="5" backgroundColor="#764D13" borderVisible="false" visible="true" mouseOver="onLog1TopMouseOver(event)" mouseDown="onLog1TopMouseDown(event)" backgroundAlpha="1.0" enabled = "false"/>
 		<!-- 	<s:BorderContainer	id="mLog1Bottom" x="56" y="{100+35}" width="337" height="5" backgroundColor="#C09256" borderVisible="false" visible="true" mouseOver="onLog1BottomMouseOver(event)" mouseDown="onLog1BottomMouseDown(event)" backgroundAlpha="0.0"/> -->
 		<s:BorderContainer	id="mLog2" x="133" y="107" width="394" height="35" backgroundColor="#C09256" borderVisible="false"/>
