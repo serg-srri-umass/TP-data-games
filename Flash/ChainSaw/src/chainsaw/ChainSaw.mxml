@@ -186,6 +186,7 @@
 				mArrowSprite.graphics.endFill();
 				mArrowSprite.x = mLogArray[0][0].x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of first log.
 				mArrowSprite.y = mLogArray[0][0].y - mArrowBitmapData.height;			// Start at top edge of first log.
+				mArrowSprite.visible = false;
 				mLogYardContainer.addElement(mArrowSprite);
 				
 				// Create a modal and display game level modal dialog.
@@ -496,7 +497,7 @@
 					// Send info on cut pieces to TinkerPlots/Fathom.
 					if (mGameLevel == kDirectionalCutLevel)
 					{
-						var isEnd:String 			= iIsEndPiece ? "Yes" : "No";
+						var isEnd:String = iIsEndPiece ? "Yes" : "No";
 						
 						ScriptInterface.AddCaseToCollectionWithValues(
 							kCollectionDirCutPieces, 
@@ -510,7 +511,6 @@
 								iLogNumber,			// Number of log from which piece was cut.
 								fuelLeftAmount,		// Raw fuel left at the time of piece creation.
 								fuelLeftPercent		// Percent of fuel left at the time of piece creation.
-
 							]	
 						);
 					}
@@ -537,10 +537,14 @@
 			// endGame() performs all operations necessary when game is complete.
 			protected function endGame():void
 			{
-				dynamicLog1.enabled = false;
+				dynamicLog1.enabled = false;//disable all logs from being cut
 				dynamicLog2.enabled = false;
 				dynamicLog3.enabled = false;
 				dynamicLog4.enabled = false;
+				
+				mStatusLabelHolder.visible=true;//show all status labels
+				mArrowSprite.visible = false; //hide cut place arrow if it is shown
+				
 				if (mGameLevel != kPracticeLevel)
 				{
 					flashGasTank['pauseDrop']();
@@ -551,7 +555,7 @@
 				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
 				mChainsawSound.stop();							// Stop playing chainsaw sound.
 				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
-				mStatusLabelHolder.visible=true;
+				
 				
 				if (mGameLevel == kFreeCutLevel)
 				{
@@ -688,7 +692,7 @@
 				
 				if (mGameLevel != kPracticeLevel)
 				{
-				var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates);
+					var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates);
 					var fuelLeftAmount:Number	= fuelLeftFraction * kFuelCapacity;
 					var fuelLeftPercent:Number	= fuelLeftFraction * 100;
 					var gameCollectionName:String	
@@ -735,6 +739,7 @@
 				mPiecesRejected		= 0;	// Reset number of cut pieces rejected.
 				mLeftToRight		= true;	// Begin cutting left to right.
 				mCutNumber			= 0;	// Reset cut number.
+				mArrowSprite.visible = true;
 				
 				// Randomize log array, but not for first game, as it's already random.
 				if (!mFirstGame)
@@ -771,6 +776,7 @@
 					dynamicLog2.enabled = true;
 					dynamicLog3.enabled = true;
 					dynamicLog4.enabled = true;
+					mArrowSprite.visible = false;
 				}
 			}
 			
@@ -819,7 +825,7 @@
 							mArrowSprite.y = iNextLog.y - mArrowBitmapData.height - 7;		// Start at top edge of next log.
 							mArrowSprite.x = iNextLog.x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of next log.
 							if (iNextLog['getCutDirection']()<0)
-								mArrowSprite.x = iNextLog.width+iNextLog.x;	// Move to right end of log if just cut left to right.
+								mArrowSprite.x = iNextLog.width+iNextLog.x - (mArrowBitmapData.width / 2);	// Move to right end of log if just cut left to right.
 							
 							// Move "Cut Edge" labels to next log.
 							mCutEdgeLeftLabel.x		= iNextLog.x + kCutEdgeLeftXOffset;
@@ -836,7 +842,7 @@
 						pieceLength = Math.abs(iLocalX - mLastCutX);
 					else
 					{
-						if (iLeftToRight)
+						if (iLeftToRight>0)
 							pieceLength = iLocalX;				// First cut from left edge of log.
 						else
 							pieceLength = iLog.width - iLocalX;	// First cut from right edge of log.
@@ -867,7 +873,7 @@
 							mFuelUsed,		// Raw fuel used at the time of piece creation.
 							iLocalX);		// Cut before this cut or game end.
 						
-						mLeftToRight = !mLeftToRight;	// Was end piece, so next log cuts in opposite direciton.
+						//mLeftToRight = !mLeftToRight;	// Was end piece, so next log cuts in opposite direciton.
 						
 						if(iNextLog == null){			// If no other log to cut and this is an end piece, end game
 							endGame();
