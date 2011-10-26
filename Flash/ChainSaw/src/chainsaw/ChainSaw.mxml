@@ -9,6 +9,8 @@
 		<![CDATA[
 			import chainsaw.GameLevelWindow;
 			
+			import flash.media.SoundMixer;
+			
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
 			import mx.core.SoundAsset;
