@@ -9,9 +9,9 @@
 		<![CDATA[
 			import chainsaw.GameLevelWindow;
 			
-			import flash.media.SoundMixer;
-			
 			import com.kcpt.scriptInterface.ScriptInterface;
+			
+			import flash.media.SoundMixer;
 			
 			import mx.core.SoundAsset;
 			import mx.core.UIComponent;
@@ -143,6 +143,11 @@
 			[Embed(source="../assets/sawdust_pile.png")]
 			[Bindable]
 			private var mSawdustPile:Class;
+			
+			//Embed volume icon
+			[Embed(source="../assets/volume_icon.png")]
+			[Bindable]
+			private var mVolumeIcon:Class;
 			
 			// From http://www.hark.com/clips/dvghjtvdvr-chainsaw-clip on 12/11/2010
 			// Converted from .m4a format to .mp3.
@@ -340,7 +345,6 @@
 							"FuelLeftPercent"	// Percent of fuel left at the time of piece creation.
 						]
 					);
-					
 					
 					// Create collection for each game.
 					ScriptInterface.NewCollectionWithAttributes(
@@ -1049,15 +1053,6 @@
 				var offsetY:Number = e.localY - e.currentTarget.content.y;
 				e.currentTarget.content['midLogMod'](offsetX,offsetY);
 			}
-
-			//initialize Tristan's gas tank SWF
-			protected function initGasTank():void{
-				flashGasTank = mFuelIcon.content as MovieClip;
-			}
-			
-			protected function initLog1():void{
-				dynamicLog1 = mDynamicLog.content as MovieClip;
-			}
 			
 			protected function initParticles():void
 			{
@@ -1108,6 +1103,8 @@
 		<s:Label			id="mCutEdgeRightLabel" x="0" y="0" text="- Cut Log" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="left"/>
 		<s:Label			id="mCutEdgeLeftLabel" x="0" y="0" text="Cut Log -" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="right"/>
 		<s:Label x="-1" y="296" text="PRACTICE LEVEL" width="597" textAlign="center" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" fontStyle="normal" id="mLevelLabel" color="#1C7B56"/>
+		<s:HSlider			id="mVolumeSlider" x="505" y="305" width="80" maximum="100" value="100"/>
+			<s:Image		id="mVolumeImage" x="480" y="300" source="{mVolumeIcon}"/>
 	</s:BorderContainer>
 	<s:Label			id="mAcceptedPiecesLabel" x="399" y="486" text="Number of Accepted Pieces" fontSize="16" fontWeight="bold"/>
 	<s:BorderContainer	id="mAcceptedPiecesBox" x="465" y="513" width="75" height="35" borderWeight="2" dropShadowVisible="true">
