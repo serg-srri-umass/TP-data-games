@@ -140,25 +140,12 @@
 			[Bindable]
 			private var mFuelArrowImage:Class;
 			
-			// From http://www.hark.com/clips/dvghjtvdvr-chainsaw-clip on 12/11/2010
-			// Converted from .m4a format to .mp3.
-//			[Embed("../src/assets/Chainsaw Sound.mp3")]
-			// From http://www.pacdv.com/sounds/machine_sound_effects/chain-saw-2.mp3 on 12/12/2010
-			// Use info from site follows: (10/14/2011)
-			// 	"You may use the sound effects on this web site free of charge in your video, film, 
-			//	audio and multimedia productions (but do not re-sell them or post on a web site for download)."
-			// Using most of clip but not when engine shuts down.
-			[Embed("../src/assets/Chainsaw Sound Longer.mp3")]
-			private var ChainsawMP3:Class;
-			
-			// From http://www.pacdv.com/sounds/machine_sound_effects/chain-saw-2.mp3 on 12/12/2010
-			// Use info from site follows: (10/14/2011)
-			// 	"You may use the sound effects on this web site free of charge in your video, film, 
-			//	audio and multimedia productions (but do not re-sell them or post on a web site for download)."
+			// Embed the sound of a chainsaw shutting down.
 			// Using only end of clip when engine shuts down.
-			[Embed("../src/assets/Chainsaw Engine Stops no Fade In.mp3")]
-			private var EngineStopsMP3:Class;
-			private var mEngineStopsSound:SoundAsset = new EngineStopsMP3() as SoundAsset;
+			// Commented out until a copyright-free sound is recorded.
+//			[Embed("../src/assets/Chainsaw Engine Stops no Fade In.mp3")]
+//			private var EngineStopsMP3:Class;
+//			private var mEngineStopsSound:SoundAsset = new EngineStopsMP3() as SoundAsset;
 
 			// startUp() is called when the creation of this class is complete
 			// and sets up necessary parameters for game initiation.
@@ -194,7 +181,8 @@
 				mCutEdgeRightLabel.y	= mLogArray[0][1].y + kCutEdgeRightYOffset;
 				
 				// Set sound effect duration to full length of chainsaw sound.
-				mChainsawSound.duration = mChainsawSound.sound.length;
+				// Commented out until a copyright-free sound is recorded.
+//				mChainsawSound.duration = mChainsawSound.sound.length;
 				
 				// Load and draw the bitmap of the cut location arrow.
 				mArrowBitmapData = new mDownArrowImage().bitmapData;
@@ -612,8 +600,9 @@
 				}
 				
 				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
-				mChainsawSound.stop();							// Stop playing chainsaw sound.
-				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
+				// Commented out until copyright-free sounds are recorded.
+//				mChainsawSound.stop();							// Stop playing chainsaw sound.
+//				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
 				
 				if (mGameLevel == kFreeCutLevel)
 				{
@@ -1240,11 +1229,14 @@
 
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<mx:SoundEffect	id="mChainsawSound" source="@Embed(source='../src/assets/Chainsaw Sound Longer.mp3')" repeatCount="{kRepeatSound}"/>
+<!-- 		// Commented out until a copyright-free sound is recorded. -->
+<!--		<mx:SoundEffect	id="mChainsawSound" source="@Embed(source='../src/assets/Chainsaw Sound Longer.mp3')" repeatCount="{kRepeatSound}"/> -->
 	</fx:Declarations>
 	
 	<s:Label			id="mGameTitle" x="38" y="19" text="CHAINSAW" fontSize="60" fontWeight="bold" fontFamily="Georgia" color="#669035" verticalAlign="middle" height="49"/>
-	<s:Button			id="mStartButton" x="18.5" y="93" label="Start" enabled="true" click="onClickStartButton(event)" fontWeight="bold" fontSize="14" width="90" height="29" mouseDownEffect="{mChainsawSound}"/>
+<!--	// mouseDownEffect section of line below is commented out until a copyright-free sound is recorded. -->
+<!--	<s:Button			id="mStartButton" x="18.5" y="93" label="Start" enabled="true" click="onClickStartButton(event)" fontWeight="bold" fontSize="14" width="90" height="29" mouseDownEffect="{mChainsawSound}"/> -->
+	<s:Button			id="mStartButton" x="18.5" y="93" label="Start" enabled="true" click="onClickStartButton(event)" fontWeight="bold" fontSize="14" width="90" height="29"/>
 	<s:Button			id="mStopButton" x="18.5" y="484" label="Stop" enabled="false" click="onClickStopButton(event)" fontWeight="bold" fontSize="14" width="90" height="29"/>
 	<s:Button			id="mChangeLevelButton" x="18.5" y="519" label="Change Level" enabled="true" click="onClickChangeLevelButton(event)" fontWeight="bold" fontSize="12" width="100" height="29" chromeColor="#4E8E54"/>
 	<s:BorderContainer	id="mLogYardContainer" x="15" y="147" width="597" height="324" backgroundColor="#EAD1AA">
