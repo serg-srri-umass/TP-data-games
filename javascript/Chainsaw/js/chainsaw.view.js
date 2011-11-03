@@ -26,8 +26,8 @@ var ChainsawView = function(canvasEl){
     }.bind(this)),
 
     selectLevel: $('#levelselect input[type=button]').click(function(e){
-      this.levelSelected(e.srcElement.dataset.level);
-    }.bind(this))
+      this.levelSelected(e.target.dataset.level);
+    }.bind(this)),
 
   }
 
@@ -41,8 +41,7 @@ var ChainsawView = function(canvasEl){
     nametag: $("#username"),
     levelLabel: null,
     cutDownArrow: null,
-    cutEdge1: null,
-    cutEdge2: null,
+    cutEdges: this.paper.set(), // The "cut edge -" labels on either side
     playerInput: $('#playername'),
     acceptedCuts: $('#accepted'),
     fuelTank: $('#fuel #tank #contents')
@@ -57,6 +56,7 @@ var ChainsawView = function(canvasEl){
   _bind('updateActiveLog', function(e, oldLog, newLog){ this.updateActiveLog(oldLog, newLog); }.bind(this));
   _bind('drawResultLabel', function(e, x, y, valid){ this.drawResultLabel(x,y,valid); }.bind(this));
   _bind('showResults', function(e, r, w){ this.showResults(r,w); }.bind(this));
+  _bind('updateCutPointer', function(e, y, cut){ this.updateCutPointer(y, cut); }.bind(this));
 
   this.clear();
 };
@@ -65,6 +65,7 @@ var ChainsawView = function(canvasEl){
 
 ChainsawView.prototype = {
   clear: function(){
+    this.labels.cutDownArrow = null;
     this.paper.clear();
     this.svgLogs = this.paper.set();
   },
@@ -109,6 +110,25 @@ ChainsawView.prototype = {
     this.labels.fuelTank.height(fuel);
   },
 
+  updateCutPointer: function(y, cut){
+    if(!this.labels.cutDownArrow){
+      this.labels.cutDownArrow = this.paper.image("assets/Down\ Arrow\ Small.png", 0, 0, 20, 33);
+    }
+    this.labels.cutDownArrow.attr({ x: cut-10, y: y -33});
+  },
+
+  updateCutEdgeLabels: function(log){
+    this.labels.cutEdges.forEach(function(e){ e.remove(); });
+
+    var label1 = this.paper.text(0, 0, "cut edge -"),
+        label2 = this.paper.text(0, 0, "- cut edge");
+    label1.attr({x:log.x-8-(label1.node.clientWidth/2), y:log.y});
+    label2.attr({x:log.x+8+log.width+(label2.node.clientWidth/2), y:log.y});
+
+    this.labels.cutEdges.push(label1, label2)
+                        .attr({'font-size':12});
+  },
+
   levelSelected: function(level){
     this.clear();
     this.labels.nametag.html(this.labels.playerInput.val() || "Player");
@@ -117,7 +137,24 @@ ChainsawView.prototype = {
   },
 
   renderLog: function(log){
-    this.svgLogs.push(this.paper.rect(log.x, log.y, log.width, log.height));
+    // Paths as defined by the SVG spec - nice and confusing
+    var newPath = "M"+log.x+","+log.y;
+
+    var segmentCount = Math.floor(Math.random()*(4)+4);
+    var averageWidth = Math.floor(log.width/segmentCount);
+    var currentPosition = log.x; 
+    for(i = 0;i < segmentCount; i++) { // add a new segment to our log 
+      lastPosition = currentPosition; 
+      currentPosition = currentPosition+averageWidth;
+      newPath += "S"+((currentPosition+lastPosition)/2)+","+(log.y-05)+" "+currentPosition+","+log.y;
+    }
+    newPath += "L"+(log.x+log.width)+","+(log.y+log.height);
+    newPath += "L"+log.x+","+(log.y+log.height);
+    newPath += "L"+log.x+","+log.y;
+    console.log(newPath);
+    var newLog = this.paper.path(newPath);
+    this.svgLogs.push(newLog);
+    //this.svgLogs.push(this.paper.rect(log.x, log.y, log.width, log.height));
 
     log.cutSurface = this.paper.rect(log.x, log.y, log.width, 5).mouseover(function(e){
       _trigger('handleMouse', e);
@@ -136,6 +173,7 @@ ChainsawView.prototype = {
   updateActiveLog: function(oldLog, newLog){
     oldLog.cutSurface.hide();
     newLog.cutSurface.show();
+    this.updateCutEdgeLabels(newLog);
   }
 }
 

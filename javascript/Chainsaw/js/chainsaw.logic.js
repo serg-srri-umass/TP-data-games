@@ -42,9 +42,6 @@ ChainsawLogic.prototype = { // Functions
     this.game.inProgress = true;
     this.fuel.current = this.fuel.initial;
     if(this.game.level != 'practice') this.fuel.timer = setInterval(function(){ this.timerStep(); }.bind(this), 100);
-
-    console.log("Game started");
-
   },
 
   timerStep: function(){
@@ -81,6 +78,7 @@ ChainsawLogic.prototype = { // Functions
       
       _trigger('renderLog', [newLog]);
     }
+    if(this.game.level != 'free') _trigger('updateCutPointer', [this.logs.list[0].y, this.logs.list[0].x]);
   },
 
   handleMouse: function(e){
@@ -111,6 +109,8 @@ ChainsawLogic.prototype = { // Functions
     log.cuts.push(x);
     log.lastCut = x;
     
+    if(this.game.level != 'free') _trigger('updateCutPointer', [log.y, x]);
+
     // Now let's see if it's time to move to the next log
     if(this.game.level != 'free' && i != this.logs.count - 1){
       if((log.direction == 'right' && (log.x + log.width - x) < 80) || // TODO real number here
@@ -126,6 +126,11 @@ ChainsawLogic.prototype = { // Functions
   updateActiveLog: function(oldLog, newLog){
     oldLog.active = false;
     newLog.active = true;
+    if(newLog.direction == 'right'){ 
+      _trigger('updateCutPointer', [newLog.y, newLog.x]); 
+    }else{ 
+      _trigger('updateCutPointer', [newLog.y, newLog.x+newLog.width]);
+    }
     _trigger('updateActiveLog', [oldLog, newLog]);
   },
 
