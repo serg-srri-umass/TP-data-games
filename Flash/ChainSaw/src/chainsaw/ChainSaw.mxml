@@ -14,9 +14,9 @@
 			import flash.media.Sound;
 			import flash.media.SoundMixer;
 			
-			import mx.core.SoundAsset;
+//			import mx.core.SoundAsset;
 			import mx.core.UIComponent;
-			import mx.effects.SoundEffect;
+//			import mx.effects.SoundEffect;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
 			import mx.managers.PopUpManager;
@@ -33,7 +33,7 @@
 			public var dynamicLog4:MovieClip;
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
-			public static const kRepeatSound:int		= 0;		// Play sound repeatedly.
+//			public static const kRepeatSound:int		= 0;		// Play sound repeatedly.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
 			public static const kTotalUpdates:Number	= kTimeLimit * kUpdatesPerSecond; // Total number of updates.
 			public static const kUpdateInterval:Number	= 1000 / kUpdatesPerSecond; // Milliseconds between updates.
@@ -44,10 +44,11 @@
 			public static const kCutEdgeRightXOffset:int= 7;		// X offset of right "Cut Edge" Label.
 			public static const kCutEdgeLeftYOffset:int	= -2;		// X offset of left "Cut Edge" Label.
 			public static const kCutEdgeRightYOffset:int= -2;		// X offset of right "Cut Edge" Label.
-			public static const kLogStartY:Number		= 38;		// Starting Y of top log.
-			public static const kLogOffsetY:int			= 69;		// Y offset from previous log.
+//			public static const kLogStartY:Number		= 38;		// Starting Y of top log.
+//			public static const kLogOffsetY:int			= 69;		// Y offset from previous log.
 			public static const kFuelCapacity:Number	= 40;		// Units of fuel when full.
-			//levels
+			
+			// Levels
 			public static const kPracticeLevel:uint		  = 0;		// Practice level.
 			public static const kDirectionalCutLevel:uint = 1;		// Directional cut level.
 			public static const kFreeCutLevel:uint		  = 2;		// Free cut level.
@@ -92,7 +93,7 @@
 			private var mLastLog:uint				= 0;	// Number of log at most recent cut. 1 based. 0 before cuts.
 			private var mLastCutX:Number			= 0;	// X location of most recent cut.
 			private var mLeftToRight:Boolean		= true;	// Current cutting direction of log.
-			private var mStatusArray:Array = new Array;		// Holds status labels put on cut logs.
+//			private var mStatusArray:Array = new Array;		// Holds status labels put on cut logs.
 			private var mPiecesAccepted:uint		= 0;	// Number of cut pieces accepted.
 			private var mPiecesRejected:uint		= 0;	// Number of cut pieces rejected.
 			private var mPlayersName:String			= "Player"; // Stores player's name.
@@ -140,12 +141,12 @@
 			[Bindable]
 			private var mDownArrowImage:Class;
 			
-			//Embed sawdust pile image
+			// Embed sawdust pile image
 			[Embed(source="../assets/sawdust_pile.png")]
 			[Bindable]
 			private var mSawdustPile:Class;
 			
-			//Embed volume icon
+			// Embed volume icon
 			[Embed(source="../assets/volume_icon.png")]
 			[Bindable]
 			private var mVolumeIcon:Class;
@@ -187,8 +188,6 @@
 				mCutEdgeRightLabel.x	= mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
 				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
 				
-				//mChainsawSound2.play();
-				
 				// Load and draw the bitmap of the cut location arrow.
 				mArrowBitmapData = new mDownArrowImage().bitmapData;
 				mArrowSprite.blendMode = "multiply";
@@ -210,7 +209,8 @@
 
 				mLevelWindow = new GameLevelWindow();
 				//chooseGameLevel();
-				//practiceLevel(new Event(Event.INIT));//start game in pratice mode by default
+				
+				// Game starts in pratice mode by default.
 			}
 			
 			// clearGame() resets the game according to the current level and clears remnants of
@@ -521,8 +521,6 @@
 				}
 				else  statusLabel.x = iCutX + (iLength / 2) - (statusLabel.width / 2)+mLogArray[iLogNumber-1][0].x;
 				
-				//mStatusArray.push(statusLabel);	// Add label to array for later display.	
-				//mLogArray[iLogNumber-1][0]addChild(statusLabel);
 				mStatusLabelHolder.addElement(statusLabel);
 				
 				if (mGameLevel != kPracticeLevel)
@@ -731,13 +729,6 @@
 				mAcceptedPiecesValue.text		= mPiecesAccepted.toString();	// Update text to number of accepted pieces.
 				mAcceptedPiecesValue.visible	= true;	// Reveal number of accepted pieces in this game.
 				
-				// Show status labels on each cut piece.
-//				for (var i:Number = 1; i <= mPiecesAccepted + mPiecesRejected; ++ i)
-//				{
-//					var resultLabel:Label = mStatusArray.pop();
-//					resultLabel.visible = true;
-//				}
-				
 				if (mGameLevel != kPracticeLevel)
 				{
 					var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates);
@@ -849,9 +840,7 @@
 				// Only cut in specified direction.
 				if ((iLeftToRight>0 && mArrowSprite.x < newArrowXPosition) || 
 					(iLeftToRight<0 && mArrowSprite.x > newArrowXPosition))
-				{
-					var cutWidth:Number	= 1;	// Pixel width of cut.
-					
+				{					
 					// Calculate distance from end of log in the direction player is cutting.
 					var woodRemaining:Number	= iLeftToRight>0? iLog.width - iLocalX : iLocalX;
 					
@@ -950,24 +939,24 @@
 						return;
 				}
 				
-				var cutWidth:Number	= 1;	// Pixel width of cut.
+//				// Draw cut line vertically.
+//				var logSprite:SpriteVisualElement= new SpriteVisualElement();	
+//				logSprite.graphics.lineStyle(1, 0x000000);
+//				
+//				if (iTopToBottom)
+//				{
+//					logSprite.graphics.moveTo(iLocalX, 0);
+//					logSprite.graphics.lineTo(iLocalX, mLogArray[iLogNumber-1][0].height);
+//				}
+//				else
+//				{
+//					logSprite.graphics.moveTo(iLocalX, mLogArray[iLogNumber-1][0].height);
+//					logSprite.graphics.lineTo(iLocalX, 0);
+//				}
+//				
+//				mLogArray[iLogNumber-1][0].addElement(logSprite); 	// Add cut line to current log's display list.
 				
-				// Draw cut line vertically.
-				var logSprite:SpriteVisualElement= new SpriteVisualElement();	
-				logSprite.graphics.lineStyle(cutWidth, 0x000000);
 				
-				if (iTopToBottom)
-				{
-					logSprite.graphics.moveTo(iLocalX, 0);
-					logSprite.graphics.lineTo(iLocalX, mLogArray[iLogNumber-1][0].height);
-				}
-				else
-				{
-					logSprite.graphics.moveTo(iLocalX, mLogArray[iLogNumber-1][0].height);
-					logSprite.graphics.lineTo(iLocalX, 0);
-				}
-				
-				mLogArray[iLogNumber-1][0].addElement(logSprite); 	// Add cut line to current log's display list.
 				++mCutNumber;										// Increment cut number.
 				// Add X position of cut and fuel used to log's cut list.
 				var cutAndFuelUsed:FuelUsedAtCut = new FuelUsedAtCut(iLocalX, mFuelUsed, mCutNumber);
@@ -1063,11 +1052,11 @@
 				sawdustParticles.x = event.stageX;
 				sawdustParticles.y = event.stageY;
 				sawdustParticles.enabled = false;
-				sawdustParticles['mouseFollow'](event);
+//				sawdustParticles['mouseFollow'](event);
 			}
 			protected function mouseReleased(event:MouseEvent):void
 			{
-				sawdustParticles['stopParticleAnim']();
+//				sawdustParticles['stopParticleAnim']();
 			}
 			protected function mouseOverLog(event:MouseEvent):void
 			{
@@ -1079,7 +1068,7 @@
 				sawdustParticles['stopParticleAnim']();
 			}
 			
-			protected function updateVolume(vol:Number, pan:Number=0):void
+			protected function updateVolume(vol:Number):void
 			{
 				//cannot do: SoundMixer.soundTransform.volume = vol/100;
 				var st:SoundTransform = SoundMixer.soundTransform;
@@ -1091,7 +1080,6 @@
 
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<!-- <mx:SoundEffect	id="mChainsawSound" source="@Embed(source='../src/assets/Chainsaw Sound Longer.mp3')" repeatCount="{kRepeatSound}"/> -->
 	</fx:Declarations>
 	
 	<s:Label			id="mGameTitle" x="38" y="19" text="CHAINSAW" fontSize="60" fontWeight="bold" fontFamily="Georgia" color="#669035" verticalAlign="middle" height="49"/>
