@@ -176,15 +176,6 @@
 				// Create new log array and add log/logtop to array.
 				mLogArray = new Array(mLogDetails1, mLogDetails2, mLogDetails3, mLogDetails4);
 				
-				// Randomize log array.
-				randomizeLogSizePosition();
-				
-				// Move "Cut Edge" labels to first log.
-				mCutEdgeLeftLabel.x		= mLogArray[0][0].x + kCutEdgeLeftXOffset;
-				mCutEdgeLeftLabel.y		= mLogArray[0][0].y + kCutEdgeLeftYOffset;
-				mCutEdgeRightLabel.x	= mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
-				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
-				
 				// Load and draw the bitmap of the cut location arrow.
 				mArrowBitmapData = new mDownArrowImage().bitmapData;
 				mArrowSprite.blendMode = "multiply";
@@ -192,11 +183,14 @@
 				mArrowSprite.graphics.beginBitmapFill(mArrowBitmapData);
 				mArrowSprite.graphics.drawRect(0, 0, mArrowBitmapData.width, mArrowBitmapData.height);
 				mArrowSprite.graphics.endFill();
-				mArrowSprite.x = mLogArray[0][0].x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of first log.
-				mArrowSprite.y = mLogArray[0][0].y - mArrowBitmapData.height;			// Start at top edge of first log.
+				//mArrowSprite.x = mLogArray[0][0].x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of first log.
+				//mArrowSprite.y = mLogArray[0][0].y - mArrowBitmapData.height;			// Start at top edge of first log.
 				mArrowSprite.visible = false;
 				mLogYardContainer.addElement(mArrowSprite);
-
+				
+				// Randomize log array.
+				randomizeLogSizePosition();
+				
 				//TODO sawdust pile sprite
 				mSawdustSprite.init();
 				mSawdustSprite.scaleX = .2;
@@ -205,9 +199,8 @@
 				//addElement(mSawdustSprite); //TODO
 
 				mLevelWindow = new GameLevelWindow();
+				levelSelected(kPracticeLevel);
 				//chooseGameLevel();
-				
-				// Game starts in pratice mode by default.
 			}
 			
 			// clearGame() resets the game according to the current level and clears remnants of
@@ -234,16 +227,6 @@
 					}	
 				}
 				mAcceptedPiecesValue.visible = false; // Hide number of accepted pieces until game is complete.
-				
-				if (iNewGameLevel == kFreeCutLevel)
-					mArrowSprite.visible == false;	// Hide arrow in free cut mode.
-				else
-				{
-					mArrowSprite.visible == true;	// Show arrow in free cut mode.
-					// Move arrow back to start of first log.
-					mArrowSprite.x = mLogArray[0][0].x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of first log.
-					mArrowSprite.y = mLogArray[0][0].y - mArrowBitmapData.height;			// Start at top edge of first log.
-				}
 				
 				flashGasTank['resetDrop']();// Set fuel height back to top of fuel container.
 				mFuelUsed = 0;		// Initialize the fuel used to zero.
@@ -302,7 +285,8 @@
 					dynamicLog3['init'](1,dynamicLog4);
 					dynamicLog4['init'](-1,null);
 				}
-				//randomizeLogSizePosition(); 				// Randomize logs
+				if(levelNum != mGameLevel)
+					randomizeLogSizePosition(); 				// Randomize logs
 				// Set game level and close the modal window
 				mGameLevel = levelNum; // Set game level
 				PopUpManager.removePopUp(mLevelWindow);
@@ -344,6 +328,14 @@
 				dynamicLog4.x = Math.random()*90+40;
 				dynamicLog4.y = 245;
 				dynamicLog4['drawNewLog']((Math.ceil(Math.random()*4)*75)+150);
+				// Move "Cut Edge" labels to first log.
+				mCutEdgeLeftLabel.x		= mLogArray[0][0].x + kCutEdgeLeftXOffset;
+				mCutEdgeLeftLabel.y		= mLogArray[0][0].y + kCutEdgeLeftYOffset;
+				mCutEdgeRightLabel.x	= mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
+				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
+				
+				mArrowSprite.x = mLogArray[0][0].x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of first log.
+				mArrowSprite.y = mLogArray[0][0].y - (mArrowBitmapData.height+2);			// Start at top edge of first log.
 			}
 			
 			//called by directionalCutLevel() and freeCutLevel() to initially create TinkerPlot/DG collection spaces
@@ -735,7 +727,7 @@
 												iTopToBottom:Boolean = true):void
 			{
 				// Don't cut if chainsaw is not running and we're not in practice mode.
-				if (mGameLevel != kPracticeLevel){if (!mFuelTimer.running)return;}
+				if (mGameLevel != kPracticeLevel && !mFuelTimer.running)return;
 				
 				var newArrowXPosition:Number = iLog.x + iLocalX - (mArrowBitmapData.width);
 				
@@ -805,6 +797,9 @@
 						mLastCutX, 				// Cut before this cut or game end.
 						iLocalX);				// X cut location on log. 0 if end piece.
 					
+					mLastLog	= iLog['getLogNum']();	// Update cut log counter.
+					mLastCutX	= iLocalX;		// Update X position of most recent cut.
+					
 					if (isEndPiece)
 					{
 						// Evaluate the piece's acceptance status and record the outcome by setting a 
@@ -822,11 +817,12 @@
 						
 						if(iNextLog == null){			// If no other log to cut and this is an end piece, end game
 							endGame();
+						}else{
+							mLastCutX = iNextLog.x + iNextLog.width;
 						}
 					}	
 					
-					mLastLog	= iLog['getLogNum']();	// Update cut log counter.
-					mLastCutX	= iLocalX;		// Update X position of most recent cut.
+					
 				}
 			}
 			
@@ -944,22 +940,7 @@
 				sawdustParticles.mouseChildren = false;
 				sawdustParticles['stopParticleAnim']();
 			}
-			
-/*
-			protected function mouseReleased(event:MouseEvent):void
-			{
-//				sawdustParticles['stopParticleAnim']();
-			}
-			protected function mouseOverLog(event:MouseEvent):void
-			{
-				if(event.buttonDown)
-					sawdustParticles['startParticleAnim']();
-			}
-			protected function mouseOutLog(event:MouseEvent):void
-			{
-				sawdustParticles['stopParticleAnim']();
-			}
-*/			
+
 			protected function updateVolume(vol:Number):void
 			{
 				//cannot do: SoundMixer.soundTransform.volume = vol/100;
