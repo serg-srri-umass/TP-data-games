@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
-			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   minWidth="600" minHeight="600" pageTitle="Chain Saw"
 			   creationComplete="startUp( )">
 
@@ -10,6 +10,7 @@
 			import chainsaw.GameLevelWindow;
 			
 			import com.kcpt.scriptInterface.ScriptInterface;
+			import assets.*;
 			
 			import flash.media.Sound;
 			import flash.media.SoundMixer;
@@ -24,7 +25,7 @@
 			import spark.events.TextOperationEvent;
 			
 			public var flashGasTank:MovieClip;
-			public var sawdustParticles:MovieClip;
+			public var sawdustParticles:ParticleLauncher = new ParticleLauncher();
 			public var dynamicLog1:MovieClip;
 			public var dynamicLog2:MovieClip;
 			public var dynamicLog3:MovieClip;
@@ -162,6 +163,7 @@
 			// and sets up necessary parameters for game initiation.
 			private	function startUp():void
 			{
+			
 				// Arrays store individual cuts on each log for use in free cut levels.		
 				mLogDetails1 = new Array(dynamicLog1, null, new Array());
 				mLogDetails2 = new Array(dynamicLog2, null, new Array());
@@ -184,6 +186,9 @@
 				// Randomize log array.
 				randomizeLogSizePosition();
 				
+				uic.addChild(sawdustParticles);
+				sawdustParticles.enabled = false;
+				sawdustParticles.mouseChildren = false;
 				//TODO sawdust pile sprite
 				mSawdustSprite.init();
 				mSawdustSprite.scaleX = .2;
@@ -897,6 +902,8 @@
 			//mouse in event on currently enabled log
 			protected function logIn(e:MouseEvent):void{
 				if(e.buttonDown && e.currentTarget.content.enabled){
+					sawdustParticles.x = e.stageX+10;
+					sawdustParticles.y = e.stageY+10;
 					sawdustParticles['startParticleAnim']();
 					var offsetX:Number = e.localX - e.currentTarget.content.x;
 					var offsetY:Number = e.localY - e.currentTarget.content.y;
@@ -918,20 +925,21 @@
 			}
 			//mouse over event for updating cut as they go through the log
 			protected function logMidLog(e:MouseEvent):void{
+				sawdustParticles.x = e.stageX+10;
+				sawdustParticles.y = e.stageY+10;
 				var offsetX:Number = e.localX - e.currentTarget.content.x;
 				var offsetY:Number = e.localY - e.currentTarget.content.y;
 				e.currentTarget.content['midLogMod'](offsetX,offsetY);
-				sawdustParticles.x = e.stageX;
-				sawdustParticles.y = e.stageY;
+
 			}
 			
-			protected function initParticles():void
-			{
-				sawdustParticles = mSawdustParticles.content as MovieClip;
-				sawdustParticles.enabled = false;
-				sawdustParticles.mouseChildren = false;
-				sawdustParticles['stopParticleAnim']();
-			}
+//			protected function initParticles():void
+//			{
+//				sawdustParticles = mSawdustParticles.content as MovieClip;
+//				sawdustParticles.enabled = false;
+//				sawdustParticles.mouseChildren = false;
+//				sawdustParticles['stopParticleAnim']();
+//			}
 
 			protected function updateVolume(vol:Number):void
 			{
@@ -973,7 +981,8 @@
 	<mx:Image			id="mReferenceLengthImage2" x="223" y="515" source="{mTapeMeasureImage}"/>
 	
 	<s:SWFLoader 		id="mFuelIcon" x="497" y="21" width="106" height="118" source="assets/GasTank.swf" complete="initGasTank()"/>
-	<s:SWFLoader		id="mSawdustParticles" x="0" y="0" width="100" height="100"  source="assets/particles.swf" complete="initParticles()"/>
+	<!-- <s:SWFLoader		id="mSawdustParticles" x="0" y="0" width="100" height="100"  source="assets/particles.swf" complete="initParticles()"/> -->
 	<s:Label			id="mPlayersNameLabel" x="140.5" y="100.5" text="PLAYER'S NAME:" fontFamily="Arial" fontSize="16" fontWeight="bold" color="#7B9453"/>
 	<s:TextInput		id="mPlayerTextInput" x="281" y="94" width="132" text="Player" color="#7B9453" fontSize="16" enabled="true" change="onChangePlayerTextInput(event)" textAlign="left" fontWeight="bold"/>
+	<mx:UIComponent		id="uic" x="0" y="0" />
 </s:Application>
