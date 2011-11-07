@@ -14,9 +14,7 @@
 			import flash.media.Sound;
 			import flash.media.SoundMixer;
 			
-//			import mx.core.SoundAsset;
 			import mx.core.UIComponent;
-//			import mx.effects.SoundEffect;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
 			import mx.managers.PopUpManager;
@@ -33,7 +31,6 @@
 			public var dynamicLog4:MovieClip;
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
-//			public static const kRepeatSound:int		= 0;		// Play sound repeatedly.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
 			public static const kTotalUpdates:Number	= kTimeLimit * kUpdatesPerSecond; // Total number of updates.
 			public static const kUpdateInterval:Number	= 1000 / kUpdatesPerSecond; // Milliseconds between updates.
@@ -44,8 +41,6 @@
 			public static const kCutEdgeRightXOffset:int= 7;		// X offset of right "Cut Edge" Label.
 			public static const kCutEdgeLeftYOffset:int	= -2;		// X offset of left "Cut Edge" Label.
 			public static const kCutEdgeRightYOffset:int= -2;		// X offset of right "Cut Edge" Label.
-//			public static const kLogStartY:Number		= 38;		// Starting Y of top log.
-//			public static const kLogOffsetY:int			= 69;		// Y offset from previous log.
 			public static const kFuelCapacity:Number	= 40;		// Units of fuel when full.
 			
 			// Levels
@@ -183,8 +178,6 @@
 				mArrowSprite.graphics.beginBitmapFill(mArrowBitmapData);
 				mArrowSprite.graphics.drawRect(0, 0, mArrowBitmapData.width, mArrowBitmapData.height);
 				mArrowSprite.graphics.endFill();
-				//mArrowSprite.x = mLogArray[0][0].x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of first log.
-				//mArrowSprite.y = mLogArray[0][0].y - mArrowBitmapData.height;			// Start at top edge of first log.
 				mArrowSprite.visible = false;
 				mLogYardContainer.addElement(mArrowSprite);
 				
@@ -200,7 +193,6 @@
 
 				mLevelWindow = new GameLevelWindow();
 				levelSelected(kPracticeLevel);
-				//chooseGameLevel();
 			}
 			
 			// clearGame() resets the game according to the current level and clears remnants of
