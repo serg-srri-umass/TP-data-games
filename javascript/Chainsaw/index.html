@@ -4,6 +4,9 @@
   <title>Chainsaw</title>
   <script src='js/jquery.js'></script>
   <script src='js/raphael-min.js'></script>
+  <script src='js/fnbind.js'></script>
+  <script src='js/chainsaw.logic.js' charset="utf-8"></script>
+  <script src='js/chainsaw.view.js' charset="utf-8"></script>
   <script src='js/chainsaw.js' charset="utf-8"></script>
   <script>
    $(function(){
@@ -15,7 +18,11 @@
 <body>
   <div id='overlay'>
     <div id='levelselect'>
-      <div id='leveltitle'>Choose Game Level</div>
+      <h1>Chainsaw</h1>
+      <b>Chainsaw</b> is a game about cutting logs! <br />
+      Enter your name and choose a level to begin:
+      <input type='text' id='playername' placeholder='Player' />
+      
       <input type='button' data-level='practice' value='Practice'/>
       <input type='button' data-level='directional' value='Directional Cut' />
       <input type='button' data-level='free' value='Free Cut' />
@@ -40,18 +47,18 @@
     </div>
     
     <div id='header'>
-      <h1>CHAINSAW.js</h1>
-      <input type='button' value='Start' id='startButton'> 
-      Player's Name:
-      <input type='text' id='playername' value='Player' />
+      <h1>CHAINSAW</h1>
+      <input type='button' value='Start' id='startButton'>
+      Playing as <b id='username'>Player</b>. (<a class='changeLevel' href='#'>Change?</a>)
+      <a id='mute' href='#'>Mute audio</a>
     </div>
       
     <div id='canvas'></div>
 
     <div id='footer'>
       <div id='nav'>
-        <input type='button' id='stopButton' value='Stop' disabled/><br />
-        <input type='button' id='changeLevel' value='Change Level' />
+        <input type='button' id='stopButton' value='Stop' disabled/>
+        <input type='button' class='changeLevel' value='Change Level' />
       </div>
       <div id='info'> 
         Reference log: <div id='referencelog'></div>
