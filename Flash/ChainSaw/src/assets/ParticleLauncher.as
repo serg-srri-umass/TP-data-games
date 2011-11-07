@@ -7,14 +7,17 @@
 		
 		var maxParticleCount:int;
 		var maxParticlesPerFrame:int = 10;
-		var pLife:int = 24; //in frames
-		var pWidth:Number = 1;
-		var pHeight:Number = 1;
-		var pColor:uint = 0xFFE1C1;
+		public var pLife:int = 24; //in frames
+		public var pWidth:Number = 1;
+		public var pHeight:Number = 1;
+		public var pColor:uint = 0xFFE1C1;
 		var currentlyEmitting:Boolean = false;
 		var pArray:Array = new Array();
-		var speckCount:int = 0;
+		public var speckCount:int = 0;
 		var atMaxCapacity:Boolean;
+		public var useBlocks:Boolean = true;
+		public var Rotation:Number = 0;
+		public var RandomlyRotate:Boolean = false;
 
 
 		public function ParticleLauncher() {
@@ -45,7 +48,7 @@
 			while(parts < maxParticlesPerFrame){
 				if(speckCount < maxParticleCount && !atMaxCapacity){
 					//trace("particle " + parts);
-					speck = new Specks(pWidth, pHeight, pColor, pLife, true);
+					speck = new Specks(pWidth, pHeight, pColor, pLife, useBlocks, Rotation, RandomlyRotate);
 					pArray[speckCount] = speck;
 					addChild(speck);
 				}else{
@@ -55,15 +58,7 @@
 				}
 				speckCount++;
 				parts++;
-			}
-//			for(var i:int = 0; i<pArray.length; i++){
-//				if (!pArray[i].alive){
-//					//removeChild(pArray[i]);
-//					pArray = pArray.splice(i,1);
-//					i--;
-//				}
-//			}
-			
+			}			
 		}
 	}
 	

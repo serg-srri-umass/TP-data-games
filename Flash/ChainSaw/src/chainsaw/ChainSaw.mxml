@@ -347,7 +347,7 @@
 			private function createCollectionMod(collection1:String, collection2:String):void
 			{
 				ScriptInterface.NewCollectionWithAttributes(
-					"Cut Information",
+					"Cut",
 					[
 						"PieceNum",		// Piece number starting with 1 since launch of application.
 						"Player",			// Name of the player.
@@ -363,7 +363,7 @@
 				
 				// Create collection for each game.
 				ScriptInterface.NewCollectionWithAttributes(
-					"Game Information",
+					"Game",
 					[
 						"GameNumber",		// Game number starting with 1 since launch of application.
 						"GameType",			// Direction Cut or Free Cut
@@ -940,14 +940,6 @@
 				e.currentTarget.content['midLogMod'](offsetX,offsetY);
 
 			}
-			
-//			protected function initParticles():void
-//			{
-//				sawdustParticles = mSawdustParticles.content as MovieClip;
-//				sawdustParticles.enabled = false;
-//				sawdustParticles.mouseChildren = false;
-//				sawdustParticles['stopParticleAnim']();
-//			}
 
 			protected function updateVolume(vol:Number):void
 			{
