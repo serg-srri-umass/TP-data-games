@@ -1,0 +1,1062 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- ShipOdyssey.mxml -->
+<!-- Copyright (c) 2011 by University of Massachusetts and contributors -->
+<!-- Project information: http://srri.umass.edu/datagames/ -->
+<!-- Released under the MIT License http://www.opensource.org/licenses/mit-license.php -->
+
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   width="600" height="450" 
+			   pageTitle="Ship Odyssey" 
+			   currentState="StartPage" 
+			   backgroundColor.TreasureHunt="#294867"
+			   creationComplete="startUp( )">
+	<fx:Style source="ShipOdyssey.css"/>
+
+	<fx:Script>
+		<![CDATA[
+			import com.kcpt.scriptInterface.ScriptInterface;
+			
+			import common.MathUtilities;
+			import common.ParkMiller;
+			
+			import mx.core.SoundAsset;
+			import mx.managers.PopUpManager;
+			import mx.utils.StringUtil;
+			
+			import odyssey.TreasureHuntLevelWindow;
+			
+			// ********** TREASURE HUNT CONSTANTS AND VARIABLES **********
+			public static const kHuntLevelOne:uint = 0;	// First treasure hunt game level.
+			public static const kHuntLevelTwo:uint = 1;	// Second treasure hunt game level.
+			public static const kMaxRats:uint	= 500;	// Number of rats available per Treasure Hunt Game.
+			public static const kMinRats:uint	= 1;	// Default minimum number of rats to send.
+			public static const kRatsToSend:uint= 1;	// Default number of rats to send.
+			public static const kCostPerRat:uint= 100;	// Cost per rat in dollars.
+			public static const kMaxDays:uint	= 28;	// Initial number of days given to find all treasures.
+			public static const kDaysToDropHook:uint = 1;	 // Number of days used dropping the grappling hook.
+			public static const kDaysToNextTreasure:uint = 4;// Number of days to sail to next treasure.
+			public static const kCostPerDay:uint=3000;	// Cost for crew and ship per day in dollars.
+			public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
+			public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
+			public static const kHookRadius:uint= 2;	// Radius of grappling hook area.
+			public static const kNumTreasures:uint = 6;	// Number of treasures to find.
+			public static const kTreasureID:uint= 0;	// Array position of categorical treasure ID.
+			public static const kLocation:Number= 1;	// Array position of treasure location.
+			public static const kValue:uint		= 2;	// Array position of treasure value.
+			public static const kMoneyBag:uint	= 3;	// Array position of money bag image for treasure.
+			public static const kItem:uint		= 4;	// Array position of treasure item.
+			public static const kMinLocation:Number = 0;	// Leftmost treasure location.
+			public static const kMaxLocation:Number = 100;	// Rightmost treasure location.
+			public static const kStdDeviationClear:Number= 10;// Standard deviation of rat results in clear water.
+			public static const kStdDeviationMurky:Number= 15;// Standard deviation of rat results in murky water.
+			public static const kWelcomeText:String = "Ahoy!!! Find ye treasure here. Send down some rats as scouts to see where the treasure lies. Then take yer chances and drop the hook!";
+			public static const kNoRatsText:String	= "Arrr!!! Ye have lost all yer rats, but fear ye not! Try yer hand at the hook to gather ye some treasure. Bounty awaits ye!";
+			public static const kMissed:String		= "Arrr!!! Ye have found no treasure here and lost a day fer yer trouble.";
+			public static const kInSearchOf:String	= "In search of treasure #";
+				
+			private var mStdDeviation:Number= kStdDeviationClear;	// Standard deviation of rat results.
+			private var mLevelWindow:TreasureHuntLevelWindow;// The modal window for choosing a treasure hunt level.
+			private var mHuntLevel:uint		= 0;			// Current hunt level.
+			private var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
+			private var mRatsLeft:uint		= kMaxRats;		// Rats left during current treasure hunt game.
+			private var mRatsToSend:uint	= kRatsToSend;	// Rats to send at one time.
+			private var mRandomNormal:ParkMiller;			// Class that creates a normal distribution.
+			private var mMathUtils:MathUtilities;			// Class that uses SRRI math functions.
+			private var mFirstRat:Boolean	= true;			// Is this the first rat sent looking for next treasure?
+			private var mDaysLeft:uint		= kMaxDays;		// Days left to find treasure.
+			private var mCenterPosition:Number= kInitCenter;	// Center position of grappling hook.
+			private var mMinHookRange:Number	= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
+			private var mMaxHookRange:Number	= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
+			private var mCurrentTreasureNum:uint = 0;		// Starting treasure in zero-based array.
+			private var mTreasuresFound:uint= 0;			// Treasures found so far in current game.
+			private var mTreasureValueSoFar:uint = 0;		// Cumulative value of treasures found in current game.
+			private var mRatCostSoFar:uint = 0;				// Cumulative value of rat cost in current game.
+			private var mShipCostSoFar:uint = 0;			// Cumulative value of ship/crew cost in current game.
+			private var mProfitSoFar:int	= 0;			// Profit so far in current game.
+			private var mEventNumber:uint	= 0;			// Number of current event in current game (rat(s) sent or hook dropped), begining with 1.
+			private var mGameNumber:uint	= 0;			// Number of current game, begining with 1.
+			private var mRatsSent:uint		= 0;			// Number of rats already sent in current game.
+			private var mHooksDropped:uint	= 0;			// Number of hooks already dropped in current game.
+			private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet?
+			
+			// These arrays store the details of individual treasures.
+			private var mTreasure0:Array;
+			private var mTreasure1:Array;
+			private var mTreasure2:Array;
+			private var mTreasure3:Array;
+			private var mTreasure4:Array;
+			private var mTreasure5:Array;
+
+			// Array of treasures (zero-based).
+			private var mTreasureArray:Array;
+			
+			// Array of numberic hook drop order (1st, 2nd, 3rd, etc.)
+			private var mHookDropOrderArray:Array;
+			
+			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
+			
+			// Embed the start screen pirate ship graphic.
+			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010.
+			// Cursor details are at: http://www.rw-designer.com/cursor-detail/2222
+			//   "Published on August 14th 2007 by The Sword of the Heart."
+			//   "Released under the Attribution Required (CC by) license."
+			//   "Creative Commons - Attribution" see http://www.rw-designer.com/licenses
+			// Converted from .eps format to .jpg.
+			[Embed(source="../assets/Pirate Ship 600 x 450.png")]
+			[Bindable]
+			private var mPirateShipImage:Class;
+			
+			// ********** TREASURE HUNT IMAGES **********
+			
+			// Embed the Treasure Hunt game play background.
+			// Ship is modified from http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010.
+			// From http://www.iheartvector.com/2009/02/28/pirate-ship-vector/
+			//   "Created by: IHeartVector"
+			//   "Description: Free pirate ship vector for your illustrations."
+			//   "License: Royalty free vector. Free to use in your personal and commercial designs."
+			//
+			// Fish hook is from http://www.4fishin.com/treble.htm/ on 3/7/2011.
+			// No copyright information found. This was a screenshot of fish hooks for sale.
+			[Embed(source="../assets/Daytime Ship on Ocean with Brown Axis.png")]
+			[Bindable]
+			private var mTreasureHuntImage:Class;
+			
+			// Embed the Treasure Hunt game play background - this time with a murky ocean.
+			// Ship is modified from http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010.
+			// From http://www.iheartvector.com/2009/02/28/pirate-ship-vector/
+			//   "Created by: IHeartVector"
+			//   "Description: Free pirate ship vector for your illustrations."
+			//   "License: Royalty free vector. Free to use in your personal and commercial designs."
+			//
+			// Fish hook is from http://www.4fishin.com/treble.htm/ on 3/7/2011.
+			// No copyright information found. This was a screenshot of fish hooks for sale.
+			// Ocean color modified in Photoshop CS5 on 9/9/2011.
+			[Embed(source="../assets/Daytime Ship on Murky Ocean.png")]
+			[Bindable]
+			private var mTreasureHuntMurkyImage:Class;
+			
+			// Embed the scroll paper in the Treasure Hunt game.
+			// Made this placeholder by hand, as original scroll came from a web site that 
+			// required explicit permission to use images.
+			[Embed(source="../assets/Long Results Box with Mask.png")]
+			[Bindable]
+			private var mScrollImage:Class;
+
+			// Embed the money bag in the Treasure Hunt game.
+			// Image is from Microsoft Word 2007 clip art on 3/28/2011.
+			// Modified by scaling, flipping, reflipping the "$," and saving as jpg.
+			[Embed(source="../assets/Money Bag Modified.jpg")]
+			[Bindable]
+			private var mMoneyBagImage:Class;
+			
+			// Embed the pirate head in the Treasure Hunt game.
+			// Image is from Microsoft Word 2007 clip art on 3/28/2011.
+			// Modified by scaling, creating a background mask, and saving as png.
+			[Embed(source="../assets/Pirate Head.png")]
+			[Bindable]
+			private var mPirateHeadImage:Class;
+			
+			// Embed the parchment image in the Treasure Hunt game.
+			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
+			// From http://www.clker.com/disclaimer.html
+			//   "Clker.com is owned by Rolera LLC, an Illinois Limited Liability Corporation." 
+			//   "Clker and Clker.com are trademarks of Rolera LLC."
+			//   "Clker.com is an online sharing service where users share free public domain" 
+			//   "vector cliparts, or share public domain photos and derive vector cliparts"
+			//   "from those photos using clker's online tracer."
+			[Embed(source="../assets/Parchment.png")]
+			[Bindable]
+			private var mParchmentImage:Class;
+			
+			// Embed the All Treasures Found image in the Treasure Hunt game.
+			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
+			// From http://www.clker.com/disclaimer.html
+			//   "Clker.com is owned by Rolera LLC, an Illinois Limited Liability Corporation." 
+			//   "Clker and Clker.com are trademarks of Rolera LLC."
+			//   "Clker.com is an online sharing service where users share free public domain" 
+			//   "vector cliparts, or share public domain photos and derive vector cliparts"
+			//   "from those photos using clker's online tracer."
+			// Modified by adding text in Photoshop CS5.
+			[Embed(source="../assets/All Treasures Found.png")]
+			[Bindable]
+			private var mAllTreasuresFoundImage:Class;
+			
+			// Embed the Time Up and Treasures Found image in the Treasure Hunt game.
+			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
+			// From http://www.clker.com/disclaimer.html
+			//   "Clker.com is owned by Rolera LLC, an Illinois Limited Liability Corporation." 
+			//   "Clker and Clker.com are trademarks of Rolera LLC."
+			//   "Clker.com is an online sharing service where users share free public domain" 
+			//   "vector cliparts, or share public domain photos and derive vector cliparts"
+			//   "from those photos using clker's online tracer."
+			// Modified by adding text in Seashore on Mac.
+			[Embed(source="../assets/Time Up and Treasures Found.png")]
+			[Bindable]
+			private var mTimeRanOutImage:Class;
+			
+			// Embed the Congratulations image in the Treasure Hunt game.
+			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
+			// From http://www.clker.com/disclaimer.html
+			//   "Clker.com is owned by Rolera LLC, an Illinois Limited Liability Corporation." 
+			//   "Clker and Clker.com are trademarks of Rolera LLC."
+			//   "Clker.com is an online sharing service where users share free public domain" 
+			//   "vector cliparts, or share public domain photos and derive vector cliparts"
+			//   "from those photos using clker's online tracer."
+			// Modified by adding text in Seashore on Mac.
+			[Embed(source="../assets/Congratulations.png")]
+			[Bindable]
+			private var mCongratulationsImage:Class;
+
+			// Embed the NoTreasuresFound image in the Treasure Hunt game.
+			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
+			// From http://www.clker.com/disclaimer.html
+			//   "Clker.com is owned by Rolera LLC, an Illinois Limited Liability Corporation." 
+			//   "Clker and Clker.com are trademarks of Rolera LLC."
+			//   "Clker.com is an online sharing service where users share free public domain" 
+			//   "vector cliparts, or share public domain photos and derive vector cliparts"
+			//   "from those photos using clker's online tracer."
+			// Modified by adding text in Seashore on Mac.
+			[Embed(source="../assets/No Treasures Found.png")]
+			[Bindable]
+			private var mNoTreasuresFoundImage:Class;
+
+			// Embed the cash earned sound in the Treasure Hunt game.
+			// Currently commented out because the site from which the orininal sound came
+			// only allowed use in projects but disallowed direct availability of the sound 
+			// file. Now that this code is open source, the cash register sound no longer would
+			// comply with the license agreement.
+//			[Embed("../src/assets/antique_cash_register.mp3")]
+//			private var CashMP3:Class;
+//			private var mCashSound:SoundAsset = new CashMP3() as SoundAsset;
+			
+			// Embed the rat squeal sound in the Treasure Hunt game.
+			// The link from which the sound came no longer exists as of 10/28/2011. The larger
+			// web site from which the sound came redirects to another site.
+			// A similar rat sound on on the new site requires login to hear. The official web
+			// site of those sounds creator lists rats sounds for a price.
+			// Modified by shortening clip in Audacity on Mac.
+//			[Embed("../src/assets/Rat Sound.mp3")]
+//			private var RatMP3:Class;
+//			private var mRatSound:SoundAsset = new RatMP3() as SoundAsset;
+			
+			// ********** END OF TREASURE HUNT IMAGES **********
+
+			// startUp() is called when the creation of this class is complete
+			// and sets up necessary parameters for game initiation.
+			private	function startUp():void	
+			{
+				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
+				mMathUtils		= new MathUtilities();	// Create class that uses SRRI math functions.
+				
+				// Create rat collection.
+				ScriptInterface.NewCollectionWithAttributes(
+					"Events",
+					[
+//						"Event_Number",		// Number of current event in current game (rat(s) sent or hook dropped), begining with 1.
+						"Game_Number",		// Treasure hunt game number starting with 1 since launch of application.
+						"Ocean_Quality",	// Clear or murky, based on hunt level chosen.
+						"Rats_Sent",		// Rats sent so far in current game.
+						"Rat_Reading",		// Location estimate provided by rat.
+						"Drop_Order",		// Hooks dropped so far in current game.
+						"Drop_Location",	// Location of hook center at time of event.
+						"Drop_Result",		// Outcome of dropping hook (None, Miss, Hit, etc.).
+						"Treasure_Sought",	// Categorical treasure ID (1-based) at time of event.
+						"Treasure_Location"// Exact location of treasure found at time of event
+					]
+				);
+
+				// Create game collection.
+				ScriptInterface.NewCollectionWithAttributes(
+					"Games",
+					[
+						"Game_Number",		// Treasure hunt game number starting with 1 since launch of application.
+						"Ocean_Quality",	// Clear or murky, based on hunt level chosen.
+						"Total_Rats_Sent",	// Total number of rats sent during current game.
+						"Total_Drops",		// Number of times hook was dropped during current game.
+						"Treasures_Found",	// Number of treasures found during current game.
+						"Journey_Time",		// Number of days used to complete treasure hunt game.
+						"Profit"			// Value of (treasures found) minus (crew/ship costs and rat costs).
+					]
+				);
+			}
+			
+			// switchToTreasureHunt() sets the current state to the Treasure Hunt game
+			// screen and initializes the game.
+			protected function switchToTreasureHunt(iEvent:MouseEvent):void
+			{
+				currentState='TreasureHunt';	// Switch to Treasure Hunt screen.
+				
+				// Create a  game level modal dialog.
+				// Listen for clicks on level buttons in dialog.
+				mLevelWindow = new TreasureHuntLevelWindow();
+				
+				chooseHuntLevel(); // Make the user select a hunt level and return.
+				
+				initializeTreasureHunt();
+			}
+			
+			// ********** TREASURE HUNT FUNCTIONS **********
+			
+			// initializeTreasureHunt() sets the Treasure Hunt game to initial values
+			// and prepares the game for play.
+			protected function initializeTreasureHunt():void
+			{
+				mGameNumber 			+= 1;	// Count current game.
+				mEventNumber			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
+				mRatsSent				= 0;	// Reset number of rats sent.
+				mHooksDropped			= 0;	// Reset number of hooks dropped.
+				mCurrentGameComplete	= false;// Game is in play.
+				
+				// Create the numeric hook drop order array.
+				mHookDropOrderArray = new Array(	"0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th",
+													"10th", "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th",
+													"20th", "21st", "22nd", "23rd", "24th", "25th", "26th", "27th", "28th", "29th");
+				
+				// Set up the treasure location, value, money bag image, and item.
+				mTreasure0 = new Array("1st", randomLocation(), 10000, mMoneyBag0, "Brass Chalice");
+				mTreasure1 = new Array("2nd", randomLocation(), 20000, mMoneyBag1, "Sword with Ebony Handle");
+				mTreasure2 = new Array("3rd", randomLocation(), 30000, mMoneyBag2, "Pearl Necklace");
+				mTreasure3 = new Array("4th", randomLocation(), 40000, mMoneyBag3, "Silver Goblet");
+				mTreasure4 = new Array("5th", randomLocation(), 50000, mMoneyBag4, "Gold Bar");
+				mTreasure5 = new Array("6th", randomLocation(), 60000, mMoneyBag5, "Diamond Ring");
+				
+				// Create new log array and add log/logtop to array.
+				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
+					mTreasure3, mTreasure4, mTreasure5);
+
+				mCurrentTreasureNum 		= 0;	// Player begins looking for first treasure.
+				mTreasuresFound				= 0;	// No treasures found yet.
+				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
+				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
+				mShipCostSoFar				= 0;	// No ship / crew costs until trip starts.
+				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
+				mFirstRat					= true;	// Next rat sent will be the first.
+
+				// Set number of rats left to full amount.
+				mRatsLeft					= kMaxRats;	
+				mRatsLeftValueLabel.text 	= mRatsLeft.toString();
+				mRatProgressBar.setProgress(mRatsLeft, mRatProgressBar.maximum); 
+				
+				mRatStepper.maximum	= kMaxRats;	//Set maximum rats-to-send to the full number of rats.
+				mRatStepper.minimum	= kMinRats;	//Set minimum rats-to-send to default.
+				
+				// Set intial number of rats to send.
+				mRatsToSend			= kRatsToSend;
+				mRatStepper.value	= mRatsToSend;
+				
+				mResultsFieldLabel.text	= "";		// Clear rat results.
+				mHintLabel.text = kWelcomeText;		// Welcome the player.
+				
+				// Enable controls.
+				mStartHuntButton.enabled		= true;
+				mDropHookButton.enabled			= true;
+				mSendRatsButton.enabled			= true;
+				mCenterPositionStepper.enabled	= true;
+				mRatStepper.enabled				= true;
+				
+				// Move hook to center of treasure area.
+				mCenterPosition				= kInitCenter;	
+				mCenterPositionStepper.value= mCenterPosition;					// Set stepper to center position.
+				mMinHookRange				= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
+				mMaxHookRange				= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
+				mRangeValueLabel.text		= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
+				
+				// Hide money bag images. They will be shown as player finds each treasure.
+				mMoneyBag0.visible = false;
+				mMoneyBag1.visible = false;
+				mMoneyBag2.visible = false;
+				mMoneyBag3.visible = false;
+				mMoneyBag4.visible = false;
+				mMoneyBag5.visible = false;
+				
+				// Set number of treasure sought to first.
+				mInSearchOfLabel.text = kInSearchOf + (mCurrentTreasureNum + 1).toString();
+				
+				// Set profit value to intial amount.
+				mProfitValue.text	= formatDollars(mProfitSoFar);
+				
+				// Hide all parchment announcements until they are needed.
+				mAllTreasuresFoundAlert.visible	= false;
+				mTimeRanOutAlert.visible		= false;
+				mCongratulationsAlert.visible	= false;
+				mNoTreasuresFoundAlert.visible	= false;
+				
+				mTreasuresFoundLabel.visible	= false;
+				mSomeTreasuresFoundLabel.visible= false;
+				
+				mStartHuntButton.enabled	= false;	// Disable start button, as game has begun.
+				mSailOnButton.enabled		= true;		// Player can skip current treasure and sail to next.
+				
+				// Set days left to find treasure to full amount.
+				mDaysLeft					= kMaxDays;	
+				mDaysRemainingValue.text 	= mDaysLeft.toString();
+			}
+			
+			// chooseHuntLevel() listens for clicks on the hunt level dialog's level buttons.
+			private function chooseHuntLevel():void 
+			{
+				var isModal:Boolean = true;
+				PopUpManager.addPopUp(mLevelWindow, this, isModal); 
+				
+				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
+				mLevelWindow.closeButton.visible = false;	// Hide the close button.
+				
+				mLevelWindow["mLevelOneButton"].addEventListener("click", firstHuntLevel);   
+				mLevelWindow["mLevelTwoButton"].addEventListener("click", secondHuntLevel);   
+			}
+			
+			// gameLevelChosen() sets the current game level to the value passed in and closes the modal
+			// dialog.
+			private function huntLevelChosen(iLevel:uint):void 
+			{
+				mHuntLevel = iLevel; // Set game level to input value.
+				
+				PopUpManager.removePopUp(mLevelWindow);
+			}
+			
+			// firstHuntLevel() sets the current hunt level to the first level.
+			private function firstHuntLevel(iEvent:Event):void 
+			{
+				mPrevHuntLevel = mHuntLevel;		// Track game level change.
+				
+				// Set background image and standard deviation that fit with game level.
+				mTreasureHuntGameArea.source	= mTreasureHuntImage;
+//				mTreasureHuntGameArea.validateNow();
+				mStdDeviation					= kStdDeviationClear;
+				
+				huntLevelChosen(kHuntLevelOne); // Set game level to first level.
+			}
+			
+			// secondHuntLevel() sets the current hunt level to the second level.
+			private function secondHuntLevel(iEvent:Event):void 
+			{
+				mPrevHuntLevel = mHuntLevel;		// Track game level change.
+				
+				// Set background image and standard deviation that fit with game level.
+				mTreasureHuntGameArea.source	= mTreasureHuntMurkyImage;
+//				mTreasureHuntGameArea.validateNow();
+				mStdDeviation					= kStdDeviationMurky;
+				
+				huntLevelChosen(kHuntLevelTwo); // Set game level to second level.
+			}
+			
+			// getOceanQuality() returns a string descibing the ocean quality based on the hunt level
+			protected function getOceanQuality():String
+			{
+				switch (mHuntLevel)
+				{
+					case kHuntLevelOne:
+						return "Clear";
+					case kHuntLevelTwo:
+						return "Murky";
+					default:
+						return "";
+				}
+			}
+			
+			// formatDollars() adds the dollar sign to the input value, which may be negative.
+			protected function formatDollars(iDollars:int):String
+			{
+				// Add the $ sign, comma(s), and cents.
+				var withCents:String = usdFormatter.format(iDollars);
+				
+				// Strip out the cents before returning the currency string.
+				var splitArray:Array = withCents.split(usdFormatter.decimalSeparatorFrom);
+				return splitArray[0];
+			}
+
+			// randomLocation() creates a new location on the ocean floor based on a uniform
+			// distribution.
+			protected function randomLocation():Number
+			{
+				return ((kMaxLocation - kMinLocation) * mRandomNormal.uniform()) + kMinLocation;
+			}
+			
+			// treasuresFoundString() returns a formatted string saying how many treasures were found out
+			// of the total number of treasures available.
+			protected function treasuresFoundString():String
+			{
+				return "Ye found " + mTreasuresFound + " of the " + kNumTreasures + " treasures!";
+			}
+			
+			// onClickStartHuntButton() is called when the Start button in the
+			// Treasure Hunt game is pressed.
+			protected function onClickStartHuntButton(iEvent:MouseEvent):void
+			{
+				// Disable Start button while game is in play.
+				mStartHuntButton.enabled	= false;
+				mSailOnButton.enabled		= true;		// Player can skip current treasure and sail to next.
+				initializeTreasureHunt();
+			}
+			
+			// onClickSendRatsButton() is called when the Send Rats button is
+			// pressed.
+			protected function onClickSendRatsButton(event:MouseEvent):void
+			{
+				// Clear hint text next to pirate head.
+				mHintLabel.text = "";		
+				
+				mEventNumber += 1;	// Sending rats counts as an event.
+				
+				// Calculate and display how many rats are left.
+				mRatsLeft -= mRatsToSend;	
+				mRatsLeftValueLabel.text = mRatsLeft.toString();
+				mRatProgressBar.setProgress(mRatsLeft, mRatProgressBar.maximum); 
+				
+				// Update the cumulative cost of rats sent and profit so far.
+				mRatCostSoFar		+= kCostPerRat * mRatsToSend;
+				mProfitSoFar		-= kCostPerRat * mRatsToSend;
+				mProfitValue.text	= formatDollars(mProfitSoFar);
+				
+//				mRatSound.play(); // Play rat sound.
+				
+				// For every rat sent...
+				for (var ratNum:uint = 0; ratNum < mRatsToSend; ++ratNum)
+				{
+					mRatsSent += 1;	// Increment rat counter.
+					
+					// Generate a noisy result based on the current treasure's location.
+					var location:Number		= mTreasureArray[mCurrentTreasureNum][kLocation];
+					var noisyLocation:Number= Math.round((mRandomNormal.standardNormal() * mStdDeviation) + location);
+
+					// Add results of what the rats find to the results field.
+					if (mFirstRat)
+					{
+						// If first rat, dont add punctuation.
+						mResultsFieldLabel.text += noisyLocation; // Display nothing after decimal point.
+						mFirstRat = false;
+					}
+					else
+						// All successive results should add comma delimiters.
+						mResultsFieldLabel.text += ", " + noisyLocation; // Display nothing after decimal point.
+					
+					// Send event data to TinkerPlots / Fathom.
+					ScriptInterface.AddCaseToCollectionWithValues(
+						"Events", 
+						[
+//							mEventNumber,			// Number of current event in current game (rat(s) sent or hook dropped), begining with 1.
+							mGameNumber,			// Treasure hunt game number starting with 1 since launch of application.
+							getOceanQuality(),		// Clear or murky, based on hunt level chosen.
+							mRatsSent,				// Rats sent so far in current game.
+							noisyLocation,			// Location estimate provided by rat.
+							"",						// Hooks dropped so far in current game. Blank for rat events.
+							"",						// Location of hook center at time of event.
+							"",		 				// Outcome of dropping hook. Blank for rat events.
+							mTreasureArray[mCurrentTreasureNum][kTreasureID],		
+													// Categorical treasure ID (1-based) at time of event.
+							""						// Exact location of treasure found at time of event
+						]	
+					);
+				}
+				
+				// Set maximum rats-to-send to the number of rats left.
+				// Adjust rat stepper to comply with any changes.
+				mRatStepper.maximum	= mRatsLeft;
+				if (mRatsToSend > mRatsLeft)
+				{
+					mRatsToSend			= mRatsLeft;	// Can't send more rats than there are!
+					
+					// If there are not enough rats left to send the default minimum, allow 
+					// mimimum rats-to-send to drop below default minimum.
+					if (mRatsToSend < mRatStepper.minimum) mRatStepper.minimum = mRatsToSend;
+					
+					mRatStepper.value	= mRatsToSend;	// Set the stepper to reflect changes.
+				}
+				
+				// Disable Send Rats button if there are no more rats left after sending.
+				if (mRatsToSend == 0)
+				{
+					mSendRatsButton.enabled = false;
+					mHintLabel.text = kNoRatsText;		// Tell the player.
+				}
+			}
+			
+			// onChangeCenterPosition() is called when the value of the hook's
+			// center position is changed.
+			protected function onChangeCenterPosition(event:Event):void
+			{
+				// Update the hook's range based on the center position.
+				mCenterPositionStepper.value = mMathUtils.setPrecision(mCenterPositionStepper.value, kHookCenterPrecision);
+				mCenterPosition			= mCenterPositionStepper.value;
+				mMinHookRange			= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
+				mMaxHookRange			= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
+				mRangeValueLabel.text	= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
+			}
+			
+			// onChangeRatStepper() is called when the number of rats to be sent
+			// is changed.
+			protected function onChangeRatStepper(event:Event):void
+			{
+				// Update number of rats to be sent at one time.
+				mRatsToSend = mRatStepper.value;
+			}
+			
+			// onClickDropHookButton() is called when the Drop Hook button is
+			// pressed and handles all actions assiociated with attempting to
+			// retrieve treasure at the specified location.
+			protected function onClickDropHookButton(event:MouseEvent):void
+			{
+				// Clear hint text next to pirate head.
+				mHintLabel.text = "";		
+				
+				mEventNumber 				+= 1; // Dropping a hook counts as an event.
+				mHooksDropped 				+= 1; // Increment counter of hooks dropped.
+				
+				// Set days left to find treasure.
+				mDaysLeft 					-= kDaysToDropHook;	
+				mDaysRemainingValue.text 	= mDaysLeft.toString();
+				
+				// Update the cumulative cost of using the ship and crew as well as the profit so far.
+				mShipCostSoFar		+= kCostPerDay * kDaysToDropHook;
+				mProfitSoFar		-= kCostPerDay * kDaysToDropHook;
+				mProfitValue.text	= formatDollars(mProfitSoFar);
+				
+				// Show another treasure if the hook was dropped on the current location.
+				var location:Number = mTreasureArray[mCurrentTreasureNum][kLocation];
+				if (location >= mMinHookRange && location <= mMaxHookRange)
+				{
+					// Show money bag image on treasure scroll to indicate player has earned it.
+					// Add treasure value to accumulated wealth.
+					mTreasureArray[mCurrentTreasureNum][kMoneyBag].visible = true;
+					mTreasureValueSoFar += mTreasureArray[mCurrentTreasureNum][kValue];
+					mProfitSoFar		+= mTreasureArray[mCurrentTreasureNum][kValue];
+					mProfitValue.text	= formatDollars(mProfitSoFar);
+					
+//					mCashSound.play(); // Play cash register sound.
+					
+					// Tell the player which treasure was found and how much it is worth.
+					var valueInDollars:String = usdFormatter.format(mTreasureArray[mCurrentTreasureNum][kValue]);
+					mHintLabel.text = 
+						"Ye found the " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + valueInDollars 
+							+ " at location " + location.toFixed(1) + "!";
+					
+					// Send event data to TinkerPlots / Fathom.
+					ScriptInterface.AddCaseToCollectionWithValues(
+						"Events", 
+						[
+//							mEventNumber,			// Number of current event in current game (rat(s) sent or hook dropped), begining with 1.
+							mGameNumber,			// Treasure hunt game number starting with 1 since launch of application.
+							getOceanQuality(),		// Clear or murky, based on hunt level chosen.
+							"",						// Rats sent so far in current game. Blank for hook drop events.
+							"",						// Location estimate provided by rat.
+							mHookDropOrderArray[mHooksDropped], // Hooks dropped so far in current game.
+							mCenterPosition.toFixed(1),			// Location of hook center at time of event.
+							"Hit",		 			// Outcome of dropping hook None, Miss, Hit, etc.).
+							mTreasureArray[mCurrentTreasureNum][kTreasureID],		
+													// Categorical treasure ID (1-based) at time of event.
+							location.toFixed(1)		// Exact location of treasure found at time of event
+						]	
+					);
+					
+					// Increment treasure number and update text indicating which treasure is sought.
+					mCurrentTreasureNum++;	
+					mTreasuresFound++;		
+					mInSearchOfLabel.text = kInSearchOf + (mCurrentTreasureNum + 1).toString(); 
+					
+					mResultsFieldLabel.text	= "";	// Clear rat results.
+					mFirstRat				= true;	// Recount rats used per treasure.
+					
+					if (mCurrentTreasureNum == kNumTreasures)
+					{
+						// Player found final treasre. Disable treasure hunt controls.
+						mDropHookButton.enabled			= false;
+						mSendRatsButton.enabled			= false;
+						mStartHuntButton.enabled		= false;
+						mSailOnButton.enabled			= false;
+						mCenterPositionStepper.enabled	= false;
+						mRatStepper.enabled				= false;
+						
+						// Clear text saying which treasure is sought.
+						mInSearchOfLabel.text = ""; 
+						
+						// Tell the player that hunt is done.
+						if (mTreasuresFound == kNumTreasures) // Player found all treasures.
+							mAllTreasuresFoundAlert.visible	= true;
+						else  // Player found some of the treasures.
+						{
+							mCongratulationsAlert.visible	= true;
+							mTreasuresFoundLabel.text		= treasuresFoundString();
+							mTreasuresFoundLabel.visible	= true;
+						}
+						
+						// Send game data to TinkerPlots / Fathom.
+						ScriptInterface.AddCaseToCollectionWithValues(
+							"Games",
+							[
+								mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
+								getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+								mRatsSent,			 // Total number of rats sent during current game.
+								mHooksDropped,		 // Number of times hook was dropped during current game.
+								mTreasuresFound,	 // Number of treasures found during current game.
+								kMaxDays - mDaysLeft,// Number of days used to complete treasure hunt game.
+								mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+							]
+						);
+						
+						mCurrentGameComplete = true;// Game is complete.
+					}
+					else	// Take time to sail to next tresure.
+					{						
+						if (mDaysLeft >= kDaysToNextTreasure)
+						{
+							mDaysLeft					-= kDaysToNextTreasure;
+							mShipCostSoFar				+= kCostPerDay * kDaysToNextTreasure;
+							mProfitSoFar				-= kCostPerDay * kDaysToNextTreasure;
+							mProfitValue.text			= formatDollars(mProfitSoFar);
+						}
+						else
+							mDaysLeft = 0;
+						
+						mDaysRemainingValue.text 		= mDaysLeft.toString(); // Update days left on screen.
+					}
+				}
+				else // Treasure was not found at drop location.
+				{
+					mHintLabel.text = kMissed;
+					
+					// Send event data to TinkerPlots / Fathom.
+					ScriptInterface.AddCaseToCollectionWithValues(
+						"Events", 
+						[
+//							mEventNumber,			// Number of current event in current game (rat(s) sent or hook dropped), begining with 1.
+							mGameNumber,			// Treasure hunt game number starting with 1 since launch of application.
+							getOceanQuality(),		// Clear or murky, based on hunt level chosen.
+							"",						// Rats sent so far in current game. Blank for hook drop events.
+							"",						// Location estimate provided by rat.
+							mHookDropOrderArray[mHooksDropped], // Hooks dropped so far in current game.
+							mCenterPosition.toFixed(1),			// Location of hook center at time of event.
+							"Miss",		 			// Outcome of dropping hook None, Miss, Hit, etc.).
+							mTreasureArray[mCurrentTreasureNum][kTreasureID],		
+													// Categorical treasure ID (1-based) at time of event.
+							""						// Exact location of treasure found at time of event
+						]	
+					);
+				}
+					
+				// Disable the Drop Hook Button if there are not enough days left
+				// to drop the hook again. Game is done.
+				if (mDaysLeft < kDaysToDropHook)
+				{
+					// Player ran out of time. Disable treasure hunt controls.
+					mDropHookButton.enabled			= false;
+					mSendRatsButton.enabled			= false;
+					mCenterPositionStepper.enabled	= false;
+					mRatStepper.enabled				= false;
+					mSailOnButton.enabled			= false;
+					
+					mStartHuntButton.enabled	= true;	// Enable Start button to try again.
+					
+					// Tell the player that time ran out.
+					mTimeRanOutAlert.visible		= true;
+					mSomeTreasuresFoundLabel.text	= treasuresFoundString();
+					mSomeTreasuresFoundLabel.visible= true;
+
+					// Clear text saying which treasure is sought.
+					mInSearchOfLabel.text = ""; 
+					
+					// If game didn't already end when hook dropped, send game data to TinkerPlots / Fathom.
+					if (mCurrentGameComplete == false)
+						ScriptInterface.AddCaseToCollectionWithValues(
+							"Games",
+							[
+								mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
+								getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+								mRatsSent,			 // Total number of rats sent during current game.
+								mHooksDropped,		 // Number of times hook was dropped during current game.
+								mTreasuresFound, 	 // Number of treasures found during current game.
+								kMaxDays - mDaysLeft,// Number of days used to complete treasure hunt game.
+								mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+							]
+						);
+					
+					mCurrentGameComplete = true;// Game is complete.
+				}
+			}
+			
+			// onClickExitTreasureHunt() sets the current state to the Treasure Hunt game
+			// screen and initializes the game.
+			protected function onClickExitTreasureHunt(iEvent:MouseEvent):void
+			{
+				// If player pressed exit before completing game, send game data to TinkerPlots / Fathom.
+				if (!mCurrentGameComplete)
+				{
+					ScriptInterface.AddCaseToCollectionWithValues(
+						"Games",
+						[
+							mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
+							getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+							mRatsSent,			 // Total number of rats sent during current game.
+							mHooksDropped,		 // Number of times hook was dropped during current game.
+							mTreasuresFound, 	 // Number of treasures found during current game.
+							kMaxDays - mDaysLeft,// Number of days used to complete treasure hunt game.
+							mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+						]
+					);
+					
+					mCurrentGameComplete = true;// Game is now complete.
+				}
+					
+					currentState='StartPage';	// Return to start screen.
+			}
+
+			// onClickSailOnButton() makes the ship set sail for the next treasure.
+			protected function onClickSailOnButton(iEvent:MouseEvent):void
+			{
+				mResultsFieldLabel.text	= "";	// Clear rat results.
+				mFirstRat				= true;	// Recount rats used per treasure.
+				
+				// End game if there are no treasures left after currently sought treasure.
+				if ((mCurrentTreasureNum + 1) >= kNumTreasures) // mCurrentTreasureNum is zero-based.
+				{
+					// Player stopped looking for treasures. Disable treasure hunt controls.
+					mDropHookButton.enabled			= false;
+					mSendRatsButton.enabled			= false;
+					mCenterPositionStepper.enabled	= false;
+					mRatStepper.enabled				= false;
+					mSailOnButton.enabled			= false;
+					mStartHuntButton.enabled		= false;
+					
+					// Tell the player the game is over.
+					if (mTreasuresFound) // At least one treasure was found.
+					{
+						mCongratulationsAlert.visible	= true;
+						mTreasuresFoundLabel.text		= treasuresFoundString();
+						mTreasuresFoundLabel.visible	= true;
+						
+						// Player sailed on having found treasure, knowingly ending the game. No restart.
+						mStartHuntButton.enabled		= false; 
+					}
+					else // No treasures were found.
+					{
+						mNoTreasuresFoundAlert.visible	= true;
+						mStartHuntButton.enabled		= true; // Let player try again.
+					}
+				
+					// Clear text saying which treasure is sought.
+					mInSearchOfLabel.text = ""; 
+					
+					// If game isn't already over, send game data to TinkerPlots / Fathom.
+					if (mCurrentGameComplete == false)
+						ScriptInterface.AddCaseToCollectionWithValues(
+							"Games",
+							[
+								mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
+								getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+								mRatsSent,			 // Total number of rats sent during current game.
+								mHooksDropped,		 // Number of times hook was dropped during current game.
+								mTreasuresFound, 	 // Number of treasures found during current game.
+								kMaxDays - mDaysLeft,// Number of days used to complete treasure hunt game.
+								mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+							]
+						);
+					
+					mCurrentGameComplete = true;// Game is complete.
+				}
+				else // There are still treasures left after current treasure, so sail on!
+				{
+					mCurrentTreasureNum++; // Increment current treasure counter.
+					
+					// Update label indicating treasure sought.
+					mInSearchOfLabel.text = kInSearchOf + (mCurrentTreasureNum + 1).toString(); 
+
+					// Disable the Drop Hook Button if there were not enough days left
+					// to sail to the next treasure. Game is done.
+					if (mDaysLeft < kDaysToNextTreasure)
+					{
+						// Update the cumulative cost of using the ship and crew as well as the profit so far.
+						mShipCostSoFar		+= kCostPerDay * mDaysLeft;
+						mProfitSoFar		-= kCostPerDay * mDaysLeft;
+						mProfitValue.text	= formatDollars(mProfitSoFar);
+						
+						// Set days left to find treasure.
+						mDaysLeft 					= 0;	
+						mDaysRemainingValue.text 	= mDaysLeft.toString();
+
+						// Player sailed on without enough time to next treasure. Disable treasure hunt controls.
+						mDropHookButton.enabled			= false;
+						mSendRatsButton.enabled			= false;
+						mCenterPositionStepper.enabled	= false;
+						mRatStepper.enabled				= false;
+						mSailOnButton.enabled			= false;
+						mStartHuntButton.enabled		= false;
+						
+						// Tell the player the game is over.
+						if (mTreasuresFound) // At least one treasure was found.
+						{
+							mCongratulationsAlert.visible	= true;
+							mTreasuresFoundLabel.text		= treasuresFoundString();
+							mTreasuresFoundLabel.visible	= true;
+						}
+						else // No treasures were found.
+						{
+							mNoTreasuresFoundAlert.visible	= true;
+						}
+						
+						// Clear text saying which treasure is sought.
+						mInSearchOfLabel.text = ""; 
+						
+						// If game isn't already over, send game data to TinkerPlots / Fathom.
+						if (mCurrentGameComplete == false)
+							ScriptInterface.AddCaseToCollectionWithValues(
+								"Games",
+								[
+									mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
+									getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+									mRatsSent,			 // Total number of rats sent during current game.
+									mHooksDropped,		 // Number of times hook was dropped during current game.
+									mTreasuresFound, 	 // Number of treasures found during current game.
+									kMaxDays - mDaysLeft,// Number of days used to complete treasure hunt game.
+									mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+								]
+							);
+						
+						mCurrentGameComplete = true;// Game is complete.
+					}
+					else // There were enough days left to sail to the next treasure.
+					{
+						// Set days left to find treasure.
+						mDaysLeft 					-= kDaysToNextTreasure;	
+						mDaysRemainingValue.text 	= mDaysLeft.toString();
+						
+						// Update the cumulative cost of using the ship and crew as well as the profit so far.
+						mShipCostSoFar		+= kCostPerDay * kDaysToNextTreasure;
+						mProfitSoFar		-= kCostPerDay * kDaysToNextTreasure;
+						mProfitValue.text	= formatDollars(mProfitSoFar);
+						
+						// Disable the Drop Hook Button if there are not enough days left
+						// to drop the hook again. Game is done.
+						if (mDaysLeft < kDaysToDropHook)
+						{
+							// Player ran out of time or treasures. Disable treasure hunt controls.
+							mDropHookButton.enabled			= false;
+							mSendRatsButton.enabled			= false;
+							mCenterPositionStepper.enabled	= false;
+							mRatStepper.enabled				= false;
+							mSailOnButton.enabled			= false;
+							mStartHuntButton.enabled		= false;
+							
+							// Tell the player the game is over.
+							if (mTreasuresFound) // At least one treasure was found.
+							{
+								mCongratulationsAlert.visible	= true;
+								mTreasuresFoundLabel.text		= treasuresFoundString();
+								mTreasuresFoundLabel.visible	= true;
+							}
+							else // No treasures were found.
+							{
+								mNoTreasuresFoundAlert.visible	= true;
+							}
+							
+							// Clear text saying which treasure is sought.
+							mInSearchOfLabel.text = ""; 
+							
+							// If game didn't already end when hook dropped, send game data to TinkerPlots / Fathom.
+							if (mCurrentGameComplete == false)
+								ScriptInterface.AddCaseToCollectionWithValues(
+									"Games",
+									[
+										mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
+										getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+										mRatsSent,			 // Total number of rats sent during current game.
+										mHooksDropped,		 // Number of times hook was dropped during current game.
+										mTreasuresFound, 	 // Number of treasures found during current game.
+										kMaxDays - mDaysLeft,// Number of days used to complete treasure hunt game.
+										mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+									]
+								);
+							
+							mCurrentGameComplete = true;// Game is complete.
+						}
+					
+					}
+				}
+			}
+		
+			// ********** END OF TREASURE HUNT FUNCTIONS **********
+
+
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="StartPage"/>
+		<s:State name="TreasureHunt"/>
+	</s:states>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<mx:CurrencyFormatter id="usdFormatter"				precision="2" 
+							  currencySymbol="$"			decimalSeparatorFrom="."
+							  decimalSeparatorTo="."		useNegativeSign="true" 
+							  useThousandsSeparator="true"	alignSymbol="left"/>
+		
+	</fx:Declarations>
+	<mx:Image	id="mStartPageBackground" x="0" y="0" source="{mPirateShipImage}" includeIn="StartPage"/>
+	<s:RichText	id="mGameTitle" x="10" y="10" text="Ship Odyssey" fontFamily="Georgia" fontSize="40" color="#908F17" fontWeight="normal" fontStyle="italic" includeIn="StartPage"/>
+	<s:Group	x="200" y="122" width="200" height="48" includeIn="StartPage">
+		<s:Rect		id="mGroupRect" x="0" y="0" radiusX="4" radiusY="4" height="100%" width="100%">
+			<s:stroke>
+				<s:SolidColorStroke weight="1" scaleMode="normal" color="0xFFFFFF" alpha=".75"/>
+			</s:stroke>
+			<s:fill>
+				<s:SolidColor color="0xB4B35F" alpha=".75"/>
+			</s:fill>
+		</s:Rect>        
+		<s:Button	id="mTreasureHuntButton" x="10" y="10" label="Treasure Hunt" fontSize="24" fontStyle="italic" fontFamily="Georgia" height="28" click="switchToTreasureHunt(event)"/>
+	</s:Group>
+	<s:Button			id="mExitHuntButton" includeIn="TreasureHunt" x="511" y="424" label="Exit" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" enabled="true" click="onClickExitTreasureHunt(event)" width="75"/>
+	<s:Button			id="mSailOnButton" x="511" y="405" label="Sail On" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" enabled="true" click="onClickSailOnButton(event)" width="75" includeIn="TreasureHunt"/>
+	<s:Button			id="mStartHuntButton" includeIn="TreasureHunt" x="511" y="386" label="Start" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" enabled="true" width="75" click="onClickStartHuntButton(event)"/>
+	<s:Label			id="mTreasureHuntTitle" includeIn="TreasureHunt" x="16" y="326" text="Treasure Hunt" rotation="-90" fontSize="28" fontStyle="normal" color="#B4D5E6" fontFamily="Georgia"/>
+	<mx:Image			id="mTreasureHuntGameArea" includeIn="TreasureHunt" x="59" y="95" source="{mTreasureHuntImage}"/>
+	<s:BorderContainer	id="mControlContainer" includeIn="TreasureHunt" x="12" y="12" width="576" height="76" backgroundColor="#A4AAB3">
+		<s:Label		id="mRatControlLabel" x="152" y="6" text="Rat Control" fontWeight="bold" color="#000000" fontFamily="Georgia" fontSize="16" fontStyle="normal"/>
+		<s:Label		id="mHookLabel" x="406" y="6" text="Grappling Hook" color="#000000" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
+		<mx:ProgressBar id="mRatProgressBar" x="6" y="19.5" height="21" width="353" mode="manual" labelPlacement="left" label="Rats Remaining:" fontFamily="Georgia" minimum="0" maximum="{kMaxRats}"/>
+		<s:Label		id="mPositionLabel" x="400" y="28" text="Center Position:" fontFamily="Georgia" fontWeight="bold"/>
+		<s:Label		id="mRangeLabel" x="442" y="50" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
+		<s:Label  		id="mNumRatsLabel" x="1" y="42" text="# of Rats to Send:" fontFamily="Georgia" fontWeight="bold" height="27" width="60" textAlign="right"/>
+		<s:NumericStepper id="mRatStepper" x="65" y="43" minimum="{kMinRats}" maximum="{kMaxRats}" stepSize="1" contentBackgroundColor="#5081B4" height="23" change="onChangeRatStepper(event)" width="50"/>
+		<s:Button 		id="mSendRatsButton" x="118" y="43" label="Send Rats" height="23" click="onClickSendRatsButton(event)"/>
+		<s:BorderContainer x="199" y="42" width="155" height="25">
+			<s:Label 	id="mResultsFieldLabel" x="2" y="2" height="19" width="148" color="#9B1D79" lineBreak="explicit" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" textAlign="right"/>
+		</s:BorderContainer>
+		<s:Label 		id="mRatsLeftValueLabel" x="363" y="25" text="{kMaxRats}" fontWeight="bold" fontFamily="Georgia" color="#9B1D79"/>
+		<s:Label id="mRangeValueLabel" x="493" y="52" width="80" color="#9B1D79" fontFamily="Georgia"
+				 fontWeight="bold"/>
+		<mx:Image 		id="mResultsScroll" includeIn="TreasureHunt" x="445" y="82" source="{mScrollImage}" scaleContent="true" height="286" width="129"/>
+		<s:Button 		id="mDropHookButton" x="356" y="43" label="Drop Hook" width="80" height="23" fontSize="12" click="onClickDropHookButton(event)"/>
+		<s:NumericStepper id="mCenterPositionStepper" x="511" y="23" width="57" minimum="0" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
+	</s:BorderContainer>
+	<s:BorderContainer	id="mHintContainer" includeIn="TreasureHunt" x="59" y="388" width="444" height="50" cornerRadius="10" dropShadowVisible="false" borderWeight="2" borderColor="#000000">
+		<s:Label id="mHintLabel" x="8" y="7" text="{kWelcomeText}" width="424" height="32" color="#000000" fontFamily="Georgia" fontSize="14"/>
+	</s:BorderContainer>
+	<s:Label	id="mTreasureLabel" includeIn="TreasureHunt" x="490" y="105" text="Treasure" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal"/>
+	<s:Label	id="mTimeLabel" includeIn="TreasureHunt" x="501" y="277" text="Time" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal"/>
+	<s:Label	id="mDaysRemainingLabel" includeIn="TreasureHunt" x="480" y="329" text="Days Remaining" height="30" width="70" textAlign="center" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal"/>
+	<mx:Image	id="mMoneyBag0" x="485" y="123" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<mx:Image	id="mMoneyBag1" x="517" y="123" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<mx:Image	id="mMoneyBag2" x="485" y="158" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<mx:Image	id="mMoneyBag3" x="517" y="158" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<mx:Image	id="mMoneyBag4" x="485" y="193" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<mx:Image	id="mMoneyBag5" x="517" y="193" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<s:Label 	id="mDaysRemainingValue" includeIn="TreasureHunt" x="476" y="296" text="{kMaxDays}" fontSize="32" color="#A4804C" fontWeight="bold" fontStyle="normal" textAlign="center" width="78"/>
+	<mx:Image	id="mAllTreasuresFoundAlert" includeIn="TreasureHunt" x="110" y="109" source="{mAllTreasuresFoundImage}"/>
+	<mx:Image	id="mTimeRanOutAlert" includeIn="TreasureHunt" x="110" y="109" source="{mTimeRanOutImage}"/>
+	<mx:Image	id="mCongratulationsAlert" includeIn="TreasureHunt" x="110" y="109" source="{mCongratulationsImage}"/>
+	<mx:Image	id="mNoTreasuresFoundAlert" includeIn="TreasureHunt" x="110" y="109" source="{mNoTreasuresFoundImage}"/>
+	
+	<s:BorderContainer includeIn="TreasureHunt" x="9" y="388" width="46" height="50" borderWeight="2" cornerRadius="8" borderColor="#000000">
+		<mx:Image 	id="mPirateHead" includeIn="TreasureHunt" x="2" y="3" width="34" height="41" source="{mPirateHeadImage}"/>	
+	</s:BorderContainer>
+	<s:Label id="mAxis0" includeIn="TreasureHunt" x="64" y="350" text="0" color="#C9AB61"/>
+	<s:Label id="mAxis50" includeIn="TreasureHunt" x="252" y="350" text="50" color="#C9AB61"/>
+	<s:Label id="mAxis100" includeIn="TreasureHunt" x="430" y="350" text="100" color="#C9AB61"/>
+	<s:Label id="mProfitLabel" x="498" y="234" text="Profit" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal" includeIn="TreasureHunt"/>
+	<s:Label id="mProfitValue" x="476.5" y="254" text="$350,000" fontSize="15" color="#A4804C" fontWeight="bold" fontStyle="normal" includeIn="TreasureHunt" textAlign="center" height="14" width="78"/>
+	<s:Label id="mInSearchOfLabel" includeIn="TreasureHunt" x="275" y="302" text="In search of treasure #" backgroundAlpha="0.0" fontFamily="Times New Roman" fontStyle="italic" fontSize="14" color="#7CB3D0"/>
+	<s:Label id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="178" y="193" text="Ye found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000"/>
+	<s:Label id="mSomeTreasuresFoundLabel" x="178" y="229" text="Tho' ye did find 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="47" width="169" fontSize="18" textAlign="center" color="#000000" includeIn="TreasureHunt"/>
+</s:Application>
