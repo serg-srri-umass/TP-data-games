@@ -339,7 +339,7 @@
 			private function createCollectionMod(collection1:String, collection2:String):void
 			{
 				ScriptInterface.NewCollectionWithAttributes(
-					"Cut Information",
+					"Cuts",
 					[
 						"PieceNum",		// Piece number starting with 1 since launch of application.
 						"Player",			// Name of the player.
@@ -355,7 +355,7 @@
 				
 				// Create collection for each game.
 				ScriptInterface.NewCollectionWithAttributes(
-					"Game Information",
+					"Games",
 					[
 						"GameNumber",		// Game number starting with 1 since launch of application.
 						"GameType",			// Direction Cut or Free Cut
@@ -451,7 +451,7 @@
 					
 					ScriptInterface.AddCaseToCollectionWithValues(
 						//kCollectionDirCutPieces,  //**Tristan
-						"Cut Information",
+						"Cuts",
 						[
 							pieceNumber,		// Piece number since application launch. Ignore practice level.
 							mPlayersName,		// Name of the player.
@@ -635,7 +635,7 @@
 					// Send info on games to TinkerPlots/Fathom.
 					ScriptInterface.AddCaseToCollectionWithValues(
 						//gameCollectionName, //**Tristan
-						"Game Information",
+						"Games",
 						[
 							mGameNumber,		// Game number starting with 1 since launch of application.
 							gameCollectionName,	// Game Type
