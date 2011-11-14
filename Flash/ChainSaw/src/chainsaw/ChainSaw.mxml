@@ -225,7 +225,7 @@
 				}
 				mAcceptedPiecesValue.visible = false; // Hide number of accepted pieces until game is complete.
 				
-				flashGasTank['resetDrop']();// Set fuel height back to top of fuel container.
+				flashGasTank['resetDrop'](); // Set fuel height back to top of fuel container.
 				mFuelUsed = 0;		// Initialize the fuel used to zero.
 			}
 			
@@ -262,53 +262,59 @@
 			}
 			
 			//level select redirected from button calls with level number - sets up the play field for each level
-			private function levelSelected(levelNum:int):void{
-				//initialize 
-				mPrevLevel = mGameLevel;// Track game level change.
-				mCutEdgeLeftLabel.visible	= true;	// Show "Cut Edge" labels.
-				mCutEdgeRightLabel.visible	= true;
-				mArrowSprite.visible		= true; // Show cut location arrow.
-				if (levelNum == kFreeCutLevel)
-				{
-					clearGame(kFreeCutLevel); 
-					dynamicLog1['init'](0,dynamicLog2); //send cut direction and link to next log
-					dynamicLog2['init'](0,dynamicLog3); // cut direction 1=LtoR, -1=RtoL, 0 = free
-					dynamicLog3['init'](0,dynamicLog4);
-					dynamicLog4['init'](0,null);
-				}else{ //if practice or directional cut
-					clearGame(0);
-					dynamicLog1['init'](1,dynamicLog2); //send cut direction and link to next log
-					dynamicLog2['init'](-1,dynamicLog3); // cut direction 1=LtoR, -1=RtoL, 0 = free
-					dynamicLog3['init'](1,dynamicLog4);
-					dynamicLog4['init'](-1,null);
-				}
-				if(levelNum != mGameLevel)
-					randomizeLogSizePosition(); 				// Randomize logs
-				// Set game level and close the modal window
+			private function levelSelected(levelNum:int):void
+			{
+				mPrevLevel = mGameLevel; // Track game level change.
 				mGameLevel = levelNum; // Set game level
-				PopUpManager.removePopUp(mLevelWindow);
-
-				if (levelNum == kFreeCutLevel){
-					mLevelLabel.text = "FREE CUT LEVEL";
-					mCutEdgeLeftLabel.visible	= false; // Hide "Cut Edge" labels.
-					mCutEdgeRightLabel.visible	= false;
-					mArrowSprite.visible		= false; // Hide cut location arrow.
-					if (!mFreeCutCollectionCreated)
+				PopUpManager.removePopUp(mLevelWindow); // Close the modal window
+				
+				// Only reset if user selects different level (Otherwise it will be reset when they click start)
+				if(mPrevLevel != mGameLevel) 
+				{
+					randomizeLogSizePosition(); // Randomize logs
+					
+					if (levelNum == kFreeCutLevel) // If Free Cut level was selected
 					{
-						createCollectionMod(kCollectionFreeCutPieces, kCollectionFreeCutGames);
-						mFreeCutCollectionCreated = true;
+						clearGame(kFreeCutLevel); 
+						dynamicLog1['init'](0,dynamicLog2); //send cut direction and link to next log
+						dynamicLog2['init'](0,dynamicLog3); // cut direction 1=LtoR, -1=RtoL, 0 = free
+						dynamicLog3['init'](0,dynamicLog4);
+						dynamicLog4['init'](0,null);
+						
+						mCutEdgeLeftLabel.visible	= false; // Hide left "Cut Edge" label.
+						mCutEdgeRightLabel.visible	= false; // Hide right "Cut Edge" label.
+						mArrowSprite.visible		= false; // Hide cut location arrow.
+						
+						if (!mFreeCutCollectionCreated)
+						{
+							createCollectionMod(kCollectionFreeCutPieces, kCollectionFreeCutGames);
+							mFreeCutCollectionCreated = true;
+						}
+						mLevelLabel.text = "FREE CUT LEVEL";
 					}
-				}else if(levelNum == kDirectionalCutLevel){
-					mLevelLabel.text = "DIRECTIONAL CUT LEVEL";	
-					if (!mDirCutCollectionCreated)
+					else // If Practice or Directional Cut level was selected
 					{
-						createCollectionMod(kCollectionDirCutPieces, kCollectionDirCutGames);
-						mDirCutCollectionCreated = true;
+						clearGame(0);
+						dynamicLog1['init'](1,dynamicLog2); //send cut direction and link to next log
+						dynamicLog2['init'](-1,dynamicLog3); // cut direction 1=LtoR, -1=RtoL, 0 = free
+						dynamicLog3['init'](1,dynamicLog4);
+						dynamicLog4['init'](-1,null);
+						
+						mCutEdgeLeftLabel.visible	= true;	// Show left "Cut Edge" label.
+						mCutEdgeRightLabel.visible	= true; // Show right "Cut Edge" label.
+						mArrowSprite.visible		= true; // Show cut location arrow.
+						
+						if (!mDirCutCollectionCreated)
+						{
+							createCollectionMod(kCollectionDirCutPieces, kCollectionDirCutGames);
+							mDirCutCollectionCreated = true;
+						}
+						
+						if (levelNum == kDirectionalCutLevel)	mLevelLabel.text = "DIRECTIONAL CUT LEVEL";
+						if (levelNum == kPracticeLevel)			mLevelLabel.text = "PRACTICE LEVEL";
 					}
-				}else{
-					mLevelLabel.text			= "PRACTICE LEVEL";
 				}
-			}	
+			}
 			
 			// randomizeLogOrder() randomly resorts the logs in the log array.
 			protected function randomizeLogSizePosition():void
@@ -341,13 +347,13 @@
 				ScriptInterface.NewCollectionWithAttributes(
 					"Cuts",
 					[
-						"PieceNum",		// Piece number starting with 1 since launch of application.
+						"PieceNum",			// Piece number starting with 1 since launch of application.
 						"Player",			// Name of the player.
-						"GameNum",		// Game number starting with 1 since launch of application.
+						"GameNum",			// Game number starting with 1 since launch of application.
 						"Length",			// Length of cut piece.
 						"Accepted",			// True if cut piece is within accepted range of cut length.
 						"EndPiece",			// Yes if this piece is an end piece.
-						"LogNum",		// Number of log from which piece was cut.
+						"LogNum",			// Number of log from which piece was cut.
 						"FuelLeftAmount",	// Raw amount of fuel left at the time of piece creation.
 						"FuelLeftPercent"	// Percent of fuel left at the time of piece creation.
 					]
@@ -414,7 +420,7 @@
 					if (mGameLevel != kPracticeLevel)
 						++mPieceNumber;
 					++mPiecesRejected;
-					statusLabel.text = "X";					// X = not OK.
+					statusLabel.text = "X";						// X = not OK.
 					statusLabel.setStyle("color", "0xFF0000");	// Red = not OK.
 					acceptString = (iLength < kMinCutLength) ? kRejectShortString : kRejectLongString;
 				}
