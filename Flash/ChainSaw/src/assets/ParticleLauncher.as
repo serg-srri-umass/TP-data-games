@@ -27,7 +27,7 @@
 		}
 
 		public function startParticleAnim():void{
-			trace("start Particle anim");
+			//trace("start Particle anim");
 			this.addEventListener(Event.ENTER_FRAME, generateParticles);
 			currentlyEmitting = true;
 		}

@@ -549,15 +549,15 @@
 						
 						var pieceStatus:PieceStatus = 
 							new PieceStatus(
-								length,						// Piece length.
-								ii + 1, 					// Number of log (1 is at top).
-								isEnd, 						// True if end piece.
-								leftToRight,				// True if cutting left to right.
-								prevCut == 0,				// True if measuring on new log for first time.
-								mLogArray[ii][2][j].mFuelUsed,// Raw fuel left at the time of piece creation.
-								prevCut,					// Cut before this cut or game end.
-								mLogArray[ii][2][j].mCutX,	// X cut location on log. 0 if end piece.
-								mLogArray[ii][2][j].mCutNumber// Cut number. 
+								length,							// Piece length.
+								ii + 1, 						// Number of log (1 is at top).
+								isEnd, 							// True if end piece.
+								leftToRight,					// True if cutting left to right.
+								prevCut == 0,					// True if measuring on new log for first time.
+								mLogArray[ii][2][j].mFuelUsed,	// Raw fuel left at the time of piece creation.
+								prevCut,						// Cut before this cut or game end.
+								mLogArray[ii][2][j].mCutX,		// X cut location on log. 0 if end piece.
+								mLogArray[ii][2][j].mCutNumber	// Cut number. 
 							);
 						
 						pieceStatusArray.push(pieceStatus);
@@ -572,15 +572,15 @@
 							lastLength = mLogArray[ii][0].width - mLogArray[ii][2][j].mCutX;	
 							var endPieceStatus:PieceStatus = 
 								new PieceStatus(
-									lastLength,					// Piece length.
-									ii + 1, 					// Number of log (1 is at top).
-									isEnd, 						// True if end piece.
-									leftToRight,				// True if cutting left to right.
-									false,						// True if measuring on new log for first time.
-									mLogArray[ii][2][j].mFuelUsed, // Raw fuel left at the time of piece creation.
-									prevCut,					// Cut before this cut or game end.
-									0,							// X cut location on log. 0 if end piece.
-									mLogArray[ii][2][j].mCutNumber// Cut number.  
+									lastLength,						// Piece length.
+									ii + 1, 						// Number of log (1 is at top).
+									isEnd, 							// True if end piece.
+									leftToRight,					// True if cutting left to right.
+									false,							// True if measuring on new log for first time.
+									mLogArray[ii][2][j].mFuelUsed,	// Raw fuel left at the time of piece creation.
+									prevCut,						// Cut before this cut or game end.
+									0,								// X cut location on log. 0 if end piece.
+									mLogArray[ii][2][j].mCutNumber	// Cut number.  
 								);
 							pieceStatusArray.push(endPieceStatus);
 						}
@@ -752,7 +752,7 @@
 				// Don't cut if chainsaw is not running and we're not in practice mode.
 				if (mGameLevel != kPracticeLevel && !mFuelTimer.running)return;
 				
-				var newArrowXPosition:Number = iLog.x + iLocalX - (mArrowBitmapData.width);
+				var newArrowXPosition:Number = iLog.x + iLocalX - (0.75*mArrowBitmapData.width);
 				
 				//get info from the log we are cutting
 				iNextLog = iLog['getNextLog']();
@@ -782,7 +782,7 @@
 							iLog.enabled		= false;// Stop further cuts on this log.
 							iNextLog.enabled	= true;	// Enable cuts on this log.
 							
-							mArrowSprite.y = iNextLog.y - mArrowBitmapData.height - 7;		// Start at top edge of next log.
+							mArrowSprite.y = iNextLog.y - mArrowBitmapData.height - 7;	// Start at top edge of next log.
 							mArrowSprite.x = iNextLog.x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of next log.
 							if (iNextLog['getCutDirection']()<0)
 								mArrowSprite.x = iNextLog.width+iNextLog.x - (mArrowBitmapData.width / 2);	// Move to right end of log if just cut left to right.
@@ -958,14 +958,6 @@
 				e.currentTarget.content['midLogMod'](offsetX,offsetY);
 
 			}
-			
-//			protected function initParticles():void
-//			{
-//				sawdustParticles = mSawdustParticles.content as MovieClip;
-//				sawdustParticles.enabled = false;
-//				sawdustParticles.mouseChildren = false;
-//				sawdustParticles['stopParticleAnim']();
-//			}
 
 			protected function updateVolume(vol:Number):void
 			{
