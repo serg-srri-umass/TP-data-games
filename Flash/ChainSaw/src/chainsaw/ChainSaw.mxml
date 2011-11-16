@@ -7,10 +7,10 @@
 
 	<fx:Script>
 		<![CDATA[
+			import assets.*;
 			import chainsaw.GameLevelWindow;
 			
 			import com.kcpt.scriptInterface.ScriptInterface;
-			import assets.*;
 			
 			import flash.media.Sound;
 			import flash.media.SoundMixer;
@@ -319,18 +319,22 @@
 			// randomizeLogOrder() randomly resorts the logs in the log array.
 			protected function randomizeLogSizePosition():void
 			{
-				dynamicLog1.x = Math.random()*90+40;
+				dynamicLog1.x = Math.random()*120+40;
 				dynamicLog1.y = 38;
-				dynamicLog1['drawNewLog']((Math.ceil(Math.random()*4)*75)+150);
-				dynamicLog2.x = Math.random()*90+40;
+				dynamicLog1['drawNewLog'](pickLogLength());
+				
+				dynamicLog2.x = Math.random()*120+40;
 				dynamicLog2.y = 107;
-				dynamicLog2['drawNewLog']((Math.ceil(Math.random()*4)*75)+150);
-				dynamicLog3.x = Math.random()*90+40;
+				dynamicLog2['drawNewLog'](pickLogLength());
+				
+				dynamicLog3.x = Math.random()*120+40;
 				dynamicLog3.y = 176;
-				dynamicLog3['drawNewLog']((Math.ceil(Math.random()*4)*75)+150);
-				dynamicLog4.x = Math.random()*90+40;
+				dynamicLog3['drawNewLog'](pickLogLength());
+				
+				dynamicLog4.x = Math.random()*120+40;
 				dynamicLog4.y = 245;
-				dynamicLog4['drawNewLog']((Math.ceil(Math.random()*4)*75)+150);
+				dynamicLog4['drawNewLog'](pickLogLength());
+				
 				// Move "Cut Edge" labels to first log.
 				mCutEdgeLeftLabel.x		= mLogArray[0][0].x + kCutEdgeLeftXOffset;
 				mCutEdgeLeftLabel.y		= mLogArray[0][0].y + kCutEdgeLeftYOffset;
@@ -338,7 +342,23 @@
 				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
 				
 				mArrowSprite.x = mLogArray[0][0].x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of first log.
-				mArrowSprite.y = mLogArray[0][0].y - (mArrowBitmapData.height+2);			// Start at top edge of first log.
+				mArrowSprite.y = mLogArray[0][0].y - (mArrowBitmapData.height+2);	// Start at top edge of first log.
+			}
+			
+			/**
+			 * Helper function for randomizeLogSizePosition() that returns a length as an int that
+			 * is long enough for 4 or 5 logs with a little extra padding (1/2 to 6/7 of a log length).
+			 * 
+			 * @return length
+			 * @author Ryan
+			 */
+			private function pickLogLength():int
+			{
+				var length:int;
+				length = kReferenceLength*4;									// The base length (4 pieces long)
+				length+= Math.round(Math.random())*kReferenceLength;			// Randomly add or don't add a 5th piece to the length 
+				length+= Math.ceil(Math.random()*(kReferenceLength*0.36)+0.5);	// Finally add 1/2 to 6/7 of a piece to the log as padding
+				return length;	// Return the length
 			}
 			
 			//called by directionalCutLevel() and freeCutLevel() to initially create TinkerPlot/DG collection spaces
