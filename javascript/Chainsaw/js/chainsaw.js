@@ -8,8 +8,9 @@ var Chainsaw = function(){
   _bind = function(e,fn){ beacon.bind(e, fn); }
   _trigger = function(e, params){ beacon.trigger(e, params); }
 
-  Logic = new ChainsawLogic();
-  View = new ChainsawView($('#canvas'));
+  this.Data = new ChainsawData();
 
+  this.Logic = new ChainsawLogic($('#canvas'), this.Data);
+  this.View = new ChainsawView($('#canvas'));
 }
 

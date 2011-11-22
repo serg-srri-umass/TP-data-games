@@ -4,71 +4,82 @@
   <title>Chainsaw</title>
   <script src='js/jquery.js'></script>
   <script src='js/raphael-min.js'></script>
+  <script src='js/raphael.blur.js'></script>
   <script src='js/fnbind.js'></script>
-  <script src='js/chainsaw.logic.js' charset="utf-8"></script>
+  <script src='js/dgapi.js'></script>
+  <script src='js/chainsaw.logic.js'></script>
   <script src='js/chainsaw.view.js' charset="utf-8"></script>
-  <script src='js/chainsaw.js' charset="utf-8"></script>
+  <script src='js/chainsaw.data.js'></script>
+  <script src='js/chainsaw.js'></script>
   <script>
+   "use strict";
    $(function(){
-     chain = new Chainsaw($('#canvas')); 
+     var chain = new Chainsaw($('#canvas')); 
    });
   </script>
   <link href="style.css" media="screen" rel="stylesheet" type="text/css" />
 </head>
 <body>
-  <div id='overlay'>
-    <div id='levelselect'>
-      <h1>Chainsaw</h1>
-      <b>Chainsaw</b> is a game about cutting logs! <br />
-      Enter your name and choose a level to begin:
-      <input type='text' id='playername' placeholder='Player' />
-      
+  <div id='banner'>
+    <span id='version'>Chainsaw [srri javascript] version 0.1</span>
+    <img src='assets/volume_on.png' alt='volume' id='mute' style='position:relative;top:2px;'/>
+    <input type="range" min="0" max="1" value="1" step="0.01" id='volume'/>
+  </div>
+
+<div id='container'>
+
+  <div id='levelselect'>
+    <h1>Chainsaw</h1>
+    <div id='splash'>
+      <h3>A game about cutting logs</h3>
+      <!-- Seriously, replace this splash screen ASAP -->
+      Your goal is to cut logs (<img src='assets/fulllog.png' alt='log' />) into smaller chunks (<img src='assets/chunk.png' alt='small' />) to fit inside the fire!<br />
+      Click and hold the mouse button to cut the logs.<br /><br />
+      <b>Practice</b> lets you cut with no time limit.<br />
+      <b>Directional</b> challenges you to cut logs in alternating directions.<br />
+      <b>Free Cut</b> lets you cut any log at any time.
+    </div>
+
+    <div id='player'> 
+      Player Name: <input type='text' id='playername' placeholder='Player' />
+    </div>
+    <div id='buttons'>
       <input type='button' data-level='practice' value='Practice'/>
       <input type='button' data-level='directional' value='Directional Cut' />
       <input type='button' data-level='free' value='Free Cut' />
     </div>
-  </div> 
-  <div id='container'> 
-    <div id='fuel'> 
-      Fuel level:
-      <ul id='labels'>
-        <li id='arrow'>&nbsp;</li> 
-        <li>40</li>
-        <li>30</li>
-        <li>20</li>
-        <li>10</li>
-        <li>0</li>
-      </ul>
-      <div id='tank'>
-        <div id='contents'>
-        
-        </div> 
-      </div>
-    </div>
-    
-    <div id='header'>
-      <h1>CHAINSAW</h1>
-      <input type='button' value='Start' id='startButton'>
-      Playing as <b id='username'>Player</b>. (<a class='changeLevel' href='#'>Change?</a>)
-      <a id='mute' href='#'>Mute audio</a>
-    </div>
-      
-    <div id='canvas'></div>
-
-    <div id='footer'>
-      <div id='nav'>
-        <input type='button' id='stopButton' value='Stop' disabled/>
-        <input type='button' class='changeLevel' value='Change Level' />
-      </div>
-      <div id='info'> 
-        Reference log: <div id='referencelog'></div>
-      </div>
-      <div id='stats'>
-        Number of accepted pieces:
-        <div id='accepted'>0</div>
-      </div>
-      <div class='clear'>&nbsp;</div>
-    </div>
   </div>
+
+  <div id='game'>
+    <div id='sidebar'>
+      <div id='fuel'>
+        Fuel:
+        <div id='tank'>
+          <div id='contents'></div> 
+        </div>
+      </div>
+      
+      <div id='target'>
+        Target length:<br />
+        <div id='log'></div>
+      </div>
+
+      <input type='button' class='action' id='startButton' value='Start' />
+      <input type='button' class='action' id='stopButton' style='display:none;' value='Stop' />
+    </div>
+
+    <div id='canvas'></div>
+  </div>
+
+  <div id='results'>
+    <h2>Nice job, <span id='username'></span>! Here are your results:</h2>
+    
+    Number of accepted pieces: <span id='piecesaccepted'>10</span><br />
+    Number of total pieces: <span id='piecestotal'>18</span><br />
+    Overall percentage: <span id='piecespercent'>100%</span>
+    <input type='button' class='action' id='continue' value='Continue' />
+  </div>
+
+</div>
 </body>
 </html>
