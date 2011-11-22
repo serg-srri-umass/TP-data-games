@@ -8,6 +8,7 @@
 	<fx:Script>
 		<![CDATA[
 			import assets.*;
+			
 			import chainsaw.GameLevelWindow;
 			
 			import com.kcpt.scriptInterface.ScriptInterface;
@@ -72,8 +73,8 @@
 			private var mArrowSprite:SpriteVisualElement = new SpriteVisualElement();
 			private var mArrowBitmapData:BitmapData;
 			
-			//the sawdust pile
-			private var mSawdustSprite:SawdustSprite = new SawdustSprite();
+//			//the sawdust pile
+//			private var mSawdustSprite:SawdustSprite = new SawdustSprite();
 
 			private var mFirstGame:Boolean			= true;	// Used for initial operations.
 			private var mGameLevel:uint				= 3;	// Current game level. --init as 3 to force it to go through init loops in game select
@@ -189,12 +190,13 @@
 				uic.addChild(sawdustParticles);
 				sawdustParticles.enabled = false;
 				sawdustParticles.mouseChildren = false;
-				//TODO sawdust pile sprite
-				mSawdustSprite.init();
-				mSawdustSprite.scaleX = .2;
-				mSawdustSprite.scaleY = .2;
-				mSawdustSprite.x = 100;
-				//addElement(mSawdustSprite); //TODO
+				
+//				//TODO sawdust pile sprite
+//				mSawdustSprite.init();
+//				mSawdustSprite.scaleX = .2;
+//				mSawdustSprite.scaleY = .2;
+//				mSawdustSprite.x = 100;
+//				//addElement(mSawdustSprite); //TODO
 
 				mLevelWindow = new GameLevelWindow();
 				levelSelected(kPracticeLevel);
@@ -408,9 +410,11 @@
 												 iPieceNumber:uint = 0	// Piece number. If not 0, transmit this number instead of mPieceNumber.
 												):void
 			{
+				var currentLog:MovieClip = mLogArray[iLogNumber-1][0] as MovieClip; // The current log
+				var log_length:Number = currentLog['LogLength']; // get the length of the current log
+				
 				// Not cutting, so don't specify a cut location.
-				if (iIsEndPiece)
-					iCutX = 0;
+				if (iIsEndPiece) iCutX = 0;
 				
 				// Create "X" or "√" for piece to indicate rejected or accepted.
 				var statusLabel:Label	= new Label();
@@ -423,7 +427,34 @@
 					
 				// Accept cut piece if it falls within accepted range.
 				var accepted:Boolean = (iLength >= kMinCutLength) && (iLength <= kMaxCutLength);
+				var remnant:Boolean;
 				var acceptString:String;
+				
+				// Check if a piece is a remnant if it is not accepted
+				if(!accepted)
+				{
+					remnant = false; // Initialize to false
+					 
+					if(iIsEndPiece)
+					{
+						// if there is not enough room for two cuts at the (but more than one)
+						if(iLeftToRight && (log_length - iPrevXCut) < kReferenceLength*2) //left to right cut
+						{
+							statusLabel.text = "test";
+							remnant = true;
+						}
+						else if(iPrevXCut < kReferenceLength*2) //right to left cut
+						{
+							statusLabel.text = "test";
+							remnant = true;
+						}
+					}
+					
+					if(iLength <= kReferenceLength/2)
+					{
+						remnant = true;
+					}
+				}
 					
 				// Keep track of how many cut pieces are accepted / rejected and set status label text.
 				if (accepted)
@@ -435,6 +466,15 @@
 					statusLabel.setStyle("color", "0x00FF00");	// Green = OK.
 					acceptString = kAcceptString;
 				}
+				else if (remnant)
+				{
+					if (mGameLevel != kPracticeLevel)
+						++mPieceNumber;
+					//++mPiecesRejected;
+					statusLabel.text = "O";
+					statusLabel.setStyle("color", "0xFFFF00"); // Yellow
+					acceptString = "Remnant"; //TODO report new acceptance status?
+				}
 				else								
 				{
 					if (mGameLevel != kPracticeLevel)
@@ -444,18 +484,19 @@
 					statusLabel.setStyle("color", "0xFF0000");	// Red = not OK.
 					acceptString = (iLength < kMinCutLength) ? kRejectShortString : kRejectLongString;
 				}
+				
 				// Set y location of status label for cut piece.
-				statusLabel.y = (mLogArray[iLogNumber-1][0].height / 2) - (statusLabel.height / 2)+mLogArray[iLogNumber-1][0].y;
+				statusLabel.y = (currentLog.height / 2) - (statusLabel.height / 2)+currentLog.y;
 				// Set x location of status label for cut piece.
 				if (iLeftToRight>0)
 				{
 					// End piece or cutting along same log as at the last cut.
 					if (iIsEndPiece || (!iIsEndPiece && !iIsNewLog))
-						statusLabel.x = iPrevXCut + (iLength / 2) - (statusLabel.width / 2)+mLogArray[iLogNumber-1][0].x;
+						statusLabel.x = iPrevXCut + (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
 					// Cutting on new log.
-					else statusLabel.x = (iLength / 2) - (statusLabel.width / 2)+mLogArray[iLogNumber-1][0].x;
+					else statusLabel.x = (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
 				}
-				else  statusLabel.x = iCutX + (iLength / 2) - (statusLabel.width / 2)+mLogArray[iLogNumber-1][0].x;
+				else  statusLabel.x = iCutX + (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
 
 				//add statusLabel element to holder to be shown later
 				mStatusLabelHolder.addElement(statusLabel);
@@ -505,7 +546,6 @@
 				
 				if (mGameLevel != kPracticeLevel)
 				{
-					flashGasTank['pauseDrop']();
 					mFuelTimer.stop();													// Stop fuel timer.
 					mFuelTimer.removeEventListener(TimerEvent.TIMER, timerListener);	// Stop listening.
 					flashGasTank['pauseDrop']();	//stop gas tank animation
