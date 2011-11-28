@@ -345,7 +345,7 @@
 				mCutEdgeRightLabel.x	= mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
 				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
 				
-				mArrowSprite.x = mLogArray[0][0].x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of first log.
+				mArrowSprite.x = mLogArray[0][0].x - mArrowBitmapData.width + 5;	// Start with arrow pointing at left edge of first log.
 				mArrowSprite.y = mLogArray[0][0].y - (mArrowBitmapData.height+2);	// Start at top edge of first log.
 			}
 			
@@ -825,9 +825,9 @@
 							iNextLog.enabled	= true;	// Enable cuts on this log.
 							
 							mArrowSprite.y = iNextLog.y - mArrowBitmapData.height - 7;	// Start at top edge of next log.
-							mArrowSprite.x = iNextLog.x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of next log.
+							mArrowSprite.x = iNextLog.x - mArrowBitmapData.width + 5;	// Start with arrow pointing at left edge of next log.
 							if (iNextLog['getCutDirection']()<0)
-								mArrowSprite.x = iNextLog.width+iNextLog.x - (mArrowBitmapData.width / 2);	// Move to right end of log if just cut left to right.
+								mArrowSprite.x = iNextLog.width+iNextLog.x - (mArrowBitmapData.width) - 5;	// Move to right end of log if just cut left to right.
 							
 							// Move "Cut Edge" labels to next log.
 							mCutEdgeLeftLabel.x		= iNextLog.x + kCutEdgeLeftXOffset;
