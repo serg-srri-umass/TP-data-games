@@ -6,7 +6,6 @@
   <script src='js/raphael-min.js'></script>
   <script src='js/raphael.blur.js'></script>
   <script src='js/fnbind.js'></script>
-  <script src='js/dgapi.js'></script>
   <script src='js/chainsaw.logic.js'></script>
   <script src='js/chainsaw.view.js' charset="utf-8"></script>
   <script src='js/chainsaw.data.js'></script>
@@ -21,8 +20,8 @@
 </head>
 <body>
   <div id='banner'>
-    <span id='version'>Chainsaw [srri javascript] version 0.1</span>
-    <img src='assets/volume_on.png' alt='volume' id='mute' style='position:relative;top:2px;'/>
+    <span id='version'>Chainsaw [srri javascript] 11/29/2011</span>
+    <img src='assets/Volume.png' alt='volume' id='mute' style='position:relative;top:2px;'/>
     <input type="range" min="0" max="1" value="1" step="0.01" id='volume'/>
   </div>
 
@@ -61,7 +60,8 @@
       
       <div id='target'>
         Target length:<br />
-        <div id='log'></div>
+        <div id='ruler'></div>
+        <img src='assets/Reference Length 75 Pixels.png' alt='75px' />
       </div>
 
       <input type='button' class='action' id='startButton' value='Start' />
@@ -72,7 +72,7 @@
   </div>
 
   <div id='results'>
-    <h2>Nice job, <span id='username'></span>! Here are your results:</h2>
+    <h2><span id='howgood'>Nice job</span>, <span id='username'></span>! Here are your results:</h2>
     
     Number of accepted pieces: <span id='piecesaccepted'>10</span><br />
     Number of total pieces: <span id='piecestotal'>18</span><br />

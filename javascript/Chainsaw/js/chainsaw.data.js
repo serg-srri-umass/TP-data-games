@@ -1,7 +1,15 @@
+/** 
+ * Handle data output from Chainsaw to DG
+ * Exposes a .controller object that commands can be run against.
+ */
 var ChainsawData = function(){
   //console.log(" - Data loaded");
 
-  try { 
+  /**
+   * Try and create a reference to the DG controller,
+   * but don't break everything else if we're not running in DG
+   */
+  try {
     this.controller = window.parent.DG.currGameController;
   } catch(e){
     console.log("Could not init DG controller"); // We're not running in DG
@@ -27,9 +35,12 @@ var ChainsawData = function(){
   this.init();
 }
 
+/**
+ * Functions on the ChainsawData class
+ */
 ChainsawData.prototype = {
-  
   init: function() {
+    /** Intiate a game with all required fields */
     this.controller.doCommand( {
       action: 'initGame',
       args: {
@@ -70,6 +81,11 @@ ChainsawData.prototype = {
 
   },
 
+  /**
+   * Create a new game
+   *
+   * @param playerName The player name string to initiate with
+   */
   newGame: function(playerName){
     this.player = playerName;
     this.gameNumber++;
@@ -80,6 +96,11 @@ ChainsawData.prototype = {
     this.pieceNumber = 0;
   },
 
+  /**
+   * Add a cut to the data
+   *
+   * @param - All pertinent cut information
+   */
   addCut: function(length, accepted, endpiece, lognumber, fuelamount, fuelpercent) {
     this.pieceNumber++;
     this.fuelLeftAmount = fuelamount;
@@ -91,7 +112,7 @@ ChainsawData.prototype = {
     var result;
 
     if( !this.openRoundID) {
-      // Add a new game
+      /* Add a new game */
       result = this.controller.doCommand({
                             action: 'openCase',
                             args: {
@@ -103,7 +124,7 @@ ChainsawData.prototype = {
       else console.log("Error: Could not create game");
     }
     else {
-      // Update existing game
+      /* Update existing game */
       result = this.controller.doCommand({
                             action: 'updateCase',
                             args: {
@@ -120,7 +141,7 @@ ChainsawData.prototype = {
     }
 
 
-    // Add our current data
+    /* Add our current data */
     result = this.controller.doCommand( {
       action: 'createCase',
       args: {
@@ -132,6 +153,10 @@ ChainsawData.prototype = {
     if(!result.success) console.log("Error: could not add cut");
   },
   
+  /**
+   * End the game, and close the current case
+   * This is where the finalized data (left table in DG) gets sent
+   */
   endGame: function() {
     if( this.openRoundID) {
       console.log("Adding game...");

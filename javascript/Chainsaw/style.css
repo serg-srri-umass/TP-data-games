@@ -164,7 +164,7 @@ input[type=button]:active{
       #game #sidebar #fuel #tank{
         width: 100px;
         height:145px;
-        background-image:url('assets/fueltank.png');
+        background-image:url('assets/Fuel.png');
         position: relative;
         margin: 10px 0px 25px 0px;
       }
@@ -180,14 +180,10 @@ input[type=button]:active{
     #game #sidebar #target{
       padding-left: 20px;
     }
-      #game #sidebar #target #log{
-        width: 75px;
-        height: 30px;
-        border:2px solid #764d13;
-        margin: 10px 0px;
-
-        background: -moz-linear-gradient(bottom, #b17603 0%, #bea379 100%);
-        background: -webkit-linear-gradient(bottom, #b17603 0%, #bea379 100%);
+      #game #sidebar #target #ruler{
+        width: 112px;
+        height: 35px;
+        background-image:url('assets/tape_measure.png');
       }
 
     #game #sidebar input[type=button]{
@@ -202,7 +198,7 @@ input[type=button]:active{
     background-color: #ead1aa;
   }
   #game #canvas.active{
-    cursor:url('assets/cursor.gif'), auto;
+    cursor:url('assets/Chainsaw Cursor 2.gif'), auto;
   }
   #game #canvas.inactive{
     cursor:default;
