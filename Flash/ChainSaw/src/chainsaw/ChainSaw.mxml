@@ -242,9 +242,9 @@
 				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
 				mLevelWindow.closeButton.visible = false;	// Hide the close button.
 				
-				mLevelWindow["mPracticeLevelButton"].addEventListener("click", practiceLevel);   
-				mLevelWindow["mDirectionalCutButton"].addEventListener("click", directionalCutLevel);   
-				mLevelWindow["mFreeCutButton"].addEventListener("click", freeCutLevel);   
+				mLevelWindow["mPracticeLevelButton"].addEventListener("click", practiceLevel);
+				mLevelWindow["mDirectionalCutButton"].addEventListener("click", directionalCutLevel);
+				mLevelWindow["mFreeCutButton"].addEventListener("click", freeCutLevel);
 			}
 					
 			// practiceLevel() sets the current game level to practice.
@@ -418,7 +418,7 @@
 				// Not cutting, so don't specify a cut location.
 				if (iIsEndPiece) iCutX = 0;
 				
-				// Create "X" or "√" for piece to indicate rejected or accepted.
+				// Create "X" or "√" for piece to indicate rejected or accepted. "O" for remnants.
 				var statusLabel:Label	= new Label();
 				statusLabel.width		= 14;			// Setting manually, as measureText() fails with Spark Label.
 				statusLabel.height		= 14;
@@ -442,12 +442,10 @@
 						// if there is not enough room for two cuts at the (but more than one)
 						if(iLeftToRight && (log_length - iPrevXCut) < kReferenceLength*2) //left to right cut
 						{
-							statusLabel.text = "test";
 							remnant = true;
 						}
 						else if(iPrevXCut < kReferenceLength*2) //right to left cut
 						{
-							statusLabel.text = "test";
 							remnant = true;
 						}
 					}
@@ -611,7 +609,7 @@
 							// Used to increment next cut numbers and provide sequential pieece numbers.
 							++pieceNumberBase;
 							var lastLength:Number;
-							lastLength = mLogArray[ii][0].width - mLogArray[ii][2][j].mCutX;	
+							lastLength = mLogArray[ii][0].width - mLogArray[ii][2][j].mCutX - 10; //subtract 10 to account for curve on log face
 							var endPieceStatus:PieceStatus = 
 								new PieceStatus(
 									lastLength,						// Piece length.
@@ -673,7 +671,7 @@
 				{
 					// Calculate distance from end of log in the direction player was cutting.
 					// mCurrentLog begins at 1. Array index begins at 0.
-					var woodRemaining:Number	= mLeftToRight? mLogArray[mCurrentLog-1][0].width - mLastCutX : mLastCutX;
+					var woodRemaining:Number	= mLeftToRight? mLogArray[mCurrentLog-1][0].width - mLastCutX -10 : mLastCutX;
 					var isEndPiece:Boolean		= true;
 					
 					// Evaluate the piece's acceptance status and record the outcome by setting a 
@@ -805,7 +803,7 @@
 					(iLeftToRight<0 && mArrowSprite.x > newArrowXPosition))
 				{					
 					// Calculate distance from end of log in the direction player is cutting.
-					var woodRemaining:Number	= iLeftToRight>0? iLog.width - iLocalX : iLocalX;
+					var woodRemaining:Number	= iLeftToRight>0? iLog.width - iLocalX -10 : iLocalX;
 					
 					// If player has wood to cut, the intended cut is not an end piece.
 					var isEndPiece:Boolean		= false; 
@@ -847,7 +845,7 @@
 						if (iLeftToRight>0)
 							pieceLength = iLocalX;				// First cut from left edge of log.
 						else
-							pieceLength = iLog.width - iLocalX;	// First cut from right edge of log.
+							pieceLength = iLog.width - iLocalX - 10;	// First cut from right edge of log.
 					}
 					// Evaluate the piece's acceptance status and record the outcome by setting a 
 					// visual marker on each log and also transmit the info to Fathom/TinkerPlots.
