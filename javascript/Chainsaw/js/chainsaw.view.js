@@ -211,7 +211,7 @@ ChainsawView.prototype = {
   updateCutPointer: function(y, cut){
     if(!this.labels.cutDownArrow){
       /** Create the arrow if it hasn't been initialized */
-      this.labels.cutDownArrow = this.paper.image("assets/Arrow1Flat.png", 0, 0, 20, 33);
+      this.labels.cutDownArrow = this.paper.image("assets/Down Arrow Small.png", 0, 0, 20, 33);
     }
     /** Reposition */
     this.labels.cutDownArrow.attr({ x: cut-10, y: y -33});
