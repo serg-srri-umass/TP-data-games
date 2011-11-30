@@ -152,13 +152,13 @@
 			/*
 			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
 			*/
-			[Embed("../src/assets/Chainsaw Sound Longer.mp3")]
-//			[Embed("../src/assets/dummy.mp3")]
+//			[Embed("../src/assets/Chainsaw Sound Longer.mp3")]
+			[Embed("../src/assets/dummy.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-			[Embed("../src/assets/Chainsaw Engine Stops no Fade In.mp3")]
-//			[Embed("../src/assets/dummy.mp3")]
+//			[Embed("../src/assets/Chainsaw Engine Stops no Fade In.mp3")]
+			[Embed("../src/assets/dummy.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 
@@ -544,6 +544,9 @@
 				mStatusLabelHolder.visible=true;//show all status labels
 				mArrowSprite.visible = false; //hide cut place arrow if it is shown
 				
+				mCutEdgeLeftLabel.visible = false; //hide cut edge labels
+				mCutEdgeRightLabel.visible = false;
+				
 				if (mGameLevel != kPracticeLevel)
 				{
 					mFuelTimer.stop();													// Stop fuel timer.
@@ -761,6 +764,12 @@
 				mPlayerTextInput.enabled	= false;
 				mChainsawCursorID			= CursorManager.setCursor(mChainsawCursor, CursorManagerPriority.HIGH);
 				
+				if (mGameLevel != kFreeCutLevel)
+				{
+					mCutEdgeLeftLabel.visible = true;	//show cut edge labels
+					mCutEdgeRightLabel.visible = true;
+				}
+				
 				// Use timer to update the fuel level display and game duration.
 				if (mGameLevel != kPracticeLevel)
 				{
@@ -917,10 +926,9 @@
 				mPlayersName = mPlayerTextInput.text;
 			}				
 
-			// onClickStartButton() is called whenever the start button is pressed.
+			// Player has pressed the Stop button to end the game.
 			protected function onClickStopButton(iEvent:MouseEvent):void
 			{
-				// Player has pressed End Game to stop game play.
 				endGame();
 			}
 
