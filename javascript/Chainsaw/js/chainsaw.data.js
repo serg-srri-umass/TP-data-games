@@ -14,9 +14,9 @@ var ChainsawData = function(){
   } catch(e){
     console.log("Could not init DG controller"); // We're not running in DG
     this.controller = (function(){
-      var foo = function(){ return; };
-      foo.prototype.doCommand = function(){ return {success: false }; };
-      return new foo;
+      var placebo = function(){ return; };
+      placebo.prototype.doCommand = function(){ return {success: false }; };
+      return new placebo;
     })();
   }
 
@@ -45,7 +45,7 @@ ChainsawData.prototype = {
       action: 'initGame',
       args: {
         name: "Chainsaw",
-        dimensions: { width: 400, height: 250 },
+        dimensions: { width: 725, height: 400 },
         collections: [
           {
             name: "Games",

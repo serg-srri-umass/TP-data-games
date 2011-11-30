@@ -5,8 +5,8 @@
  */
 var ChainsawView = function(canvasEl){
   this.canvasEl = canvasEl;
-  // console.log(" - View loaded");
 
+  /** Raphael surface dimensions */
   this.width = 550;
   this.height = 350;
 

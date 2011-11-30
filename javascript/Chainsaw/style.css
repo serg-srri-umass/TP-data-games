@@ -53,6 +53,7 @@ input[type=button]:active{
 }
 
   #banner #version{
+    float:left;
     margin-right:20px;
 
   }
