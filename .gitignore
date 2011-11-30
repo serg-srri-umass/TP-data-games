@@ -8,7 +8,9 @@
 #.settings/
 #.project
 
-bin-release/chainsaw/
-bin-release/history/
+~/TP-data-games/Flash/ChainSaw/.fxpProperties
+~/TP-data-games/Flash/ChainSaw/bin-release/chainsaw/
+~/TP-data-games/Flash/ChainSaw/bin-release/history/
 bin-release/playerProductInstall.swf
 bin-release/swfobject.js
+.fxpProperties
