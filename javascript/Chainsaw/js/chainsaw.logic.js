@@ -5,6 +5,7 @@
  * @param data A reference to the ChainsawData object
  */
 var ChainsawLogic = function(canvasEl, data){
+  this.canvasEl = canvasEl;
   this.data = data;
 
   /** Initiate variables related to the current game */
@@ -61,7 +62,7 @@ var ChainsawLogic = function(canvasEl, data){
   };
 
   /** Provide handlers for mouse events */
-  canvasEl.mousedown(function(){ this.game.mousedown = true; }.bind(this))
+  this.canvasEl.mousedown(function(){ this.game.mousedown = true; }.bind(this))
           .mouseup(function(){ this.game.mousedown = false; }.bind(this))
           .mousemove(function(e){ this.handleMouse(e); }.bind(this));
 
@@ -155,9 +156,9 @@ ChainsawLogic.prototype = {
   handleMouse: function(e){
     if(!this.game.inProgress) return;
     if(!this.game.mousedown) return;
-
-    var x = e.offsetX,
-        y = e.offsetY,
+    /** Can't use offsetX/layerX here due to browser inconsistencies */
+    var x = e.pageX - this.canvasEl.offset().left,
+        y = e.pageY - this.canvasEl.offset().top,
         justCut = false;
     
     /** Loop through each cut, and: */
@@ -248,7 +249,8 @@ ChainsawLogic.prototype = {
   endGame: function(e){
     if(!this.game.inProgress) return;
 
-    this.data.endGame();
+
+    this.data.endGame(this.fuel.current, (this.fuel.current/this.fuel.initial)*100);
     this.game.inProgress = false;
     this.game.firstRun = false;
     if(this.game.level != 'practice') clearInterval(this.fuel.timer);

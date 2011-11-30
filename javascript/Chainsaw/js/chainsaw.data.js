@@ -157,7 +157,7 @@ ChainsawData.prototype = {
    * End the game, and close the current case
    * This is where the finalized data (left table in DG) gets sent
    */
-  endGame: function() {
+  endGame: function(fuelamount, fuelpercent) {
     if( this.openRoundID) {
       console.log("Adding game...");
       var result = this.controller.doCommand({
