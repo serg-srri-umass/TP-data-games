@@ -8,7 +8,6 @@
 	<fx:Script>
 		<![CDATA[
 			import chainsaw_assets.*;
-			
 			import chainsaw.GameLevelWindow;
 			
 			import com.kcpt.scriptInterface.ScriptInterface;
@@ -89,7 +88,6 @@
 			private var mLastLog:uint				= 0;	// Number of log at most recent cut. 1 based. 0 before cuts.
 			private var mLastCutX:Number			= 0;	// X location of most recent cut.
 			private var mLeftToRight:Boolean		= true;	// Current cutting direction of log.
-//			private var mStatusArray:Array = new Array;		// Holds status labels put on cut logs.
 			private var mPiecesAccepted:uint		= 0;	// Number of cut pieces accepted.
 			private var mPiecesRejected:uint		= 0;	// Number of cut pieces rejected.
 			private var mPlayersName:String			= "Player"; // Stores player's name.
@@ -134,11 +132,6 @@
 			[Embed(source="../chainsaw_assets/Down Arrow Small.png")]
 			[Bindable]
 			private var mDownArrowImage:Class;
-			
-			// Embed sawdust pile image
-			[Embed(source="../chainsaw_assets/sawdust_pile.png")]
-			[Bindable]
-			private var mSawdustPile:Class;
 			
 			// Embed volume icon
 			[Embed(source="../chainsaw_assets/Volume.png")]
@@ -189,13 +182,6 @@
 				uic.addChild(sawdustParticles);
 				sawdustParticles.enabled = false;
 				sawdustParticles.mouseChildren = false;
-				
-//				//TODO sawdust pile sprite
-//				mSawdustSprite.init();
-//				mSawdustSprite.scaleX = .2;
-//				mSawdustSprite.scaleY = .2;
-//				mSawdustSprite.x = 100;
-//				//addElement(mSawdustSprite); //TODO
 
 				mLevelWindow = new GameLevelWindow();
 				levelSelected(kPracticeLevel);
