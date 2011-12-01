@@ -1,4 +1,4 @@
-﻿package assets {
+﻿package chainsaw_assets {
 	import flash.events.*;
 	import flash.events.Event;
 	import flash.display.MovieClip;
