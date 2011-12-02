@@ -1,6 +1,11 @@
 /*
-This provides .bind functionality in browsers (ex. Safari) which haven't
-implemented it.
+Function.prototype.bind is a method introduced in ECMAscript 262-5 which negates the
+necessity for closures by allowing changes to the running context of a function 
+(i.e. the 'this' variable)
+
+This extension provides .bind functionality in browsers (ex. Safari) which haven't
+yet implemented it, and should be a close enough approximation to function in any
+current browser.
 
 Sourced from:
 https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind

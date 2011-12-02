@@ -1,0 +1,8 @@
+# OS-specific thumbnail files
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Chainsaw sounds are freely available, but -not- for open-source projects. Thus, omitted.
+javascript/Chainsaw/assets/*.mp3
