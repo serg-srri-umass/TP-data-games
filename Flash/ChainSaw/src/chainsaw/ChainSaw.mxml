@@ -31,7 +31,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "v. 11/30/11";// A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "v. 12/02/11";// A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -179,6 +179,7 @@
 				// Randomize log array.
 				randomizeLogSizePosition();
 				
+				// add particle emitter to display
 				uic.addChild(sawdustParticles);
 				sawdustParticles.enabled = false;
 				sawdustParticles.mouseChildren = false;
@@ -272,7 +273,7 @@
 						mCutEdgeRightLabel.visible	= false; // Hide right "Cut Edge" label.
 						mArrowSprite.visible		= false; // Hide cut location arrow.
 						
-						if (!mFreeCutCollectionCreated)
+						if (!mFreeCutCollectionCreated) //create collection for free cut if not already created
 						{
 							createCollectionMod(kCollectionFreeCutPieces, kCollectionFreeCutGames);
 							mFreeCutCollectionCreated = true;
@@ -291,7 +292,7 @@
 						mCutEdgeRightLabel.visible	= true; // Show right "Cut Edge" label.
 						mArrowSprite.visible		= true; // Show cut location arrow.
 						
-						if (!mDirCutCollectionCreated)
+						if (!mDirCutCollectionCreated) //create collection for directional cut if not already created
 						{
 							createCollectionMod(kCollectionDirCutPieces, kCollectionDirCutGames);
 							mDirCutCollectionCreated = true;
@@ -994,7 +995,7 @@
 			{
 				//cannot do: SoundMixer.soundTransform.volume = vol/100;
 				var st:SoundTransform = SoundMixer.soundTransform;
-				st.volume = vol/100;
+				st.volume = vol/100; //changes range [0-100] (slider position) to [0-1] (volume level)
 				SoundMixer.soundTransform = st;
 			}
 		]]>
@@ -1010,10 +1011,10 @@
 	<s:Button			id="mStopButton" x="18.5" y="484" label="Stop" enabled="false" click="onClickStopButton(event)" fontWeight="bold" fontSize="14" width="90" height="29"/>
 	<s:Button			id="mChangeLevelButton" x="18.5" y="519" label="Change Level" enabled="true" click="onClickChangeLevelButton(event)" fontWeight="bold" fontSize="12" width="100" height="29" chromeColor="#4E8E54"/>
 	<s:BorderContainer	id="mLogYardContainer" x="15" y="147" width="597" height="324" backgroundColor="#EAD1AA">
-		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog4" x="-5" y="0" source="assets/DynamicLog.swf" complete="initLog4()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog4" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog4()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:Group			id="mStatusLabelHolder" x="0" y="0" width="597" height="324" visible="false"/>
 		<s:Label			id="mCutEdgeRightLabel" x="0" y="0" text="- Cut Log" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="left"/>
 		<s:Label			id="mCutEdgeLeftLabel" x="0" y="0" text="Cut Log -" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="right"/>
@@ -1030,8 +1031,8 @@
 	<mx:Image			id="mReferenceLengthImage" x="223" y="515" source="{mLengthImage}"/>
 	<mx:Image			id="mReferenceLengthImage2" x="223" y="515" source="{mTapeMeasureImage}"/>
 	
-	<s:SWFLoader 		id="mFuelIcon" x="497" y="21" width="106" height="118" source="assets/GasTank.swf" complete="initGasTank()"/>
-	<!-- <s:SWFLoader		id="mSawdustParticles" x="0" y="0" width="100" height="100"  source="assets/particles.swf" complete="initParticles()"/> -->
+	<s:SWFLoader 		id="mFuelIcon" x="497" y="21" width="106" height="118" source="chainsaw_assets/GasTank.swf" complete="initGasTank()"/>
+	<!-- <s:SWFLoader		id="mSawdustParticles" x="0" y="0" width="100" height="100"  source="chainsaw_assets/particles.swf" complete="initParticles()"/> -->
 	<s:Label			id="mPlayersNameLabel" x="140.5" y="100.5" text="PLAYER'S NAME:" fontFamily="Arial" fontSize="16" fontWeight="bold" color="#7B9453"/>
 	<s:TextInput		id="mPlayerTextInput" x="281" y="94" width="132" text="Player" color="#7B9453" fontSize="16" enabled="true" change="onChangePlayerTextInput(event)" textAlign="left" fontWeight="bold"/>
 	<mx:UIComponent		id="uic" x="0" y="0" />
