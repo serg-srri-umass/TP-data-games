@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- GameLevelWindow.mxml -->
+<!-- Copyright (c) 2011 by University of Massachusetts and contributors -->
+<!-- Project information: http://srri.umass.edu/datagames/ -->
+<!-- Released under the MIT License http://www.opensource.org/licenses/mit-license.php -->
+
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   width="250" height="264" textAlign="center" 
+			   title="          Choose Game Level">
+	
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Button id="mPracticeButton" x="34" y="137" width="180" height="39" label="Practice"
+			  fontFamily="Georgia" fontSize="24" fontStyle="italic" fontWeight="bold"/>
+	<s:Button id="mPlayGameButton" x="34" y="182" width="180" height="39" label="Play Game"
+			  fontFamily="Georgia" fontSize="24" fontStyle="italic" fontWeight="bold"/>
+	<s:Label id="mPackerNameLabel" x="60" y="64" color="#908F17" fontFamily="Georgia" fontSize="20"
+			 fontStyle="italic" fontWeight="normal" text="Packer Name:"/>
+	<s:TextInput id="mPackerNameTextInput" x="49" y="92" fontSize="14" maxChars="8"/>
+	<s:Label id="mGameNameLabel" x="28" y="10" color="#908F17" fontFamily="Georgia" fontSize="30"
+			 fontStyle="italic" fontWeight="bold" text="Rat Packing"/>
+</s:TitleWindow>
