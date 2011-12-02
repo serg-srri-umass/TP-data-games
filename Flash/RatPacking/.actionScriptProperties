@@ -10,8 +10,8 @@
         </excludedEntries>
       </libraryPathEntry>
       <libraryPathEntry kind="1" linkType="1" path="libs"/>
-      <libraryPathEntry kind="3" linkType="1" path="C:/Users/Laurel/Code/DataGames/Flash/KCPTCommonLibrary/bin/KCPTCommonLibrary.swc" useDefaultLinkType="false"/>
-      <libraryPathEntry kind="3" linkType="1" path="C:/Users/Laurel/Code/DataGames/Flash/SRRICommonLibrary/bin/SRRICommonLibrary.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="../KCPTCommonLibrary/bin/KCPTCommonLibrary.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="../SRRICommonLibrary/bin/SRRICommonLibrary.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
