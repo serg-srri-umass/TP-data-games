@@ -1,13 +1,17 @@
 body{
-  color: #000;
+  color: black;
+  background-color: white;
   font: 400 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
-  padding:0px;
-  margin:0px;
+  padding: 10px;
+  margin: 0px;
   cursor: default;
 }
+
+h1, h2, h3, h4{ margin:0px; padding: 0px; }
+
 input[type=button]{
-  background: -moz-linear-gradient(top, white 0%, #F2F2F2 50%, #E5E5E5 51%, #D8D8D8 100%);
-  background: -webkit-linear-gradient(top, white 0%, #F2F2F2 50%, #E5E5E5 51%, #D8D8D8 100%);
+  background: -moz-linear-gradient(top, white 0%, #F2F2F2 40%, #E5E5E5 61%, #D8D8D8 100%);
+  background: -webkit-linear-gradient(top, white 0%, #F2F2F2 40%, #E5E5E5 61%, #D8D8D8 100%);
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
@@ -19,163 +23,200 @@ input[type=button]{
   height: 29px;
   cursor:pointer;
 }
+
+input[type=range]{
+  height: 10px;
+}
+
+input[type=text]{ cursor: text; }
+
 input[type=button]:hover{
   border:1px solid #999;
   color:#333;
 }
-input[type=button]:disabled{
+input[type=button]:disabled, input[type=button][disabled=disabled]:active{
   cursor: default;
   border:1px solid #eee;
   color:#aaa;
 }
-input[type=text]{
-  font-size:15px;
-  border:1px solid #bbb;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  padding:3px;
+input[type=button]:active{
+  background: -moz-linear-gradient(bottom, #f0f0f0 0%, #eee 40%, #E5E5E5 61%, #D8D8D8 100%);
+  background: -webkit-linear-gradient(bottom, #f0f0f0 0%, #eee 40%, #E5E5E5 61%, #D8D8D8 100%);
+  border:1px solid #ddd;
 }
+
+#banner{
+  height: 20px;
+  width: 700px;
+  text-align: right;
+  font-size: 10px;
+}
+
+  #banner #version{
+    float:left;
+    margin-right:20px;
+
+  }
+
+  #banner #mute{
+    cursor:pointer;
+  }
+
+  #banner input[type=range]{
+
+  }
+
 #container{
-  width:600px;   
-  z-index:100;
-  margin:20px;
+  width: 700px;
+  height: 350px;
+  position: relative;
+  border: 1px solid #888;
+  border-radius: 5px;
 }
-#overlay{
-  width:100%;
-  background: rgba(255, 255, 255, 0.7);
-  height:100%;
-  position:absolute;
-  top:0px;
-  left:0px;
-  z-index:900;
-}
-  #levelselect{
-    width:300px;
-    height:280px;
-    position:absolute; left: 50%; top:50%;
-    margin-left: -174px;
-    margin-top: -184px;
-    background-color: #fff;
-    border:5px solid #eee;
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;
-    border-radius: 5px;
-    -webkit-box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
-    -moz-box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
-    text-align:center;
-    padding:20px;
-    background: rgb(248,248,248); /* Old browsers */
-    background: -moz-linear-gradient(top, rgba(248,248,248,1) 0%, rgba(234,234,234,1) 50%, rgba(221,221,221,1) 51%, rgba(247,247,247,1) 100%); /* FF3.6+ */
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(248,248,248,1)), color-stop(50%,rgba(234,234,234,1)), color-stop(51%,rgba(221,221,221,1)), color-stop(100%,rgba(247,247,247,1))); /* Chrome,Safari4+ */
-    background: -webkit-linear-gradient(top, rgba(248,248,248,1) 0%,rgba(234,234,234,1) 50%,rgba(221,221,221,1) 51%,rgba(247,247,247,1) 100%); /* Chrome10+,Safari5.1+ */ 
-  }
-  
-  #levelselect h1{
-    font-size:32px;
-    color:#fff;
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;
-    border-radius: 5px;
-    background-color:#669035;
-    background: rgb(135,183,67); /* Old browsers */
-    background: -moz-linear-gradient(top, rgba(135,183,67,1) 8%, rgba(102,144,53,1) 78%); /* FF3.6+ */
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(8%,rgba(135,183,67,1)), color-stop(78%,rgba(102,144,53,1))); /* Chrome,Safari4+ */
-    background: -webkit-linear-gradient(top, rgba(135,183,67,1) 8%,rgba(102,144,53,1) 78%); /* Chrome10+,Safari5.1+ */
-    margin:0px 0px 20px 0px;
-    padding:5px;
-    text-shadow: 0px 0px 2px black;
-  }
-  #levelselect input{
-    display:block;
-    width:280px;
-    margin:10px;
-  }
-  #levelselect input[type=text]{ width:273px; margin-bottom:30px; text-align:center; }
 
-#fuel{
-  float: right;
-  width:150px;
+  input.action{
+    position:absolute;
+    right: 15px;
+    bottom: 15px;
+    width: 120px;
+  }
+
+
+#levelselect{
+  display: nane;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background-color: #eee;
+  width: 660px;
+  height: 310px; 
+  z-index: 999;
+  padding: 20px;
 }
-  #fuel #labels{
-    list-style: none;
-    margin: 0px;
-    padding: 0px;
-    width: 48px;
-    float: left; 
+  #levelselect #player{
+    position: absolute;
+    top: 45px;
+    right: 20px;
+    text-align:right;
   }
-  #fuel #tank{
-    border: 1px solid #000;
-    width: 80px;
-    float: right;
-    height:100px;
-    margin-bottom:20px;
-    position:relative;
-  }
-    #fuel #tank #contents{
-      width:80px;
-      height:100px;
-      background-color: #943634;
-      position:absolute;
-      bottom:0px;
+    #levelselect #player #playername{
+      border:1px solid #ccc;
+      font-size:15px;
+      padding: 4px;
+      -webkit-border-radius: 3px;
+      -moz-border-radius: 3px;
+      border-radius: 3px;
     }
-#header{
 
-}
-  #header #startButton{
-    padding:5px 15px;
-    height:39px;
-  }
-  #header h1{
-    font-size: 60px;
+  #levelselect h1{
     color: #669035;
-    margin: 0px;
-    padding: 0px;
-  }
-#canvas{
-  width:600px;
-  height: 330px;
-  border: 1px solid #000;
-  clear: both;
-  background-color: #ead1aa;
-  position:relative;
-  /* background-image: url('/Users/dylan/Desktop/forest2.jpg'); */
-}
-#canvas.active{
-  cursor:url(cursor.gif), auto;
-}
-#canvas.inactive{
-  cursor:default;
-}
-#footer{
-  width:600px;
-}
-#footer #referencelog{
-  width:75px;
-  height:35px;
-  border:1px solid #000;
-  background-image: url('assets/log_tiles.jpg'); 
-  margin:auto;
-}
-#nav{
-  width:200px;
-  float:left;
-}
-#info{
-  width:200px;
-  float:left;
-  text-align:center;
-}
-#stats{
-  width:200px;
-  float:right;
-  text-align:center;
-}
-  #stats #accepted{
-    margin: 20px auto 0px auto;
-    width: 70px;  
-    padding:5px;
-    border:2px solid #000;
+    font-size: 60px;
+    /*text-transform: uppercase; */
   }
 
-.clear{ clear:both; }
+  #levelselect #splash{
+    border: 1px solid #ddd;
+    height: 140px;
+    padding: 10px;
+    background-color: #fff;
+    margin-top: 10px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-align: center;
+  }
+
+    #splash img{ position: relative; top: 4px; }
+
+  #levelselect input[type=text]{
+
+  }
+
+  #levelselect #buttons{
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  #levelselect input[type=button]{
+    width: 200px;
+    margin-right: 10px;
+
+  }
+
+#game{
+  background-color: #fff;
+
+}
+
+  #game, #game #sidebar { height: 100%; }
+  #game #sidebar{
+    width: 150px;
+    float:right;
+
+    background-color: #ead1aa;
+  }
+
+    #game #sidebar #fuel{
+      padding-left: 20px;
+      padding-top: 13px;
+
+    }
+
+      #game #sidebar #fuel #tank{
+        width: 100px;
+        height:145px;
+        background-image:url('assets/Fuel.png');
+        position: relative;
+        margin: 10px 0px 25px 0px;
+      }
+        
+        #game #sidebar #fuel #tank #contents{
+          width:100px;
+          height:85px;
+          background-color: rgba(148, 54, 52, 0.6);
+          position:absolute;
+          bottom:7px;
+        }
+
+    #game #sidebar #target{
+      padding-left: 20px;
+    }
+      #game #sidebar #target #ruler{
+        width: 112px;
+        height: 35px;
+        background-image:url('assets/tape_measure.png');
+      }
+
+    #game #sidebar input[type=button]{
+      z-index:100;
+
+    }
+
+  #game #canvas{
+    width: 550px;
+    height: 350px;
+    float: left;
+    background-color: #ead1aa;
+  }
+  #game #canvas.active{
+    cursor:url('assets/Chainsaw Cursor 2.gif'), auto;
+  }
+  #game #canvas.inactive{
+    cursor:default;
+  }
+
+#results{
+  display: none;
+  font-size: 20px;
+  line-height: 1.5em;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background-color: rgba(255,255,255,0.7);
+  padding: 40px 20px;
+  width: 660px;
+  height: 270px;
+  z-index: 400;
+}
+
+

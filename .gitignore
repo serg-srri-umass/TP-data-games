@@ -1,16 +1,8 @@
-# Build and Release Folders
-#bin-debug/
-#bin-release/
+# OS-specific thumbnail files
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
 
-# Project property files
-#.actionScriptProperties
-#.flexProperties
-#.settings/
-#.project
-
-~/TP-data-games/Flash/ChainSaw/.fxpProperties
-~/TP-data-games/Flash/ChainSaw/bin-release/chainsaw/
-~/TP-data-games/Flash/ChainSaw/bin-release/history/
-bin-release/playerProductInstall.swf
-bin-release/swfobject.js
-.fxpProperties
+# Chainsaw sounds are freely available, but -not- for open-source projects. Thus, omitted.
+javascript/Chainsaw/assets/*.mp3
