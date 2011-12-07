@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
-			   xmlns:s="library://ns.adobe.com/flex/spark" 
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
-			   minWidth="600" minHeight="600" pageTitle="Chain Saw"
-			   creationComplete="startUp( )">
+			   width="760" height="410" minWidth="600" minHeight="400" creationComplete="startUp( )"
+			   pageTitle="Chain Saw" >
 
 	<fx:Script>
 		<![CDATA[
@@ -31,7 +31,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "v. 12/02/11";// A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "v. 12/06/11";// A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -211,7 +211,6 @@
 							mLogArray[i][2].pop();
 					}	
 				}
-				mAcceptedPiecesValue.visible = false; // Hide number of accepted pieces until game is complete.
 				
 				flashGasTank['resetDrop'](); // Set fuel height back to top of fuel container.
 				mFuelUsed = 0;		// Initialize the fuel used to zero.
@@ -673,8 +672,9 @@
 						mLastCutX);				// X cut location on log. 0 if end piece.
 				}
 				
+				mResultsOverlay.visible			= true; // Display the results Overlay
 				mAcceptedPiecesValue.text		= mPiecesAccepted.toString();	// Update text to number of accepted pieces.
-				mAcceptedPiecesValue.visible	= true;	// Reveal number of accepted pieces in this game.
+				mTotalPiecesValue.text			= (mPiecesAccepted + mPiecesRejected).toString();	// Update text to total pieces cut
 				
 				//send game information to TinkerPlots/Fathom
 				if (mGameLevel != kPracticeLevel)
@@ -1005,12 +1005,15 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
-	<s:Label			id="mGameTitle" x="38" y="19" text="CHAINSAW" fontSize="60" fontWeight="bold" fontFamily="Georgia" color="#669035" verticalAlign="middle" height="49"/>
-	<s:Label			id="mVersionLabel" x="565" y="2" color="#669035" initialize="mVersionLabel.text=VERSION" />
-	<s:Button			id="mStartButton" x="18.5" y="93" label="Start" enabled="true" click="onClickStartButton(event)" fontWeight="bold" fontSize="14" width="90" height="29" mouseUp="mChainsawSound.play(0,int.MAX_VALUE)"/>
-	<s:Button			id="mStopButton" x="18.5" y="484" label="Stop" enabled="false" click="onClickStopButton(event)" fontWeight="bold" fontSize="14" width="90" height="29"/>
-	<s:Button			id="mChangeLevelButton" x="18.5" y="519" label="Change Level" enabled="true" click="onClickChangeLevelButton(event)" fontWeight="bold" fontSize="12" width="100" height="29" chromeColor="#4E8E54"/>
-	<s:BorderContainer	id="mLogYardContainer" x="15" y="147" width="597" height="324" backgroundColor="#EAD1AA">
+	<s:Label id="mVersionLabel" x="5" y="2" color="#669035" initialize="mVersionLabel.text=VERSION"/>
+	<s:Button id="mStartButton" x="16" y="23" width="90" height="29" label="Start"
+			  click="onClickStartButton(event)" enabled="true" fontSize="14" fontWeight="bold" mouseUp="mChainsawSound.play(0,int.MAX_VALUE)"/>
+	<s:Button id="mStopButton" x="116" y="23" width="90" height="29" label="Stop"
+			  click="onClickStopButton(event)" enabled="false" fontSize="14" fontWeight="bold"/>
+	<s:Button id="mChangeLevelButton" x="216" y="23" width="100" height="29" label="Change Level"
+			  chromeColor="#4E8E54" click="onClickChangeLevelButton(event)" enabled="true"
+			  fontSize="12" fontWeight="bold"/>
+	<s:BorderContainer id="mLogYardContainer" x="11" y="75" width="597" height="324" backgroundColor="#EAD1AA">
 		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
@@ -1019,21 +1022,33 @@
 		<s:Label			id="mCutEdgeRightLabel" x="0" y="0" text="- Cut Log" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="left"/>
 		<s:Label			id="mCutEdgeLeftLabel" x="0" y="0" text="Cut Log -" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="right"/>
 		<s:Label 			x="-1" y="296" text="PRACTICE LEVEL" width="597" textAlign="center" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" fontStyle="normal" id="mLevelLabel" color="#1C7B56"/>
-		<s:HSlider			id="mVolumeSlider" x="505" y="305" width="80" maximum="100" value="100" change="updateVolume(mVolumeSlider.value)"/>
-			<s:Image		id="mVolumeImage" x="480" y="302" source="{mVolumeIcon}"/>
-	</s:BorderContainer>
-	<s:Label			id="mAcceptedPiecesLabel" x="399" y="486" text="Number of Accepted Pieces" fontSize="16" fontWeight="bold"/>
-	<s:BorderContainer	id="mAcceptedPiecesBox" x="465" y="513" width="75" height="35" borderWeight="2" dropShadowVisible="true">
-		<s:Label			id="mAcceptedPiecesValue" x="10" y="8" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="51" textAlign="center" visible="false"/>
 	</s:BorderContainer>
 	
-	<s:Label			id="mReferenceLengthLabel" x="205" y="486" text="Target Length" fontSize="16" fontWeight="bold"/>
-	<mx:Image			id="mReferenceLengthImage" x="223" y="515" source="{mLengthImage}"/>
-	<mx:Image			id="mReferenceLengthImage2" x="223" y="515" source="{mTapeMeasureImage}"/>
 	
-	<s:SWFLoader 		id="mFuelIcon" x="497" y="21" width="106" height="118" source="chainsaw_assets/GasTank.swf" complete="initGasTank()"/>
-	<!-- <s:SWFLoader		id="mSawdustParticles" x="0" y="0" width="100" height="100"  source="chainsaw_assets/particles.swf" complete="initParticles()"/> -->
-	<s:Label			id="mPlayersNameLabel" x="140.5" y="100.5" text="PLAYER'S NAME:" fontFamily="Arial" fontSize="16" fontWeight="bold" color="#7B9453"/>
-	<s:TextInput		id="mPlayerTextInput" x="281" y="94" width="132" text="Player" color="#7B9453" fontSize="16" enabled="true" change="onChangePlayerTextInput(event)" textAlign="left" fontWeight="bold"/>
-	<mx:UIComponent		id="uic" x="0" y="0" />
+	
+	<s:Label id="mReferenceLengthLabel" x="626" y="231" fontSize="16" fontWeight="bold" text="Target Length"/>
+	<mx:Image id="mReferenceLengthImage" x="630" y="254" source="{mLengthImage}"/>
+	<mx:Image id="mReferenceLengthImage2" x="630" y="268" source="{mTapeMeasureImage}"/>
+	
+	<s:SWFLoader id="mFuelIcon" x="630" y="80" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
+	<s:Label id="mPlayersNameLabel" x="344" y="32" color="#7B9453" fontFamily="Arial" fontSize="16"
+			 fontWeight="bold" text="PLAYER'S NAME:" />
+	<s:TextInput id="mPlayerTextInput" x="494" y="27" width="114"
+				 change="onChangePlayerTextInput(event)" color="#7B9453" enabled="true"
+				 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
+	<mx:UIComponent		id="uic" x="0" y="0"/>
+	<s:HSlider id="mVolumeSlider" x="658" y="11" width="80"
+			   change="updateVolume(mVolumeSlider.value)" maximum="100" value="100"/>
+	<s:Image id="mVolumeImage" x="633" y="8" source="{mVolumeIcon}"/>
+	
+	<s:BorderContainer id="mResultsOverlay" x="0" y="0" width="{this.width}" height="{this.height}" alpha=".7" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
+		<s:Label id="mGameTitle" x="205" y="19" height="49" color="#669035" fontFamily="Georgia" fontSize="60" fontWeight="bold" text="CHAINSAW" verticalAlign="middle" visible="false"/>
+		
+		<s:Label id="mResults" x="260" y="80" fontSize="30" fontWeight="bold" text="Results"/>
+		
+		<s:Label id="mAcceptedPiecesLabel" x="71" y="160" fontSize="16" fontWeight="bold" text="Number of Accepted Pieces:"/>
+		<s:Label id="mAcceptedPiecesValue" x="280" y="160" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="51" textAlign="center"/>
+		<s:Label id="mTotalPiecesLabel" x="106" y="230" fontSize="16" fontWeight="bold" text="Total Number of Pieces:"/>
+		<s:Label id="mTotalPiecesValue" x="280" y="230" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="51" textAlign="center" visible="true"/>
+	</s:BorderContainer>
 </s:Application>
