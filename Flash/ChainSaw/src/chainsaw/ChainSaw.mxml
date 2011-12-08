@@ -962,10 +962,14 @@
 				if(e.buttonDown && e.currentTarget.content.enabled){
 					sawdustParticles.x = e.stageX+10;
 					sawdustParticles.y = e.stageY+10;
-					sawdustParticles['startParticleAnim']();
+					
 					var offsetX:Number = e.localX - e.currentTarget.content.x;
 					var offsetY:Number = e.localY - e.currentTarget.content.y;
 					e.currentTarget.content['logInMod'](offsetX, offsetY);
+					
+					//prevent showing particles if player is cutting wrong side of log
+					if(e.currentTarget.content['canCutAt'](offsetX))
+						sawdustParticles['startParticleAnim']();
 				}
 			}
 			//mouse out event on enabled log
@@ -988,7 +992,6 @@
 				var offsetX:Number = e.localX - e.currentTarget.content.x;
 				var offsetY:Number = e.localY - e.currentTarget.content.y;
 				e.currentTarget.content['midLogMod'](offsetX,offsetY);
-
 			}
 
 			protected function updateVolume(vol:Number):void
