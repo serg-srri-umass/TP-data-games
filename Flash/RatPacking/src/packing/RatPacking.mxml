@@ -13,6 +13,8 @@
 
 	<fx:Script>
 		<![CDATA[
+			import com.kcpt.scriptInterface.ScriptInterface;
+			
 			import mx.managers.PopUpManager;
 			import mx.messaging.AbstractConsumer;
 			
@@ -35,6 +37,14 @@
 			public static const kOverByText:String		= "Over by ";	// Text indicating player was over by some amount.
 			public static const kPixelsText:String		= " pixels."; 	// Text indicating pixel units when player is over/short.
 			public static const kGameCompleteText:String= "Packing Complete!";// Text indicating game is done and all rats are packed.
+			public static const kMethodWallMark:uint	= 0;			// Method of aligning crate - wall mark.
+			public static const kMethodKnots:uint		= 1;			// Method of aligning crate - knots.
+			public static const kWallMarkText:String	= "Wall Mark";	// Text denoting wall mark method.
+			public static const kKnotsText:String		= "Knots";		// Text denoting aligned knots method.
+			
+			// Collection constants
+			public static const kCratesCollection:String= "Crates";		// Name for crates collection.
+			public static const kGamesCollection:String	= "Games";		// Name for games collection.
 			
 			// Get Ready label constants
 			public static const kGetReadyPrefix:String	= "Get ready for crate ";	// Text placed before crate number.
@@ -114,6 +124,7 @@
 			
 			// General game variables
 			private var mGameNumber:uint			= 0;		// Number of current game, begining with 1.
+			private var mMethod:uint				= kMethodWallMark;// Method of measuring when to stop packing crate.
 			private var mCrateNumber:uint			= 0;		// Current crate number. Begins with 1 at the start of each game.
 			private var mIsFirstCrate:Boolean		= true;		// True for the first crate of each game played at the multicrate level.
 			private var mTimeUsed:Number			= 0;		// Stores how much time has been used since Pack Rats button was pressed.
@@ -125,6 +136,7 @@
 			private var mPackerName:String			= "";		// Name of game player.
 			private var mGameLevel:uint				= kPracticeLevel;	// Current game level.
 			private var mPrevGameLevel:uint			= kPracticeLevel;	// Used to track game level changes.
+			private var mCollectionsCreated:Boolean = false;	// Collection created on first play of non-practice level.
 			
 			// SpriteVisualElements used for drawing game components.
 			private var mPulley:SpriteVisualElement	= new SpriteVisualElement();			// Used for drawing pulley.
@@ -145,8 +157,6 @@
 			// and sets up necessary parameters for game initiation.
 			private	function startUp():void	
 			{
-				// Create collections
-				
 				// Initialize Rat Packing game.
 				initializeRatPacking();
 				
@@ -237,12 +247,33 @@
 				mPackerNameLabel.text 	= mPackerName;								// Set the player name text.
 
 				PopUpManager.removePopUp(mLevelWindow);
+				
+				// Create collections
+				if (!mCollectionsCreated)
+				{
+					// Create collection for individual crates.
+					ScriptInterface.NewCollectionWithAttributes(
+						kCratesCollection,
+						[
+							"Packer",		// Name of the player.
+							"Method",		// Measurement method used: wall mark or aligned knots.
+							"GameNumber",	// Number of current game.
+							"CrateNumber",	// Number of current crate.
+							"RatsPacked",	// Numer of rats packed in current crate.
+							"PixelsOff",	// Number of pixels off perfection (negative == short, postive == over).
+							"RatsOff"		// Number of rats off perfection (negative == short, positive == over).
+						]
+					);
+					
+					mCollectionsCreated = true;
+				}
 			}
 			
 			// practiceLevel() sets the current game level to the practice level.
 			private function practiceLevel(iEvent:Event):void 
 			{
 				mPrevGameLevel				= mGameLevel;			// Track game level change.
+				mMethod						= kMethodWallMark;		// Set method of measuring when to stop packing crate.
 				gameLevelChosen(kPracticeLevel); 					// Set game level to first level.
 				mGameTitle.text				= kPracticeLevelText;	// Set the text displaying the game level.
 				mCrateNumberLabel.text		= '';					// Don't show crate number in practice level.
@@ -251,11 +282,15 @@
 			// multiCrateLevel() sets the current game level to the multi crate level.
 			private function multiCrateLevel(iEvent:Event):void 
 			{
-				mPrevGameLevel = mGameLevel;			// Track game level change.
+				mPrevGameLevel	= mGameLevel;			// Track game level change.
+				mMethod			= kMethodWallMark;		// Set method of measuring when to stop packing crate.
 				gameLevelChosen(kMultiCrateLevel); 		// Set game level to first level.
 				mGameTitle.text	= kMultiCrateLevelText;	// Set the text displaying the game level.
-				setCrateNumberLabel(mCrateNumber);		// Show crate number in multi crate level.
 				mGameNumber 	+= 1;					// Count current game when playing this level.
+				
+				// Show crate number in multi crate level.
+				if (mGameLevel != kPracticeLevel) 
+					setCrateNumberLabel(mCrateNumber);		
 			}
 			
 			// chooseGameLevel() listens for clicks on the game level dialog's level buttons.
@@ -575,7 +610,7 @@
 					else
 						mMissedWallMarkYByLabel.text = kOverByText;
 					
-					mMissedWallMarkYByLabel.text += missedBy.toString() + kPixelsText;
+					mMissedWallMarkYByLabel.text += Math.abs(missedBy).toString() + kPixelsText;
 				}
 				
 				// Display the number of rats loaded into the crate.
@@ -585,10 +620,27 @@
 				var crateY:Number 			= getCrateTopYForText();
 				var ratsPacked:uint			= Math.round((kRatsPerPixel * Math.abs(mCounterWeight.y)));
 				var ratString:String		= ratsPacked == 1 ? kOneRatSuffix : kPluralRatSuffix;
+				var methodText:String		= (mMethod == kMethodWallMark) ? kWallMarkText : kKnotsText;
 				
 				mRatsLoadedLabel.move(kCrateStartX, crateY + kRatsPackedYOffset);
 				mRatsLoadedLabel.text = ratsPacked.toString() + ratString;
 				
+				if (mGameLevel != kPracticeLevel)
+				{
+					ScriptInterface.AddCaseToCollectionWithValues(
+						kCratesCollection, 
+						[
+							mPackerName,					// Name of the player.
+							methodText,						// Measurement method used: wall mark or aligned knots.
+							mGameNumber,					// Number of current game.
+							mCrateNumber,					// Number of current crate.
+							ratsPacked,						// Numer of rats packed in current crate.
+							missedBy,						// Number of pixels off perfection (negative == short, postive == over).
+							ratsPacked - kIdealRatsPerCrate	// Number of rats off perfection (negative == short, positive == over).
+						]	
+					);
+				}
+					
 				// Handle tasks that differ according to game level.
 				switch (mGameLevel)
 				{
@@ -607,7 +659,8 @@
 							mCrateDelayTimer.reset();	// Reset the delay timer to run until it finishes.
 							mCrateDelayTimer.start(); 	// Start the delay timer.
 
-							setGetReadyLabel(mCrateNumber + 1);	// Update the get ready label with the next crate number.
+							if (mGameLevel != kPracticeLevel)
+								setGetReadyLabel(mCrateNumber + 1);	// Update the get ready label with the next crate number.
 							mGetReadyLabel.visible = true;		// Tell the player to get ready for the next crate.
 							
 						}
@@ -655,7 +708,9 @@
 				if (!mIsFirstCrate)
 				{
 					++mCrateNumber;			// Increment crate number in preparation for next crate.
-					setCrateNumberLabel(mCrateNumber);	// Update crate number label with new crate number.
+					
+					if (mGameLevel != kPracticeLevel)
+						setCrateNumberLabel(mCrateNumber);	// Update crate number label with new crate number.
 				}
 				else
 					mIsFirstCrate = false;	// Now that we've pass here once, it won't be the first crate.
