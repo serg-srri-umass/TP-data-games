@@ -4,19 +4,19 @@
 	
 	public class Specks extends MovieClip{
 		
-		var wd:Number;
-		var ht:Number;
-		var color:uint;
-		var dx:Number;
-		var dy:Number;
-		var dAlpha:Number = 1.0;
-		var life:int;
-		var frameCount:int;
-		var isBlock:Boolean = true;
-		var maxVel:Number = 10;
-		var minVel:Number = 1;
-		var alive:Boolean = true;
-		var gravity:Number = .25;
+		protected var wd:Number;
+		protected var ht:Number;
+		protected var color:uint;
+		protected var dx:Number;
+		protected var dy:Number;
+		protected var dAlpha:Number = 1.0;
+		protected var life:int;
+		protected var frameCount:int;
+		protected var isBlock:Boolean = true;
+		protected var maxVel:Number = 10;
+		protected var minVel:Number = 1;
+		protected var alive:Boolean = true;
+		protected var gravity:Number = .25;
 
 		public function Specks(w:Number = 1, h:Number = 1, c:Number = 0x000000, l:int = 24, block:Boolean = true) {
 			// constructor code
@@ -36,7 +36,7 @@
 			reset();
 		}
 		
-		public function reset(){
+		public function reset():void{
 			this.x = 0;
 			this.y = 0;
 			dy = -(Math.random() * maxVel/2) + (maxVel/4);
@@ -47,7 +47,7 @@
 			addEventListener(Event.ENTER_FRAME, animate_frame);
 		}
 
-		function animate_frame(e:Event){
+		private function animate_frame(e:Event):void{
 			frameCount++;
 			this.x += dx;
 			this.y += (dy += gravity);

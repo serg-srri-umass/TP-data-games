@@ -5,16 +5,16 @@
 	
 	public class ParticleLauncher extends MovieClip {
 		
-		var maxParticleCount:int;
-		var maxParticlesPerFrame:int = 10;
-		var pLife:int = 24; //in frames
-		var pWidth:Number = 1;
-		var pHeight:Number = 1;
-		var pColor:uint = 0xFFE1C1;
-		var currentlyEmitting:Boolean = false;
-		var pArray:Array = new Array();
-		var speckCount:int = 0;
-		var atMaxCapacity:Boolean;
+		protected var maxParticleCount:int;
+		protected var maxParticlesPerFrame:int = 10;
+		protected var pLife:int = 24; //in frames
+		protected var pWidth:Number = 1;
+		protected var pHeight:Number = 1;
+		protected var pColor:uint = 0xFFE1C1;
+		protected var currentlyEmitting:Boolean = false;
+		protected var pArray:Array = new Array();
+		protected var speckCount:int = 0;
+		protected var atMaxCapacity:Boolean;
 
 
 		public function ParticleLauncher() {
