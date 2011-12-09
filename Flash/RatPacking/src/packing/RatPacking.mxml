@@ -33,14 +33,15 @@
 			public static const kMultiCrateLevelText:String = "Game Level" 	// Title string for multi crate level.
 			public static const kMaxTopStartY:uint		= 100;			// Maximimum top Y value for crate and counterweight.
 			public static const kHitTheMarkText:String	= "You hit the mark!"; // Text indicating player packed perfectly.
-			public static const kUnderByText:String		= "Under by: ";	// Text indicating player was short by some amount.
+			public static const kUnderByText:String		= "Under by ";	// Text indicating player was short by some amount.
 			public static const kOverByText:String		= "Over by ";	// Text indicating player was over by some amount.
 			public static const kPixelsText:String		= " pixels."; 	// Text indicating pixel units when player is over/short.
-			public static const kGameCompleteText:String= "Packing Complete!";// Text indicating game is done and all rats are packed.
+			public static const kGameCompleteText:String= "Packing Complete! SCORE = ";// Text indicating game is done and all rats are packed.
 			public static const kMethodWallMark:uint	= 0;			// Method of aligning crate - wall mark.
 			public static const kMethodKnots:uint		= 1;			// Method of aligning crate - knots.
 			public static const kWallMarkText:String	= "Wall Mark";	// Text denoting wall mark method.
 			public static const kKnotsText:String		= "Knots";		// Text denoting aligned knots method.
+			public static const kPointsPerPerfectHit:uint= 10;			// Points earned for stopping perfectly.
 			
 			// Collection constants
 			public static const kCratesCollection:String= "Crates";		// Name for crates collection.
@@ -126,6 +127,8 @@
 			private var mGameNumber:uint			= 0;		// Number of current game, begining with 1.
 			private var mMethod:uint				= kMethodWallMark;// Method of measuring when to stop packing crate.
 			private var mCrateNumber:uint			= 0;		// Current crate number. Begins with 1 at the start of each game.
+			private var mTotalRatsPacked:uint		= 0;		// Total number of rats packed in current game.
+			private var mCurrentScore:uint			= 0;		// Score so far in current game.
 			private var mIsFirstCrate:Boolean		= true;		// True for the first crate of each game played at the multicrate level.
 			private var mTimeUsed:Number			= 0;		// Stores how much time has been used since Pack Rats button was pressed.
 			private var mRatsLoadedLabel:Label		= new Label();// Used to display number of rats loaded into crate.
@@ -208,7 +211,9 @@
 			// and prepares the game for play.
 			protected function initializeRatPacking():void
 			{
-				mCrateNumber			= 1;		// Set first crate to number 1;
+				mCrateNumber			= 1;		// Set first crate to number 1.
+				mTotalRatsPacked		= 0;		// Start with no rats packed yet.
+				mCurrentScore			= 0;		// Start with score at zero.
 				mIsFirstCrate			= true;		// Set the flag to true for the first crate.
 				mTimeUsed				= 0;		// Initialize the time for Packing Rats used to zero.
 				
@@ -231,6 +236,12 @@
 				mCrateNumberLabel.text = kCrateNumberPrefix + iNumber.toString();
 			}
 				
+			// setGameDoneLabel() sets the game done label using the score passed in.
+			private function setGameDoneLabel(iScore:uint):void
+			{
+				mGameDoneLabel.text = kGameCompleteText + iScore.toString();
+			}
+			
 			// setGetReadyLabel() sets the label alerting the player to get ready for the next crate.
 			// Takes in the crate number for which to get ready.
 			private function setGetReadyLabel(iNextCrate:uint):void
@@ -262,6 +273,19 @@
 							"RatsPacked",	// Numer of rats packed in current crate.
 							"PixelsOff",	// Number of pixels off perfection (negative == short, postive == over).
 							"RatsOff"		// Number of rats off perfection (negative == short, positive == over).
+						]
+					);
+					
+					// Create collection for individual crates.
+					ScriptInterface.NewCollectionWithAttributes(
+						kGamesCollection,
+						[
+							"Packer",			// Name of the player.
+							"Method",			// Measurement method used: wall mark or aligned knots.
+							"GameNumber",		// Number of current game.
+							"CratesPacked",		// Number of crates packed.
+							"TotalRatsPacked",	// Numer of rats packed in all crates.
+							"Score"				// Game score.
 						]
 					);
 					
@@ -601,13 +625,16 @@
 				var counterWeightMarkY:Number	= kCounterWeightTopStartY + (kCounterWeightHeight/2) + mCounterWeight.top;
 				var missedBy:Number				= kWallMarkY - counterWeightMarkY;
 				
-				if (missedBy == 0)
-					mMissedWallMarkYByLabel.text = kHitTheMarkText;
+				if (missedBy == 0) // Packed crate perfectly.
+				{
+					mMissedWallMarkYByLabel.text	= kHitTheMarkText;
+					mCurrentScore					+= kPointsPerPerfectHit;	// Only score on perfect hit.
+				}
 				else
 				{
-					if (missedBy < 0)
+					if (missedBy < 0) 	// Stopped packing too soon.
 						mMissedWallMarkYByLabel.text = kUnderByText;
-					else
+					else				// Stopped packing too late.
 						mMissedWallMarkYByLabel.text = kOverByText;
 					
 					mMissedWallMarkYByLabel.text += Math.abs(missedBy).toString() + kPixelsText;
@@ -622,6 +649,7 @@
 				var ratString:String		= ratsPacked == 1 ? kOneRatSuffix : kPluralRatSuffix;
 				var methodText:String		= (mMethod == kMethodWallMark) ? kWallMarkText : kKnotsText;
 				
+				mTotalRatsPacked	+= ratsPacked; // Keep a tally of total rats packed so far in current game.
 				mRatsLoadedLabel.move(kCrateStartX, crateY + kRatsPackedYOffset);
 				mRatsLoadedLabel.text = ratsPacked.toString() + ratString;
 				
@@ -666,8 +694,21 @@
 						}
 						else
 						{
-							mGameDoneLabel.visible = true; 		// Tell user game is complete.
+							setGameDoneLabel(mCurrentScore);	// Add final score to game done label.
+							mGameDoneLabel.visible 		= true; // Tell player game is complete.
 							mExitLevelButton.enabled	= true;	// Allow player to exit when game is complete.
+							
+							ScriptInterface.AddCaseToCollectionWithValues(
+								kGamesCollection, 
+								[
+									mPackerName,		// Name of the player.
+									methodText,			// Measurement method used: wall mark or aligned knots.
+									mGameNumber,		// Number of current game.
+									mCrateNumber,		// Number of crates packed.
+									mTotalRatsPacked,	// Numer of rats packed in all crates.
+									mCurrentScore		// Game score.
+								]	
+							);
 						}
 						break;
 							
@@ -792,7 +833,7 @@
 		<s:Label	id="mMissedWallMarkYByLabel" x="380" y="209" color="#DEA262" fontSize="14"/>
 		<s:Label 	id="mGetReadyLabel" x="397" y="234" width="79" color="#ef3b17" fontFamily="Arial"
 					fontSize="16" text="" textAlign="center" visible="false"/>
-		<s:Label 	id="mGameDoneLabel" x="397" y="254" width="79" color="#ef3b17" fontFamily="Arial"
+		<s:Label 	id="mGameDoneLabel" x="390" y="254" width="93" color="#ef3b17" fontFamily="Arial"
 					fontSize="16" text="{kGameCompleteText}" textAlign="center" visible="false"/>
 	</s:BorderContainer>
 </s:Application>
