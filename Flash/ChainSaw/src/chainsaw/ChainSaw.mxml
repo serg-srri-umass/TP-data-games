@@ -2,7 +2,7 @@
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
-			   width="750" height="410" minWidth="750" minHeight="410" creationComplete="startUp( )"
+			   minWidth="750" minHeight="410" creationComplete="startUp( )"
 			   pageTitle="Chain Saw" >
 
 	<fx:Script>
@@ -143,13 +143,13 @@
 			/*
 			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
 			*/
-			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
-//			[Embed("../src/chainsaw_assets/dummy.mp3")]
+//			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
+			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
-//			[Embed("../src/chainsaw_assets/dummy.mp3")]
+//			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
+			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 
@@ -676,16 +676,13 @@
 						mLastCutX);				// X cut location on log. 0 if end piece.
 				}
 				
-				mResultsOverlay.visible			= true; // Display the results Overlay
-				mAcceptedPiecesValue.text		= mPiecesAccepted.toString();	// Update text to number of accepted pieces.
-				mTotalPiecesValue.text			= (mPiecesAccepted + mPiecesRejected).toString();	// Update text to total pieces cut
+				var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates);
+				var fuelLeftAmount:Number	= fuelLeftFraction * kFuelCapacity;
+				var fuelLeftPercent:Number	= fuelLeftFraction * 100;
 				
 				//send game information to TinkerPlots/Fathom
 				if (mGameLevel != kPracticeLevel)
 				{
-					var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates);
-					var fuelLeftAmount:Number	= fuelLeftFraction * kFuelCapacity;
-					var fuelLeftPercent:Number	= fuelLeftFraction * 100;
 					var gameCollectionName:String	
 						= (mGameLevel == kFreeCutLevel) ? kCollectionFreeCutGames : kCollectionDirCutGames;
 						
@@ -704,6 +701,11 @@
 						]	
 					);
 				}
+				
+				mResultsOverlay.visible		= true;								// Display the results Overlay
+				mAcceptedPiecesValue.text	= mPiecesAccepted.toString();		// Update the number of accepted pieces.
+				mFuelLeftValue.text			= fuelLeftPercent.toFixed();		// Update the percentage of fuel left.
+				mFuelLeftValue.text = mFuelLeftValue.text.replace(/\.\d*/,"") + "%"; // remove the decimal point and trailing digits, then append '%'
 				
 				mPrevLevel 			= mGameLevel;	// Track game level change.
 				mPrevPieceNumber	= mPieceNumber;	// Track piece number at the end of the game.
@@ -1067,9 +1069,9 @@
 		<s:Label id="mGameTitle" x="205" y="19" height="49" color="#669035" fontFamily="Georgia" fontSize="60" fontWeight="bold" text="CHAINSAW" verticalAlign="middle" visible="false"/>
 		
 		<s:Label id="mResults" x="{260+134}" y="80" fontSize="30" fontWeight="bold" text="Results"/>
-		<s:Label id="mAcceptedPiecesLabel" x="{71+134}" y="160" fontSize="16" fontWeight="bold" text="Number of Accepted Pieces:"/>
-		<s:Label id="mAcceptedPiecesValue" x="{280+134}" y="160" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="51" textAlign="center"/>
-		<s:Label id="mTotalPiecesLabel" x="{106+134}" y="230" fontSize="16" fontWeight="bold" text="Total Number of Pieces:"/>
-		<s:Label id="mTotalPiecesValue" x="{280+134}" y="230" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="51" textAlign="center" visible="true"/>
+		<s:Label id="mAcceptedPiecesLabel" x="{55+134}" y="160" fontSize="16" fontWeight="bold" text="Number of Accepted Pieces:"/>
+		<s:Label id="mAcceptedPiecesValue" x="{280+134}" y="160" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="50" textAlign="left"/>
+		<s:Label id="mFuelLeftLabel" x="{120+134}" y="230" fontSize="16" fontWeight="bold" text="Amount of Fuel Left:"/>
+		<s:Label id="mFuelLeftValue" x="{282+134}" y="230" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="60" textAlign="left" visible="true"/>
 	</s:BorderContainer>
 </s:Application>
