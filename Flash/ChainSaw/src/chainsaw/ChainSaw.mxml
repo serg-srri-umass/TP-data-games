@@ -2,7 +2,7 @@
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
-			   width="750" height="410" minWidth="600" minHeight="400" creationComplete="startUp( )"
+			   width="750" height="410" minWidth="750" minHeight="410" creationComplete="startUp( )"
 			   pageTitle="Chain Saw" >
 
 	<fx:Script>
@@ -143,13 +143,13 @@
 			/*
 			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
 			*/
-//			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
-			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
+//			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-//			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
-			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
+//			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 
@@ -434,7 +434,11 @@
 						}
 					}
 					
-					if(iLength <= kReferenceLength/2)
+					if(iLength <= kReferenceLength/2) // a piece less than or equal to half the reference length
+					{
+						remnant = true;
+					}
+					if(iLength >= kReferenceLength+(kReferenceLength/2)) // a piece over 1.5 times the reference length
 					{
 						remnant = true;
 					}
@@ -454,10 +458,9 @@
 				{
 					if (mGameLevel != kPracticeLevel)
 						++mPieceNumber;
-					//++mPiecesRejected;
 					statusLabel.text = "O";
 					statusLabel.setStyle("color", "0xFFFF00"); // Yellow
-					acceptString = "Remnant"; //TODO report new acceptance status?
+					acceptString = "Remnant";
 				}
 				else								
 				{
