@@ -2,8 +2,7 @@
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
-			   minWidth="750" minHeight="410" creationComplete="startUp( )"
-			   pageTitle="Chain Saw" >
+			   minWidth="745" minHeight="400" creationComplete="startUp( )" pageTitle="Chain Saw">
 
 	<fx:Script>
 		<![CDATA[
@@ -32,7 +31,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "v. 12/12/11";// A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "v. 12/14/11";// A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -1039,7 +1038,7 @@
 	<s:Button id="mChangeLevelButton" x="234" y="23" width="100" height="29" label="Change Level"
 			  chromeColor="#4E8E54" click="onClickChangeLevelButton(event)" enabled="true"
 			  fontSize="12" fontWeight="bold"/>
-	<s:BorderContainer id="mLogYardContainer" x="134" y="75" width="600" height="324" backgroundColor="#EAD1AA">
+	<s:BorderContainer id="mLogYardContainer" x="134" y="65" width="600" height="324" backgroundColor="#EAD1AA">
 		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
@@ -1050,7 +1049,7 @@
 		<s:Label 			x="-1" y="296" text="PRACTICE LEVEL" width="597" textAlign="center" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" fontStyle="normal" id="mLevelLabel" color="#1C7B56"/>
 	</s:BorderContainer>
 	
-	<s:BorderContainer id="UI_Elements" x="0" y="75" width="134" height="324" borderVisible="false">
+	<s:BorderContainer id="UI_Elements" x="0" y="65" width="134" height="324" borderVisible="false">
 		<s:SWFLoader id="mFuelIcon" x="15" y="5" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
 		<s:Label id="mReferenceLengthLabel" x="13" y="180" fontSize="16" fontWeight="bold" text="Target Length"/>
 		<mx:Image id="mReferenceLengthImage" x="15" y="206" source="{mLengthImage}"/>
@@ -1065,13 +1064,15 @@
 			   change="updateVolume(mVolumeSlider.value)" maximum="100" value="100"/>
 	<s:Image id="mVolumeImage" x="630" y="8" source="{mVolumeIcon}"/>
 	
-	<s:BorderContainer id="mResultsOverlay" x="0" y="0" width="{this.width}" height="{this.height}" alpha=".7" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
+	<s:BorderContainer id="mResultsOverlay" x="0" y="0" width="{this.width}" height="{this.height}" alpha=".5" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
 		<s:Label id="mGameTitle" x="205" y="19" height="49" color="#669035" fontFamily="Georgia" fontSize="60" fontWeight="bold" text="CHAINSAW" verticalAlign="middle" visible="false"/>
 		
-		<s:Label id="mResults" x="{260+134}" y="80" fontSize="30" fontWeight="bold" text="Results"/>
-		<s:Label id="mAcceptedPiecesLabel" x="{55+134}" y="160" fontSize="16" fontWeight="bold" text="Number of Accepted Pieces:"/>
-		<s:Label id="mAcceptedPiecesValue" x="{280+134}" y="160" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="50" textAlign="left"/>
-		<s:Label id="mFuelLeftLabel" x="{120+134}" y="230" fontSize="16" fontWeight="bold" text="Amount of Fuel Left:"/>
-		<s:Label id="mFuelLeftValue" x="{282+134}" y="230" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="60" textAlign="left" visible="true"/>
+		<s:Label id="mResults" x="{260+134}" y="70" fontSize="30" fontWeight="bold" text="Results"/>
+		<s:Label id="mAcceptedPiecesLabel" x="{55+134}" y="150" fontSize="16" fontWeight="bold" text="Number of Accepted Pieces:"/>
+		<s:Label id="mAcceptedPiecesValue" x="{280+134}" y="150" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="50" textAlign="left"/>
+		<s:Label id="mFuelLeftLabel" x="{120+134}" y="220" fontSize="16" fontWeight="bold" text="Amount of Fuel Left:"/>
+		<s:Label id="mFuelLeftValue" x="{282+134}" y="220" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="60" textAlign="left" visible="true"/>
+		
+		<s:Label id="continue_msg" x="270" y="0" text="(Click anywhere to continue)" />
 	</s:BorderContainer>
 </s:Application>
