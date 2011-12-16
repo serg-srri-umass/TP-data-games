@@ -1,0 +1,839 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- RatPacking.mxml -->
+<!-- Copyright (c) 2011 by University of Massachusetts and contributors -->
+<!-- Project information: http://srri.umass.edu/datagames/ -->
+<!-- Released under the MIT License http://www.opensource.org/licenses/mit-license.php -->
+
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   width="600" height="450" pageTitle="Rat Packing"
+			   creationComplete="startUp( )">
+
+	<fx:Script>
+		<![CDATA[
+			import com.kcpt.scriptInterface.ScriptInterface;
+			
+			import mx.managers.PopUpManager;
+			import mx.messaging.AbstractConsumer;
+			
+			import packing.GameLevelWindow;
+			
+			import spark.core.SpriteVisualElement;
+			
+			// Ideal number of rats in each crate. Without noise, this is how many load when hitting the wall mark perfectly.
+			public static const kIdealRatsPerCrate:uint = 50;
+												
+			// General game constants
+			public static const kCratesPerGame:uint		= 5;			// Number of crates to pack per game.
+			public static const kPracticeLevel:uint		= 0;			// Practice level of game.
+			public static const kPracticeLevelText:String = "Practice Level" // Title string for practice level.
+			public static const kMultiCrateLevel:uint	= 1;			// Multi crate level of game.
+			public static const kMultiCrateLevelText:String = "Game Level" 	// Title string for multi crate level.
+			public static const kMaxTopStartY:uint		= 100;			// Maximimum top Y value for crate and counterweight.
+			public static const kHitTheMarkText:String	= "You hit the mark!"; // Text indicating player packed perfectly.
+			public static const kUnderByText:String		= "Under by ";	// Text indicating player was short by some amount.
+			public static const kOverByText:String		= "Over by ";	// Text indicating player was over by some amount.
+			public static const kPixelsText:String		= " pixels."; 	// Text indicating pixel units when player is over/short.
+			public static const kGameCompleteText:String= "Packing Complete! SCORE = ";// Text indicating game is done and all rats are packed.
+			public static const kMethodWallMark:uint	= 0;			// Method of aligning crate - wall mark.
+			public static const kMethodKnots:uint		= 1;			// Method of aligning crate - knots.
+			public static const kWallMarkText:String	= "Wall Mark";	// Text denoting wall mark method.
+			public static const kKnotsText:String		= "Knots";		// Text denoting aligned knots method.
+			public static const kPointsPerPerfectHit:uint= 10;			// Points earned for stopping perfectly.
+			
+			// Collection constants
+			public static const kCratesCollection:String= "Crates";		// Name for crates collection.
+			public static const kGamesCollection:String	= "Games";		// Name for games collection.
+			
+			// Get Ready label constants
+			public static const kGetReadyPrefix:String	= "Get ready for crate ";	// Text placed before crate number.
+			public static const kGetReadyMiddle:String	= " of ";					// Text placed between crate number and total crates.
+			public static const kGetReadySuffix:String	= "!";						// Text placed at end of label.
+			
+			// Wire rope constants
+			public static const kWireRopeColor:uint		= 0x000000;		// Color of wire rope.
+			public static const kWireRopeThickness:uint	= 4;			// Thickness of wire rope.			
+			
+			// Crate constants
+			public static const kCrateColor:uint		= 0xa4804c;		// Color of crate.
+			public static const kCrateBorderColor:uint	= 0x84663c;		// Color of crate border.
+			public static const kRatsPackedColor:uint	= 0x5f492a;		// Color of "Rats Packed" label.
+			public static const kRatsPackedFontSize:uint= 18;			// Font size of "Rats Packed" label.
+			public static const kRatsPackedYOffset:uint =				// Y offset from crate top for "Rats Packed" label.
+							1+ kCrateHeight/2 - kRatsPackedFontSize/2;
+			public static const kCrateBorderThickness:uint = 2;			// Thickness of crate border.
+			public static const kCrateWidth:uint		= 80;			// Width of crate.
+			public static const kHalfCrateWidth:Number	= kCrateWidth/2;// Half the crate width.
+			public static const kCrateHeight:uint		= 60;			// Height of crate.
+			public static const kCrateStartX:uint						// Starting X position of crate.
+					= kPulleyCenterX - kPulleyRadius - kHalfCrateWidth;
+			public static const kCrateTopStartY:uint	= kMaxTopStartY;// Starting Y position of crate top.
+			public static const kPlayerNameColor:uint	= kRatsPackedColor;	// Color of "Packer Name" label.
+			public static const kCrateNumberColor:uint	= kRatsPackedColor; // Color of crate number label.
+			public static const kPackerNameFontSize:uint= 16;			// Font size of Packer Name label.
+			public static const kCrateNumberFontSize:uint= 12;			// Font size of Packer Name label.
+			public static const kPackerNameYOffset:uint = kRatsPackedYOffset + 20; // Y offset from crate top for Packer Name label.
+			public static const kCrateNumberYOffset:uint= kRatsPackedYOffset - 17; // Y offset from crate top for crate number label.
+			public static const kCrateNumberPrefix:String= "Crate #";	// Beginning of crate number label.
+			public static const kOneRatSuffix:String	= " RAT";		// Used for rats packed label when one rat is packed.
+			public static const kPluralRatSuffix:String	= " RATS";		// Used for rats packed label when more than one rat is packed.
+			
+			// Button constants
+			public static const kStopPackingLabel:String= "Stop Packing";// Label of Stop Packing button.
+			public static const kResetCrateLabel:String = "Reset Crate";// Label of Reset Crate button.
+			
+			// Counterweight constants.
+			public static const kCounterWeightColor:uint= 0x000000;		// Color of counterweight.
+			public static const kCounterWeightMarkColor:uint= 0x888888;	// Color of marking used to line up with wall mark.
+			public static const kCounterWeightMarkThickness:uint= 3;	// Thickness of marking used to line up with wall mark.
+			public static const kCounterWeightWidth:uint= 30;			// Width of counterweight.
+			public static const kCounterWeightHeight:uint= 40;			// Height of counterweight.
+			public static const kCounterWeightTopStartY:uint= 300;		// Starting Y position of counterweight top.
+			public static const kEllipseWidth:Number	= 4; 			// Width in pixels for ellipse used in counterweight's round rect.
+						
+			// Pulley constants
+			public static const kPulleyColor:uint		= 0x878077;		// Color of pulley.
+			public static const kPulleyRadius:uint		= 40;			// Radius of pulley.
+			public static const kPulleyCenterX:uint		= 300;			// X position of pulley center.
+			public static const kPulleyCenterY:uint		= 50;			// Y position of pulley center.
+			
+			// Wall mark-related constants
+			public static const kWallMarkY:uint			= kMaxTopStartY + 50;	// Y location of wall mark.
+			public static const kWallMarkLength:uint	= kCounterWeightWidth/2;// Length of wall mark.
+			public static const kWallMarkTextY:uint		= kWallMarkY - 57;		// Y location of wall mark instructions.
+			
+			// drawArc() constants
+			public static const kClockwise:Number		= 1;			// Clockwise direction for drawArc();
+			public static const kCounterClockwise:Number= -1;			// Counter clockwise direction for drawArc();
+
+			// Timer constants
+			public static const kTimeLimit:Number		= 4;			// Max number of seconds rats can be added to crate.
+			public static const kUpdatesPerSecond:Number= 10;			// Redraw updates per second.
+			public static const kTotalUpdates:Number	= kTimeLimit * kUpdatesPerSecond; // Total number of updates.
+			public static const kUpdateInterval:Number	= 1000 / kUpdatesPerSecond; // Milliseconds between updates.
+			public static const kRatsPerPixel:Number	= 				// Rats loaded per pixel of counterweight ascent (not noisy).
+											kIdealRatsPerCrate /		// Ideal number of rats per crate.
+					((kCounterWeightTopStartY + kCounterWeightHeight/2) // Initial location of counterweight mark Y;
+											- kWallMarkY)				// Wall mark's Y value.
+			public static const kDelayTimerInterval:Number= 3000;		// 3 second delay after loading a crate.
+			public static const kDelayTimerRuns:Number	= 1;			// Just run this delay timer once between crates. 
+			
+			// The maximum distance in pixels that the counterweight can ascend from bottom to top.
+			private static const kCounterWeightAscent:uint	= Math.abs(kCounterWeightTopStartY - kMaxTopStartY);
+			
+			// General game variables
+			private var mGameNumber:uint			= 0;		// Number of current game, begining with 1.
+			private var mMethod:uint				= kMethodWallMark;// Method of measuring when to stop packing crate.
+			private var mCrateNumber:uint			= 0;		// Current crate number. Begins with 1 at the start of each game.
+			private var mTotalRatsPacked:uint		= 0;		// Total number of rats packed in current game.
+			private var mCurrentScore:uint			= 0;		// Score so far in current game.
+			private var mIsFirstCrate:Boolean		= true;		// True for the first crate of each game played at the multicrate level.
+			private var mTimeUsed:Number			= 0;		// Stores how much time has been used since Pack Rats button was pressed.
+			private var mRatsLoadedLabel:Label		= new Label();// Used to display number of rats loaded into crate.
+			private var mPackerNameLabel:Label		= new Label();// Used to display name of player.
+			private var mCrateNumberLabel:Label		= new Label();// Used to display crate number.
+			private var mAwaitingReset:Boolean		= false;	// Practice mode: true immediately after crate loading is complete.
+			private var mLevelWindow:GameLevelWindow;			// The modal window for choosing a game level.
+			private var mPackerName:String			= "";		// Name of game player.
+			private var mGameLevel:uint				= kPracticeLevel;	// Current game level.
+			private var mPrevGameLevel:uint			= kPracticeLevel;	// Used to track game level changes.
+			private var mCollectionsCreated:Boolean = false;	// Collection created on first play of non-practice level.
+			
+			// SpriteVisualElements used for drawing game components.
+			private var mPulley:SpriteVisualElement	= new SpriteVisualElement();			// Used for drawing pulley.
+			private var mCrate:SpriteVisualElement	= new SpriteVisualElement();			// Used for drawing crate.
+			private var mCrateRope:SpriteVisualElement	= new SpriteVisualElement();		// Used for drawing crate rope.
+			private var mCounterWeight:SpriteVisualElement	= new SpriteVisualElement();	// Used for drawing counterweight.
+			private var mCounterWeightRope:SpriteVisualElement	= new SpriteVisualElement();// Used for drawing counterweight rope.
+			
+			// Create a timer to redraw the crate and counterweight as rats are loaded into the crate.
+			private var mRatLoadTimer:Timer = new Timer(kUpdateInterval, kTotalUpdates);
+			
+			// Timer used for delay between loading crates.
+			private var mCrateDelayTimer:Timer	= new Timer(kDelayTimerInterval, kDelayTimerRuns);
+			private var mCanContinue:Boolean	= false;
+
+			
+			// startUp() is called when the creation of this class is complete
+			// and sets up necessary parameters for game initiation.
+			private	function startUp():void	
+			{
+				// Initialize Rat Packing game.
+				initializeRatPacking();
+				
+				// Set focus to text input of Packer Name on first launch. This fixes an error on 
+				// first launch, in which the player had to click on the dialog window to give the
+				// game focus before the text input would accept characters.
+				if (ExternalInterface.available) ExternalInterface.call('setFocus');
+				focusManager.setFocus(mLevelWindow.mPackerNameTextInput);				
+				
+				// Initialize label displaying number of rats loaded into crate.
+				mRatsLoadedLabel.setStyle("color", kRatsPackedColor);
+				mRatsLoadedLabel.setStyle("fontSize", kRatsPackedFontSize);
+				mRatsLoadedLabel.width = kCrateWidth;
+				mRatsLoadedLabel.setStyle("textAlign", "center");
+				mRatsLoadedLabel.text = "";
+				addElement(mRatsLoadedLabel);
+				
+				// Initialize label displaying player name on crate.
+				mPackerNameLabel.setStyle("color", kPlayerNameColor);
+				mPackerNameLabel.setStyle("fontSize", kPackerNameFontSize);
+				mPackerNameLabel.width = kCrateWidth;
+				mPackerNameLabel.setStyle("textAlign", "center");
+				mPackerNameLabel.text = "";
+				addElement(mPackerNameLabel);
+				
+				// Initialize label displaying player name on crate.
+				mCrateNumberLabel.setStyle("color", kCrateNumberColor);
+				mCrateNumberLabel.setStyle("fontSize", kCrateNumberFontSize);
+				mCrateNumberLabel.width = kCrateWidth;
+				mCrateNumberLabel.setStyle("textAlign", "center");
+				mCrateNumberLabel.text = "";
+				addElement(mCrateNumberLabel);
+								
+				// Draw the pulley, crate, counterweight, and rope.
+				drawPulleyandRope();
+				drawCrateAndRope(kCrateTopStartY);
+				drawCounterWeightAndRope(kCounterWeightTopStartY);
+				drawWallMark();
+				
+				// Add sprite visual elements to the game play border container to enable drawing.
+				mGamePlayBorderContainer.addElement(mPulley);
+				mGamePlayBorderContainer.addElement(mCrate);
+				mGamePlayBorderContainer.addElement(mCrateRope);
+				mGamePlayBorderContainer.addElement(mCounterWeight);
+				mGamePlayBorderContainer.addElement(mCounterWeightRope);
+			}
+
+			// initializeRatPacking() sets the Rat Packing game to initial values
+			// and prepares the game for play.
+			protected function initializeRatPacking():void
+			{
+				mCrateNumber			= 1;		// Set first crate to number 1.
+				mTotalRatsPacked		= 0;		// Start with no rats packed yet.
+				mCurrentScore			= 0;		// Start with score at zero.
+				mIsFirstCrate			= true;		// Set the flag to true for the first crate.
+				mTimeUsed				= 0;		// Initialize the time for Packing Rats used to zero.
+				
+				// Clear game for play.
+				clearGame();
+				
+				mPackRatsButton.enabled		= true;	
+				mStopPackingButton.label	= kStopPackingLabel;
+				mStopPackingButton.enabled	= false;
+				
+				mAwaitingReset				= false;	// Not awaiting reset at game start.
+				
+				// Allow user to select game level.
+				switchToGameLevelWindow();
+			}
+			
+			// setCrateNumberLabel() sets the crate number label using the crate number passed in.
+			private function setCrateNumberLabel(iNumber:uint):void
+			{
+				mCrateNumberLabel.text = kCrateNumberPrefix + iNumber.toString();
+			}
+				
+			// setGameDoneLabel() sets the game done label using the score passed in.
+			private function setGameDoneLabel(iScore:uint):void
+			{
+				mGameDoneLabel.text = kGameCompleteText + iScore.toString();
+			}
+			
+			// setGetReadyLabel() sets the label alerting the player to get ready for the next crate.
+			// Takes in the crate number for which to get ready.
+			private function setGetReadyLabel(iNextCrate:uint):void
+			{
+				mGetReadyLabel.text = kGetReadyPrefix + iNextCrate.toString() + kGetReadyMiddle + kCratesPerGame + kGetReadySuffix;
+			}
+			
+			// gameLevelChosen() sets the current game level to the value passed in, saves the
+			// player name entered, if any, and closes the modal dialog.
+			private function gameLevelChosen(iLevel:uint):void 
+			{
+				mGameLevel				= iLevel; 									// Set game level to input value.
+				mPackerName				= mLevelWindow.mPackerNameTextInput.text;	// Set the player name.
+				mPackerNameLabel.text 	= mPackerName;								// Set the player name text.
+
+				PopUpManager.removePopUp(mLevelWindow);
+				
+				// Create collections
+				if (!mCollectionsCreated)
+				{
+					// Create collection for individual crates.
+					ScriptInterface.NewCollectionWithAttributes(
+						kCratesCollection,
+						[
+							"Packer",		// Name of the player.
+							"Method",		// Measurement method used: wall mark or aligned knots.
+							"GameNumber",	// Number of current game.
+							"CrateNumber",	// Number of current crate.
+							"RatsPacked",	// Numer of rats packed in current crate.
+							"PixelsOff",	// Number of pixels off perfection (negative == short, postive == over).
+							"RatsOff"		// Number of rats off perfection (negative == short, positive == over).
+						]
+					);
+					
+					// Create collection for individual crates.
+					ScriptInterface.NewCollectionWithAttributes(
+						kGamesCollection,
+						[
+							"Packer",			// Name of the player.
+							"Method",			// Measurement method used: wall mark or aligned knots.
+							"GameNumber",		// Number of current game.
+							"CratesPacked",		// Number of crates packed.
+							"TotalRatsPacked",	// Numer of rats packed in all crates.
+							"Score"				// Game score.
+						]
+					);
+					
+					mCollectionsCreated = true;
+				}
+			}
+			
+			// practiceLevel() sets the current game level to the practice level.
+			private function practiceLevel(iEvent:Event):void 
+			{
+				mPrevGameLevel				= mGameLevel;			// Track game level change.
+				mMethod						= kMethodWallMark;		// Set method of measuring when to stop packing crate.
+				gameLevelChosen(kPracticeLevel); 					// Set game level to first level.
+				mGameTitle.text				= kPracticeLevelText;	// Set the text displaying the game level.
+				mCrateNumberLabel.text		= '';					// Don't show crate number in practice level.
+			}
+					
+			// multiCrateLevel() sets the current game level to the multi crate level.
+			private function multiCrateLevel(iEvent:Event):void 
+			{
+				mPrevGameLevel	= mGameLevel;			// Track game level change.
+				mMethod			= kMethodWallMark;		// Set method of measuring when to stop packing crate.
+				gameLevelChosen(kMultiCrateLevel); 		// Set game level to first level.
+				mGameTitle.text	= kMultiCrateLevelText;	// Set the text displaying the game level.
+				mGameNumber 	+= 1;					// Count current game when playing this level.
+				
+				// Show crate number in multi crate level.
+				if (mGameLevel != kPracticeLevel) 
+					setCrateNumberLabel(mCrateNumber);		
+			}
+			
+			// chooseGameLevel() listens for clicks on the game level dialog's level buttons.
+			private function chooseGameLevel():void 
+			{
+				var isModal:Boolean = true;
+
+				PopUpManager.addPopUp(mLevelWindow, this, isModal); 
+				mLevelWindow.mPackerNameTextInput.text = mPackerName;	// Set the player name.
+				
+				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
+				mLevelWindow.closeButton.visible = false;	// Hide the close button.
+				
+				mLevelWindow["mPracticeButton"].addEventListener("click", practiceLevel);   
+				mLevelWindow["mPlayGameButton"].addEventListener("click", multiCrateLevel);   
+			}
+			
+			// switchToGameLevelWindow() sets the current state to the game level window.
+			protected function switchToGameLevelWindow():void
+			{
+				// Create a  game level modal dialog.
+				// Listen for clicks on level buttons in dialog.
+				mLevelWindow = new GameLevelWindow();
+				
+				chooseGameLevel(); // Make the user select a hunt level and return.
+			}
+			
+			// degreesToRadians() returns the radian equivalent to the passed in degrees.
+			protected function degreesToRadians(iDegrees:Number):Number
+			{
+				return iDegrees * Math.PI/180;
+			}
+			
+			// radiansToDegrees() returns the degree equivalent to the passed in radians.
+			protected function radiansToDegrees(iRadians:Number):Number
+			{
+				return iRadians  * 180/Math.PI;
+			}
+			
+			//	drawArc() draws an arc around the center point passed in.
+			// 
+			//	iCenterX		-- the center X coordinate of the circle the arc is located on
+			//	iCenterY		-- the center Y coordinate of the circle the arc is located on
+			//	ioStartAngle	-- the starting angle to draw the arc from (in radians)
+			//	ioEndAngle		-- the ending angle for the arc (in radians)
+			//	iRadius			-- the radius of the circle the arc is located on
+			//	iDirection		-- toggle for going clockwise/counter-clockwise (clockwise = 1, counter clockwise = -1)
+			
+			//	From http://www.actionscript.org/forums/showthread.php3?s=6b1516bd59e10bf15e2e488b8db148c0&t=192099 on 10/16/2011
+			//	Author ID meddlingwithfir, post #4
+			//  Copyright info below from http://www.actionscript.org/resources/authors/register
+			//	"The Contributor grants all visitors to the Site a non-exclusive, perpetual, non-revocable, royalty-free, 
+			//	worldwide license to make derivative works from the Content, and use to use the Content and any 
+			//	derivatives works for commercial purposes and non-commercial purposes."
+			//
+			protected function drawArc(iCenterX:Number, 
+									   iCenterY:Number, 
+									   ioStartAngle:Number, 
+									   ioEndAngle:Number, 
+									   iRadius:Number, 
+									   iDirection:Number
+									   ):void
+			{
+				// How far around the arc to draw.
+				var difference:Number = Math.abs(ioEndAngle - ioStartAngle);
+				
+				// The number of arcs needed to simulate the arc.
+				var divisions:Number	= Math.floor(difference / (Math.PI / 4)) + 1;
+				
+				var span:Number			= iDirection * difference / (2 * divisions);
+				var controlRadius:Number= iRadius / Math.cos(span);
+				
+				mPulley.graphics.moveTo(iCenterX + (Math.cos(ioStartAngle) * iRadius), 
+										iCenterY + Math.sin(ioStartAngle) * iRadius);
+				
+				var controlPoint:Point;
+				var anchorPoint:Point;
+				
+				for(var i:Number=0; i<divisions; ++i)
+				{
+					ioEndAngle    = ioStartAngle + span;
+					ioStartAngle  = ioEndAngle + span;
+					
+					controlPoint = new Point(iCenterX+Math.cos(ioEndAngle) * controlRadius, 
+											 iCenterY+Math.sin(ioEndAngle) * controlRadius);
+					anchorPoint = new Point(iCenterX+Math.cos(ioStartAngle) * iRadius, 
+											iCenterY+Math.sin(ioStartAngle) * iRadius);
+					mPulley.graphics.curveTo(
+						controlPoint.x,
+						controlPoint.y,
+						anchorPoint.x,
+						anchorPoint.y
+					);
+				}
+			}
+			
+			// drawPulleyandRope() draws the pulley and rope draped over it.
+			protected function drawPulleyandRope():void	
+			{
+				var radius:uint			= kPulleyRadius;
+				var diameter:uint		= radius * 2;
+				var startAngle:Number	= 0;
+				var endAngle:Number		= degreesToRadians(180);
+				
+				// Draw pulley.
+				mPulley.graphics.beginFill(kPulleyColor);
+				mPulley.graphics.drawCircle(kPulleyCenterX, kPulleyCenterY, radius);
+				mPulley.graphics.endFill();
+
+				// Draw arc of rope draped over pulley.
+				mPulley.graphics.lineStyle(kWireRopeThickness, kWireRopeColor);
+				drawArc(kPulleyCenterX, kPulleyCenterY, startAngle, endAngle, radius, kCounterClockwise);
+				
+				// Draw ends of rope dangling from each side of pulley.
+				mPulley.graphics.moveTo(kPulleyCenterX - radius, kPulleyCenterY);
+				mPulley.graphics.lineTo(kPulleyCenterX - radius, kPulleyCenterY + radius);
+				mPulley.graphics.moveTo(kPulleyCenterX + radius, kPulleyCenterY);
+				mPulley.graphics.lineTo(kPulleyCenterX + radius, kPulleyCenterY + radius);
+				
+				mPulley.graphics.endFill();				
+			}
+			
+			// getCrateTopYForText() returns the top Y value from which to offset for text drawn on crate.
+			protected function getCrateTopYForText():Number
+			{
+				return kCrateTopStartY + mCrate.top + mGamePlayBorderContainer.y;
+			}
+			
+			// drawPackerName() draws the player's name on the crate.
+			protected function drawPackerName():void
+			{
+				// Draw player's name on the crate.
+				var crateY:Number = getCrateTopYForText();
+				
+				mPackerNameLabel.text = mPackerName;
+				mPackerNameLabel.move(kCrateStartX, crateY + kPackerNameYOffset);
+			}
+			
+			// drawCrateNumber() draws the crate number on the crate.
+			protected function drawCrateNumber():void
+			{
+				// Draw crate number on the crate.
+				var crateY:Number = getCrateTopYForText();
+				
+				mCrateNumberLabel.move(kCrateStartX, crateY + kCrateNumberYOffset);
+			}
+			
+			// drawCrateRope() draws the rope from which the crate hangs.
+			// Input parameter iCrateTopY specifies the top pixel of the crate.
+			protected function drawCrateRope(iCrateTopY:uint):void
+			{
+				// Draw the rope from which the crate hangs.
+				mCrateRope.graphics.clear();
+				mCrateRope.graphics.lineStyle(kWireRopeThickness, kWireRopeColor);
+				mCrateRope.graphics.moveTo(kPulleyCenterX - kPulleyRadius, iCrateTopY - kCrateBorderThickness);
+				mCrateRope.graphics.lineTo(kPulleyCenterX - kPulleyRadius, kPulleyCenterY + kPulleyRadius);
+				mCrateRope.graphics.endFill();				
+			}
+			
+			// drawCrateAndRope() draws the crate and rope from which it hangs.
+			// Input parameter iCrateTopY specifies the top pixel of the crate.
+			protected function drawCrateAndRope(iCrateTopY:uint):void
+			{
+				// Draw the crate.
+				mCrate.graphics.clear();
+				mCrate.graphics.lineStyle(kCrateBorderThickness, kCrateBorderColor);
+				mCrate.graphics.beginFill(kCrateColor);
+				mCrate.graphics.drawRect(kCrateStartX, iCrateTopY, kCrateWidth, kCrateHeight);
+				mCrate.graphics.endFill();
+				
+				drawPackerName();	// Draw the player's name on the crate.
+				drawCrateNumber();	// Draw the crate number on the crate;
+				
+				// Draw the rope from which the crate hangs.
+				drawCrateRope(iCrateTopY);				
+			}
+			
+			// drawCounterWeightRope() draws the rope from which the counterweight hangs.
+			// Input parameter iWeightTopY specifies the top pixel of the counterweight.
+			protected function drawCounterWeightRope(iWeightTopY:uint):void
+			{
+				// Draw the rope from which the counterweight hangs.
+				mCounterWeightRope.graphics.lineStyle(kWireRopeThickness, kWireRopeColor);
+				mCounterWeightRope.graphics.moveTo(kPulleyCenterX + kPulleyRadius, iWeightTopY);
+				mCounterWeightRope.graphics.lineTo(kPulleyCenterX + kPulleyRadius, kPulleyCenterY + kPulleyRadius);
+				mCounterWeightRope.graphics.endFill();				
+			}
+			
+			// drawCounterWeightAndRope() draws the counterweight and rope from which it hangs.
+			// Input parameter iWeightTopY specifies the top pixel of the counterweight.
+			protected function drawCounterWeightAndRope(iWeightTopY:uint):void
+			{
+				var halfCounterWeightWidth:uint		= kCounterWeightWidth/2;
+				var halfCounterWeightHeight:uint	= kCounterWeightHeight/2;
+				
+				// Draw the counterweight.
+				mCounterWeight.graphics.beginFill(kCounterWeightColor);
+				mCounterWeight.graphics.drawRoundRect(kPulleyCenterX + kPulleyRadius - halfCounterWeightWidth, 
+					iWeightTopY, kCounterWeightWidth, kCounterWeightHeight, kEllipseWidth);
+				mCounterWeight.graphics.endFill();
+				
+				// Draw the marking used to line up with wall mark.
+				mCounterWeight.graphics.lineStyle(kCounterWeightMarkThickness, kCounterWeightMarkColor);
+				mCounterWeight.graphics.moveTo(kPulleyCenterX + kPulleyRadius, iWeightTopY + halfCounterWeightHeight);
+				mCounterWeight.graphics.lineTo(kPulleyCenterX + kPulleyRadius + halfCounterWeightWidth, 
+					iWeightTopY + halfCounterWeightHeight);
+				mCounterWeight.graphics.endFill();				
+				
+				// Draw the rope from which the counterweight hangs.
+				drawCounterWeightRope(iWeightTopY)			
+			}
+			
+			// drawWallMark() draws the mark on the wall that the player will try to line up with
+			// the mark on the counterweight.
+			protected function drawWallMark():void
+			{
+				// Starting X location for drawing wall mark.
+				var startX:Number = kPulleyCenterX + kPulleyRadius + kCounterWeightWidth/2;
+				
+				// Draw the marking used to line up with wall mark.
+				mPulley.graphics.lineStyle(kCounterWeightMarkThickness, kCounterWeightMarkColor);
+				mPulley.graphics.moveTo(startX, kWallMarkY);
+				mPulley.graphics.lineTo(startX + kWallMarkLength, kWallMarkY);
+				mPulley.graphics.endFill();				
+			}
+
+			// timerListener() is called to update the drawing of the crate and counterweight while rats load.
+			protected function timerListener(iEvent:TimerEvent):void
+			{
+				// Increment the time used at the start, as this amount was used since 
+				// the start of previous timer interval.
+				++mTimeUsed;
+				
+				if (mTimeUsed < kTotalUpdates)
+				{
+					var percentComplete:Number	= mTimeUsed/kTotalUpdates;
+					var distanceMoved:Number	= kCounterWeightAscent * percentComplete;
+					
+					// Move weight upward by amount traveled.
+					mCounterWeight.top = -distanceMoved;
+					
+					// Redraw the rope from which the counterweight hangs.
+					mCounterWeightRope.graphics.clear();
+					mCounterWeightRope.graphics.lineStyle(kWireRopeThickness, kWireRopeColor);
+					mCounterWeightRope.graphics.moveTo(kPulleyCenterX + kPulleyRadius, kCounterWeightTopStartY - distanceMoved);
+					mCounterWeightRope.graphics.lineTo(kPulleyCenterX + kPulleyRadius, kPulleyCenterY + kPulleyRadius);
+					mCounterWeightRope.graphics.endFill();			
+					
+					// Move crate downward by amount traveled.
+					mCrate.top = distanceMoved;
+					
+					drawPackerName();	// Move player's name with crate.
+					drawCrateNumber();	// Move the crate number with the crate;
+					
+					// Redraw the rope from which the crate hangs.
+					mCrateRope.graphics.clear();
+					mCrateRope.graphics.lineStyle(kWireRopeThickness, kWireRopeColor);
+					mCrateRope.graphics.moveTo(kPulleyCenterX - kPulleyRadius, kCrateTopStartY - kCrateBorderThickness + distanceMoved);
+					mCrateRope.graphics.lineTo(kPulleyCenterX - kPulleyRadius, kPulleyCenterY + kPulleyRadius);
+					mCrateRope.graphics.endFill();				
+				}
+				// Crate has filled to capacity.
+				else
+				{
+					endGame();
+					
+					// Move counterweight to max top location. Top initially is aligned with its parent border container,
+					//	so setting the final top to the full ascent distance above the top does the trick.
+					//  Do the same in reverse when moving the crate downward.
+					mCounterWeight.top	= -kCounterWeightAscent;
+					
+					// Redraw the rope from which the counterweight hangs.
+					drawCounterWeightRope(kMaxTopStartY);
+					
+					if (mGameLevel == kPracticeLevel)
+					{
+						mExitLevelButton.enabled	= true;	// Allow player to exit when play is stopped.
+						mAwaitingReset				= true;	// If practice level, now awaiting reset, as final game info is displayed.
+					}
+				}
+			}
+			
+			// delayTimerComplete() is called when the delay timer finishes and is used to start the
+			// next crate moving.
+			protected function delayTimerComplete(iEvent:TimerEvent):void
+			{
+				mCrateDelayTimer.stop();														// Stop timer.
+				mCrateDelayTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, timerListener);	// Stop listening.
+				
+				mGetReadyLabel.visible = false; // Hide text telling player to get ready for the next crate.
+				
+				// Start the rat packing process for the next crate.
+				beginPackingNextCrate(); 
+			}
+			
+			// endGame() performs all operations necessary when game is complete.
+			protected function endGame():void
+			{
+				mRatLoadTimer.stop();												// Stop timer.
+				mRatLoadTimer.removeEventListener(TimerEvent.TIMER, timerListener);	// Stop listening.
+				
+				// Display the number of pixels by which the counterweight mark missed the wall mark.
+				// A negative number means the player stopped before lining up with the mark.  
+				// Zero means the player stopped successfully lined up with the mark. 
+				// A positive number means the player stopped after lining up with the mark.  
+				// mCounterWeight.top starts at zero and then grows more and more negative as the
+				// counter weight ascends.
+				var counterWeightMarkY:Number	= kCounterWeightTopStartY + (kCounterWeightHeight/2) + mCounterWeight.top;
+				var missedBy:Number				= kWallMarkY - counterWeightMarkY;
+				
+				if (missedBy == 0) // Packed crate perfectly.
+				{
+					mMissedWallMarkYByLabel.text	= kHitTheMarkText;
+					mCurrentScore					+= kPointsPerPerfectHit;	// Only score on perfect hit.
+				}
+				else
+				{
+					if (missedBy < 0) 	// Stopped packing too soon.
+						mMissedWallMarkYByLabel.text = kUnderByText;
+					else				// Stopped packing too late.
+						mMissedWallMarkYByLabel.text = kOverByText;
+					
+					mMissedWallMarkYByLabel.text += Math.abs(missedBy).toString() + kPixelsText;
+				}
+				
+				// Display the number of rats loaded into the crate.
+				// mCounterWeight.y starts at zero and then grows more and more negative as the
+				// counter weight ascends. Measured in pixels.
+				var halfCrateHeight:uint	= kCrateHeight/2;
+				var crateY:Number 			= getCrateTopYForText();
+				var ratsPacked:uint			= Math.round((kRatsPerPixel * Math.abs(mCounterWeight.y)));
+				var ratString:String		= ratsPacked == 1 ? kOneRatSuffix : kPluralRatSuffix;
+				var methodText:String		= (mMethod == kMethodWallMark) ? kWallMarkText : kKnotsText;
+				
+				mTotalRatsPacked	+= ratsPacked; // Keep a tally of total rats packed so far in current game.
+				mRatsLoadedLabel.move(kCrateStartX, crateY + kRatsPackedYOffset);
+				mRatsLoadedLabel.text = ratsPacked.toString() + ratString;
+				
+				if (mGameLevel != kPracticeLevel)
+				{
+					ScriptInterface.AddCaseToCollectionWithValues(
+						kCratesCollection, 
+						[
+							mPackerName,					// Name of the player.
+							methodText,						// Measurement method used: wall mark or aligned knots.
+							mGameNumber,					// Number of current game.
+							mCrateNumber,					// Number of current crate.
+							ratsPacked,						// Numer of rats packed in current crate.
+							missedBy,						// Number of pixels off perfection (negative == short, postive == over).
+							ratsPacked - kIdealRatsPerCrate	// Number of rats off perfection (negative == short, positive == over).
+						]	
+					);
+				}
+					
+				// Handle tasks that differ according to game level.
+				switch (mGameLevel)
+				{
+					case kPracticeLevel:
+						// Change Stop Packing Rats button to Reset Crate, now that loading has ended.
+						mStopPackingButton.label = kResetCrateLabel;
+						break;
+					
+					case kMultiCrateLevel:
+						mStopPackingButton.enabled = false;
+						if (mCrateNumber < kCratesPerGame)
+						{
+							// Add a delay between each crate.
+							// delayTimerComplete() will call beginPackingNextCrate() when the timer runs out.
+							mCrateDelayTimer.addEventListener(TimerEvent.TIMER_COMPLETE, delayTimerComplete);
+							mCrateDelayTimer.reset();	// Reset the delay timer to run until it finishes.
+							mCrateDelayTimer.start(); 	// Start the delay timer.
+
+							if (mGameLevel != kPracticeLevel)
+								setGetReadyLabel(mCrateNumber + 1);	// Update the get ready label with the next crate number.
+							mGetReadyLabel.visible = true;		// Tell the player to get ready for the next crate.
+							
+						}
+						else
+						{
+							setGameDoneLabel(mCurrentScore);	// Add final score to game done label.
+							mGameDoneLabel.visible 		= true; // Tell player game is complete.
+							mExitLevelButton.enabled	= true;	// Allow player to exit when game is complete.
+							
+							ScriptInterface.AddCaseToCollectionWithValues(
+								kGamesCollection, 
+								[
+									mPackerName,		// Name of the player.
+									methodText,			// Measurement method used: wall mark or aligned knots.
+									mGameNumber,		// Number of current game.
+									mCrateNumber,		// Number of crates packed.
+									mTotalRatsPacked,	// Numer of rats packed in all crates.
+									mCurrentScore		// Game score.
+								]	
+							);
+						}
+						break;
+							
+					default:
+						break;
+				}
+					
+			}
+			
+			// clearGame() resets the game and clears remnants of the previous game, if any.
+			private function clearGame():void
+			{
+				// Clear text in labels.
+				mMissedWallMarkYByLabel.text = "";
+				mRatsLoadedLabel.text = "";
+				mGameDoneLabel.visible = false;
+				
+				// Move counterweight to starting location. Top initially is aligned with its parent border container,
+				//	so setting the final top back to this alignment does the trick. Also draw the rope from which it hangs.
+				//  Do the same with the crate.
+				mCounterWeight.top	= 0;
+				drawCounterWeightRope(kCounterWeightTopStartY);
+				mCrate.top			= 0;
+				drawCrateRope(kCrateTopStartY);
+				drawPackerName();
+				drawCrateNumber();
+				
+				mTimeUsed			= 0;		// Initialize the time used to zero.
+			}
+			
+			// beginPackingNextCrate() starts the rat packing process for the next crate.
+			protected function beginPackingNextCrate():void
+			{
+				clearGame(); 		// Clear any remnants of last game and reset game.
+				
+				// The first crate number is written on the crate before beginPackingNextCrate() is called.
+				// Therefore, do not increment the crate number for the first crate.
+				if (!mIsFirstCrate)
+				{
+					++mCrateNumber;			// Increment crate number in preparation for next crate.
+					
+					if (mGameLevel != kPracticeLevel)
+						setCrateNumberLabel(mCrateNumber);	// Update crate number label with new crate number.
+				}
+				else
+					mIsFirstCrate = false;	// Now that we've pass here once, it won't be the first crate.
+
+				// Disable Pack Rats and ExitLevel buttons and enable Stop Packing Rats 
+				// button while rat loading is in progress.
+				mPackRatsButton.enabled		= false;
+				mExitLevelButton.enabled	= false;
+				mStopPackingButton.enabled	= true;
+				
+				// Use timer to update the fuel level display and game duration.
+				mRatLoadTimer.addEventListener(TimerEvent.TIMER, timerListener);
+				
+				mRatLoadTimer.reset();	// Reset the timer to run until user stops or crate fills to max level.
+				mRatLoadTimer.start(); 	// Start the timer, now that all variables are set up.
+			}
+			
+			// onClickPackRatsButton() is called when the Pack Rats Button is clicked and starts
+			// the rat packing process.
+			protected function onClickPackRatsButton(iEvent:MouseEvent):void
+			{
+				beginPackingNextCrate(); // Start the rat packing process for the next crate.
+			}
+			
+			// onClickStopPackingButton() stops the rat loading process.
+			protected function onClickStopPackingButton(iEvent:MouseEvent):void
+			{
+				if (mGameLevel == kPracticeLevel)
+					mExitLevelButton.enabled	= true;	// Allow player to exit when play is stopped.
+				
+				if (mAwaitingReset)	// Crate loading is complete and waiting to be reset to original position.
+				{
+					clearGame();	// Reset values and crate/counterweight locations.
+					
+					mPackRatsButton.enabled		= true;	
+					mStopPackingButton.label	= kStopPackingLabel;
+					mStopPackingButton.enabled	= false;
+					
+					mAwaitingReset		= false;	// Not awaiting reset at game start.
+				}
+				else // Player clicked Stop Packing button during game play.
+				{
+					endGame();
+					
+					if (mGameLevel == kPracticeLevel)
+						mAwaitingReset = true;	// Now awaiting reset, as final game info is displayed.
+				}
+			}
+			
+			// onClickExitLevelButton() ends the current level and allows the player to select
+			// another game level.
+			protected function onClickExitLevelButton(iEvent:MouseEvent):void
+			{
+				// Player has ended current level. Initialize Rat Packing game.
+				initializeRatPacking();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:RichText id="mGameTitle" x="10" y="10" width="580" color="#908F17" fontFamily="Georgia"
+					fontSize="40" fontStyle="italic" fontWeight="normal" text="Rat Packing"
+					textAlign="center"/>
+	<s:BorderContainer 
+				id="mGamePlayBorderContainer" x="0" y="57" width="600" height="393"
+					backgroundColor="#294867" borderVisible="false">
+		<s:Button	id="mPackRatsButton" x="390" y="24" width="93" label="Pack Rats"
+				  		click="onClickPackRatsButton(event)"/>
+		<s:Button	id="mExitLevelButton" x="390" y="173" width="93" label="Exit Level"
+						click="onClickExitLevelButton(event)"/>
+		<s:Button	id="mStopPackingButton" x="390" y="53" width="93" label="{kStopPackingLabel}"
+				  		click="onClickStopPackingButton(event)" enabled="false"/>
+		<s:Label	id="mStopAtWallMarkLabel" x="380" y="{kWallMarkTextY}" width="126" height="71" fontSize="14"
+				 		text="Stop packing when counter weight mark lines up here. ←"/>
+		<s:Label	id="mMissedWallMarkYByLabel" x="380" y="209" color="#DEA262" fontSize="14"/>
+		<s:Label 	id="mGetReadyLabel" x="397" y="234" width="79" color="#ef3b17" fontFamily="Arial"
+					fontSize="16" text="" textAlign="center" visible="false"/>
+		<s:Label 	id="mGameDoneLabel" x="390" y="254" width="93" color="#ef3b17" fontFamily="Arial"
+					fontSize="16" text="{kGameCompleteText}" textAlign="center" visible="false"/>
+	</s:BorderContainer>
+</s:Application>

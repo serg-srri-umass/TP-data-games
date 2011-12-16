@@ -75,7 +75,14 @@
                                 + pageHost + "www.adobe.com/images/shared/download_buttons/get_flash_player.gif' alt='Get Adobe Flash player' /></a>" ); 
             </script> 
         </div>
-        
+		
+		<script language="JavaScript" type="text/javascript" >
+			function setFocus()
+			{
+				window.document.getElementById("${application}").focus();
+			}
+		</script>
+       
         <noscript>
             <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="${width}" height="${height}" id="${application}">
                 <param name="movie" value="${swf}.swf" />
