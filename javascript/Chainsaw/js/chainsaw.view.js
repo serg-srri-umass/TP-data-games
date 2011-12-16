@@ -19,11 +19,11 @@ var ChainsawView = function(canvasEl){
 
   /** Button event handlers */
   this.buttons = {
-    start: $('#startButton').click(function(){
+    start: $('.startGame').click(function(){
       this.startGame();
     }.bind(this)),
 
-    stop: $('#stopButton').click(function(){
+    stop: $('.stopGame').click(function(){
       this.endGame();
     }.bind(this)),
 
@@ -31,17 +31,22 @@ var ChainsawView = function(canvasEl){
       this.audio.toggleMute();
     }.bind(this)),
     
-    selectLevel: $('#levelselect input[type=button]').click(function(e){
-      this.levelSelected(e.target.dataset.level);
+    selectLevel: $('#levelChosen').click(function(e){
+      this.levelSelected($('input:radio[name=level]:checked').attr('id'));
     }.bind(this)),
 
-    continue: $("#results #continue").click(function(e){
-      this.dialogs.results.fadeOut(200);
-      this.dialogs.levelSelect.show();
+    mainMenu: $('.mainMenu').click(function(e){
+      this.endGame();
+      this.showMenu();
 
+    }.bind(this)),
+
+    tryAgain: $('.tryAgain').click(function(){
+      this.tryAgain();
     }.bind(this))
 
   }
+
 
   /** The various game dialogs */
   this.dialogs = {
@@ -53,7 +58,8 @@ var ChainsawView = function(canvasEl){
   this.labels = {
     nametag: $('#username'),
     howgood: $('#howgood'),
-    levelLabel: null,
+    shadows: $('#shadows'),
+    infoLabel: $('#banner #info'),
     cutBeginArrow: null,
     cutDownArrow: null,
     /** A Raphael set of elements to hold the 'Cut edge-' labels on either side of active logs */
@@ -68,7 +74,7 @@ var ChainsawView = function(canvasEl){
   this.audio = {
     el: null,
     volume: $('#volume').change(function(){
-      this.audio.el.volume = this.audio.volume[0].value;
+      this.audio.el.volume = parseFloat(this.audio.volume[0].value);
     }.bind(this)),
 
     toggleMute: function(){
@@ -92,6 +98,9 @@ var ChainsawView = function(canvasEl){
       this.el.play();
     }
   }
+
+  this.gameInProgress = false;
+  this.currentLevel = 'directional';
   
   /** Event listeners to be called by the Logic code */
   _bind('renderLog', function(e, log){ this.renderLog(log) }.bind(this));
@@ -103,6 +112,8 @@ var ChainsawView = function(canvasEl){
   _bind('drawResultLabel', function(e, x, y, valid){ this.drawResultLabel(x,y,valid); }.bind(this));
   _bind('showResults', function(e, r, w){ this.showResults(r,w); }.bind(this));
   _bind('updateCutPointer', function(e, y, cut){ this.updateCutPointer(y, cut); }.bind(this));
+  _bind('moveSparks', function (e, x, y) { this.moveSparks(x,y); }.bind(this));
+  _bind('stopSparks', function () { this.stopSparks(); }.bind(this));
 
   this.clear();
 };
@@ -114,6 +125,8 @@ ChainsawView.prototype = {
    * Clear the game window and all UI elements
    */
   clear: function(){
+    this.sparks = new Sparks(this.paper);
+    this.labels.shadows.empty();
     this.labels.cutDownArrow = null;
     this.paper.clear();
     this.svgLogs = this.paper.set();
@@ -125,11 +138,13 @@ ChainsawView.prototype = {
    * Handle level selection
    */
   levelSelected: function(level){
+    this.currentLevel = level;
     this.clear();
     /** Update labels */
-    this.labels.nametag.html(this.labels.playerInput.val() || "Player");
+    var playerName = this.labels.playerInput.val() || "Player";
+    this.labels.nametag.html(playerName);
     var niceLevelName = level.replace('practice','Practice').replace('directional','Directional Cut').replace('free','Free Cut');
-    this.labels.levelLabel = this.paper.text(this.width/2, this.height-12, niceLevelName).attr({fill: 'black', font: '300 12px Helvetica, arial, sans-serif'});
+    this.labels.infoLabel.html(niceLevelName+" - "+playerName);
     this.buttons.start.removeAttr('disabled');
     this.dialogs.levelSelect.fadeOut(100);
     _trigger('levelSelected', level);
@@ -140,23 +155,28 @@ ChainsawView.prototype = {
    * Start the game, initialize UI
    */
   startGame: function(){
-    this.buttons.stop.show();
-    this.buttons.start.hide();
-    this.canvasEl.addClass('active');
-    this.audio.play(this.audio.cutting);
-    _trigger('startGame', [this.labels.nametag.html()]);
-
+    if(!this.gameInProgress){
+      this.gameInProgress = true;
+      this.buttons.stop.show();
+      this.buttons.start.hide();
+      this.canvasEl.addClass('active');
+      this.audio.play(this.audio.cutting);
+      _trigger('startGame', [this.labels.nametag.html()]);
+    }
   },
 
   /**
    * End the game
    */
   endGame: function(){
-    this.buttons.stop.hide();
-    this.buttons.start.attr('disabled', 'disabled').show();
-    this.canvasEl.removeClass('active');
-    this.audio.play(this.audio.finished);
-    _trigger('endGame');
+    if(this.gameInProgress){
+      this.gameInProgress = false;
+      this.buttons.stop.hide();
+      this.buttons.start.attr('disabled', 'disabled').show();
+      this.canvasEl.removeClass('active');
+      this.audio.play(this.audio.finished);
+      _trigger('endGame');
+    }
   },
 
   /**
@@ -175,6 +195,19 @@ ChainsawView.prototype = {
                 .attr({ fill: 'red', 'font-size': 16});
     }
   },
+
+
+  showMenu: function(){
+    this.dialogs.results.fadeOut(200);
+    this.canvasEl.parent().removeClass('transit');
+    this.dialogs.levelSelect.show();
+  },
+
+  tryAgain: function(){
+    this.dialogs.results.fadeOut(200);
+    this.canvasEl.parent().removeClass('transit');
+    this.levelSelected(this.currentLevel);
+  },
   
   /**
    * Show results dialog
@@ -183,7 +216,8 @@ ChainsawView.prototype = {
    * @param wrong Number of incorrect cuts
    */
   showResults: function(right, wrong){
-    var percentCorrect = (right + wrong == 0 ? 0 : Math.floor(right/(right+wrong) * 100));
+    this.canvasEl.parent().addClass('transit');
+    var percentCorrect = (right + wrong == 0 ? 0 : Math.round(right/(right+wrong) * 100));
     if(percentCorrect < 33){
       this.labels.howgood.html("Good try");
     }else if(percentCorrect < 66){
@@ -194,7 +228,7 @@ ChainsawView.prototype = {
     this.labels.piecesaccepted.html(right);
     this.labels.piecestotal.html(right + wrong);
     this.labels.piecespercent.html(percentCorrect + '%');
-    this.dialogs.results.delay(800).fadeIn(200);
+    this.dialogs.results.delay(200).fadeIn(200);
   },
 
 
@@ -254,7 +288,7 @@ ChainsawView.prototype = {
      * Draw the top line in segments 
      * Pick a random number of segments to draw, and create them
      */
-    var segmentCount = Math.floor((1 + Math.random()*1.4)*(log.width/200));
+    var segmentCount = Math.floor((2 + Math.random()*0.6)*(log.width/200));
     var averageWidth = Math.floor(log.width/segmentCount);
 
     var currentPosition = log.x; 
@@ -268,7 +302,7 @@ ChainsawView.prototype = {
       }else{
         currentPosition = currentPosition + averageWidth + (Math.random() - 0.5)*75;
       }
-      newPath += "S"+((currentPosition+lastPosition)/2)+","+(log.y-3)+" "+currentPosition+","+log.y;
+      newPath += "S"+((currentPosition+lastPosition)/2 + (Math.random()*40 - 20))+","+(log.y-5)+" "+currentPosition+","+log.y;
     }
     newPath += 'l0,0' // Sharp corners
 
@@ -276,7 +310,7 @@ ChainsawView.prototype = {
     /** 
      * Draw the right hand side curve of the log
      */
-    newPath += "S"+(log.x+log.width+5)+","+(log.y+(log.height/2))+" "+(log.x+log.width)+","+(log.y+log.height);
+    newPath += "S"+(log.x+log.width+6)+","+(log.y+(log.height/2))+" "+(log.x+log.width)+","+(log.y+log.height);
     newPath += 'l0,0' // Sharp corners
 
 
@@ -294,40 +328,35 @@ ChainsawView.prototype = {
       }else{
         currentPosition = currentPosition - averageWidth - (Math.random() - 0.5)*75;
       }
-      newPath += "S"+((currentPosition+lastPosition)/2)+","+(log.y+log.height+3)+" "+currentPosition+","+(log.y+log.height);
+      newPath += "S"+((currentPosition+lastPosition)/2)+","+(log.y+log.height+5)+" "+currentPosition+","+(log.y+log.height);
     }
-    newPath += 'l0,0' // Sharp corners
-
-
-    /**
-     * Draw the left hand side
-     */
-    newPath += "S"+(log.x+5)+","+(log.y+(log.height/2))+" "+log.x+","+log.y;
     newPath += 'l0,0' // Sharp corners
 
     /**
      * Draw the end of the log
      */
-    logEndPath = "M"+log.x+","+log.y;
-    logEndPath += "s-8,0 0,"+log.height+"l0,0";
-    logEndPath += "s8,0 0,-"+log.height;
-
+    var newLogEnd = this.paper.image('assets/Log End.png', log.x-6, log.y-1, 12, 36);
 
     /**
-     * Draw shadows using the Raphael blur plugin
-     * On browsers where this isn't supported, a gray shadow-like shape (unblurred) will be rendered instead
+     * Draw shadows using CSS box-shadow, due to poor support of Raphael's blur plugin
+     * Looks nicer, and should degrade gracefully
      */
-    var shadow = this.paper.rect(log.x-2, log.y + log.height-5, log.width+4, 13, 10).attr({ fill: 'rgba(0,0,0,0.6)' });
-    shadow.blur(3);
 
-    var newLog = this.paper.path(newPath);
-    var newLogEnd = this.paper.path(logEndPath);
+    var shadow = $("<div>").addClass('shadow').css({
+      'top': log.y+3,
+      'left': log.x+3,
+      'width': log.width-6,
+      'height': log.height-6
+    }).appendTo(this.labels.shadows);
+    console.log("Drew shadow with width "+shadow.width() + " and height "+shadow.height());
+
 
     /** Add the new log to the Raphael set */
-    this.svgLogs.push(newLogEnd, newLog);
+    var newLog = this.paper.path(newPath);
+    this.svgLogs.push(newLog, newLogEnd.toFront());
 
     /** Create the cut surface */
-    log.cutSurface = this.paper.rect(log.x, log.y, log.width, 5).attr({ fill: '#764d13' });
+    log.cutSurface = this.paper.rect(log.x+5, log.y, log.width-5, 5).attr({ fill: '#764d13', opacity: 0});
     if(!log.active){ log.cutSurface.hide(); }
 
     /** Define styles on the Raphael log set */
@@ -356,6 +385,27 @@ ChainsawView.prototype = {
     if(oldLog) oldLog.cutSurface.hide();
     newLog.cutSurface.show();
     this.updateCutEdgeLabels(newLog);
+  },
+
+  /**
+   * Make cutting sparks at a given point
+   * @param x,y Coordinates
+   */
+  moveSparks: function (x, y) {
+    if(!this.sparks.generating){
+      this.sparks.start();
+    }
+    this.sparks.move(x, y);
+  },
+
+  /**
+   * Stop the sparks - cut over
+   */
+
+  stopSparks: function () {
+    this.sparks.stop();
+
   }
+
 }
 

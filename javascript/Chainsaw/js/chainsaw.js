@@ -1,6 +1,6 @@
 var Chainsaw = function(){
 
-  console.log("Chainsaw loaded.");
+  //console.log("Chainsaw loaded.");
   
   /*
    * Create aliases for jQuery's bind & trigger, just to make things easier on the eyes.

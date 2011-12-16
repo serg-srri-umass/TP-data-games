@@ -155,7 +155,10 @@ ChainsawLogic.prototype = {
    */
   handleMouse: function(e){
     if(!this.game.inProgress) return;
-    if(!this.game.mousedown) return;
+    if(!this.game.mousedown){
+      _trigger('stopSparks');
+      return;
+    }
     /** Can't use offsetX/layerX here due to browser inconsistencies */
     var x = e.pageX - this.canvasEl.offset().left,
         y = e.pageY - this.canvasEl.offset().top,
@@ -174,6 +177,7 @@ ChainsawLogic.prototype = {
           if(this.game.level != 'free') return false; 
         }
         
+        _trigger('moveSparks', [x,y]);
         /** Make sure that we've left the cut area before we're qualified to make another */
         if(!this.game.alreadyCut){
           this.doCut(log, x,i);

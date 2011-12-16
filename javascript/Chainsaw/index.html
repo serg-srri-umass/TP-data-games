@@ -3,9 +3,11 @@
 <head>
   <title>Chainsaw</title>
   <script src='js/jquery.js'></script>
+  <script src='js/jquery-ui-slider/jquery-ui-1.8.16.custom.min.js'/></script>
   <script src='js/raphael-min.js'></script>
-  <script src='js/raphael.blur.js'></script>
-  <script src='js/fnbind.js'></script>
+  <script src='js/modernizr-custom.js'></script>
+  <script src='js/chainsaw.sparks.js'></script>
+  <script src='js/chainsaw.extras.js'></script>
   <script src='js/chainsaw.logic.js'></script>
   <script src='js/chainsaw.view.js' charset="utf-8"></script>
   <script src='js/chainsaw.data.js'></script>
@@ -16,11 +18,12 @@
      var chain = new Chainsaw($('#canvas')); 
    });
   </script>
+  <link href="js/jquery-ui-slider/jquery-ui-1.8.16.custom.css" media="screen" rel="stylesheet" type="text/css" />
   <link href="style.css" media="screen" rel="stylesheet" type="text/css" />
 </head>
 <body>
   <div id='banner'>
-    <span id='version'>Chainsaw build 11/30/2011</span>
+    <span id='info'><b>Level selection</b></span>
     <img src='assets/Volume.png' alt='volume' id='mute' style='position:relative;top:2px;'/>
     <input type="range" min="0" max="1" value="1" step="0.01" id='volume'/>
   </div>
@@ -28,29 +31,32 @@
 <div id='container'>
 
   <div id='levelselect'>
+    <img src='assets/saw.png' alt='Chainsaw' style='float:right;'/>
     <h1>Chainsaw</h1>
     <div id='splash'>
-      <h3>A game about cutting logs</h3>
-      <!-- Seriously, replace this splash screen ASAP -->
-      Your goal is to cut logs (<img src='assets/fulllog.png' alt='log' />) into smaller chunks (<img src='assets/chunk.png' alt='small' />) to fit inside the fire!<br />
-      Click and hold the mouse button to cut the logs.<br /><br />
-      <b>Practice</b> lets you cut with no time limit.<br />
-      <b>Directional</b> challenges you to cut logs in alternating directions.<br />
-      <b>Free Cut</b> lets you cut any log at any time.
+      <b>Cut logs</b> into smaller chunks to fit inside the fire.
+      <br /><b>Click and drag</b> across a log with the mouse to cut before fuel runs out!<br /><Br />
+      <fieldset>
+        <input type='radio' name='level' id='practice' />
+          <label for='practice'><b>Practice</b> lets you cut with no time limit.</label><br />
+        <input type='radio' name='level' id='directional' checked/>
+          <label for='directional'><b>Directional Cut</b> challenges you to cut logs in alternating directions.</label><br />
+        <input type='radio' name='level' id='free' />
+          <label for='free'><b>Free Cut</b> lets you cut any log at any time.</label>
+      </fieldset>
     </div>
-
+    
     <div id='player'> 
       Player Name: <input type='text' id='playername' placeholder='Player' />
-    </div>
-    <div id='buttons'>
-      <input type='button' data-level='practice' value='Practice'/>
-      <input type='button' data-level='directional' value='Directional Cut' />
-      <input type='button' data-level='free' value='Free Cut' />
+      <input type='button' id='levelChosen' class='highlight' value='Begin Game' />
     </div>
   </div>
 
   <div id='game'>
     <div id='sidebar'>
+      <input type='button' class='action highlight startGame' value='Start' />
+      <input type='button' class='action highlight stopGame' style='display:none;' value='Stop' />
+      <input type='button' class='action mainMenu' value='Main Menu' />
       <div id='fuel'>
         Fuel:
         <div id='tank'>
@@ -64,22 +70,30 @@
         <img src='assets/Reference Length 75 Pixels.png' alt='75px' />
       </div>
 
-      <input type='button' class='action' id='startButton' value='Start' />
-      <input type='button' class='action' id='stopButton' style='display:none;' value='Stop' />
     </div>
 
-    <div id='canvas'></div>
+    <div id='canvasContainer'>
+      <div id='canvas'></div>
+      <div id='shadows'></div>
+    </div>
   </div>
 
   <div id='results'>
     <h2><span id='howgood'>Nice job</span>, <span id='username'></span>! Here are your results:</h2>
-    
-    Number of accepted pieces: <span id='piecesaccepted'>10</span><br />
-    Number of total pieces: <span id='piecestotal'>18</span><br />
-    Overall percentage: <span id='piecespercent'>100%</span>
-    <input type='button' class='action' id='continue' value='Continue' />
+
+    <div id='stats'>
+      Number of accepted pieces: <span id='piecesaccepted'>0</span><br />
+      Number of total pieces: <span id='piecestotal'>0</span><br />
+      Overall percentage: <span id='piecespercent'>0%</span><br />
+    </div>
+
+    <div id='nav'>
+      <input type='button' class='action highlight tryAgain' value='Try Again' />
+      <input type='button' class='action mainMenu' value='Main Menu' />
+    </div>
   </div>
 
+<div id='version'>Chainsaw [JS] build 12/12/11</div>
 </div>
 </body>
 </html>
