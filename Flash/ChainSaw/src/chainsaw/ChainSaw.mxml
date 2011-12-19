@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
-			   xmlns:s="library://ns.adobe.com/flex/spark" 
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
-			   minWidth="600" minHeight="600" pageTitle="Chain Saw"
-			   creationComplete="startUp( )">
+			   minWidth="745" minHeight="400" creationComplete="startUp( )" pageTitle="Chain Saw">
 
 	<fx:Script>
 		<![CDATA[
 			import chainsaw.GameLevelWindow;
 			
+			import chainsaw_assets.*;
+			
 			import com.kcpt.scriptInterface.ScriptInterface;
-			import assets.*;
 			
 			import flash.media.Sound;
 			import flash.media.SoundMixer;
 			
-//			import mx.core.SoundAsset;
 			import mx.core.UIComponent;
-//			import mx.effects.SoundEffect;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
 			import mx.managers.PopUpManager;
@@ -33,32 +31,33 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
+			public static const VERSION:String 			= "v. 12/19/11";// A string containing the version number (should be manually incremented for each build)
+			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
-//			public static const kRepeatSound:int		= 0;		// Play sound repeatedly.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
 			public static const kTotalUpdates:Number	= kTimeLimit * kUpdatesPerSecond; // Total number of updates.
 			public static const kUpdateInterval:Number	= 1000 / kUpdatesPerSecond; // Milliseconds between updates.
 			public static const kReferenceLength:Number	= 75;		// Reference length in pixels of 16" piece.
 			public static const kPercentAllowance:Number= ((1.0/8.0)*100);		// Percent allowed above or below accepted cut length.
 			public static const kConvertToInches:Number	= 16.0/kReferenceLength;// Used to convert pixel length to 16".
-			public static const kCutEdgeLeftXOffset:int	= -65;		// X offset of left "Cut Edge" Label.
-			public static const kCutEdgeRightXOffset:int= 7;		// X offset of right "Cut Edge" Label.
+			public static const kCutEdgeLeftXOffset:int	= -75;		// X offset of left "Cut Edge" Label.
+			public static const kCutEdgeRightXOffset:int= 0;		// X offset of right "Cut Edge" Label.
 			public static const kCutEdgeLeftYOffset:int	= -2;		// X offset of left "Cut Edge" Label.
 			public static const kCutEdgeRightYOffset:int= -2;		// X offset of right "Cut Edge" Label.
-//			public static const kLogStartY:Number		= 38;		// Starting Y of top log.
-//			public static const kLogOffsetY:int			= 69;		// Y offset from previous log.
 			public static const kFuelCapacity:Number	= 40;		// Units of fuel when full.
 			
 			// Levels
 			public static const kPracticeLevel:uint		  = 0;		// Practice level.
 			public static const kDirectionalCutLevel:uint = 1;		// Directional cut level.
 			public static const kFreeCutLevel:uint		  = 2;		// Free cut level.
+			public static const kHeavyFreeCutLevel:uint   = 3;		// Larger log size free cut level
+			public static const kMixedFreeCutLevel:uint   = 4;		// Mixed log size free cut level
 			
 			// Collection names according to level played.
 			public static const kCollectionDirCutPieces:String	= "CutPieces - Directional Cut Level";
 			public static const kCollectionFreeCutPieces:String	= "CutPieces - Free Cut Level";
-			public static const kCollectionDirCutGames:String	= "Games - Directional Cut Level";
-			public static const kCollectionFreeCutGames:String	= "Games - Free Cut Level";
+			public static const kCollectionDirCutGames:String	= "Directional Cut";
+			public static const kCollectionFreeCutGames:String	= "Free Cut";
 			
 			// Strings indicating accptance/rejection status of cut pieces.
 			public static const kAcceptString:String		= "Yes";
@@ -76,9 +75,6 @@
 			// Used for drawing the down arrow.
 			private var mArrowSprite:SpriteVisualElement = new SpriteVisualElement();
 			private var mArrowBitmapData:BitmapData;
-			
-			//the sawdust pile
-			private var mSawdustSprite:SawdustSprite = new SawdustSprite();
 
 			private var mFirstGame:Boolean			= true;	// Used for initial operations.
 			private var mGameLevel:uint				= 3;	// Current game level. --init as 3 to force it to go through init loops in game select
@@ -94,9 +90,11 @@
 			private var mLastLog:uint				= 0;	// Number of log at most recent cut. 1 based. 0 before cuts.
 			private var mLastCutX:Number			= 0;	// X location of most recent cut.
 			private var mLeftToRight:Boolean		= true;	// Current cutting direction of log.
-//			private var mStatusArray:Array = new Array;		// Holds status labels put on cut logs.
 			private var mPiecesAccepted:uint		= 0;	// Number of cut pieces accepted.
 			private var mPiecesRejected:uint		= 0;	// Number of cut pieces rejected.
+			private var mPiecesShort:uint			= 0;	// Number of cut pieces rejected as short.
+			private var mPiecesLong:uint			= 0;	// Number of cut pieces rejected as long.
+			private var mPiecesRemnant:uint			= 0;	// Number of cut pieces rejected as remnants.
 			private var mPlayersName:String			= "Player"; // Stores player's name.
 			
 			// These arrays store the details of individual logs for access by all who need to know.
@@ -122,44 +120,40 @@
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
 			// Converted from .ani format to .png.
-			[Embed(source="../assets/Chainsaw Cursor 2.png")]
+			[Embed(source="../chainsaw_assets/Chainsaw Cursor 2.png")]
 			private var mChainsawCursor:Class;
 
 			// Embed the reference length image file.
-			[Embed(source="../assets/Reference Length 75 Pixels.png")]
+			[Embed(source="../chainsaw_assets/Reference Length 75 Pixels.png")]
 			[Bindable]
 			private var mLengthImage:Class;
 			
 			// Embed tape measure image
-			[Embed(source="../assets/tape_measure.png")]
+			[Embed(source="../chainsaw_assets/tape_measure.png")]
 			[Bindable]
 			private var mTapeMeasureImage:Class;
 			
 			// Embed the down arrow image file.
-			[Embed(source="../assets/Down Arrow Small.png")]
+			[Embed(source="../chainsaw_assets/Down Arrow Small.png")]
 			[Bindable]
 			private var mDownArrowImage:Class;
 			
-			// Embed sawdust pile image
-			[Embed(source="../assets/sawdust_pile.png")]
-			[Bindable]
-			private var mSawdustPile:Class;
-			
 			// Embed volume icon
-			[Embed(source="../assets/volume_icon.png")]
+			[Embed(source="../chainsaw_assets/Volume.png")]
 			[Bindable]
 			private var mVolumeIcon:Class;
-				
+			
+			
 			/*
 			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
 			*/
-//			[Embed("../src/assets/Chainsaw Sound Longer.mp3")]
-			[Embed("../src/assets/dummy.mp3")]
+			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
+//			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-//			[Embed("../src/assets/Chainsaw Engine Stops no Fade In.mp3")]
-			[Embed("../src/assets/dummy.mp3")]
+			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
+//			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 
@@ -176,7 +170,7 @@
 				// Stores array of logs/logtops used in game.
 				// Create new log array and add log/logtop to array.
 				mLogArray = new Array(mLogDetails1, mLogDetails2, mLogDetails3, mLogDetails4);
-
+				
 				// Load and draw the bitmap of the cut location arrow.
 				mArrowBitmapData = new mDownArrowImage().bitmapData;
 				mArrowSprite.blendMode = "multiply";
@@ -184,27 +178,19 @@
 				mArrowSprite.graphics.beginBitmapFill(mArrowBitmapData);
 				mArrowSprite.graphics.drawRect(0, 0, mArrowBitmapData.width, mArrowBitmapData.height);
 				mArrowSprite.graphics.endFill();
-				//mArrowSprite.x = mLogArray[0][0].x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of first log.
-				//mArrowSprite.y = mLogArray[0][0].y - mArrowBitmapData.height;			// Start at top edge of first log.
 				mArrowSprite.visible = false;
 				mLogYardContainer.addElement(mArrowSprite);
 				
 				// Randomize log array.
 				randomizeLogSizePosition();
 				
+				// add particle emitter to display
 				uic.addChild(sawdustParticles);
 				sawdustParticles.enabled = false;
 				sawdustParticles.mouseChildren = false;
-				//TODO sawdust pile sprite
-				mSawdustSprite.init();
-				mSawdustSprite.scaleX = .2;
-				mSawdustSprite.scaleY = .2;
-				mSawdustSprite.x = 100;
-				//addElement(mSawdustSprite); //TODO
 
 				mLevelWindow = new GameLevelWindow();
 				levelSelected(kPracticeLevel);
-				//chooseGameLevel();
 			}
 			
 			// clearGame() resets the game according to the current level and clears remnants of
@@ -216,23 +202,28 @@
 				mCutEdgeLeftLabel.y		= mLogArray[0][0].y + kCutEdgeLeftYOffset;
 				mCutEdgeRightLabel.x	= mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
 				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
-				//remove all Status Labels from the holder and hide the holder
+				// remove all Status Labels from the holder and hide the holder
 				mStatusLabelHolder.visible = false;
 				mStatusLabelHolder.removeAllElements();
+				// clear game variables
+				mPiecesAccepted = 0;
+				mPiecesLong = 0;
+				mPiecesRejected = 0;
+				mPiecesRemnant = 0;
+				mPiecesShort = 0;
 				
 				// Enable/show log cutting edge. Clear all cuts in array.
 				for (var i:Number = 0; i < mLogsPerGame; ++i)
 				{
-					if (iNewGameLevel == kFreeCutLevel)
+					if (iNewGameLevel >= kFreeCutLevel)
 					{
 						// Clear cut lists on log.
 						while (mLogArray[i][2].length > 0)
 							mLogArray[i][2].pop();
 					}	
 				}
-				mAcceptedPiecesValue.visible = false; // Hide number of accepted pieces until game is complete.
 				
-				flashGasTank['resetDrop']();// Set fuel height back to top of fuel container.
+				flashGasTank['resetDrop'](); // Set fuel height back to top of fuel container.
 				mFuelUsed = 0;		// Initialize the fuel used to zero.
 			}
 			
@@ -245,9 +236,11 @@
 				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
 				mLevelWindow.closeButton.visible = false;	// Hide the close button.
 				
-				mLevelWindow["mPracticeLevelButton"].addEventListener("click", practiceLevel);   
-				mLevelWindow["mDirectionalCutButton"].addEventListener("click", directionalCutLevel);   
-				mLevelWindow["mFreeCutButton"].addEventListener("click", freeCutLevel);   
+				mLevelWindow["mPracticeLevelButton"].addEventListener("click", practiceLevel);
+				mLevelWindow["mDirectionalCutButton"].addEventListener("click", directionalCutLevel);
+				mLevelWindow["mFreeCutButton"].addEventListener("click", freeCutLevel);
+				mLevelWindow["mHeavyFreeCutButton"].addEventListener("click", heavyFreeCutLevel);
+				mLevelWindow["mMixedFreeCutButton"].addEventListener("click", mixedFreeCutLevel);
 			}
 					
 			// practiceLevel() sets the current game level to practice.
@@ -267,94 +260,160 @@
 			{
 				levelSelected(kFreeCutLevel);
 			}
+			private function heavyFreeCutLevel(iEvent:Event):void
+			{
+				levelSelected(kHeavyFreeCutLevel);
+			}
+			private function mixedFreeCutLevel(iEvent:Event):void
+			{
+				levelSelected(kMixedFreeCutLevel);
+			}
 			
 			//level select redirected from button calls with level number - sets up the play field for each level
-			private function levelSelected(levelNum:int):void{
-				//initialize 
-				mPrevLevel = mGameLevel;// Track game level change.
-				mCutEdgeLeftLabel.visible	= true;	// Show "Cut Edge" labels.
-				mCutEdgeRightLabel.visible	= true;
-				mArrowSprite.visible		= true; // Show cut location arrow.
-				if (levelNum == kFreeCutLevel)
-				{
-					clearGame(kFreeCutLevel); 
-					dynamicLog1['init'](0,dynamicLog2); //send cut direction and link to next log
-					dynamicLog2['init'](0,dynamicLog3); // cut direction 1=LtoR, -1=RtoL, 0 = free
-					dynamicLog3['init'](0,dynamicLog4);
-					dynamicLog4['init'](0,null);
-				}else{ //if practice or directional cut
-					clearGame(0);
-					dynamicLog1['init'](1,dynamicLog2); //send cut direction and link to next log
-					dynamicLog2['init'](-1,dynamicLog3); // cut direction 1=LtoR, -1=RtoL, 0 = free
-					dynamicLog3['init'](1,dynamicLog4);
-					dynamicLog4['init'](-1,null);
-				}
-				if(levelNum != mGameLevel)
-					randomizeLogSizePosition(); 				// Randomize logs
-				// Set game level and close the modal window
+			private function levelSelected(levelNum:int):void
+			{
+				mPrevLevel = mGameLevel; // Track game level change.
 				mGameLevel = levelNum; // Set game level
-				PopUpManager.removePopUp(mLevelWindow);
-
-				if (levelNum == kFreeCutLevel){
-					mLevelLabel.text = "FREE CUT LEVEL";
-					mCutEdgeLeftLabel.visible	= false; // Hide "Cut Edge" labels.
-					mCutEdgeRightLabel.visible	= false;
-					mArrowSprite.visible		= false; // Hide cut location arrow.
-					if (!mFreeCutCollectionCreated)
-					{
-						createCollectionMod(kCollectionFreeCutPieces, kCollectionFreeCutGames);
-						mFreeCutCollectionCreated = true;
+				PopUpManager.removePopUp(mLevelWindow); // Close the modal window
+				
+				// Only reset if user selects different level (Otherwise it will be reset when they click start)
+				if(mPrevLevel != mGameLevel) 
+				{
+					if(mPrevLevel >= kHeavyFreeCutLevel){
+						dynamicLog1.resizeLogFront(35,12);
+						dynamicLog1.setLogWidthLabel("thin");
+						dynamicLog2.resizeLogFront(35,12);
+						dynamicLog2.setLogWidthLabel("thin");
+						dynamicLog3.resizeLogFront(35,12);
+						dynamicLog3.setLogWidthLabel("thin");
+						dynamicLog4.resizeLogFront(35,12);
+						dynamicLog4.setLogWidthLabel("thin");
 					}
-				}else if(levelNum == kDirectionalCutLevel){
-					mLevelLabel.text = "DIRECTIONAL CUT LEVEL";	
-					if (!mDirCutCollectionCreated)
+					randomizeLogSizePosition(); // Randomize logs
+					
+					if (levelNum >= kFreeCutLevel) // If Free Cut level was selected
 					{
-						createCollectionMod(kCollectionDirCutPieces, kCollectionDirCutGames);
-						mDirCutCollectionCreated = true;
+						if(levelNum == kHeavyFreeCutLevel){
+							dynamicLog1.resizeLogFront(50,15);
+							dynamicLog1.setLogWidthLabel("thick");
+							dynamicLog2.resizeLogFront(50,15);
+							dynamicLog2.setLogWidthLabel("thick");
+							dynamicLog3.resizeLogFront(50,15);
+							dynamicLog3.setLogWidthLabel("thick");
+							dynamicLog4.resizeLogFront(50,15);
+							dynamicLog4.setLogWidthLabel("thick");
+							mLevelLabel.text = "HEAVY FREE CUT LEVEL";
+						}else if(levelNum == kMixedFreeCutLevel){
+							dynamicLog1.resizeLogFront(50,15);
+							dynamicLog1.setLogWidthLabel("thick");
+							dynamicLog2.resizeLogFront(35,15);
+							dynamicLog2.setLogWidthLabel("thin");
+							dynamicLog3.resizeLogFront(50,15);
+							dynamicLog3.setLogWidthLabel("thick");
+							dynamicLog4.resizeLogFront(35,15);
+							dynamicLog4.setLogWidthLabel("thin");
+							mLevelLabel.text = "MIXED FREE CUT LEVEL";
+						}else{
+							mLevelLabel.text = "FREE CUT LEVEL";
+						}
+						clearGame(kFreeCutLevel); 
+						dynamicLog1['init'](0,dynamicLog2); // send cut direction and link to next log
+						dynamicLog2['init'](0,dynamicLog3); // cut direction 1=LtoR, -1=RtoL, 0 = free
+						dynamicLog3['init'](0,dynamicLog4);
+						dynamicLog4['init'](0,null);
+						
+						mCutEdgeLeftLabel.visible	= false; // Hide left "Cut Edge" label.
+						mCutEdgeRightLabel.visible	= false; // Hide right "Cut Edge" label.
+						mArrowSprite.visible		= false; // Hide cut location arrow.
+						
+						if (!mFreeCutCollectionCreated) //create collection for free cut if not already created
+						{
+							createCollectionMod(kCollectionFreeCutPieces, kCollectionFreeCutGames);
+							mFreeCutCollectionCreated = true;
+						}
+					}else // If Practice or Directional Cut level was selected
+					{
+						clearGame(0);
+						dynamicLog1['init'](1,dynamicLog2); //send cut direction and link to next log
+						dynamicLog2['init'](-1,dynamicLog3); // cut direction 1=LtoR, -1=RtoL, 0 = free
+						dynamicLog3['init'](1,dynamicLog4);
+						dynamicLog4['init'](-1,null);
+						
+						mCutEdgeLeftLabel.visible	= true;	// Show left "Cut Edge" label.
+						mCutEdgeRightLabel.visible	= true; // Show right "Cut Edge" label.
+						mArrowSprite.visible		= true; // Show cut location arrow.
+						
+						if (!mDirCutCollectionCreated) //create collection for directional cut if not already created
+						{
+							createCollectionMod(kCollectionDirCutPieces, kCollectionDirCutGames);
+							mDirCutCollectionCreated = true;
+						}
+						
+						if (levelNum == kDirectionalCutLevel)	mLevelLabel.text = "DIRECTIONAL CUT LEVEL";
+						if (levelNum == kPracticeLevel)			mLevelLabel.text = "PRACTICE LEVEL";
 					}
-				}else{
-					mLevelLabel.text			= "PRACTICE LEVEL";
 				}
-			}	
+			}
 			
 			// randomizeLogOrder() randomly resorts the logs in the log array.
 			protected function randomizeLogSizePosition():void
 			{
-				dynamicLog1.x = Math.random()*90+40;
+				dynamicLog1.x = Math.random()*120+40;
 				dynamicLog1.y = 38;
-				dynamicLog1['drawNewLog']((Math.ceil(Math.random()*4)*75)+150);
-				dynamicLog2.x = Math.random()*90+40;
+				dynamicLog1['drawNewLog'](pickLogLength());
+				
+				dynamicLog2.x = Math.random()*120+40;
 				dynamicLog2.y = 107;
-				dynamicLog2['drawNewLog']((Math.ceil(Math.random()*4)*75)+150);
-				dynamicLog3.x = Math.random()*90+40;
+				dynamicLog2['drawNewLog'](pickLogLength());
+				
+				dynamicLog3.x = Math.random()*120+40;
 				dynamicLog3.y = 176;
-				dynamicLog3['drawNewLog']((Math.ceil(Math.random()*4)*75)+150);
-				dynamicLog4.x = Math.random()*90+40;
+				dynamicLog3['drawNewLog'](pickLogLength());
+				
+				dynamicLog4.x = Math.random()*120+40;
 				dynamicLog4.y = 245;
-				dynamicLog4['drawNewLog']((Math.ceil(Math.random()*4)*75)+150);
+				dynamicLog4['drawNewLog'](pickLogLength());
+				
 				// Move "Cut Edge" labels to first log.
 				mCutEdgeLeftLabel.x		= mLogArray[0][0].x + kCutEdgeLeftXOffset;
 				mCutEdgeLeftLabel.y		= mLogArray[0][0].y + kCutEdgeLeftYOffset;
 				mCutEdgeRightLabel.x	= mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
 				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
 				
-				mArrowSprite.x = mLogArray[0][0].x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of first log.
-				mArrowSprite.y = mLogArray[0][0].y - (mArrowBitmapData.height+2);			// Start at top edge of first log.
+				mArrowSprite.x = mLogArray[0][0].x - mArrowBitmapData.width + 5;	// Start with arrow pointing at left edge of first log.
+				mArrowSprite.y = mLogArray[0][0].y - (mArrowBitmapData.height+2);	// Start at top edge of first log.
+			}
+			
+			/**
+			 * Helper function for randomizeLogSizePosition() that returns a length as an int that
+			 * is long enough for 4 or 5 logs with a little extra padding (1/2 to 6/7 of a log length).
+			 * 
+			 * @return length
+			 * @author Ryan
+			 */
+			private function pickLogLength():int
+			{
+				var length:int;
+				length = kReferenceLength*4;									// The base length (4 pieces long)
+				length+= Math.round(Math.random())*kReferenceLength;			// Randomly add or don't add a 5th piece to the length 
+				length+= Math.ceil(Math.random()*(kReferenceLength*0.36)+0.5);	// Finally add 1/2 to 6/7 of a piece to the log as padding
+				return length;	// Return the length
 			}
 			
 			//called by directionalCutLevel() and freeCutLevel() to initially create TinkerPlot/DG collection spaces
 			private function createCollectionMod(collection1:String, collection2:String):void
 			{
 				ScriptInterface.NewCollectionWithAttributes(
-					"Cut",
+					"Pieces",
 					[
-						"PieceNum",		// Piece number starting with 1 since launch of application.
+						"PieceNum",			// Piece number starting with 1 since launch of application.
 						"Player",			// Name of the player.
-						"GameNum",		// Game number starting with 1 since launch of application.
+						"GameNum",			// Game number starting with 1 since launch of application.
 						"Length",			// Length of cut piece.
+						"Thickness",		// Thin or thick depending on game type
 						"Accepted",			// True if cut piece is within accepted range of cut length.
 						"EndPiece",			// Yes if this piece is an end piece.
-						"LogNum",		// Number of log from which piece was cut.
+						"LogNum",			// Number of log from which piece was cut.
 						"FuelLeftAmount",	// Raw amount of fuel left at the time of piece creation.
 						"FuelLeftPercent"	// Percent of fuel left at the time of piece creation.
 					]
@@ -362,13 +421,15 @@
 				
 				// Create collection for each game.
 				ScriptInterface.NewCollectionWithAttributes(
-					"Game",
+					"Games",
 					[
 						"GameNumber",		// Game number starting with 1 since launch of application.
 						"GameType",			// Direction Cut or Free Cut
 						"Player",			// Name of the player.
-						"PiecesAccepted",	// Number of pieces accepted.
-						"PiecesRejected",	// Number of pieces rejected.
+						"Pieces_Accepted",	// Number of pieces accepted.
+						"Pieces_Short",		// Number of pieces rejected as short.
+						"Pieces_Long",		// Number of pieces rejected as long.
+						"Pieces_Remnant",	// Number of pieces rejected as remnant.
 						"FuelLeftAmount",	// Raw amount of fuel left.
 						"FuelLeftPercent"	// Percent of fuel left.
 					]
@@ -389,11 +450,13 @@
 												 iPieceNumber:uint = 0	// Piece number. If not 0, transmit this number instead of mPieceNumber.
 												):void
 			{
-				// Not cutting, so don't specify a cut location.
-				if (iIsEndPiece)
-					iCutX = 0;
+				var currentLog:MovieClip = mLogArray[iLogNumber-1][0] as MovieClip; // The current log
+				var log_length:Number = currentLog['LogLength']; // get the length of the current log
 				
-				// Create "X" or "√" for piece to indicate rejected or accepted.
+				// Not cutting, so don't specify a cut location.
+				if (iIsEndPiece) iCutX = 0;
+				
+				// Create "X" or "√" for piece to indicate rejected or accepted. "O" for remnants.
 				var statusLabel:Label	= new Label();
 				statusLabel.width		= 14;			// Setting manually, as measureText() fails with Spark Label.
 				statusLabel.height		= 14;
@@ -404,45 +467,70 @@
 					
 				// Accept cut piece if it falls within accepted range.
 				var accepted:Boolean = (iLength >= kMinCutLength) && (iLength <= kMaxCutLength);
+				var remnant:Boolean;
 				var acceptString:String;
+				
+				// Check if a piece is a remnant if it is not accepted
+				if(!accepted){
+					remnant = false; // Initialize to false 
+					if(iIsEndPiece)
+					{	// if there is not enough room for two cuts at the (but more than one)
+						if(iLeftToRight && (log_length - iPrevXCut) < kReferenceLength*2) //left to right cut
+							{remnant = true;}
+						else if(iPrevXCut < kReferenceLength*2) //right to left cut
+							{remnant = true;}
+					}
+					if(iLength <= kReferenceLength/2) // a piece less than or equal to half the reference length
+						{remnant = true;}
+					if(iLength >= kReferenceLength+(kReferenceLength/2)) // a piece over 1.5 times the reference length
+						{remnant = true;}
+				}
 					
 				// Keep track of how many cut pieces are accepted / rejected and set status label text.
-				if (accepted)
-				{
+				if (accepted){
 					if (mGameLevel != kPracticeLevel)
 						++mPieceNumber;
 					++mPiecesAccepted;
 					statusLabel.text	= "√";					// Check mark = OK.
 					statusLabel.setStyle("color", "0x00FF00");	// Green = OK.
 					acceptString = kAcceptString;
-				}
-				else								
-				{
-					if (mGameLevel != kPracticeLevel)
-						++mPieceNumber;
+				
+				}else if (remnant){
+					if (mGameLevel != kPracticeLevel)  ++mPieceNumber;	
+					statusLabel.text = "O";
+					statusLabel.setStyle("color", "0xFFFF00"); // Yellow
+					acceptString = "Remnant";
+					++mPiecesRemnant;
+				}else{
+					if (mGameLevel != kPracticeLevel)	++mPieceNumber;
 					++mPiecesRejected;
-					statusLabel.text = "X";					// X = not OK.
+					statusLabel.text = "X";						// X = not OK.
 					statusLabel.setStyle("color", "0xFF0000");	// Red = not OK.
-					acceptString = (iLength < kMinCutLength) ? kRejectShortString : kRejectLongString;
+					if(iLength < kMinCutLength){
+						acceptString = kRejectShortString;
+						++mPiecesShort;
+					}else{
+						acceptString = kRejectLongString;
+						++mPiecesLong;
+					}
+					
 				}
+				
 				// Set y location of status label for cut piece.
-				statusLabel.y = (mLogArray[iLogNumber-1][0].height / 2) - (statusLabel.height / 2)+mLogArray[iLogNumber-1][0].y;
+				statusLabel.y = (currentLog.height / 2) - (statusLabel.height / 2) + currentLog.y;
 				// Set x location of status label for cut piece.
-				if (iLeftToRight>0)
-				{
+				if (iLeftToRight>0){
 					// End piece or cutting along same log as at the last cut.
 					if (iIsEndPiece || (!iIsEndPiece && !iIsNewLog))
-						statusLabel.x = iPrevXCut + (iLength / 2) - (statusLabel.width / 2)+mLogArray[iLogNumber-1][0].x;
+						statusLabel.x = iPrevXCut + (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
 					// Cutting on new log.
-					else statusLabel.x = (iLength / 2) - (statusLabel.width / 2)+mLogArray[iLogNumber-1][0].x;
-				}
-				else  statusLabel.x = iCutX + (iLength / 2) - (statusLabel.width / 2)+mLogArray[iLogNumber-1][0].x;
+					else statusLabel.x = (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
+				}else  statusLabel.x = iCutX + (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
 
 				//add statusLabel element to holder to be shown later
 				mStatusLabelHolder.addElement(statusLabel);
 				
-				if (mGameLevel != kPracticeLevel)
-				{	
+				if (mGameLevel != kPracticeLevel){	
 					var lengthTwoDecimals:String	= (iLength * kConvertToInches).toFixed(2);
 					var fuelLeftFraction:Number		= 1 - (iFuelUsed / kTotalUpdates);
 					var fuelLeftAmount:Number		= fuelLeftFraction * kFuelCapacity;
@@ -452,18 +540,20 @@
 					var isEnd:String = iIsEndPiece ? "Yes" : "No";
 					// Send info on cut pieces to TinkerPlots/Fathom.
 					if (mGameLevel == kDirectionalCutLevel)
-						collectionName = kCollectionDirCutPieces;//TODO replace these AddCaseToCollectionWithValues() calls with a single one
+						collectionName = kCollectionDirCutPieces;
+						//TODO replace these AddCaseToCollectionWithValues() calls with a single one
 					else
 						collectionName = kCollectionFreeCutPieces;
 					
 					ScriptInterface.AddCaseToCollectionWithValues(
 						//kCollectionDirCutPieces,  //**Tristan
-						"Cut Information",
+						"Pieces",
 						[
 							pieceNumber,		// Piece number since application launch. Ignore practice level.
 							mPlayersName,		// Name of the player.
 							mGameNumber,		// Game number starting with 1 since launch of application.  Ignore practice level.
 							lengthTwoDecimals,	// Piece length.
+							currentLog.getLogWidthLabel(),	//log label "thin" or "thick"
 							acceptString,		// Status of cut piece.
 							isEnd,				// "Yes" if it is an end piece.
 							iLogNumber,			// Number of log from which piece was cut.
@@ -484,22 +574,23 @@
 				mStatusLabelHolder.visible=true;//show all status labels
 				mArrowSprite.visible = false; //hide cut place arrow if it is shown
 				
+				mCutEdgeLeftLabel.visible = false; //hide cut edge labels
+				mCutEdgeRightLabel.visible = false;
+				
 				if (mGameLevel != kPracticeLevel)
 				{
-					flashGasTank['pauseDrop']();
 					mFuelTimer.stop();													// Stop fuel timer.
 					mFuelTimer.removeEventListener(TimerEvent.TIMER, timerListener);	// Stop listening.
 					flashGasTank['pauseDrop']();	//stop gas tank animation
 				}
 				
 				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
-				
 				SoundMixer.stopAll();							// Stop all currently playing sounds
 				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
 				
-				mStartButton.enabled			= true;
+				mStartStopButton.label			= "Start";
+				
 				mChangeLevelButton.enabled		= true;
-				mStopButton.enabled				= false;
 				mPlayerTextInput.enabled		= true;
 			}
 			
@@ -531,15 +622,15 @@
 						
 						var pieceStatus:PieceStatus = 
 							new PieceStatus(
-								length,						// Piece length.
-								ii + 1, 					// Number of log (1 is at top).
-								isEnd, 						// True if end piece.
-								leftToRight,				// True if cutting left to right.
-								prevCut == 0,				// True if measuring on new log for first time.
-								mLogArray[ii][2][j].mFuelUsed,// Raw fuel left at the time of piece creation.
-								prevCut,					// Cut before this cut or game end.
-								mLogArray[ii][2][j].mCutX,	// X cut location on log. 0 if end piece.
-								mLogArray[ii][2][j].mCutNumber// Cut number. 
+								length,							// Piece length.
+								ii + 1, 						// Number of log (1 is at top).
+								isEnd, 							// True if end piece.
+								leftToRight,					// True if cutting left to right.
+								prevCut == 0,					// True if measuring on new log for first time.
+								mLogArray[ii][2][j].mFuelUsed,	// Raw fuel left at the time of piece creation.
+								prevCut,						// Cut before this cut or game end.
+								mLogArray[ii][2][j].mCutX,		// X cut location on log. 0 if end piece.
+								mLogArray[ii][2][j].mCutNumber	// Cut number. 
 							);
 						
 						pieceStatusArray.push(pieceStatus);
@@ -551,18 +642,18 @@
 							// Used to increment next cut numbers and provide sequential pieece numbers.
 							++pieceNumberBase;
 							var lastLength:Number;
-							lastLength = mLogArray[ii][0].width - mLogArray[ii][2][j].mCutX;	
+							lastLength = mLogArray[ii][0].width - mLogArray[ii][2][j].mCutX - 10; //subtract 10 to account for curve on log face
 							var endPieceStatus:PieceStatus = 
 								new PieceStatus(
-									lastLength,					// Piece length.
-									ii + 1, 					// Number of log (1 is at top).
-									isEnd, 						// True if end piece.
-									leftToRight,				// True if cutting left to right.
-									false,						// True if measuring on new log for first time.
-									mLogArray[ii][2][j].mFuelUsed, // Raw fuel left at the time of piece creation.
-									prevCut,					// Cut before this cut or game end.
-									0,							// X cut location on log. 0 if end piece.
-									mLogArray[ii][2][j].mCutNumber// Cut number.  
+									lastLength,						// Piece length.
+									ii + 1, 						// Number of log (1 is at top).
+									isEnd, 							// True if end piece.
+									leftToRight,					// True if cutting left to right.
+									false,							// True if measuring on new log for first time.
+									mLogArray[ii][2][j].mFuelUsed,	// Raw fuel left at the time of piece creation.
+									prevCut,						// Cut before this cut or game end.
+									0,								// X cut location on log. 0 if end piece.
+									mLogArray[ii][2][j].mCutNumber	// Cut number.  
 								);
 							pieceStatusArray.push(endPieceStatus);
 						}
@@ -605,7 +696,7 @@
 			protected function endGame():void
 			{
 				doEndGameStop();
-				if (mGameLevel == kFreeCutLevel){
+				if (mGameLevel >= kFreeCutLevel){
 					checkFreeCuts();
 				}
 				// Directional cut mode. Measure end piece if player has already started cutting current log and we run out of fuel
@@ -613,7 +704,7 @@
 				{
 					// Calculate distance from end of log in the direction player was cutting.
 					// mCurrentLog begins at 1. Array index begins at 0.
-					var woodRemaining:Number	= mLeftToRight? mLogArray[mCurrentLog-1][0].width - mLastCutX : mLastCutX;
+					var woodRemaining:Number	= mLeftToRight? mLogArray[mCurrentLog-1][0].width - mLastCutX -10 : mLastCutX;
 					var isEndPiece:Boolean		= true;
 					
 					// Evaluate the piece's acceptance status and record the outcome by setting a 
@@ -628,33 +719,38 @@
 						mLastCutX);				// X cut location on log. 0 if end piece.
 				}
 				
-				mAcceptedPiecesValue.text		= mPiecesAccepted.toString();	// Update text to number of accepted pieces.
-				mAcceptedPiecesValue.visible	= true;	// Reveal number of accepted pieces in this game.
+				var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates);
+				var fuelLeftAmount:Number	= fuelLeftFraction * kFuelCapacity;
+				var fuelLeftPercent:Number	= fuelLeftFraction * 100;
 				
 				//send game information to TinkerPlots/Fathom
 				if (mGameLevel != kPracticeLevel)
 				{
-					var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates);
-					var fuelLeftAmount:Number	= fuelLeftFraction * kFuelCapacity;
-					var fuelLeftPercent:Number	= fuelLeftFraction * 100;
 					var gameCollectionName:String	
-						= (mGameLevel == kFreeCutLevel) ? kCollectionFreeCutGames : kCollectionDirCutGames;
+						= (mGameLevel >= kFreeCutLevel) ? kCollectionFreeCutGames : kCollectionDirCutGames;
 						
 					// Send info on games to TinkerPlots/Fathom.
 					ScriptInterface.AddCaseToCollectionWithValues(
 						//gameCollectionName, //**Tristan
-						"Game Information",
+						"Games",
 						[
 							mGameNumber,		// Game number starting with 1 since launch of application.
 							gameCollectionName,	// Game Type
 							mPlayersName,		// Name of the player.
 							mPiecesAccepted,	// Number of pieces accepted.
-							mPiecesRejected,	// Number of pieces rejected.
+							mPiecesShort,		// Number of pieces rejected as short.
+							mPiecesLong,		// Number of pieces rejected as long.
+							mPiecesRemnant,		// Number of pieces rejected as remnant.
 							fuelLeftAmount,		// Raw amount of fuel left.
 							fuelLeftPercent		// Percent of fuel left.
 						]	
 					);
 				}
+				
+				mResultsOverlay.visible		= true;								// Display the results Overlay
+				mAcceptedPiecesValue.text	= mPiecesAccepted.toString();		// Update the number of accepted pieces.
+				mFuelLeftValue.text			= fuelLeftPercent.toFixed();		// Update the percentage of fuel left.
+				mFuelLeftValue.text = mFuelLeftValue.text.replace(/\.\d*/,"") + "%"; // remove the decimal point and trailing digits, then append '%'
 				
 				mPrevLevel 			= mGameLevel;	// Track game level change.
 				mPrevPieceNumber	= mPieceNumber;	// Track piece number at the end of the game.
@@ -686,6 +782,8 @@
 				mCutNumber			= 0;	// Reset cut number.
 				mArrowSprite.visible = true;
 				
+				mChainsawSound.play(0,int.MAX_VALUE); // start the chainsaw sound
+				
 				// Randomize log array, but not for first game, as it's already random.
 				if (!mFirstGame)
 				{
@@ -697,11 +795,15 @@
 				
 				clearGame(mGameLevel); // Clear any remnants of last game and reset game.
 				
-				mStartButton.enabled		= false;
 				mChangeLevelButton.enabled	= false;
-				mStopButton.enabled			= true;
 				mPlayerTextInput.enabled	= false;
 				mChainsawCursorID			= CursorManager.setCursor(mChainsawCursor, CursorManagerPriority.HIGH);
+				
+				if (mGameLevel != kFreeCutLevel)
+				{
+					mCutEdgeLeftLabel.visible = true;	//show cut edge labels
+					mCutEdgeRightLabel.visible = true;
+				}
 				
 				// Use timer to update the fuel level display and game duration.
 				if (mGameLevel != kPracticeLevel)
@@ -716,7 +818,7 @@
 					flashGasTank['startDrop']();
 				}
 				dynamicLog1.enabled = true;
-				if (mGameLevel == kFreeCutLevel){
+				if (mGameLevel >= kFreeCutLevel){
 					dynamicLog2.enabled = true;
 					dynamicLog3.enabled = true;
 					dynamicLog4.enabled = true;
@@ -734,7 +836,7 @@
 				// Don't cut if chainsaw is not running and we're not in practice mode.
 				if (mGameLevel != kPracticeLevel && !mFuelTimer.running)return;
 				
-				var newArrowXPosition:Number = iLog.x + iLocalX - (mArrowBitmapData.width);
+				var newArrowXPosition:Number = iLog.x + iLocalX - (0.75*mArrowBitmapData.width);
 				
 				//get info from the log we are cutting
 				iNextLog = iLog['getNextLog']();
@@ -745,7 +847,7 @@
 					(iLeftToRight<0 && mArrowSprite.x > newArrowXPosition))
 				{					
 					// Calculate distance from end of log in the direction player is cutting.
-					var woodRemaining:Number	= iLeftToRight>0? iLog.width - iLocalX : iLocalX;
+					var woodRemaining:Number	= iLeftToRight>0? iLog.width - iLocalX -10 : iLocalX;
 					
 					// If player has wood to cut, the intended cut is not an end piece.
 					var isEndPiece:Boolean		= false; 
@@ -764,10 +866,10 @@
 							iLog.enabled		= false;// Stop further cuts on this log.
 							iNextLog.enabled	= true;	// Enable cuts on this log.
 							
-							mArrowSprite.y = iNextLog.y - mArrowBitmapData.height - 7;		// Start at top edge of next log.
-							mArrowSprite.x = iNextLog.x - (mArrowBitmapData.width / 2);	// Start with arrow pointing at left edge of next log.
+							mArrowSprite.y = iNextLog.y - mArrowBitmapData.height - 3;	// Start at top edge of next log.
+							mArrowSprite.x = iNextLog.x - mArrowBitmapData.width + 3;	// Start with arrow pointing at left edge of next log.
 							if (iNextLog['getCutDirection']()<0)
-								mArrowSprite.x = iNextLog.width+iNextLog.x - (mArrowBitmapData.width / 2);	// Move to right end of log if just cut left to right.
+								mArrowSprite.x = iNextLog.width+iNextLog.x - (mArrowBitmapData.width) - 5;	// Move to right end of log if just cut left to right.
 							
 							// Move "Cut Edge" labels to next log.
 							mCutEdgeLeftLabel.x		= iNextLog.x + kCutEdgeLeftXOffset;
@@ -787,7 +889,7 @@
 						if (iLeftToRight>0)
 							pieceLength = iLocalX;				// First cut from left edge of log.
 						else
-							pieceLength = iLog.width - iLocalX;	// First cut from right edge of log.
+							pieceLength = iLog.width - iLocalX - 10;	// First cut from right edge of log.
 					}
 					// Evaluate the piece's acceptance status and record the outcome by setting a 
 					// visual marker on each log and also transmit the info to Fathom/TinkerPlots.
@@ -859,11 +961,25 @@
 				mPlayersName = mPlayerTextInput.text;
 			}				
 
-			// onClickStartButton() is called whenever the start button is pressed.
+			// Player has pressed the Stop button to end the game.
 			protected function onClickStopButton(iEvent:MouseEvent):void
 			{
-				// Player has pressed End Game to stop game play.
 				endGame();
+			}
+			
+			// Player has pressed the Start/Stop button
+			protected function onClickStartStopButton(event:MouseEvent):void
+			{
+				if(mStartStopButton.label == "Stop")
+				{
+					onClickStopButton(event);
+					mStartStopButton.label = "Start";
+				}
+				else
+				{
+					onClickStartButton(event);
+					mStartStopButton.label = "Stop";
+				}
 			}
 
 			// onClickChangeLevelButton() allows the user to change the game level.
@@ -912,10 +1028,14 @@
 				if(e.buttonDown && e.currentTarget.content.enabled){
 					sawdustParticles.x = e.stageX+10;
 					sawdustParticles.y = e.stageY+10;
-					sawdustParticles['startParticleAnim']();
+					
 					var offsetX:Number = e.localX - e.currentTarget.content.x;
 					var offsetY:Number = e.localY - e.currentTarget.content.y;
 					e.currentTarget.content['logInMod'](offsetX, offsetY);
+					
+					//prevent showing particles if player is cutting wrong side of log
+					if(e.currentTarget.content['canCutAt'](offsetX))
+						sawdustParticles['startParticleAnim']();
 				}
 			}
 			//mouse out event on enabled log
@@ -924,7 +1044,7 @@
 				var offsetX:Number = e.localX - e.currentTarget.content.x;
 				var offsetY:Number = e.localY - e.currentTarget.content.y;
 				if(e.currentTarget.content['logOutMod'](offsetX,offsetY)){
-					if(mGameLevel == kFreeCutLevel){
+					if(mGameLevel >= kFreeCutLevel){
 						cutLogFreely(e.currentTarget.content, e.currentTarget.content['StartCutPt'].x);
 					}else{
 						cutLogInOrderMod(e.currentTarget.content, e.currentTarget.content['StartCutPt'].x);
@@ -938,14 +1058,13 @@
 				var offsetX:Number = e.localX - e.currentTarget.content.x;
 				var offsetY:Number = e.localY - e.currentTarget.content.y;
 				e.currentTarget.content['midLogMod'](offsetX,offsetY);
-
 			}
 
 			protected function updateVolume(vol:Number):void
 			{
 				//cannot do: SoundMixer.soundTransform.volume = vol/100;
 				var st:SoundTransform = SoundMixer.soundTransform;
-				st.volume = vol/100;
+				st.volume = vol/100; //changes range [0-100] (slider position) to [0-1] (volume level)
 				SoundMixer.soundTransform = st;
 			}
 		]]>
@@ -953,40 +1072,53 @@
 
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-<!-- 		// Commented out until a copyright-free sound is recorded. -->
-<!--		<mx:SoundEffect	id="mChainsawSound" source="@Embed(source='../src/assets/Chainsaw Sound Longer.mp3')" repeatCount="{kRepeatSound}"/> -->
 	</fx:Declarations>
 	
-	<s:Label			id="mGameTitle" x="38" y="19" text="CHAINSAW" fontSize="60" fontWeight="bold" fontFamily="Georgia" color="#669035" verticalAlign="middle" height="49"/>
-<!--	// mouseDownEffect section of line below is commented out until a copyright-free sound is recorded. -->
-<!--	<s:Button			id="mStartButton" x="18.5" y="93" label="Start" enabled="true" click="onClickStartButton(event)" fontWeight="bold" fontSize="14" width="90" height="29" mouseDownEffect="{mChainsawSound}"/> -->
-	<s:Button			id="mStartButton" x="18.5" y="93" label="Start" enabled="true" click="onClickStartButton(event)" fontWeight="bold" fontSize="14" width="90" height="29"/>
-	<s:Button			id="mStopButton" x="18.5" y="484" label="Stop" enabled="false" click="onClickStopButton(event)" fontWeight="bold" fontSize="14" width="90" height="29"/>
-	<s:Button			id="mChangeLevelButton" x="18.5" y="519" label="Change Level" enabled="true" click="onClickChangeLevelButton(event)" fontWeight="bold" fontSize="12" width="100" height="29" chromeColor="#4E8E54"/>
-	<s:BorderContainer	id="mLogYardContainer" x="15" y="147" width="597" height="324" backgroundColor="#EAD1AA">
-		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog4" x="-5" y="0" source="assets/DynamicLog.swf" complete="initLog4()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+	<s:Label id="mVersionLabel" x="5" y="2" color="#669035" initialize="mVersionLabel.text=VERSION"/>
+	<!--
+	<s:Button id="mStartButton" x="16" y="23" width="90" height="29" label="Start" click="onClickStartButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
+	<s:Button id="mStopButton" x="134" y="23" width="90" height="29" label="Stop" click="onClickStopButton(event)" enabled="false" fontSize="14" fontWeight="bold"/>
+	-->
+	<s:Button id="mStartStopButton" x="134" y="23" width="90" height="29" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
+	
+	<s:Button id="mChangeLevelButton" x="234" y="23" width="100" height="29" label="Change Level"
+			  chromeColor="#4E8E54" click="onClickChangeLevelButton(event)" enabled="true"
+			  fontSize="12" fontWeight="bold"/>
+	<s:BorderContainer id="mLogYardContainer" x="134" y="65" width="600" height="324" backgroundColor="#EAD1AA">
+		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLogTest.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLogTest.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLogTest.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog4" x="-5" y="0" source="chainsaw_assets/DynamicLogTest.swf" complete="initLog4()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:Group			id="mStatusLabelHolder" x="0" y="0" width="597" height="324" visible="false"/>
 		<s:Label			id="mCutEdgeRightLabel" x="0" y="0" text="- Cut Log" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="left"/>
 		<s:Label			id="mCutEdgeLeftLabel" x="0" y="0" text="Cut Log -" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="right"/>
 		<s:Label 			x="-1" y="296" text="PRACTICE LEVEL" width="597" textAlign="center" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" fontStyle="normal" id="mLevelLabel" color="#1C7B56"/>
-		<s:HSlider			id="mVolumeSlider" x="505" y="305" width="80" maximum="100" value="100" change="updateVolume(mVolumeSlider.value)"/>
-			<s:Image		id="mVolumeImage" x="480" y="300" source="{mVolumeIcon}"/>
-	</s:BorderContainer>
-	<s:Label			id="mAcceptedPiecesLabel" x="399" y="486" text="Number of Accepted Pieces" fontSize="16" fontWeight="bold"/>
-	<s:BorderContainer	id="mAcceptedPiecesBox" x="465" y="513" width="75" height="35" borderWeight="2" dropShadowVisible="true">
-		<s:Label			id="mAcceptedPiecesValue" x="10" y="8" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="51" textAlign="center" visible="false"/>
 	</s:BorderContainer>
 	
-	<s:Label			id="mReferenceLengthLabel" x="205" y="486" text="Target Length" fontSize="16" fontWeight="bold"/>
-	<mx:Image			id="mReferenceLengthImage" x="223" y="515" source="{mLengthImage}"/>
-	<mx:Image			id="mReferenceLengthImage2" x="223" y="515" source="{mTapeMeasureImage}"/>
+	<s:BorderContainer id="UI_Elements" x="0" y="65" width="134" height="324" borderVisible="false">
+		<s:SWFLoader id="mFuelIcon" x="15" y="5" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
+		<s:Label id="mReferenceLengthLabel" x="13" y="180" fontSize="16" fontWeight="bold" text="Target Length"/>
+		<mx:Image id="mReferenceLengthImage" x="15" y="206" source="{mLengthImage}"/>
+		<mx:Image id="mReferenceLengthImage2" x="15" y="220" source="{mTapeMeasureImage}"/>
+	</s:BorderContainer>
 	
-	<s:SWFLoader 		id="mFuelIcon" x="497" y="21" width="106" height="118" source="assets/GasTank.swf" complete="initGasTank()"/>
-	<!-- <s:SWFLoader		id="mSawdustParticles" x="0" y="0" width="100" height="100"  source="assets/particles.swf" complete="initParticles()"/> -->
-	<s:Label			id="mPlayersNameLabel" x="140.5" y="100.5" text="PLAYER'S NAME:" fontFamily="Arial" fontSize="16" fontWeight="bold" color="#7B9453"/>
-	<s:TextInput		id="mPlayerTextInput" x="281" y="94" width="132" text="Player" color="#7B9453" fontSize="16" enabled="true" change="onChangePlayerTextInput(event)" textAlign="left" fontWeight="bold"/>
-	<mx:UIComponent		id="uic" x="0" y="0" />
+	<s:Label id="mPlayersNameLabel" x="480" y="35" color="#7B9453" fontFamily="Arial" fontSize="16" fontWeight="bold" text="PLAYER'S NAME:" />
+	<s:TextInput id="mPlayerTextInput" x="620" y="30" width="114" change="onChangePlayerTextInput(event)" color="#7B9453" enabled="true"
+				 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
+	<mx:UIComponent	id="uic" x="0" y="0"/>
+	<s:HSlider id="mVolumeSlider" x="655" y="11" width="80"
+			   change="updateVolume(mVolumeSlider.value)" maximum="100" value="100"/>
+	<s:Image id="mVolumeImage" x="630" y="8" source="{mVolumeIcon}"/>
+	
+	<s:BorderContainer id="mResultsOverlay" x="0" y="0" width="{this.width}" height="{this.height}" alpha=".5" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
+		<s:Label id="mGameTitle" x="205" y="19" height="49" color="#669035" fontFamily="Georgia" fontSize="60" fontWeight="bold" text="CHAINSAW" verticalAlign="middle" visible="false"/>
+		
+		<s:Label id="mResults" x="{260+134}" y="70" fontSize="30" fontWeight="bold" text="Results"/>
+		<s:Label id="mAcceptedPiecesLabel" x="{55+134}" y="150" fontSize="16" fontWeight="bold" text="Number of Accepted Pieces:"/>
+		<s:Label id="mAcceptedPiecesValue" x="{280+134}" y="150" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="50" textAlign="left"/>
+		<s:Label id="mFuelLeftLabel" x="{120+134}" y="220" fontSize="16" fontWeight="bold" text="Amount of Fuel Left:"/>
+		<s:Label id="mFuelLeftValue" x="{282+134}" y="220" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="60" textAlign="left" visible="true"/>
+		
+		<s:Label id="continue_msg" x="270" y="0" text="(Click anywhere to continue)" />
+	</s:BorderContainer>
 </s:Application>
