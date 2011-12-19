@@ -17,6 +17,8 @@
 
 	<fx:Script>
 		<![CDATA[
+			import assets.*;
+			
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
 			import common.MathUtilities;
@@ -123,10 +125,6 @@
 			[Embed(source="../assets/Daytime Ship on Ocean with Brown Axis.png")]
 			[Bindable]
 			private var mTreasureHuntImage:Class;
-			
-			[Embed(source="../assets/pirate-ship-silhouette2.png")]
-			[Bindable]
-			private var mPirateShip:Class;
 			
 			// Embed the Treasure Hunt game play background - this time with a murky ocean.
 			// Ship is modified from http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010.
@@ -583,6 +581,7 @@
 				mMinHookRange			= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
 				mMaxHookRange			= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
 				mRangeValueLabel.text	= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
+				crane.runTo(mCenterPosition);
 			}
 			
 			// onChangeRatStepper() is called when the number of rats to be sent
@@ -977,18 +976,27 @@
 			// ********** END OF TREASURE HUNT FUNCTIONS **********
 			//*****NEW FUNCTIONS*****
 			
-			private var cloudMain:MovieClip;
-			private var cloud1:MovieClip;
-			private var cloud2:MovieClip;
-			private var cloud3:MovieClip;
-			private var cloud4:MovieClip;
+			private var crane:MovieClip;
+			private var cHerder:MovieClip;
 			
+			private function initCrane():void{
+				crane = CraneLoader.content as MovieClip;
+				crane.visible = true;
+				crane.runTo(mCenterPosition);
+			}
 			private function initClouds():void{
-				
+				cHerder = CloudLoader.content as MovieClip;
+				var mask:Shape = new Shape();
+				mask.graphics.beginFill(0x000000);
+				mask.graphics.drawRect(59,95,395,186);
+				cHerder.mask = mask;
+				cHerder.init(5,395,0xDDDDDD);
+				cHerder.startClouds();
 			}
 
 		]]>
 	</fx:Script>
+	
 	<s:states>
 		<s:State name="StartPage"/>
 		<s:State name="TreasureHunt"/>
@@ -1005,12 +1013,12 @@
 			<s:GradientEntry color="0x000000" ratio=".66" alpha=".75"/>
 		</s:LinearGradient>
 		<s:LinearGradient id="clearWater" rotation="90">
-			<s:GradientEntry color="0x00689f" ratio=".33" alpha=".6"/>
+			<s:GradientEntry color="0x076FA3" ratio=".33" alpha=".6"/>
 			<s:GradientEntry color="0x000000" ratio=".66" alpha=".75"/>
 		</s:LinearGradient>
 		<s:LinearGradient id="daylight" rotation="90">
-			<s:GradientEntry color="0x2E7EF0" ratio=".0" alpha=".75"/>
-			<s:GradientEntry color="0x65F6FF" ratio=".66" alpha=".75"/>
+			<s:GradientEntry color="0x3BCFF3" ratio=".0" alpha=".75"/>
+			<s:GradientEntry color="0xBFEFFB" ratio=".66" alpha=".75"/>
 		</s:LinearGradient>
 		<s:LinearGradient id="darkDay" rotation="90">
 			<s:GradientEntry color="0x002358" ratio=".33" alpha=".75"/>
@@ -1035,15 +1043,17 @@
 	<s:Button			id="mSailOnButton" x="511" y="405" label="Sail On" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" enabled="true" click="onClickSailOnButton(event)" width="75" includeIn="TreasureHunt"/>
 	<s:Button			id="mStartHuntButton" includeIn="TreasureHunt" x="511" y="386" label="Start" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" enabled="true" width="75" click="onClickStartHuntButton(event)"/>
 	<s:Label			id="mTreasureHuntTitle" includeIn="TreasureHunt" x="16" y="326" text="Treasure Hunt" rotation="-90" fontSize="28" fontStyle="normal" color="#B4D5E6" fontFamily="Georgia"/>
+	
 	<mx:Image id="mTreasureHuntGameArea" includeIn="TreasureHunt" x="59" y="95" width="395"
 			  height="286" source="{mTreasureHuntImage}"/>
 	<s:BorderContainer	id="mGameArea" includeIn="TreasureHunt" x="59" y="95" width="395" height="286" backgroundColor="0x555555">
 		<s:BorderContainer id="Sky" width="395" height="186" depth="1" backgroundFill="{daylight}" >
-			<s:SWFLoader id="cloudLoader" source="../assets/Clouds.swf" visible="false" complete="initClouds()" />
+			<s:SWFLoader id="CloudLoader" source="assets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
 		</s:BorderContainer>	
-		<mx:Image id="pirateShip" x="10" y="33" width="200" source="{mPirateShip}" depth="2" />
 		<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="184" width="395" height="100" depth="3" />
+		
 	</s:BorderContainer>
+	<s:SWFLoader id="CraneLoader" x="59" y="95" width="395" height="286" source="assets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
 	<s:BorderContainer	id="mControlContainer" includeIn="TreasureHunt" x="12" y="12" width="576" height="76" backgroundColor="#A4AAB3">
 		<s:Label		id="mRatControlLabel" x="152" y="6" text="Rat Control" fontWeight="bold" color="#000000" fontFamily="Georgia" fontSize="16" fontStyle="normal"/>
 		<s:Label		id="mHookLabel" x="406" y="6" text="Grappling Hook" color="#000000" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
