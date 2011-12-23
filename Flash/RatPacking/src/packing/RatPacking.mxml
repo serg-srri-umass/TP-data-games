@@ -127,10 +127,15 @@
 			public static const kUpdatesPerSecond:Number= 10;			// Redraw updates per second.
 			public static const kTotalUpdates:Number	= kTimeLimit * kUpdatesPerSecond; // Total number of updates.
 			public static const kUpdateInterval:Number	= 500 / kUpdatesPerSecond; // Milliseconds between updates.
-			public static const kRatsPerPixel:Number	= 				// Rats loaded per pixel of counterweight ascent (not noisy).
-											kIdealRatsPerCrate /		// Ideal number of rats per crate.
-					((kCounterWeightTopStartY + kCounterWeightHeight/2) // Initial location of counterweight mark Y;
-											- kWallMarkY)				// Wall mark's Y value.
+			public static const kRatsPerPixelWallMark:Number	= 		// Rats loaded per pixel of counterweight ascent (not noisy).
+				kIdealRatsPerCrate /		// Ideal number of rats per crate.
+				((kCounterWeightTopStartY + kCounterWeightHeight/2) 	// Initial location of counterweight mark Y;
+					- kWallMarkY);			// Wall mark's Y value.
+			public static const kRatsPerPixelKnots:Number	= 			// Rats loaded per pixel of counterweight ascent (not noisy).
+				kIdealRatsPerCrate /		// Ideal number of rats per crate.
+											// Vertical pixels traveled for knots to line up.
+				((kCounterWeightTopStartY - kKnotRightOffsetY - kCrateTopStartY + kKnotLeftOffsetY)/2); 	
+			
 			public static const kDelayTimerInterval:Number= 3000;		// 3 second delay after loading a crate.
 			public static const kDelayTimerRuns:Number	= 1;			// Just run this delay timer once between crates. 
 			
@@ -770,7 +775,13 @@
 				// counter weight ascends. Measured in pixels.
 				var halfCrateHeight:uint	= kCrateHeight/2;
 				var crateY:Number 			= getCrateTopYForText();
-				var ratsPacked:uint			= Math.round((kRatsPerPixel * Math.abs(mCounterWeight.y)));
+				var ratsPacked:uint			= 0;
+				
+				if (mGameLevel == kKnotsLevel)
+					ratsPacked = Math.round((kRatsPerPixelKnots * Math.abs(mCounterWeight.y)));
+				else
+					ratsPacked = Math.round((kRatsPerPixelWallMark * Math.abs(mCounterWeight.y)));
+				
 				var ratString:String		= ratsPacked == 1 ? kOneRatSuffix : kPluralRatSuffix;
 				var methodText:String		= (mMethod == kMethodWallMark) ? kWallMarkText : kKnotsText;
 				
