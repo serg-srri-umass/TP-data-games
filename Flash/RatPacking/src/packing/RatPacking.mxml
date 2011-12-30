@@ -15,6 +15,7 @@
 		<![CDATA[
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
+			import mx.events.SliderEvent;
 			import mx.managers.PopUpManager;
 			import mx.messaging.AbstractConsumer;
 			
@@ -40,6 +41,7 @@
 			public static const kPixelText:String			= " pixel."; 	// Text indicating pixel unit when player is over/short.
 			public static const kPixelsText:String			= " pixels."; 	// Text indicating pixel units when player is over/short.
 			public static const kGameCompleteText:String	= "Packing Complete! SCORE = ";// Text indicating game is done and all rats are packed.
+			public static const kAdjustToolTip:String		= "Set this offset to adjust the pixel height at which you stop packing. It will be added to your stopping point. A negative value stops short of the stopping point. A positive value continues past the stopping point."; // Tool tip to explain adjustment slider
 			public static const kPointsPerPerfectHit:uint	= 10;			// Points earned for stopping perfectly.
 			
 			// Collection constants
@@ -161,6 +163,9 @@
 			private var mGameLevel:uint				= kPracticeLevel;	// Current game level.
 			private var mPrevGameLevel:uint			= kPracticeLevel;	// Used to track game level changes.
 			private var mCollectionsCreated:Boolean = false;	// Collection created on first play of non-practice level.
+			
+			// The number of pixels by which to adjust the position at which the user stops packing.
+			private var mAdjustStopPixel:int		= 0;		
 			
 			// SpriteVisualElements used for drawing game components.
 			private var mPulley:SpriteVisualElement				= new SpriteVisualElement();// Used for drawing pulley.
@@ -288,13 +293,14 @@
 					ScriptInterface.NewCollectionWithAttributes(
 						kCratesCollection,
 						[
-							"Packer",		// Name of the player.
-							"Method",		// Measurement method used: wall mark or aligned knots.
-							"GameNumber",	// Number of current game.
-							"CrateNumber",	// Number of current crate.
-							"RatsPacked",	// Numer of rats packed in current crate.
-							"PixelsOff",	// Number of pixels off perfection (negative == short, postive == over).
-							"RatsOff"		// Number of rats off perfection (negative == short, positive == over).
+							"Packer",			// Name of the player.
+							"Method",			// Measurement method used: wall mark or aligned knots.
+							"GameNumber",		// Number of current game.
+							"CrateNumber",		// Number of current crate.
+							"RatsPacked",		// Numer of rats packed in current crate.
+							"PixelsOff",		// Number of pixels off perfection (negative == short, postive == over).
+							"RatsOff",			// Number of rats off perfection (negative == short, positive == over)
+							"PixelOffset"		// Offset in pixels to add to stopping height.
 						]
 					);
 					
@@ -307,7 +313,8 @@
 							"GameNumber",		// Number of current game.
 							"CratesPacked",		// Number of crates packed.
 							"TotalRatsPacked",	// Numer of rats packed in all crates.
-							"Score"				// Game score.
+							"Score",			// Game score.
+							"PixelOffset"		// Offset in pixels to add to stopping height.
 						]
 					);
 					
@@ -731,7 +738,8 @@
 						// counter weight ascends.
 						var counterWeightMarkY:Number	= kCounterWeightTopStartY + (kCounterWeightHeight/2) + mCounterWeight.top;
 						
-						missedBy						= kWallMarkY - counterWeightMarkY;
+						// Factor in the adjustment value set by the user, if any.
+						missedBy						= kWallMarkY - counterWeightMarkY + mAdjustStopPixel;
 						
 						if (missedBy == 0) // Packed crate perfectly.
 						{
@@ -759,7 +767,8 @@
 						var leftKnotY:Number	= kCrateTopStartYKnots - kKnotLeftOffsetY + mDistanceMoved;
 						var rightKnotY:Number	= kCounterWeightTopStartY - kKnotRightOffsetY - mDistanceMoved;
 						
-						missedBy = leftKnotY - rightKnotY;
+						// Factor in the adjustment value set by the user, if any.
+						missedBy = leftKnotY - rightKnotY + mAdjustStopPixel;
 						
 						if (missedBy == 0) // Packed crate perfectly.
 						{
@@ -788,10 +797,17 @@
 				var crateY:Number 			= getCrateTopYForText();
 				var ratsPacked:uint			= 0;
 				
+				// Adjust final height by user offset. Subtracting here, as counterweight Y value is more negative as it moves upward.
+				var finalPixelHeight:int	= mCounterWeight.y - mAdjustStopPixel;
+				
 				if (mGameLevel == kKnotsLevel)
-					ratsPacked = Math.round((kRatsPerPixelKnots * Math.abs(mCounterWeight.y)));
+					ratsPacked = Math.round((kRatsPerPixelKnots * Math.abs(finalPixelHeight)));
 				else
-					ratsPacked = Math.round((kRatsPerPixelWallMark * Math.abs(mCounterWeight.y)));
+					ratsPacked = Math.round((kRatsPerPixelWallMark * Math.abs(finalPixelHeight)));
+				
+				// Because user can adjust the stopping pixel to below the start point, set zero
+				// as the minimum number of rats.
+				if (ratsPacked < 0) ratsPacked = 0;
 				
 				var ratString:String		= ratsPacked == 1 ? kOneRatSuffix : kPluralRatSuffix;
 				var methodText:String		= (mMethod == kMethodWallMark) ? kWallMarkText : kKnotsText;
@@ -811,7 +827,8 @@
 							mCrateNumber,					// Number of current crate.
 							ratsPacked,						// Numer of rats packed in current crate.
 							missedBy,						// Number of pixels off perfection (negative == short, postive == over).
-							ratsPacked - kIdealRatsPerCrate	// Number of rats off perfection (negative == short, positive == over).
+							ratsPacked - kIdealRatsPerCrate,// Number of rats off perfection (negative == short, positive == over).
+							mAdjustStopPixel				// Offset in pixels added to stopping height.
 						]	
 					);
 				}
@@ -840,6 +857,7 @@
 							setGameDoneLabel(mCurrentScore);	// Add final score to game done label.
 							mGameDoneLabel.visible 		= true; // Tell player game is complete.
 							mExitLevelButton.enabled	= true;	// Allow player to exit when game is complete.
+							mAdjustSlider.enabled		= true;	// Allow player to adjust pixel offset when game ends.
 							
 							ScriptInterface.AddCaseToCollectionWithValues(
 								kGamesCollection, 
@@ -849,7 +867,8 @@
 									mGameNumber,		// Number of current game.
 									mCrateNumber,		// Number of crates packed.
 									mTotalRatsPacked,	// Numer of rats packed in all crates.
-									mCurrentScore		// Game score.
+									mCurrentScore,		// Game score.
+									mAdjustStopPixel	// Offset in pixels added to stopping height.
 								]	
 							);
 						}
@@ -904,6 +923,7 @@
 				// button while rat loading is in progress.
 				mPackRatsButton.enabled		= false;
 				mExitLevelButton.enabled	= false;
+				mAdjustSlider.enabled		= false;	// Allow player to adjust pixel offset when game ends.
 				mStopPackingButton.enabled	= true;
 				
 				// Use timer to update the fuel level display and game duration.
@@ -953,6 +973,12 @@
 				initializeRatPacking();
 			}
 			
+			// onChangeAdjustSlider() adjusts the pixel offset when the slider is changed.
+			protected function onChangeAdjustSlider(iEvent:SliderEvent):void
+			{
+				mAdjustStopPixel = mAdjustSlider.value;
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -974,9 +1000,15 @@
 				  		click="onClickStopPackingButton(event)" enabled="false"/>
 		<s:Label	id="mStopAtLabel" x="380" y="{kWallMarkTextY}" width="126" height="71" fontSize="14"
 				 		text="{kWallMarkInstructions}"/>
-		<s:Label id="mMissedYByLabel" x="380" y="209" width="143" height="57" color="#DEA262"
-				 fontSize="14"/>
+		<s:Label	id="mMissedYByLabel" x="380" y="209" width="143" height="57" color="#DEA262"
+				 		fontSize="14"/>
 		<s:Label 	id="mGameDoneLabel" x="390" y="254" width="93" color="#ef3b17" fontFamily="Arial"
-					fontSize="16" text="{kGameCompleteText}" textAlign="center" visible="false"/>
+						fontSize="16" text="{kGameCompleteText}" textAlign="center" visible="false"/>
+		<mx:HSlider id="mAdjustSlider" x="134" y="-3" width="120" allowTrackClick="true"
+						change="onChangeAdjustSlider(event)" labels="[-20, -10, 0, 10, 20]" maximum="20"
+						minimum="-20" snapInterval="1" tickInterval="10" toolTip="{kAdjustToolTip}"
+						value="0"/>
+		<s:Label	id="mAdjustLabel" x="149" y="40" width="90" height="27" text="Adjust Stopping Point (Pixels)"
+				 		textAlign="center"/>
 	</s:BorderContainer>
 </s:Application>
