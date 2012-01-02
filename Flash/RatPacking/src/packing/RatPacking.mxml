@@ -32,16 +32,17 @@
 			public static const kWallMarkLevel:uint			= 1;			// Wall Mark level of game.
 			public static const kKnotsLevel:uint			= 2;			// Knots level of game.
 			public static const kPracticeLevelText:String 	= "Practice Level";// Title string for practice level.
-			public static const kMaxTopStartY:uint			= 100;			// Maximimum top Y value for crate and counterweight.
+			public static const kMaxTopStartY:uint			= 100;			// Highest elevation of top Y value for crate and counterweight.
 			public static const kHitTheMarkText:String		= "You hit the mark!"; // Text indicating player packed perfectly.
 			public static const kUnderByText:String			= "Under by ";	// Text indicating player was short by some amount.
 			public static const kOverByText:String			= "Over by ";	// Text indicating player was over by some amount.
 			public static const kKnotsUnderByText:String	= "Knot centers differ (under) by "; // Text indicating knot center was over by some amount.
 			public static const kKnotsOverByText:String		= "Knot centers differ (over) by "; // Text indicating knot center was over by some amount.
-			public static const kPixelText:String			= " pixel."; 	// Text indicating pixel unit when player is over/short.
-			public static const kPixelsText:String			= " pixels."; 	// Text indicating pixel units when player is over/short.
+			public static const kPixelText:String			= " rat."; 		// Text indicating pixel/rat unit when player is over/short.
+			public static const kPixelsText:String			= " rats."; 	// Text indicating pixel/rat units when player is over/short.
 			public static const kGameCompleteText:String	= "Packing Complete! SCORE = ";// Text indicating game is done and all rats are packed.
-			public static const kAdjustToolTip:String		= "Set this offset to adjust the pixel height at which you stop packing. It will be added to your stopping point. A negative value stops short of the stopping point. A positive value continues past the stopping point."; // Tool tip to explain adjustment slider
+			public static const kAdjustToolTip:String		= "Set this offset to adjust the number of rats after you stop packing. A negative value removes rats. A positive value adds rats."; // Tool tip to explain adjustment slider.
+			public static const kAdjustLabelText:String		= "Rats to Add or Remove"; // Label below adjustment slider.
 			public static const kPointsPerPerfectHit:uint	= 10;			// Points earned for stopping perfectly.
 			
 			// Collection constants
@@ -72,7 +73,7 @@
 			public static const kCrateHeight:uint		= 60;			// Height of crate.
 			public static const kCrateStartX:uint						// Starting X position of crate.
 										= kRopeXLeft - kHalfCrateWidth;
-			public static const kCrateTopStartYWallMark:uint= kMaxTopStartY;// Starting Y position of crate top in wall make level.
+			public static const kCrateTopStartYWallMark:uint= kMaxTopStartY;// Starting Y position of crate top in wall mark level.
 			public static const kCrateTopStartYKnots:uint	= kMaxTopStartY;// Starting Y position of crate top in knots level.
 			public static const kPlayerNameColor:uint	= kRatsPackedColor;	// Color of "Packer Name" label.
 			public static const kCrateNumberColor:uint	= kRatsPackedColor; // Color of crate number label.
@@ -127,20 +128,22 @@
 			public static const kCounterClockwise:Number= -1;			// Counter clockwise direction for drawArc();
 
 			// Timer constants
-			public static const kTimeLimit:Number		= 4;			// Max number of seconds rats can be added to crate.
+			public static const kTimeLimit:Number		= 2;			// Max number of seconds rats can be added to crate.
 			public static const kUpdatesPerSecond:Number= 50;			// Redraw updates per second.
 			public static const kTotalUpdates:Number	= kTimeLimit * kUpdatesPerSecond; // Total number of updates.
 			public static const kUpdateInterval:Number	= 500 / kUpdatesPerSecond; // Milliseconds between updates.
-			public static const kRatsPerPixelWallMark:Number	= 		// Rats loaded per pixel of counterweight ascent (not noisy).
-				kIdealRatsPerCrate /		// Ideal number of rats per crate.
-				((kCounterWeightTopStartY + kCounterWeightHeight/2) 	// Initial location of counterweight mark Y;
-					- kWallMarkY);			// Wall mark's Y value.
-			public static const kRatsPerPixelKnots:Number	= 			// Rats loaded per pixel of counterweight ascent (not noisy).
-				kIdealRatsPerCrate /		// Ideal number of rats per crate.
-											// Vertical pixels traveled for knots to line up.
-				((kCounterWeightTopStartY - kKnotRightOffsetY - kCrateTopStartYKnots + kKnotLeftOffsetY)/2); 	
+			public static const kRatsPerPixelWallMark:Number	= 1;	// Rats loaded per pixel of counterweight ascent (not noisy).
+//			public static const kRatsPerPixelWallMark:Number	= 		// Rats loaded per pixel of counterweight ascent (not noisy).
+//				kIdealRatsPerCrate /		// Ideal number of rats per crate.
+//				((kCounterWeightTopStartY + kCounterWeightHeight/2) 	// Initial location of counterweight mark Y;
+//					- kWallMarkY);			// Wall mark's Y value.
+			public static const kRatsPerPixelKnots:Number	= 1;		// Rats loaded per pixel of counterweight ascent (not noisy).
+//			public static const kRatsPerPixelKnots:Number	= 			// Rats loaded per pixel of counterweight ascent (not noisy).
+//				kIdealRatsPerCrate /		// Ideal number of rats per crate.
+//											// Vertical pixels traveled for knots to line up.
+//				((kCounterWeightTopStartY - kKnotRightOffsetY - kCrateTopStartYKnots + kKnotLeftOffsetY)/2); 	
 			
-			public static const kDelayTimerInterval:Number= 3000;		// 3 second delay after loading a crate.
+			public static const kDelayTimerInterval:Number= 1500;		// 1.5 second delay after loading a crate.
 			public static const kDelayTimerRuns:Number	= 1;			// Just run this delay timer once between crates. 
 			
 			// The maximum distance in pixels that the counterweight can ascend from bottom to top.
@@ -151,6 +154,7 @@
 			private var mMethod:uint				= kMethodWallMark;// Method of measuring when to stop packing crate.
 			private var mCrateNumber:uint			= 0;		// Current crate number. Begins with 1 at the start of each game.
 			private var mTotalRatsPacked:uint		= 0;		// Total number of rats packed in current game.
+			private var mTotalRatsPackedRaw:uint	= 0;		// Total number of rats packed in current game had there been no adjustments.
 			private var mCurrentScore:uint			= 0;		// Score so far in current game.
 			private var mIsFirstCrate:Boolean		= true;		// True for the first crate of each game played at the multicrate level.
 			private var mTimeUsed:Number			= 0;		// Stores how much time has been used since Pack Rats button was pressed.
@@ -246,6 +250,7 @@
 			{
 				mCrateNumber			= 1;		// Set first crate to number 1.
 				mTotalRatsPacked		= 0;		// Start with no rats packed yet.
+				mTotalRatsPackedRaw		= 0;		// Start with no rats packed yet pre-adjustment.
 				mCurrentScore			= 0;		// Start with score at zero.
 				mIsFirstCrate			= true;		// Set the flag to true for the first crate.
 				mTimeUsed				= 0;		// Initialize the time for Packing Rats used to zero.
@@ -297,10 +302,11 @@
 							"Method",			// Measurement method used: wall mark or aligned knots.
 							"GameNumber",		// Number of current game.
 							"CrateNumber",		// Number of current crate.
-							"RatsPacked",		// Numer of rats packed in current crate.
-							"PixelsOff",		// Number of pixels off perfection (negative == short, postive == over).
-							"RatsOff",			// Number of rats off perfection (negative == short, positive == over)
-							"PixelOffset"		// Offset in pixels to add to stopping height.
+							"RatsPacked",		// Number of rats packed in current crate.
+							"RatsPackedRaw",	// Number of rats packed in current crate BEFORE applying rat offset.
+							"RatsOff",			// Number of rats off perfection (negative == short, positive == over).
+							"RatsOffRaw",		// Number of rats off perfection BEFORE applying rat offset (negative == short, positive == over).
+							"RatOffset"			// Number of rats to add after crate is packed.
 						]
 					);
 					
@@ -308,13 +314,14 @@
 					ScriptInterface.NewCollectionWithAttributes(
 						kGamesCollection,
 						[
-							"Packer",			// Name of the player.
-							"Method",			// Measurement method used: wall mark or aligned knots.
-							"GameNumber",		// Number of current game.
-							"CratesPacked",		// Number of crates packed.
-							"TotalRatsPacked",	// Numer of rats packed in all crates.
-							"Score",			// Game score.
-							"PixelOffset"		// Offset in pixels to add to stopping height.
+							"Packer",				// Name of the player.
+							"Method",				// Measurement method used: wall mark or aligned knots.
+							"GameNumber",			// Number of current game.
+							"CratesPacked",			// Number of crates packed.
+							"TotalRatsPacked",		// Number of rats packed in all crates.
+							"TotalRatsPackedRaw",	// Number of rats packed in all crates had there been no adjustments.
+							"Score",				// Game score.
+							"RatOffset"				// Number of rats to add after crate is packed.
 						]
 					);
 					
@@ -795,15 +802,23 @@
 				// counter weight ascends. Measured in pixels.
 				var halfCrateHeight:uint	= kCrateHeight/2;
 				var crateY:Number 			= getCrateTopYForText();
-				var ratsPacked:uint			= 0;
+				var ratsPacked:uint			= 0;	// Number of rats actually packed.
+				var ratsPackedRaw:uint		= 0;	// Number of rats that would have been packed without adjustment.
 				
 				// Adjust final height by user offset. Subtracting here, as counterweight Y value is more negative as it moves upward.
 				var finalPixelHeight:int	= mCounterWeight.y - mAdjustStopPixel;
+				var finalPixelHeightRaw:int	= mCounterWeight.y; // Raw final height.
 				
 				if (mGameLevel == kKnotsLevel)
-					ratsPacked = Math.round((kRatsPerPixelKnots * Math.abs(finalPixelHeight)));
+				{
+					ratsPacked		= Math.round((kRatsPerPixelKnots * Math.abs(finalPixelHeight)));
+					ratsPackedRaw	= Math.round((kRatsPerPixelKnots * Math.abs(finalPixelHeightRaw)));
+				}
 				else
-					ratsPacked = Math.round((kRatsPerPixelWallMark * Math.abs(finalPixelHeight)));
+				{
+					ratsPacked		= Math.round((kRatsPerPixelWallMark * Math.abs(finalPixelHeight)));
+					ratsPackedRaw	= Math.round((kRatsPerPixelWallMark * Math.abs(finalPixelHeightRaw)));
+				}
 				
 				// Because user can adjust the stopping pixel to below the start point, set zero
 				// as the minimum number of rats.
@@ -812,7 +827,8 @@
 				var ratString:String		= ratsPacked == 1 ? kOneRatSuffix : kPluralRatSuffix;
 				var methodText:String		= (mMethod == kMethodWallMark) ? kWallMarkText : kKnotsText;
 				
-				mTotalRatsPacked	+= ratsPacked; // Keep a tally of total rats packed so far in current game.
+				mTotalRatsPacked	+= ratsPacked;		// Keep a tally of total rats packed so far in current game.
+				mTotalRatsPackedRaw	+= ratsPackedRaw;	// Keep a tally of total rats packed so far in current game had there been no adjustments.
 				mRatsLoadedLabel.move(kCrateStartX, crateY + kRatsPackedYOffset);
 				mRatsLoadedLabel.text = ratsPacked.toString() + ratString;
 				
@@ -825,9 +841,10 @@
 							methodText,						// Measurement method used: wall mark or aligned knots.
 							mGameNumber,					// Number of current game.
 							mCrateNumber,					// Number of current crate.
-							ratsPacked,						// Numer of rats packed in current crate.
-							missedBy,						// Number of pixels off perfection (negative == short, postive == over).
+							ratsPacked,						// Number of rats packed in current crate.
+							ratsPackedRaw,					// Number of rats packed in current crate BEFORE applying rat offset.
 							ratsPacked - kIdealRatsPerCrate,// Number of rats off perfection (negative == short, positive == over).
+							ratsPackedRaw - kIdealRatsPerCrate,// Number of rats off perfection BEFORE applying rat offset (negative == short, positive == over).
 							mAdjustStopPixel				// Offset in pixels added to stopping height.
 						]	
 					);
@@ -866,7 +883,8 @@
 									methodText,			// Measurement method used: wall mark or aligned knots.
 									mGameNumber,		// Number of current game.
 									mCrateNumber,		// Number of crates packed.
-									mTotalRatsPacked,	// Numer of rats packed in all crates.
+									mTotalRatsPacked,	// Number of rats packed in all crates.
+									mTotalRatsPackedRaw,// Number of rats packed in all crates had there been no adjustments.
 									mCurrentScore,		// Game score.
 									mAdjustStopPixel	// Offset in pixels added to stopping height.
 								]	
@@ -1008,7 +1026,7 @@
 						change="onChangeAdjustSlider(event)" labels="[-20, -10, 0, 10, 20]" maximum="20"
 						minimum="-20" snapInterval="1" tickInterval="10" toolTip="{kAdjustToolTip}"
 						value="0"/>
-		<s:Label	id="mAdjustLabel" x="149" y="40" width="90" height="27" text="Adjust Stopping Point (Pixels)"
+		<s:Label	id="mAdjustLabel" x="149" y="40" width="90" height="27" text="{kAdjustLabelText}"
 				 		textAlign="center"/>
 	</s:BorderContainer>
 </s:Application>
