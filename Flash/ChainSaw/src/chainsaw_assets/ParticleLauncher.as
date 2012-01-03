@@ -5,16 +5,16 @@
 	
 	public class ParticleLauncher extends MovieClip {
 		
-		var maxParticleCount:int;
-		var maxParticlesPerFrame:int = 10;
+		private var maxParticleCount:int;
+		private var maxParticlesPerFrame:int = 10;
 		public var pLife:int = 24; //in frames
 		public var pWidth:Number = 1;
 		public var pHeight:Number = 1;
 		public var pColor:uint = 0xFFE1C1;
-		var currentlyEmitting:Boolean = false;
-		var pArray:Array = new Array();
+		private var currentlyEmitting:Boolean = false;
+		private var pArray:Array = new Array();
 		public var speckCount:int = 0;
-		var atMaxCapacity:Boolean;
+		private var atMaxCapacity:Boolean;
 		public var useBlocks:Boolean = true;
 		public var Rotation:Number = 0;
 		public var RandomlyRotate:Boolean = false;
@@ -48,7 +48,7 @@
 			while(parts < maxParticlesPerFrame){
 				if(speckCount < maxParticleCount && !atMaxCapacity){
 					//trace("particle " + parts);
-					speck = new Specks(pWidth, pHeight, pColor, pLife, useBlocks, Rotation, RandomlyRotate);
+					speck = new Specks( pWidth, pHeight, pColor, pLife, useBlocks, Rotation, RandomlyRotate);
 					pArray[speckCount] = speck;
 					addChild(speck);
 				}else{
