@@ -1,3 +1,8 @@
+// MathUtils.as
+// Copyright (c) 2012 by University of Massachusetts and contributors
+// Project information: http://srri.umass.edu/datagames/
+// Released under the MIT License http://www.opensource.org/licenses/mit-license.php
+
 package monster
 {
 	public class MathUtils
