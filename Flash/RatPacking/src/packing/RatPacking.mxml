@@ -23,8 +23,9 @@
 			
 			import spark.core.SpriteVisualElement;
 			
-			// Ideal number of rats in each crate. Without noise, this is how many load when hitting the wall mark perfectly.
-			public static const kIdealRatsPerCrate:uint = 50;
+			// Ideal number of rats in each crate. Without noise, this is how many load when stopping the packing
+			// at the correct point (e.g. lining up knots, hitting wall mark, etc.).
+			public static const kIdealRatsPerCrate:uint = kCounterWeightTopStartY + (kCounterWeightHeight/2) - kWallMarkY;
 												
 			// General game constants
 			public static const kCratesPerGame:uint			= 5;			// Number of crates to pack per game.
@@ -64,9 +65,9 @@
 			public static const kCrateColor:uint		= 0xa4804c;		// Color of crate.
 			public static const kCrateBorderColor:uint	= 0x84663c;		// Color of crate border.
 			public static const kRatsPackedColor:uint	= 0x5f492a;		// Color of "Rats Packed" label.
-			public static const kRatsPackedFontSize:uint= 18;			// Font size of "Rats Packed" label.
+			public static const kRatsPackedFontSize:uint= 16;			// Font size of "Rats Packed" label.
 			public static const kRatsPackedYOffset:uint =				// Y offset from crate top for "Rats Packed" label.
-							1+ kCrateHeight/2 - kRatsPackedFontSize/2;
+							1 + kCrateHeight/2 - kRatsPackedFontSize/2;
 			public static const kCrateBorderThickness:uint = 2;			// Thickness of crate border.
 			public static const kCrateWidth:uint		= 80;			// Width of crate.
 			public static const kHalfCrateWidth:Number	= kCrateWidth/2;// Half the crate width.
@@ -79,7 +80,7 @@
 			public static const kCrateNumberColor:uint	= kRatsPackedColor; // Color of crate number label.
 			public static const kPackerNameFontSize:uint= 16;			// Font size of Packer Name label.
 			public static const kCrateNumberFontSize:uint= 12;			// Font size of Packer Name label.
-			public static const kPackerNameYOffset:uint = kRatsPackedYOffset + 20; // Y offset from crate top for Packer Name label.
+			public static const kPackerNameYOffset:uint = kRatsPackedYOffset + 19; // Y offset from crate top for Packer Name label.
 			public static const kCrateNumberYOffset:uint= kRatsPackedYOffset - 17; // Y offset from crate top for crate number label.
 			public static const kCrateNumberPrefix:String= "Crate #";	// Beginning of crate number label.
 			public static const kOneRatSuffix:String	= " RAT";		// Used for rats packed label when one rat is packed.
@@ -105,12 +106,12 @@
 			public static const kPulleyCenterY:uint		= 50;			// Y position of pulley center.
 			
 			// Wall mark-related constants
-			public static const kWallMarkY:uint			= kMaxTopStartY + 50;	// Y location of wall mark.
+			public static const kWallMarkY:uint			= 210;					// Y location of wall mark.
 			public static const kWallMarkLength:uint	= kCounterWeightWidth/2;// Length of wall mark.
 			public static const kWallMarkTextY:uint		= kWallMarkY - 57;		// Y location of wall mark instructions.
 			public static const kWallMarkLevelText:String	= "Wall Mark Level";// Title string for Wall Mark level.
-			public static const kMethodWallMark:uint		= 0;			// Method of aligning crate - wall mark.
-			public static const kWallMarkText:String		= "Wall Mark";	// Text denoting wall mark method.
+			public static const kMethodWallMark:uint		= 0;				// Method of aligning crate - wall mark.
+			public static const kWallMarkText:String		= "Wall Mark";		// Text denoting wall mark method.
 			public static const kWallMarkInstructions:String= "Stop packing when counter weight mark lines up here. ←";
 			
 			// Knots-related constants
@@ -133,15 +134,7 @@
 			public static const kTotalUpdates:Number	= kTimeLimit * kUpdatesPerSecond; // Total number of updates.
 			public static const kUpdateInterval:Number	= 500 / kUpdatesPerSecond; // Milliseconds between updates.
 			public static const kRatsPerPixelWallMark:Number	= 1;	// Rats loaded per pixel of counterweight ascent (not noisy).
-//			public static const kRatsPerPixelWallMark:Number	= 		// Rats loaded per pixel of counterweight ascent (not noisy).
-//				kIdealRatsPerCrate /		// Ideal number of rats per crate.
-//				((kCounterWeightTopStartY + kCounterWeightHeight/2) 	// Initial location of counterweight mark Y;
-//					- kWallMarkY);			// Wall mark's Y value.
 			public static const kRatsPerPixelKnots:Number	= 1;		// Rats loaded per pixel of counterweight ascent (not noisy).
-//			public static const kRatsPerPixelKnots:Number	= 			// Rats loaded per pixel of counterweight ascent (not noisy).
-//				kIdealRatsPerCrate /		// Ideal number of rats per crate.
-//											// Vertical pixels traveled for knots to line up.
-//				((kCounterWeightTopStartY - kKnotRightOffsetY - kCrateTopStartYKnots + kKnotLeftOffsetY)/2); 	
 			
 			public static const kDelayTimerInterval:Number= 1500;		// 1.5 second delay after loading a crate.
 			public static const kDelayTimerRuns:Number	= 1;			// Just run this delay timer once between crates. 
@@ -734,69 +727,6 @@
 				var missedBy:Number = 0; // Number of pixels by which player missed stopping perfectly.
 				var pixelText:String;
 				
-				switch (mGameLevel)
-				{
-					case kWallMarkLevel:
-						// Display the number of pixels by which the counterweight mark missed the wall mark.
-						// A negative number means the player stopped before lining up with the mark.  
-						// Zero means the player stopped successfully lined up with the mark. 
-						// A positive number means the player stopped after lining up with the mark.  
-						// mCounterWeight.top starts at zero and then grows more and more negative as the
-						// counter weight ascends.
-						var counterWeightMarkY:Number	= kCounterWeightTopStartY + (kCounterWeightHeight/2) + mCounterWeight.top;
-						
-						// Factor in the adjustment value set by the user, if any.
-						missedBy						= kWallMarkY - counterWeightMarkY + mAdjustStopPixel;
-						
-						if (missedBy == 0) // Packed crate perfectly.
-						{
-							mMissedYByLabel.text	= kHitTheMarkText;
-							mCurrentScore			+= kPointsPerPerfectHit;	// Only score on perfect hit.
-						}
-						else
-						{
-							if (missedBy < 0) 	// Stopped packing too soon.
-								mMissedYByLabel.text = kUnderByText;
-							else				// Stopped packing too late.
-								mMissedYByLabel.text = kOverByText;
-							
-							pixelText = Math.abs(missedBy) == 1 ? kPixelText : kPixelsText;
-							mMissedYByLabel.text += Math.abs(missedBy).toString() + pixelText;
-						}
-						break;
-					case kKnotsLevel:
-						// Display the number of pixels by which the knots did not line up.
-						// A negative number means the player stopped before lining up the knots.  
-						// Zero means the player stopped successfully, with the knots aligned. 
-						// A positive number means the player stopped after lining up the knots.
-												
-						// Calculate the top Y locations of the left and right knots.
-						var leftKnotY:Number	= kCrateTopStartYKnots - kKnotLeftOffsetY + mDistanceMoved;
-						var rightKnotY:Number	= kCounterWeightTopStartY - kKnotRightOffsetY - mDistanceMoved;
-						
-						// Factor in the adjustment value set by the user, if any.
-						missedBy = leftKnotY - rightKnotY + mAdjustStopPixel;
-						
-						if (missedBy == 0) // Packed crate perfectly.
-						{
-							mMissedYByLabel.text	= kHitTheMarkText;
-							mCurrentScore			+= kPointsPerPerfectHit;	// Only score on perfect hit.
-						}
-						else
-						{
-							if (missedBy < 0) 	// Stopped packing too soon.
-								mMissedYByLabel.text = kKnotsUnderByText;
-							else				// Stopped packing too late.
-								mMissedYByLabel.text = kKnotsOverByText;
-							
-							pixelText = Math.abs(missedBy) == 1 ? kPixelText : kPixelsText;
-							mMissedYByLabel.text += Math.abs(missedBy).toString() + pixelText;
-						}
-						break;
-					default:
-						break;
-				}
-				
 				// Display the number of rats loaded into the crate.
 				// mCounterWeight.y starts at zero and then grows more and more negative as the
 				// counter weight ascends. Measured in pixels.
@@ -831,6 +761,42 @@
 				mTotalRatsPackedRaw	+= ratsPackedRaw;	// Keep a tally of total rats packed so far in current game had there been no adjustments.
 				mRatsLoadedLabel.move(kCrateStartX, crateY + kRatsPackedYOffset);
 				mRatsLoadedLabel.text = ratsPacked.toString() + ratString;
+				
+				switch (mGameLevel)
+				{
+					case kWallMarkLevel:
+					case kKnotsLevel:
+						// Display the number of rats by which the packed amount missed the target packing number.
+						// Wall Mark and Knots level now stop at the same point on the screen and have the same
+						// target number of rats packed, so the calculation process is identical for both.
+						// A negative number means the player stopped before lining up with the mark or knots.  
+						// Zero means the player stopped successfully lined up with the mark or lined up the knots. 
+						// A positive number means the player stopped after lining up with the mark or knots.  
+						// mCounterWeight.top starts at zero and then grows more and more negative as the
+						// counter weight ascends.
+						
+						// Factor in the adjustment value set by the user, if any.
+						missedBy						= ratsPacked - kIdealRatsPerCrate;
+						
+						if (missedBy == 0) // Packed crate perfectly.
+						{
+							mMissedYByLabel.text	= kHitTheMarkText;
+							mCurrentScore			+= kPointsPerPerfectHit;	// Only score on perfect hit.
+						}
+						else
+						{
+							if (missedBy < 0) 	// Stopped packing too soon.
+								mMissedYByLabel.text = kUnderByText;
+							else				// Stopped packing too late.
+								mMissedYByLabel.text = kOverByText;
+							
+							pixelText = Math.abs(missedBy) == 1 ? kPixelText : kPixelsText;
+							mMissedYByLabel.text += Math.abs(missedBy).toString() + pixelText;
+						}
+						break;
+					default:
+						break;
+				}
 				
 				if (mGameLevel != kPracticeLevel)
 				{
@@ -1012,15 +978,15 @@
 					backgroundColor="#294867" borderVisible="false">
 		<s:Button	id="mPackRatsButton" x="390" y="24" width="93" label="Pack Rats"
 				  		click="onClickPackRatsButton(event)"/>
-		<s:Button	id="mExitLevelButton" x="390" y="173" width="93" label="Exit Level"
+		<s:Button	id="mExitLevelButton" x="390" y="113" width="93" label="Exit Level"
 						click="onClickExitLevelButton(event)"/>
 		<s:Button	id="mStopPackingButton" x="390" y="53" width="93" label="{kStopPackingLabel}"
 				  		click="onClickStopPackingButton(event)" enabled="false"/>
 		<s:Label	id="mStopAtLabel" x="380" y="{kWallMarkTextY}" width="126" height="71" fontSize="14"
 				 		text="{kWallMarkInstructions}"/>
-		<s:Label	id="mMissedYByLabel" x="380" y="209" width="143" height="57" color="#DEA262"
+		<s:Label	id="mMissedYByLabel" x="380" y="229" width="143" height="57" color="#DEA262"
 				 		fontSize="14"/>
-		<s:Label 	id="mGameDoneLabel" x="390" y="254" width="93" color="#ef3b17" fontFamily="Arial"
+		<s:Label 	id="mGameDoneLabel" x="390" y="269" width="93" color="#ef3b17" fontFamily="Arial"
 						fontSize="16" text="{kGameCompleteText}" textAlign="center" visible="false"/>
 		<mx:HSlider id="mAdjustSlider" x="134" y="-3" width="120" allowTrackClick="true"
 						change="onChangeAdjustSlider(event)" labels="[-20, -10, 0, 10, 20]" maximum="20"
