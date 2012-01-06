@@ -15,6 +15,8 @@
 		<![CDATA[
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
+			import common.ParkMiller;
+			
 			import mx.events.SliderEvent;
 			import mx.managers.PopUpManager;
 			import mx.messaging.AbstractConsumer;
@@ -44,7 +46,8 @@
 			public static const kGameCompleteText:String	= "Packing Complete! SCORE = ";// Text indicating game is done and all rats are packed.
 			public static const kAdjustToolTip:String		= "Set this offset to adjust the number of rats after you stop packing. A negative value removes rats. A positive value adds rats."; // Tool tip to explain adjustment slider.
 			public static const kAdjustLabelText:String		= "Rats to Add or Remove"; // Label below adjustment slider.
-			public static const kPointsPerPerfectHit:uint	= 10;			// Points earned for stopping perfectly.
+			public static const kPointsPerPerfectHit:uint	= 20;			// Points earned for stopping perfectly.
+			public static const kZeroThickness:Number		= 0;			// Thickness value of zero.
 			
 			// Collection constants
 			public static const kCratesCollection:String= "Crates";		// Name for crates collection.
@@ -136,8 +139,9 @@
 			public static const kRatsPerPixelWallMark:Number	= 1;	// Rats loaded per pixel of counterweight ascent (not noisy).
 			public static const kRatsPerPixelKnots:Number	= 1;		// Rats loaded per pixel of counterweight ascent (not noisy).
 			
-			public static const kDelayTimerInterval:Number= 1500;		// 1.5 second delay after loading a crate.
-			public static const kDelayTimerRuns:Number	= 1;			// Just run this delay timer once between crates. 
+			public static const kDelayTimerMinimum:Number	= 1500;		// Minimum delay after loading a crate.
+			public static const kDelayTimerMaximum:Number	= 2500;		// Maximum delay after loading a crate.
+			public static const kDelayTimerRuns:Number		= 1;		// Just run this delay timer once between crates. 
 			
 			// The maximum distance in pixels that the counterweight can ascend from bottom to top.
 			private static const kCounterWeightAscent:uint	= Math.abs(kCounterWeightTopStartY - kMaxTopStartY);
@@ -160,6 +164,7 @@
 			private var mGameLevel:uint				= kPracticeLevel;	// Current game level.
 			private var mPrevGameLevel:uint			= kPracticeLevel;	// Used to track game level changes.
 			private var mCollectionsCreated:Boolean = false;	// Collection created on first play of non-practice level.
+			private var mRandomNormal:ParkMiller	= new ParkMiller();	// Create class that generates a normal distribution.;				// Class that creates a normal distribution.
 			
 			// The number of pixels by which to adjust the position at which the user stops packing.
 			private var mAdjustStopPixel:int		= 0;		
@@ -178,7 +183,7 @@
 			private var mRatLoadTimer:Timer = new Timer(kUpdateInterval, kTotalUpdates);
 			
 			// Timer used for delay between loading crates.
-			private var mCrateDelayTimer:Timer	= new Timer(kDelayTimerInterval, kDelayTimerRuns);
+			private var mCrateDelayTimer:Timer	= new Timer(kDelayTimerMinimum, kDelayTimerRuns);
 			private var mCanContinue:Boolean	= false;
 			private var mDistanceMoved:Number	= 0;	// Current vertical distance in pixels moved by crate, counterweight, knots.
 
@@ -299,7 +304,8 @@
 							"RatsPackedRaw",	// Number of rats packed in current crate BEFORE applying rat offset.
 							"RatsOff",			// Number of rats off perfection (negative == short, positive == over).
 							"RatsOffRaw",		// Number of rats off perfection BEFORE applying rat offset (negative == short, positive == over).
-							"RatOffset"			// Number of rats to add after crate is packed.
+							"RatOffset",		// Number of rats to add after crate is packed.
+							"CrateScore"		// Crate score.
 						]
 					);
 					
@@ -334,6 +340,9 @@
 				mKnotLeft.visible			= false;				// Hide rope knots in this level.
 				mKnotRight.visible			= false;
 				mWallMark.visible			= true;					// Show wall mark.
+				
+				// Redraw counterweight, as the look differs according to the level.
+				drawCounterWeightAndRope(kCounterWeightTopStartY);
 			}
 					
 			// setWallMarkLevel() sets the current game level to the Wall Mark level.
@@ -348,6 +357,9 @@
 				mKnotRight.visible	= false;
 				mWallMark.visible	= true;					// Show wall mark.
 				mGameNumber 		+= 1;					// Count current game when playing this level.
+				
+				// Redraw counterweight, as the look differs according to the level.
+				drawCounterWeightAndRope(kCounterWeightTopStartY);
 				
 				// Show crate number in multi crate level.
 				if (mGameLevel != kPracticeLevel) 
@@ -366,6 +378,9 @@
 				mKnotRight.visible	= true;
 				mWallMark.visible	= false;				// Hide wall mark.
 				mGameNumber 		+= 1;					// Count current game when playing this level.
+				
+				// Redraw counterweight, as the look differs according to the level.
+				drawCounterWeightAndRope(kCounterWeightTopStartY);
 			}
 			
 			// chooseGameLevel() listens for clicks on the game level dialog's level buttons.
@@ -394,6 +409,13 @@
 				chooseGameLevel(); // Make the user select a hunt level and return.
 			}
 			
+			// randomNormalValueWithinRange() returns a uniform random valuw within the range specified
+			// by iMinimum andd iMaximum.
+			protected function randomNormalValueWithinRange(iMinimum:Number, iMaximum:Number):Number
+			{
+				return ((iMaximum - iMinimum) * mRandomNormal.uniform()) + iMinimum;
+			}
+
 			// degreesToRadians() returns the radian equivalent to the passed in degrees.
 			protected function degreesToRadians(iDegrees:Number):Number
 			{
@@ -620,16 +642,20 @@
 				
 				// Draw the counterweight.
 				mCounterWeight.graphics.beginFill(kCounterWeightColor);
+				mCounterWeight.graphics.lineStyle(kZeroThickness, kCounterWeightColor);
 				mCounterWeight.graphics.drawRoundRect(kRopeXRight - halfCounterWeightWidth, 
 					iWeightTopY, kCounterWeightWidth, kCounterWeightHeight, kEllipseWidth);
-				mCounterWeight.graphics.endFill();
 				
 				// Draw the marking used to line up with wall mark.
-				mCounterWeight.graphics.lineStyle(kCounterWeightMarkThickness, kCounterWeightMarkColor);
-				mCounterWeight.graphics.moveTo(kRopeXRight, iWeightTopY + halfCounterWeightHeight);
-				mCounterWeight.graphics.lineTo(kRopeXRight + halfCounterWeightWidth, 
-					iWeightTopY + halfCounterWeightHeight);
-				mCounterWeight.graphics.endFill();				
+				if (mGameLevel != kKnotsLevel)
+				{
+					mCounterWeight.graphics.lineStyle(kCounterWeightMarkThickness, kCounterWeightMarkColor);
+					mCounterWeight.graphics.moveTo(kRopeXRight, iWeightTopY + halfCounterWeightHeight);
+					mCounterWeight.graphics.lineTo(kRopeXRight + halfCounterWeightWidth, 
+						iWeightTopY + halfCounterWeightHeight);
+				}
+				
+				mCounterWeight.graphics.endFill();
 				
 				// Draw the rope from which the counterweight hangs and the knot in the rope
 				// above the counterweight.
@@ -724,7 +750,6 @@
 				mRatLoadTimer.stop();												// Stop timer.
 				mRatLoadTimer.removeEventListener(TimerEvent.TIMER, timerListener);	// Stop listening.
 				
-				var missedBy:Number = 0; // Number of pixels by which player missed stopping perfectly.
 				var pixelText:String;
 				
 				// Display the number of rats loaded into the crate.
@@ -762,6 +787,9 @@
 				mRatsLoadedLabel.move(kCrateStartX, crateY + kRatsPackedYOffset);
 				mRatsLoadedLabel.text = ratsPacked.toString() + ratString;
 				
+				var missedBy:Number = 0; // Number of pixels by which player missed stopping perfectly.
+				var crateScore:uint	= 0; // Score for current crate.
+				
 				switch (mGameLevel)
 				{
 					case kWallMarkLevel:
@@ -780,8 +808,8 @@
 						
 						if (missedBy == 0) // Packed crate perfectly.
 						{
+							crateScore				= kPointsPerPerfectHit;
 							mMissedYByLabel.text	= kHitTheMarkText;
-							mCurrentScore			+= kPointsPerPerfectHit;	// Only score on perfect hit.
 						}
 						else
 						{
@@ -790,9 +818,19 @@
 							else				// Stopped packing too late.
 								mMissedYByLabel.text = kOverByText;
 							
-							pixelText = Math.abs(missedBy) == 1 ? kPixelText : kPixelsText;
-							mMissedYByLabel.text += Math.abs(missedBy).toString() + pixelText;
+							var missedByAbsolute:Number = Math.abs(missedBy);
+							
+							pixelText = missedByAbsolute == 1 ? kPixelText : kPixelsText;
+							mMissedYByLabel.text += missedByAbsolute.toString() + pixelText;
+							
+							// Calculate score for current crate. Subtract 1 for each rat off from target,
+							// with a minimum score of 0 oer crate.
+							if (missedByAbsolute < kPointsPerPerfectHit)
+								crateScore = kPointsPerPerfectHit - missedByAbsolute;
 						}
+						
+						mCurrentScore += crateScore;	// Updated current game score.
+						
 						break;
 					default:
 						break;
@@ -811,7 +849,8 @@
 							ratsPackedRaw,					// Number of rats packed in current crate BEFORE applying rat offset.
 							ratsPacked - kIdealRatsPerCrate,// Number of rats off perfection (negative == short, positive == over).
 							ratsPackedRaw - kIdealRatsPerCrate,// Number of rats off perfection BEFORE applying rat offset (negative == short, positive == over).
-							mAdjustStopPixel				// Offset in pixels added to stopping height.
+							mAdjustStopPixel,				// Offset in pixels added to stopping height.
+							crateScore						// Crate score.
 						]	
 					);
 				}
@@ -829,8 +868,9 @@
 						mStopPackingButton.enabled = false;
 						if (mCrateNumber < kCratesPerGame)
 						{
-							// Add a delay between each crate.
+							// Add a delay between each crate. Randomize delay time to keep players on edge.
 							// delayTimerComplete() will call beginPackingNextCrate() when the timer runs out.
+							mCrateDelayTimer.delay = randomNormalValueWithinRange(kDelayTimerMinimum, kDelayTimerMaximum);
 							mCrateDelayTimer.addEventListener(TimerEvent.TIMER_COMPLETE, delayTimerComplete);
 							mCrateDelayTimer.reset();	// Reset the delay timer to run until it finishes.
 							mCrateDelayTimer.start(); 	// Start the delay timer.
