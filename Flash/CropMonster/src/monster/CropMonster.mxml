@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="800" minHeight="600" width="800" height="600" pageTitle="Crop Monster"
+			   creationComplete="startUp( )" backgroundColor="#887E62">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.kcpt.scriptInterface.ScriptInterface;
+			
+			import mx.core.SoundAsset;
+			
+			import spark.core.SpriteVisualElement;
+			import spark.primitives.BitmapImage;
+			
+			// Fixed pixel width of border container around field.
+			// See BorderContainer mFieldBorderContainer at bottom of file.
+			public static const kFieldPixelWidth:uint= 707;	
+			
+			// These constants define the steps per walk, on which the field grid is calculated.
+			// To change the number of walks and have the grid fit the field, you may also need
+			// to change the width and height of mFieldBorderContainer at the bottom of this file
+			// and kFieldPixelWidth above. An alternative would be to create mFieldBorderContainer
+			// at startup, but this would render the Design mode of Flex Builder unhelpful for this
+			// game.
+			public static const kStepsPerWalk:uint	= 50;				// Number of steps in each walk (50 max).
+			public static const kRows:uint			= kStepsPerWalk;	// Number of rows in field grid.
+			public static const kColumns:uint		= (2 * kRows) + 1;	// Number of columns in field grid.
+			public static const kMiddleColumn:uint	= kRows;			// Middle column (0 based)
+			public static const kLeftEdgeClear:uint	= kMiddleColumn - 1;// Leftmost edge of unplanted land.
+			public static const kRightEdgeClear:uint= kMiddleColumn + 1;// Rightmost edge of unplanted land.
+			public static const kBlockWidth:uint	
+							= Math.floor(kFieldPixelWidth/kColumns);	// Pixel width of each grid block.
+			public static const kBlockHeight:uint	= kBlockWidth;		// Pixel height of each grid block.
+			public static const kPixelHeight:uint	= kRows * kBlockHeight;// Total pixel height of field.
+			
+			public static const kUnplantedColor:uint	= 0x89ef7f;		// Color of unplanted/eaten block(s).
+			public static const kPlantedColor:uint		= 0x5dbe53;		// Color of planted crops.
+			public static const kMonsterColor:uint		= 0xcf03fb;		// Color of monster.
+			public static const kMonsterTrailRadius:uint= 1;	// Radius of dot marking monster's trail.
+			public static const kPlantEachCost:uint		= 40;	// Dollars per plant when planting. 
+			public static const kSellEachCost:uint		= 41;	// Dollars per plant when selling. 
+			public static const kAlphaOpaque:Number		= 1;	// Opaque 
+			public static const kAngleSnapInterval:uint	= 5;	// Snap interval in angle slider.
+			
+			private var mMathUtils:MathUtils = new MathUtils();
+			
+			private var mFieldSprite:SpriteVisualElement	= new SpriteVisualElement();	// Used for drawing field.
+			private var mMonsterSprite:SpriteVisualElement	= new SpriteVisualElement();	// Used for drawing monster symbol.
+			private var mImageSprite:SpriteVisualElement	= new SpriteVisualElement();	// Used for drawing monster image.
+			private var mMonsterUrl:String					= "../src/assets/Monster.jpg";	// Image of monster head.
+			private var mLoader:Loader						= new Loader();					// Used to load images.
+			
+			private var mWalkNumber:uint		= 1;	// Walk number since game launch (1 based).
+			private var mInitialPlanted:uint	= 0;	// How many plants at the start of current walk?
+			private var mPlantingCost:uint		= 0;	// Cost to plant field.
+			private var mRemainingPlanted:uint	= 0;	// How many plants at the end of the current step?
+			private var mAngle:Number			= 0;	// Angle used to pick planting region. Start with straight path.
+			
+			private var mMustReplant:Boolean	= false;// Flag set when path angle has been changed.
+			
+			// The following are used with a timer to track the monster's walk.
+			// Leftmost x pixel of block monster is on.
+			private var mTimer:Timer			= new Timer(200, kStepsPerWalk); // One step every 200 milliseconds.
+			private var mGameInProgress:Boolean	= false;// True when game is running.
+			private var mXPixel:Number			= kMiddleColumn * kBlockWidth;	
+			private var mYPixel:Number			= 0;	// Topmost y pixel of starting column.
+			private var mStepNumber:uint		= 1;	// Begin with first step (transmitted to TinkerPlots/Fathom).							
+			private var mX:Number	= kMiddleColumn;	// x value in grid not converted to pixels (0 based)
+			private var mY:Number	= 0; 				// y value in grid not converted to pixels (0 based)
+						
+			// Embed images and sounds so no additional files are needed with the resulting SWF.
+			[Embed("../src/assets/Monster.jpg")]
+			private var MonsterIcon:Class;
+			
+			// From http://rx1.freesfx.co.uk/mp3s/1/969_1245804706.mp3 on 12/5/2010.
+			[Embed("../src/assets/bite_into_apple.mp3")]
+			private var BiteMP3:Class;
+			private var mBiteSound:SoundAsset = new BiteMP3() as SoundAsset;
+			
+			// From http://rx1.freesfx.co.uk/mp3s/1/832_1245111597.mp3 on 12/5/2010.
+			[Embed("../src/assets/antique_cash_register_punching_single_key.mp3")]
+			private var CashMP3:Class;
+			private var mCashSound:SoundAsset = new CashMP3() as SoundAsset;
+		
+			// startUp() is called when the creation of this class is complete
+			// and sets up necessary parameters for game initiation.
+			private	function startUp():void	
+			{
+				// Draw monster image at edge of field.
+				var halfBlockWidth:uint		= Math.floor(kBlockWidth / 2);
+				var halfImageWidth:Number	= 16 / 2;
+				mImageSprite.x				= (kMiddleColumn * kBlockWidth) + halfBlockWidth - halfImageWidth;
+				mImageSprite.y				= - 16; // Move whole sprite so that image is not scrolled.
+				
+				// Load and draw the bitmap of the monster
+				var bitmapData:BitmapData = new MonsterIcon().bitmapData;
+				mImageSprite.graphics.beginBitmapFill(bitmapData);
+				mImageSprite.graphics.drawRect(0, 0, 16, 16);
+				mImageSprite.graphics.endFill();
+				
+				// Add sprite visual elements to the field border container to enable drawing.
+				mFieldBorderContainer.addElement(mFieldSprite);
+				mFieldBorderContainer.addElement(mMonsterSprite);
+				mFieldBorderContainer.addElement(mImageSprite);
+				
+				// Set field to uneaten
+				resetField();
+
+				ScriptInterface.NewCollectionWithAttributes(
+					"IndividualSteps",
+					[
+						"WalkNumber",	// Walk number starting with 1 since launch of application.
+						"StepNumber",	// Step number in current walk (1 based).
+						"LeftOrRight",	// Did monster step left to get here or right ("Left" or "Right")?
+						"X",			// Horizontal position relative to starting position in middle of field.
+						"Y",			// Vertical position relative to starting position at edge of field.
+						"PlantEaten"	// Was a  plant eaten at this step ("Yes" or "No")?
+					]
+				);
+			
+				ScriptInterface.NewCollectionWithAttributes(
+					"CompleteWalks",
+					[
+						"WalkNumber",	// Walk number starting with 1 since launch of application.
+						"NumberPlanted",// How many plants were there before monster visited?
+						"PlantingCost",	// Cost to plant field.
+						"PlantsLost",	// How many plants were eaten by monster?
+						"PlantsLeft",	// How many plants were left after monster ate?
+						"CropValue",	// How much is the remaining crop worth?
+						"Profit",		// Final crop value minus cost to plant (CropValue - PlantingCost).
+						"Angle"			// The angle of the path edge.
+					]
+				);
+			}
+						
+			protected function resetField():void
+			{
+				var pixelWidth:uint	= kColumns * kBlockWidth;	// total pixel width of field
+				var pixelHeight:uint= kRows * kBlockHeight;		// total pixel height of field
+				
+				// Set field back to normal by clearing all crop plants.
+				mFieldSprite.graphics.clear();
+				
+				var halfBlockWidth:uint	= Math.floor(kBlockWidth / 2);
+				var plantRadius:uint	= halfBlockWidth;
+				var y:Number			= 0; // y value in grid not converted to pixels
+				mInitialPlanted			= 0;	// Reset how many plants are in field.
+				
+				for (var yPixel:Number = 0; yPixel < pixelHeight; yPixel+=kBlockHeight)	// For all rows...
+				{
+					var x:Number = 0; // x value in grid not converted to pixels
+					var xOffset:Number = y * Math.tan(mMathUtils.degreesToRadians(mAngle));
+					
+					for (var xPixel:Number = 0; xPixel < pixelWidth; xPixel+=kBlockWidth)	// For all columns...
+					{
+						// Draw plants outside of cleared path.
+						if (x < (kLeftEdgeClear - xOffset) || x > (kRightEdgeClear + xOffset)) 
+						{
+							// Draw a rectangle at each grid point
+							mFieldSprite.graphics.beginFill(kPlantedColor, kAlphaOpaque);
+							mFieldSprite.graphics.drawCircle(xPixel + plantRadius, yPixel + plantRadius, plantRadius);
+							mFieldSprite.graphics.endFill();
+							
+							++mInitialPlanted; // One more plant has been planted!
+						}
+						
+						++x; // Move to next x location in grid.
+					}
+					
+					++y;  // Move to next y location in grid.
+				}
+				
+				mPlantingCost				= mInitialPlanted * kPlantEachCost;		// Cost to plant crop.
+				mRemainingPlanted			= mInitialPlanted;	// Remaining plants = initial plants before monster.
+				
+				// Update text labels.
+				mInitialPlantedLabel.text	= "Number Planted = " + mInitialPlanted.toString();
+				mPlantingCostLabel.text		= "Total Cost to Plant = " + usdFormatter.format(mPlantingCost);
+				mNumberEatenLabel.text		= "Plants Eaten = ";
+				mFinalCropValueLabel.text	= "Final Crop Value = ";
+				mProfitLabel.text			= "Profit = ";
+				
+				// Calculate opposite side of right triangle (Tan(theta) = Opposite / Adjacent)
+				// to determine x position of final point on clearing lines.
+				var xDisplacement:Number = kRows * Math.tan(mMathUtils.degreesToRadians(mAngle));
+				
+				// Draw monster symbol at edge of field.
+				var monsterRadius:uint	= plantRadius;
+				mMonsterSprite.graphics.clear();
+				mMonsterSprite.x = (kMiddleColumn * kBlockWidth) + halfBlockWidth;
+				mMonsterSprite.y = - kBlockWidth;
+				mMonsterSprite.graphics.beginFill(kMonsterColor, 1);
+				mMonsterSprite.graphics.drawCircle(0, 0, monsterRadius);
+				mMonsterSprite.graphics.endFill();
+			}
+
+			// onClickNewGameButton() is called when the new game button is pressed.
+			protected function onClickNewGameButton(iEvent:MouseEvent):void
+			{
+				mNewGameButton.enabled	= false;	// Disable buttons while monster is walking.
+				mReplantButton.enabled	= false;	// Disable buttons while monster is walking.
+				mAngleSlider.enabled	= false;	// Disable slider while monster is walking.
+				resetField();						// Set field back to uneaten.
+				
+				// Use timer to move the monster one step
+				mTimer.delay = 200;
+				
+				mTimer.addEventListener(TimerEvent.TIMER, timerListener);
+				
+				mStepNumber		= 1;	// Begin with first step (transmitted to TinkerPlots/Fathom).							
+				
+				mX	= kMiddleColumn;	// x value in grid not converted to pixels (0 based)
+				mY	= 0; 				// y value in grid not converted to pixels (0 based)
+				
+				mXPixel = kMiddleColumn * kBlockWidth;	// Leftmost x pixel of starting column.
+				mYPixel	= 0;							// Topmost y pixel of starting column.
+				
+				mGameInProgress = true; // Game is starting.
+				
+				// Don't wait for timed events if the fast box is selected.
+				if (mFastCheckBox.selected)
+				{
+					while (mGameInProgress == true)
+						moveMonster();
+				}
+				// Use timer to control smooth animation if not in fast mode.
+				else
+				{
+					mTimer.reset();	// Reset timer to run for full number of steps.
+					mTimer.start(); // Start walk timer, now that all variables are set up.
+									// This sets the monster loose to take one walk.
+				}
+				
+			}
+			
+			// timerListener() is called on each timer event.
+			protected function timerListener(iEvent:TimerEvent):void
+			{
+				moveMonster();
+			}
+			
+			// moveMonster() is called to move monster one step across field.
+			protected function moveMonster():void
+			{
+				if (mYPixel < kPixelHeight)	// Take one step, if  monster has not gone to edge.
+				{
+					var leftOrRight:String	= "Left";	// Did monster move left or right to take this step?
+					var plantEaten:String	= "No";		// Did monster eat a plant at this location?
+					
+					// Set x pixel value based on monster stepping left or right, using random number.
+					if (Math.random() < 0.5)	// 0 <= random number < 1
+					{
+						mX			-= 1;
+						mXPixel		-= kBlockWidth;
+						leftOrRight	= "Left";
+					}
+					else
+					{
+						mX			+= 1;
+						mXPixel		+= kBlockWidth;
+						leftOrRight	= "Right";
+					}
+					
+					// If a plant is at the location where the monster stepped, monster eats plant
+					var xOffset:Number = mY * Math.tan(mMathUtils.degreesToRadians(mAngle));
+					if (mX < (kLeftEdgeClear - xOffset) || mX > (kRightEdgeClear + xOffset))
+					{
+						--mRemainingPlanted;
+						plantEaten = "Yes";
+						if (!mFastCheckBox.selected) 	//No sound in fast walk mode.
+							mBiteSound.play();		// Play bite sound when monster eats plant.
+					}
+					else
+						plantEaten = "No";
+					
+					// Draw a blank rectangle at each of the monster's steps.
+					mFieldSprite.graphics.beginFill(kUnplantedColor, 1);
+					mFieldSprite.graphics.drawRect(mXPixel, mYPixel, kBlockWidth, kBlockHeight);
+					mFieldSprite.graphics.endFill();
+					
+					// Draw a small dot to mark the monster's path.
+					var halfBlockWidth:uint	= Math.floor(kBlockWidth / 2);
+					mFieldSprite.graphics.beginFill(kMonsterColor, 1);
+					mFieldSprite.graphics.drawCircle(
+						mXPixel + halfBlockWidth, mYPixel + halfBlockWidth, kMonsterTrailRadius);
+					mFieldSprite.graphics.endFill();
+					
+					// Move the monster to the current location.
+					mMonsterSprite.x = mXPixel + halfBlockWidth;
+					mMonsterSprite.y = mYPixel + halfBlockWidth;
+					
+					// Update number of plants eaten during course of monster's walk.
+					mNumberEatenLabel.text = "Plants Eaten = " + (mInitialPlanted - mRemainingPlanted).toString();
+					
+					ScriptInterface.AddCaseToCollectionWithValues("IndividualSteps", 
+						[
+							mWalkNumber,	// Walk number starting with 1 since launch of application.
+							mStepNumber,		// Step number in current walk (1 based).
+							leftOrRight,	// Did monster step left to get here or right ("Left" or "Right")?
+							mX - kMiddleColumn + 1,// Horizontal position relative to starting position in middle of field (1 based)
+							mY + 1,				// Vertical position relative to starting position at edge of field (1 based)
+							plantEaten		// Was a plant eaten at this step ("Yes" or "No")?
+						]	
+					);
+					
+					++mStepNumber;	// Increment step counter.
+					++mY;			// Increment y value.
+					mYPixel+=kBlockHeight;
+				} // end of loop going through each step
+				
+				if (mY == kStepsPerWalk) // Monster has completed its walk.
+				{
+					mTimer.stop(); 													// Stop walk timer.
+					mTimer.removeEventListener(TimerEvent.TIMER, timerListener);	// Stop listening.
+					mGameInProgress = false; // Game is stopping.
+					
+					var finalCropValue:uint	= mRemainingPlanted * kSellEachCost;	// Final crop value.
+					var numberEaten:uint	= mInitialPlanted - mRemainingPlanted;	// Plants eaten.
+					var profit:uint			= finalCropValue - mPlantingCost;		// Profit after monster walk.
+					
+					ScriptInterface.AddCaseToCollectionWithValues("CompleteWalks", 
+						[
+							mWalkNumber,		// Walk number starting with 1 since launch of application.
+							mInitialPlanted,	// How many plants were there before monster visited?
+							mPlantingCost,		// Cost to plant field.
+							numberEaten,		// How many plants were eaten by monster?
+							mRemainingPlanted,	// How many plants were left after monster ate?
+							finalCropValue,		// How much is the remaining crop worth?
+							profit,				// Final crop value minus cost to plant.
+							mAngle				// The angle of the path edge.
+						]	
+					);
+					
+					// Update text reporting data about crops after walk.
+					mNumberEatenLabel.text		= "Plants Eaten = " + numberEaten;
+					mFinalCropValueLabel.text	= "Final Crop Value = " + usdFormatter.format(finalCropValue);
+					mProfitLabel.text			= "Profit = " + usdFormatter.format(profit);
+					
+					mCashSound.play(); // Play cash register sound after profit is calculated.
+					
+					mWalkNumber += 1;	// Increment walk counter.
+					
+					mNewGameButton.enabled = true;	// Enable button now that monster is through walking.
+					mAngleSlider.enabled = true;	// Enable slider now that monster is through walking.
+					
+					// Enable replant button if player changed angle during monster walk.
+					if (mMustReplant)
+						mReplantButton.enabled	= true;		
+				}
+			}
+
+			// onAngleChange() is called when the angle slider is used.
+			protected function onAngleChange(iEvent:Event):void
+			{
+				mAngle					= mAngleSlider.value;					// Set angle to reflect change.
+				mAngleSliderLabel.text	= 
+					"Path Edge Angle (" + mAngleSlider.value.toString() + "°)";	// Update label to reflect change.
+				
+				mNewGameButton.enabled		= false;	// Disable new walk button until field is replanted.
+				mMustReplant				= true;		// Set flag to replant.
+				mReplantLabel.visible		= true;		// Show warning label to replant.
+				mReplantArrowLabel.visible	= true;		// Show warning arrow to replant.
+				
+				// Enable replant button if monster is not in the middle of a walk.
+				if (!mTimer.running)	
+					mReplantButton.enabled	= true;		
+			}
+			
+			// onClickReplantField() is called when the replant field button is pressed.
+			protected function onClickReplantField(iEvent:MouseEvent):void
+			{
+				resetField();						// Reset field using current path edge angle.
+				mNewGameButton.enabled		= true;		// Enable new walk button.
+				mReplantButton.enabled		= false;	// Disable replant button until angle is changed.
+				mReplantLabel.visible		= false;	// Hide warning label to replant.
+				mReplantArrowLabel.visible	= false;	// Hide warning arrow to replant.
+				mMustReplant				= false;	// Turn off flag stating field must be replanted.
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<mx:CurrencyFormatter id="usdFormatter"				precision="0" 
+							  currencySymbol="$"			decimalSeparatorFrom="."
+							  decimalSeparatorTo="."		useNegativeSign="true" 
+							  useThousandsSeparator="true"	alignSymbol="left"/>
+	</fx:Declarations>
+	
+	<s:BorderContainer width="707" height="352" id="mFieldBorderContainer" skinClass="spark.skins.spark.BorderContainerSkin" backgroundColor="#89EF7F" y="67" x="50"/>
+	<s:Label x="230.15" y="11.75" text="CROP MONSTER" fontSize="48" fontStyle="italic" fontFamily="Courier New" fontWeight="bold" color="#633969"/>
+	<s:Button x="339" y="457" label="New Monster Walk" id="mNewGameButton" click="onClickNewGameButton(event)" chromeColor="#AC64B7" width="122" height="21" enabled="true"/>
+	<mx:HSlider x="71" y="423" id="mAngleSlider" minimum="0" maximum="45" height="47" value="0" change="onAngleChange(event)" tickInterval="10" labels="[0, 5, 10, 15, 20, 25, 30, 40, 45]" snapInterval="{kAngleSnapInterval}" liveDragging="true" allowTrackClick="true"/>
+	<s:Label x="72" y="474" text="Path Edge Angle" id="mAngleSliderLabel" width="159" textAlign="center"/>
+	<s:Label x="238" y="443" text="MUST REPLANT FIELD NOW!" id="mReplantLabel" width="85" textAlign="center" color="#41DF3D" fontWeight="bold" visible="false" height="38"/>
+	<s:Button x="339" y="425" label="Replant Field" width="122" chromeColor="#5F9C5B" id="mReplantButton" enabled="false" click="onClickReplantField(event)" height="21"/>
+	<s:Label x="543" y="467" text="Total Cost to Plant = " id="mPlantingCostLabel" color="#000000" fontSize="14"/>
+	<s:Label x="543" y="527" text="Final Crop Value = " id="mFinalCropValueLabel" fontSize="14" color="#000000"/>
+	<s:Label x="543" y="447" text="Number Planted = " id="mInitialPlantedLabel" fontSize="14" color="#000000"/>
+	<s:Label x="543" y="487" text="Plants Eaten = " fontSize="14" id="mNumberEatenLabel" color="#000000"/>
+	<s:Label x="543" y="556" text="Profit = " fontSize="20" color="#000000" id="mProfitLabel"/>
+	<s:Label x="543" y="427" text="Planting Cost for Each Plant = ${kPlantEachCost}" fontSize="14" color="#000000" id="mPlantingPriceEachLabel"/>
+	<s:Label x="543" y="507" text="Selling Price for Each Plant = ${kSellEachCost}" color="#000000" fontSize="14" id="mSellingPriceEachLabel"/>
+	<s:Label x="72" y="496" text="Your goal is to make the most profit from the crops you plant. A monster will walk through your field, randomly moving one step left or right at each forward step, eating plants as it goes. Widen or narrow the unplanted path by altering the angle to reduce the number of plants eaten, but remember, you can't make a profit if you don't plant anything!" width="458" height="95" id="mInstructionsLabel" fontSize="13" fontFamily="Verdana" fontWeight="bold" fontStyle="normal" color="#BEB5C7" textDecoration="none"/>
+	<s:Label x="313" y="425" text="→" fontWeight="bold" fontSize="20" color="#41DF3D" id="mReplantArrowLabel" visible="false"/>
+	<s:CheckBox x="473" y="457.5" label="Fast" id="mFastCheckBox" chromeColor="#E52974"/>
+	</s:Application>
