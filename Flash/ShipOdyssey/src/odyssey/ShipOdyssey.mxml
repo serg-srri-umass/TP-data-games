@@ -25,6 +25,7 @@
 			import common.ParkMiller;
 			
 			import mx.core.SoundAsset;
+			import mx.flash.UIMovieClip;
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
@@ -414,6 +415,7 @@
 			{
 				mHuntLevel = iLevel; // Set game level to input value.	
 				PopUpManager.removePopUp(mLevelWindow);
+				sailingMovie.doZoomIn();
 			}
 			
 			// firstHuntLevel() sets the current hunt level to the first level.
@@ -977,12 +979,25 @@
 			//*****NEW FUNCTIONS*****
 			
 			private var crane:MovieClip;
+			private var craneTest:CraneAnimation;
+			private var sailingMovie:MovieClip;
 			private var cHerder:MovieClip;
 			
 			private function initCrane():void{
+//				craneTest = new CraneAnimation();
+//				craneHolder.addChild(craneTest);
 				crane = CraneLoader.content as MovieClip;
-				crane.visible = true;
-				crane.runTo(mCenterPosition);
+				crane.visible = false;
+				//crane.runTo(mCenterPosition);
+			}
+			private function initBoat():void{
+				sailingMovie = BoatLoader.content as MovieClip;
+				sailingMovie.zoomTime = 48;
+				sailingMovie.ToyBoat.startSail();
+				var sailMask:Shape = new Shape();
+				sailMask.graphics.beginFill(0x000000);
+				sailMask.graphics.drawRect(59,95,395,286);
+				sailingMovie.mask = sailMask;
 			}
 			private function initClouds():void{
 				cHerder = CloudLoader.content as MovieClip;
@@ -1053,7 +1068,9 @@
 		<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="184" width="395" height="100" depth="3" />
 		
 	</s:BorderContainer>
+	<mx:UIComponent id="craneHolder" x="59" y="95"/>
 	<s:SWFLoader id="CraneLoader" x="59" y="95" width="395" height="286" source="assets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
+	<s:SWFLoader id="BoatLoader" x="59" y="95" width="395" height="286" source="assets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
 	<s:BorderContainer	id="mControlContainer" includeIn="TreasureHunt" x="12" y="12" width="576" height="76" backgroundColor="#A4AAB3">
 		<s:Label		id="mRatControlLabel" x="152" y="6" text="Rat Control" fontWeight="bold" color="#000000" fontFamily="Georgia" fontSize="16" fontStyle="normal"/>
 		<s:Label		id="mHookLabel" x="406" y="6" text="Grappling Hook" color="#000000" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
@@ -1102,5 +1119,4 @@
 	<s:Label id="mInSearchOfLabel" includeIn="TreasureHunt" x="275" y="302" text="In search of treasure #" backgroundAlpha="0.0" fontFamily="Times New Roman" fontStyle="italic" fontSize="14" color="#7CB3D0"/>
 	<s:Label id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="178" y="193" text="Ye found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000"/>
 	<s:Label id="mSomeTreasuresFoundLabel" x="178" y="229" text="Tho' ye did find 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="47" width="169" fontSize="18" textAlign="center" color="#000000" includeIn="TreasureHunt"/>
-	
 </s:Application>
