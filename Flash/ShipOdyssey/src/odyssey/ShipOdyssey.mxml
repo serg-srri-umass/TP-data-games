@@ -12,7 +12,7 @@
 			   pageTitle="Ship Odyssey" 
 			   currentState="StartPage" 
 			   backgroundColor.TreasureHunt="#294867"
-			   creationComplete="startUp( )">
+			   creationComplete="startUp()">
 	<fx:Style source="ShipOdyssey.css"/>
 
 	<fx:Script>
@@ -599,6 +599,7 @@
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent):void
 			{
+				crane.dropHook();
 				// Clear hint text next to pirate head.
 				mHintLabel.text = "";		
 				
@@ -805,6 +806,7 @@
 			// onClickSailOnButton() makes the ship set sail for the next treasure.
 			protected function onClickSailOnButton(iEvent:MouseEvent):void
 			{
+				sailOn();
 				mResultsFieldLabel.text	= "";	// Clear rat results.
 				mFirstRat				= true;	// Recount rats used per treasure.
 				
@@ -979,32 +981,65 @@
 			//*****NEW FUNCTIONS*****
 			
 			private var crane:MovieClip;
-			private var craneTest:CraneAnimation;
 			private var sailingMovie:MovieClip;
 			private var cHerder:MovieClip;
+			private var skyAreaMask:Shape;
+			private var sailMask:Shape;
+			private var craneMask:Shape;
 			
 			private function initCrane():void{
-//				craneTest = new CraneAnimation();
-//				craneHolder.addChild(craneTest);
 				crane = CraneLoader.content as MovieClip;
 				crane.visible = false;
+				craneMask = new Shape();
+				craneMask.graphics.beginFill(0x000000);
+				craneMask.graphics.drawRect(0,0,395,286);
+				uic.addChild(craneMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
+				crane.mask = craneMask;
 				//crane.runTo(mCenterPosition);
 			}
 			private function initBoat():void{
+				//load boat and set timer
 				sailingMovie = BoatLoader.content as MovieClip;
 				sailingMovie.zoomTime = 48;
-				sailingMovie.ToyBoat.startSail();
-				var sailMask:Shape = new Shape();
+				sailingMovie.finalX = -26;
+				sailingMovie.finalY = -122;
+				//set mask so zoom doesn't go outside box
+				sailMask = new Shape();
 				sailMask.graphics.beginFill(0x000000);
-				sailMask.graphics.drawRect(59,95,395,286);
+				sailMask.graphics.drawRect(0,0,395,286);
+				uic.addChild(sailMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
 				sailingMovie.mask = sailMask;
+				
+				//add listeners for the finish events of the zoom in and out
+				sailingMovie.addEventListener(ZoomEvent.IN, zoomInComplete);
+				sailingMovie.addEventListener(ZoomEvent.OUT, zoomOutComplete);
+				//start sailing
+				sailingMovie.ToyBoat.startSail();
+				
 			}
+			
+			private function sailOn():void{
+				crane.runTo(100);
+				sailingMovie.visible = true;
+				crane.visible = false;
+				sailingMovie.doZoomOut();
+			}
+			private function zoomInComplete(e:ZoomEvent):void{
+				crane.visible = true;
+				crane.runTo(mCenterPosition);
+				sailingMovie.visible = false;
+			}
+			private function zoomOutComplete(e:ZoomEvent):void{
+				
+			}
+			
 			private function initClouds():void{
 				cHerder = CloudLoader.content as MovieClip;
-				var mask:Shape = new Shape();
-				mask.graphics.beginFill(0x000000);
-				mask.graphics.drawRect(59,95,395,186);
-				cHerder.mask = mask;
+				skyAreaMask = new Shape();
+				skyAreaMask.graphics.beginFill(0x000000);
+				skyAreaMask.graphics.drawRect(0,0,395,186);
+				uic.addChild(skyAreaMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
+				cHerder.mask = skyAreaMask;
 				cHerder.init(5,395,0xDDDDDD);
 				cHerder.startClouds();
 			}
@@ -1039,6 +1074,7 @@
 			<s:GradientEntry color="0x002358" ratio=".33" alpha=".75"/>
 			<s:GradientEntry color="0x77787E" ratio=".66" alpha=".75"/>
 		</s:LinearGradient>
+		
 	</fx:Declarations>
 	
 	<mx:Image	id="mStartPageBackground" x="0" y="0" source="{mPirateShipImage}" includeIn="StartPage"/>
@@ -1066,9 +1102,8 @@
 			<s:SWFLoader id="CloudLoader" source="assets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
 		</s:BorderContainer>	
 		<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="184" width="395" height="100" depth="3" />
-		
 	</s:BorderContainer>
-	<mx:UIComponent id="craneHolder" x="59" y="95"/>
+	<mx:UIComponent id="uic" x="59" y="95"/>
 	<s:SWFLoader id="CraneLoader" x="59" y="95" width="395" height="286" source="assets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
 	<s:SWFLoader id="BoatLoader" x="59" y="95" width="395" height="286" source="assets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
 	<s:BorderContainer	id="mControlContainer" includeIn="TreasureHunt" x="12" y="12" width="576" height="76" backgroundColor="#A4AAB3">
