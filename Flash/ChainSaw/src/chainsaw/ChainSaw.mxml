@@ -92,6 +92,8 @@
 			private var mPiecesRejected:uint		= 0;	// Number of cut pieces rejected.
 			private var mPlayersName:String			= "Player"; // Stores player's name.
 			
+			private var currentCutStartPoint:Number; // Holds the starting position for each cut.
+			
 			// These arrays store the details of individual logs for access by all who need to know.
 			private var mLogDetails1:Array;
 			private var mLogDetails2:Array;
@@ -987,6 +989,8 @@
 					var offsetY:Number = e.localY - e.currentTarget.content.y;
 					e.currentTarget.content['logInMod'](offsetX, offsetY);
 					
+					currentCutStartPoint = e.localX; //save where the cut was started
+					
 					//prevent showing particles if player is cutting wrong side of log
 					if(e.currentTarget.content['canCutAt'](offsetX))
 						sawdustParticles['startParticleAnim']();
@@ -1012,6 +1016,8 @@
 				var offsetX:Number = e.localX - e.currentTarget.content.x;
 				var offsetY:Number = e.localY - e.currentTarget.content.y;
 				e.currentTarget.content['midLogMod'](offsetX,offsetY);
+				
+				if(Math.abs(e.localX - currentCutStartPoint) > 10) logUp(e); //checks to see how far the mouse has moved since beginning to cut
 			}
 
 			protected function updateVolume(vol:Number):void
