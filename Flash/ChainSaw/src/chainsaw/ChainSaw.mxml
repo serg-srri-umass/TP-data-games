@@ -140,17 +140,24 @@
 			[Bindable]
 			private var mVolumeIcon:Class;
 			
+			[Embed(source="../chainsaw_assets/Volume_half.png")]
+			[Bindable]
+			private var mHalfVolumeIcon:Class;
+			
+			[Embed(source="../chainsaw_assets/Volume_off.png")]
+			[Bindable]
+			private var mLowVolumeIcon:Class;
 			
 			/*
 			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
 			*/
-//			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
-			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
+//			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-//			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
-			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
+//			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 
@@ -1012,7 +1019,7 @@
 				var offsetY:Number = e.localY - e.currentTarget.content.y;
 				e.currentTarget.content['midLogMod'](offsetX,offsetY);
 				
-				if(Math.abs(e.localX - currentCutStartPoint) > 10) logUp(e); //checks to see how far the mouse has moved since beginning to cut
+				if(Math.abs(e.localX - currentCutStartPoint) > 20) logUp(e); //checks to see how far the mouse has moved since beginning to cut
 			}
 
 			protected function updateVolume(vol:Number):void
@@ -1021,6 +1028,15 @@
 				var st:SoundTransform = SoundMixer.soundTransform;
 				st.volume = vol/100; //changes range [0-100] (slider position) to [0-1] (volume level)
 				SoundMixer.soundTransform = st;
+				
+				//adjust the volume level icon
+				if(vol < 33){
+					mVolumeImage.source = mLowVolumeIcon;
+				} else if(vol > 66) {
+					mVolumeImage.source = mVolumeIcon;
+				} else {
+					mVolumeImage.source = mHalfVolumeIcon;
+				}
 			}
 		]]>
 	</fx:Script>
