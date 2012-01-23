@@ -31,7 +31,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "v. 12/14/11";// A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "v. 01/23/12"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -522,36 +522,6 @@
 				}
 			}
 			
-			// sub-function of endGame(), stops all game functions and enables regular UI items
-			private function doEndGameStop():void{
-				dynamicLog1.enabled = false;//disable all logs from being cut
-				dynamicLog2.enabled = false;
-				dynamicLog3.enabled = false;
-				dynamicLog4.enabled = false;
-				
-				mStatusLabelHolder.visible=true;//show all status labels
-				mArrowSprite.visible = false; //hide cut place arrow if it is shown
-				
-				mCutEdgeLeftLabel.visible = false; //hide cut edge labels
-				mCutEdgeRightLabel.visible = false;
-				
-				if (mGameLevel != kPracticeLevel)
-				{
-					mFuelTimer.stop();													// Stop fuel timer.
-					mFuelTimer.removeEventListener(TimerEvent.TIMER, timerListener);	// Stop listening.
-					flashGasTank['pauseDrop']();	//stop gas tank animation
-				}
-				
-				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
-				SoundMixer.stopAll();							// Stop all currently playing sounds
-				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
-				
-				mStartStopButton.label			= "Start";
-				
-				mChangeLevelButton.enabled		= true;
-				mPlayerTextInput.enabled		= true;
-			}
-			
 			// sub-fucntion of endGame() to create and check pieces from free cut level
 			private function checkFreeCuts():void{
 				// Stores individual pieces to be sorted by cut order in a second pass.
@@ -649,6 +619,61 @@
 				}
 			}
 			
+			// startGame() is called whenever the start button is pressed.
+			protected function startGame():void
+			{
+				mLastLog			= 0;	// Reset last cut log counter.
+				mCurrentLog			= 1;	// Reset log counter.
+				mLastCutX			= 0;	// Reset X position of most recent cut.
+				mPiecesAccepted		= 0;	// Reset number of cut pieces accepted.
+				mPiecesRejected		= 0;	// Reset number of cut pieces rejected.
+				mLeftToRight		= true;	// Begin cutting left to right.
+				mCutNumber			= 0;	// Reset cut number.
+				mArrowSprite.visible = true;
+				
+				mChainsawSound.play(0,int.MAX_VALUE); // start the chainsaw sound
+				
+				// Randomize log array, but not for first game, as it's already random.
+				if (!mFirstGame)
+				{
+					// Don't randomize if this was just done on level change.
+					if (mPrevLevel == mGameLevel)
+						randomizeLogSizePosition();
+				}
+				else	mFirstGame = false;
+				
+				clearGame(mGameLevel); // Clear any remnants of last game and reset game.
+				
+				mChangeLevelButton.enabled	= false;
+				mPlayerTextInput.enabled	= false;
+				mChainsawCursorID			= CursorManager.setCursor(mChainsawCursor, CursorManagerPriority.HIGH);
+				
+				if (mGameLevel != kFreeCutLevel)
+				{
+					mCutEdgeLeftLabel.visible = true;	//show cut edge labels
+					mCutEdgeRightLabel.visible = true;
+				}
+				
+				// Use timer to update the fuel level display and game duration.
+				if (mGameLevel != kPracticeLevel)
+				{
+					// Set game number since app launch when new game starts, not counting practice level).
+					++mGameNumber;
+					// Set up the fuel timer and visual gas tank
+					mFuelTimer.addEventListener(TimerEvent.TIMER, timerListener);
+					mFuelTimer.reset();	// Reset the timer to run until fuel runs out.
+					mFuelTimer.start(); // Start the timer, now that all variables are set up.
+					flashGasTank['initGasTank'](kTimeLimit * 24);
+					flashGasTank['startDrop']();
+				}
+				dynamicLog1.enabled = true;
+				if (mGameLevel == kFreeCutLevel){
+					dynamicLog2.enabled = true;
+					dynamicLog3.enabled = true;
+					dynamicLog4.enabled = true;
+					mArrowSprite.visible = false;
+				}
+			}
 			
 			// endGame() performs all operations necessary when game is complete.
 			protected function endGame():void
@@ -712,6 +737,36 @@
 				mPrevPieceNumber	= mPieceNumber;	// Track piece number at the end of the game.
 			}
 			
+			// sub-function of endGame(), stops all game functions and enables regular UI items
+			private function doEndGameStop():void{
+				dynamicLog1.enabled = false;//disable all logs from being cut
+				dynamicLog2.enabled = false;
+				dynamicLog3.enabled = false;
+				dynamicLog4.enabled = false;
+				
+				mStatusLabelHolder.visible=true;//show all status labels
+				mArrowSprite.visible = false; //hide cut place arrow if it is shown
+				
+				mCutEdgeLeftLabel.visible = false; //hide cut edge labels
+				mCutEdgeRightLabel.visible = false;
+				
+				if (mGameLevel != kPracticeLevel)
+				{
+					mFuelTimer.stop();													// Stop fuel timer.
+					mFuelTimer.removeEventListener(TimerEvent.TIMER, timerListener);	// Stop listening.
+					flashGasTank['pauseDrop']();	//stop gas tank animation
+				}
+				
+				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
+				SoundMixer.stopAll();							// Stop all currently playing sounds
+				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
+				
+				mStartStopButton.label			= "Start";
+				
+				mChangeLevelButton.enabled		= true;
+				mPlayerTextInput.enabled		= true;
+			}
+			
 			// timerListener() is called to update the fuel level display and game duration.
 			// now just updates the mFuelUsed
 			protected function timerListener(iEvent:TimerEvent):void
@@ -726,61 +781,7 @@
 				}				
 			}
 			
-			// onClickStartButton() is called whenever the start button is pressed.
-			protected function onClickStartButton(iEvent:MouseEvent):void
-			{
-				mLastLog			= 0;	// Reset last cut log counter.
-				mCurrentLog			= 1;	// Reset log counter.
-				mLastCutX			= 0;	// Reset X position of most recent cut.
-				mPiecesAccepted		= 0;	// Reset number of cut pieces accepted.
-				mPiecesRejected		= 0;	// Reset number of cut pieces rejected.
-				mLeftToRight		= true;	// Begin cutting left to right.
-				mCutNumber			= 0;	// Reset cut number.
-				mArrowSprite.visible = true;
-				
-				mChainsawSound.play(0,int.MAX_VALUE); // start the chainsaw sound
-				
-				// Randomize log array, but not for first game, as it's already random.
-				if (!mFirstGame)
-				{
-					// Don't randomize if this was just done on level change.
-					if (mPrevLevel == mGameLevel)
-						randomizeLogSizePosition();
-				}
-				else	mFirstGame = false;
-				
-				clearGame(mGameLevel); // Clear any remnants of last game and reset game.
-				
-				mChangeLevelButton.enabled	= false;
-				mPlayerTextInput.enabled	= false;
-				mChainsawCursorID			= CursorManager.setCursor(mChainsawCursor, CursorManagerPriority.HIGH);
-				
-				if (mGameLevel != kFreeCutLevel)
-				{
-					mCutEdgeLeftLabel.visible = true;	//show cut edge labels
-					mCutEdgeRightLabel.visible = true;
-				}
-				
-				// Use timer to update the fuel level display and game duration.
-				if (mGameLevel != kPracticeLevel)
-				{
-					// Set game number since app launch when new game starts, not counting practice level).
-					++mGameNumber;
-					// Set up the fuel timer and visual gas tank
-					mFuelTimer.addEventListener(TimerEvent.TIMER, timerListener);
-					mFuelTimer.reset();	// Reset the timer to run until fuel runs out.
-					mFuelTimer.start(); // Start the timer, now that all variables are set up.
-					flashGasTank['initGasTank'](kTimeLimit * 24);
-					flashGasTank['startDrop']();
-				}
-				dynamicLog1.enabled = true;
-				if (mGameLevel == kFreeCutLevel){
-					dynamicLog2.enabled = true;
-					dynamicLog3.enabled = true;
-					dynamicLog4.enabled = true;
-					mArrowSprite.visible = false;
-				}
-			}
+			
 			
 			// cutLogInOrder() performs all cutting operations when the passed in log is cut at 
 			// the x position being passed in. The x position is in the coordinate system of the log being cut.	
@@ -915,12 +916,6 @@
 			protected function onChangePlayerTextInput(iEvent:TextOperationEvent):void
 			{
 				mPlayersName = mPlayerTextInput.text;
-			}				
-
-			// Player has pressed the Stop button to end the game.
-			protected function onClickStopButton(iEvent:MouseEvent):void
-			{
-				endGame();
 			}
 			
 			// Player has pressed the Start/Stop button
@@ -928,12 +923,12 @@
 			{
 				if(mStartStopButton.label == "Stop")
 				{
-					onClickStopButton(event);
+					endGame();
 					mStartStopButton.label = "Start";
 				}
 				else
 				{
-					onClickStartButton(event);
+					startGame();
 					mStartStopButton.label = "Stop";
 				}
 			}
@@ -1035,12 +1030,8 @@
 	</fx:Declarations>
 	
 	<s:Label id="mVersionLabel" x="5" y="2" color="#669035" initialize="mVersionLabel.text=VERSION"/>
-	<!--
-	<s:Button id="mStartButton" x="16" y="23" width="90" height="29" label="Start" click="onClickStartButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
-	<s:Button id="mStopButton" x="134" y="23" width="90" height="29" label="Stop" click="onClickStopButton(event)" enabled="false" fontSize="14" fontWeight="bold"/>
-	-->
-	<s:Button id="mStartStopButton" x="134" y="23" width="90" height="29" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
 	
+	<s:Button id="mStartStopButton" x="134" y="23" width="90" height="29" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
 	<s:Button id="mChangeLevelButton" x="234" y="23" width="100" height="29" label="Change Level"
 			  chromeColor="#4E8E54" click="onClickChangeLevelButton(event)" enabled="true"
 			  fontSize="12" fontWeight="bold"/>
@@ -1052,7 +1043,7 @@
 		<s:Group			id="mStatusLabelHolder" x="0" y="0" width="597" height="324" visible="false"/>
 		<s:Label			id="mCutEdgeRightLabel" x="0" y="0" text="- Cut Log" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="left"/>
 		<s:Label			id="mCutEdgeLeftLabel" x="0" y="0" text="Cut Log -" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="right"/>
-		<s:Label 			x="-1" y="296" text="PRACTICE LEVEL" width="597" textAlign="center" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" fontStyle="normal" id="mLevelLabel" color="#1C7B56"/>
+		<s:Label 			id="mLevelLabel" x="-1" y="296" text="PRACTICE LEVEL" width="597" textAlign="center" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" fontStyle="normal" color="#1C7B56"/>
 	</s:BorderContainer>
 	
 	<s:BorderContainer id="UI_Elements" x="0" y="65" width="134" height="324" borderVisible="false">
