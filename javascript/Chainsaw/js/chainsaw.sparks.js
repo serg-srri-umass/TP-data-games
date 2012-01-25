@@ -3,7 +3,6 @@
  * @author: Dylan Pyle
  */
 
-/*jslint devel: true, browser: true, sloppy: true, plusplus: true, maxerr: 50, indent: 2 */
 
 /** Array Remove - By John Resig (MIT Licensed) */
 Array.prototype.remove = function (from, to) {
@@ -17,12 +16,12 @@ var Particle = function (x, y, paper, settings) {
   this.settings = settings;
   this.x = x;
   this.y = y;
-  this.velX = (Math.random() * 10) - 5;
-  this.velY = (Math.random() * 10) - 5;
+  this.velX = (Math.random() * this.settings.spread * 2) - this.settings.spread;
+  this.velY = (Math.random() * this.settings.spread * 2) - this.settings.spread;
   this.life = 0;
   this.raphaelEl = paper.circle(this.x, this.y, this.settings.radius);
   this.raphaelEl.attr({
-    'stroke-width': 0,
+    'stroke-opacity': 0,
     'fill': this.settings.color
   });
 };
@@ -30,12 +29,12 @@ var Particle = function (x, y, paper, settings) {
 Particle.prototype = {
   update: function () {
     this.life++;
-    /** If we've exceeded lifespan, remove particle */
+    // If we've exceeded lifespan, remove particle
     if (this.life > this.settings.lifespan) {
       this.destroy();
       return false;
     } else {
-      /** Update position and push to raphael */
+      // Update position and push to raphael
       this.velX *= this.settings.drag;
       this.velY *= this.settings.drag;
       this.velY += this.settings.gravity;
@@ -58,17 +57,14 @@ Particle.prototype = {
  * @param canvasEl The Raphael paper to draw particles upon
  */
 var Sparks = function (paper) {
+  /** Default particle settings. These can be changed on-the-fly without modifying this file. */
   this.settings = {
-    /** Particle color */
-    color: '#ffe1c1',
-    /** Particle radius */
-    radius: 1.2,
-    /** Particle gravity (added to y-velocity) */
-    gravity: 1,
-    /** Drag factor (between 0 and 1) */
-    drag: 0.9,
-    /** Number of loops to exist for */
-    lifespan: 100
+    color: '#ffe1c1', // Particle color
+    radius: 1.2,      // Particle radius
+    gravity: 1,       // Particle gravity (added to y-velocity)
+    drag: 0.9,        // Drag / "friction" factor (between 0 and 1)
+    spread: 5,        // Spread factor (max initial velocity)
+    lifespan: 100     // Number of loops to exist for
   };
   this.paper = paper;
   this.particles = [];

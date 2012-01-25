@@ -32,7 +32,7 @@ var ChainsawView = function(canvasEl){
     }.bind(this)),
     
     selectLevel: $('#levelChosen').click(function(e){
-      this.levelSelected($('input:radio[name=level]:checked').attr('id'));
+      this.levelSelected($('input:radio[name=level]:checked').attr('id'), $('input:radio[name=weight]:checked').attr('id'));
     }.bind(this)),
 
     mainMenu: $('.mainMenu').click(function(e){
@@ -62,7 +62,6 @@ var ChainsawView = function(canvasEl){
     infoLabel: $('#banner #info'),
     cutBeginArrow: null,
     cutDownArrow: null,
-    /** A Raphael set of elements to hold the 'Cut edge-' labels on either side of active logs */
     playerInput: $('#playername'),
     piecesaccepted: $('#piecesaccepted'),
     piecestotal: $('#piecestotal'),
@@ -101,6 +100,7 @@ var ChainsawView = function(canvasEl){
 
   this.gameInProgress = false;
   this.currentLevel = 'directional';
+  this.currentWeight = 'normal';
   
   /** Event listeners to be called by the Logic code */
   _bind('renderLog', function(e, log){ this.renderLog(log) }.bind(this));
@@ -125,6 +125,7 @@ ChainsawView.prototype = {
    * Clear the game window and all UI elements
    */
   clear: function(){
+    if(this.sparks && this.sparks.generating) this.sparks.stop();
     this.sparks = new Sparks(this.paper);
     this.labels.shadows.empty();
     this.labels.cutDownArrow = null;
@@ -137,8 +138,9 @@ ChainsawView.prototype = {
   /**
    * Handle level selection
    */
-  levelSelected: function(level){
+  levelSelected: function(level, weight){
     this.currentLevel = level;
+    this.currentWeight = weight;
     this.clear();
     /** Update labels */
     var playerName = this.labels.playerInput.val() || "Player";
@@ -147,7 +149,7 @@ ChainsawView.prototype = {
     this.labels.infoLabel.html(niceLevelName+" - "+playerName);
     this.buttons.start.removeAttr('disabled');
     this.dialogs.levelSelect.fadeOut(100);
-    _trigger('levelSelected', level);
+    _trigger('levelSelected', [level, weight]);
   },
 
 
@@ -206,7 +208,7 @@ ChainsawView.prototype = {
   tryAgain: function(){
     this.dialogs.results.fadeOut(200);
     this.canvasEl.parent().removeClass('transit');
-    this.levelSelected(this.currentLevel);
+    this.levelSelected(this.currentLevel, this.currentWeight);
   },
   
   /**
@@ -216,7 +218,9 @@ ChainsawView.prototype = {
    * @param wrong Number of incorrect cuts
    */
   showResults: function(right, wrong){
+    /* 'transit' is a class with associated CSS3 transforms */
     this.canvasEl.parent().addClass('transit');
+
     var percentCorrect = (right + wrong == 0 ? 0 : Math.round(right/(right+wrong) * 100));
     if(percentCorrect < 33){
       this.labels.howgood.html("Good try");
@@ -335,7 +339,7 @@ ChainsawView.prototype = {
     /**
      * Draw the end of the log
      */
-    var newLogEnd = this.paper.image('assets/Log End.png', log.x-6, log.y-1, 12, 36);
+    var newLogEnd = this.paper.image('assets/Log End.png', log.x-6, log.y-1, 12, log.height + 1);
 
     /**
      * Draw shadows using CSS box-shadow, due to poor support of Raphael's blur plugin
