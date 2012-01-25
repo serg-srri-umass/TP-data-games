@@ -13,12 +13,19 @@
   <script>
    "use strict";
    $(function(){
+<<<<<<< HEAD
      var chain = new Chainsaw($('#canvas')); 
+=======
+
+     chain = new Chainsaw($('#canvas')); 
+
+>>>>>>> 65092c6c58f832310d68ba2ab54fadf94086b603
    });
   </script>
   <link href="style.css" media="screen" rel="stylesheet" type="text/css" />
 </head>
 <body>
+<<<<<<< HEAD
   <div id='banner'>
     <span id='version'>Chainsaw build 11/30/2011</span>
     <img src='assets/Volume.png' alt='volume' id='mute' style='position:relative;top:2px;'/>
@@ -46,6 +53,45 @@
       <input type='button' data-level='practice' value='Practice'/>
       <input type='button' data-level='directional' value='Directional Cut' />
       <input type='button' data-level='free' value='Free Cut' />
+=======
+  <div id='overlay'>
+    <div id='levelselect'>
+
+      <h1>Chainsaw</h1>
+      <b>Chainsaw</b> is a game about cutting logs! <br />
+      Enter your name and choose a level to begin:
+      <input type='text' id='playername' placeholder='Player' />
+      
+      <input type='button' data-level='practice' value='Practice'/>
+      <input type='button' data-level='directional' value='Directional Cut' />
+      <input type='button' data-level='free' value='Free Cut' />
+
+    </div>
+  </div> 
+  <div id='container'> 
+    <div id='fuel'> 
+      Fuel level:
+      <ul id='labels'>
+        <li id='arrow'>&nbsp;</li> 
+        <li>40</li>
+        <li>30</li>
+        <li>20</li>
+        <li>10</li>
+        <li>0</li>
+      </ul>
+      <div id='tank'>
+        <div id='contents'>
+        
+        </div> 
+      </div>
+    </div>
+    
+    <div id='header'>
+      <h1>CHAINSAW</h1>
+      <input type='button' value='Start' id='startButton'>
+      Playing as <b id='username'>Player</b>. (<a class='changeLevel' href='#'>Change?</a>)
+      <a id='mute' href='#'>Mute audio</a>
+>>>>>>> 65092c6c58f832310d68ba2ab54fadf94086b603
     </div>
   </div>
 

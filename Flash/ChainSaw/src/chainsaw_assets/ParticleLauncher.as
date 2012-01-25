@@ -5,16 +5,19 @@
 	
 	public class ParticleLauncher extends MovieClip {
 		
-		protected var maxParticleCount:int;
-		protected var maxParticlesPerFrame:int = 10;
-		protected var pLife:int = 24; //in frames
-		protected var pWidth:Number = 1;
-		protected var pHeight:Number = 1;
-		protected var pColor:uint = 0xFFE1C1;
-		protected var currentlyEmitting:Boolean = false;
-		protected var pArray:Array = new Array();
-		protected var speckCount:int = 0;
-		protected var atMaxCapacity:Boolean;
+		private var maxParticleCount:int;
+		private var maxParticlesPerFrame:int = 10;
+		public var pLife:int = 24; //in frames
+		public var pWidth:Number = 1;
+		public var pHeight:Number = 1;
+		public var pColor:uint = 0xFFE1C1;
+		private var currentlyEmitting:Boolean = false;
+		private var pArray:Array = new Array();
+		public var speckCount:int = 0;
+		private var atMaxCapacity:Boolean;
+		public var useBlocks:Boolean = true;
+		public var Rotation:Number = 0;
+		public var RandomlyRotate:Boolean = false;
 
 
 		public function ParticleLauncher() {
@@ -27,7 +30,7 @@
 		}
 
 		public function startParticleAnim():void{
-			//trace("start Particle anim");
+			trace("start Particle anim");
 			this.addEventListener(Event.ENTER_FRAME, generateParticles);
 			currentlyEmitting = true;
 		}
@@ -45,7 +48,7 @@
 			while(parts < maxParticlesPerFrame){
 				if(speckCount < maxParticleCount && !atMaxCapacity){
 					//trace("particle " + parts);
-					speck = new Specks(pWidth, pHeight, pColor, pLife, true);
+					speck = new Specks( pWidth, pHeight, pColor, pLife, useBlocks, Rotation, RandomlyRotate);
 					pArray[speckCount] = speck;
 					addChild(speck);
 				}else{
@@ -55,15 +58,7 @@
 				}
 				speckCount++;
 				parts++;
-			}
-//			for(var i:int = 0; i<pArray.length; i++){
-//				if (!pArray[i].alive){
-//					//removeChild(pArray[i]);
-//					pArray = pArray.splice(i,1);
-//					i--;
-//				}
-//			}
-			
+			}			
 		}
 	}
 	

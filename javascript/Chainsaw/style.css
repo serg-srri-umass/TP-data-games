@@ -1,6 +1,10 @@
 body{
+<<<<<<< HEAD
   color: black;
   background-color: white;
+=======
+  color: #000;
+>>>>>>> 65092c6c58f832310d68ba2ab54fadf94086b603
   font: 400 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
   padding: 10px;
   margin: 0px;
@@ -39,6 +43,7 @@ input[type=button]:disabled, input[type=button][disabled=disabled]:active{
   border:1px solid #eee;
   color:#aaa;
 }
+<<<<<<< HEAD
 input[type=button]:active{
   background: -moz-linear-gradient(bottom, #f0f0f0 0%, #eee 40%, #E5E5E5 61%, #D8D8D8 100%);
   background: -webkit-linear-gradient(bottom, #f0f0f0 0%, #eee 40%, #E5E5E5 61%, #D8D8D8 100%);
@@ -72,6 +77,29 @@ input[type=button]:active{
   position: relative;
   border: 1px solid #888;
   border-radius: 5px;
+=======
+input[type=text]{
+  font-size:15px;
+  border:1px solid #bbb;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  padding:3px;
+}
+#container{
+  width:600px;   
+  z-index:100;
+  margin:20px;
+}
+#overlay{
+  width:100%;
+  background: rgba(255, 255, 255, 0.7);
+  height:100%;
+  position:absolute;
+  top:0px;
+  left:0px;
+  z-index:900;
+>>>>>>> 65092c6c58f832310d68ba2ab54fadf94086b603
 }
 
   input.action{
@@ -125,6 +153,10 @@ input[type=button]:active{
     border-radius: 3px;
     text-align: center;
   }
+<<<<<<< HEAD
+=======
+  #levelselect input[type=text]{ width:273px; margin-bottom:30px; text-align:center; }
+>>>>>>> 65092c6c58f832310d68ba2ab54fadf94086b603
 
     #splash img{ position: relative; top: 4px; }
 
@@ -136,6 +168,7 @@ input[type=button]:active{
     text-align: center;
     margin-top: 20px;
   }
+<<<<<<< HEAD
 
   #levelselect input[type=button]{
     width: 200px;
@@ -145,6 +178,16 @@ input[type=button]:active{
 
 #game{
   background-color: #fff;
+=======
+    #fuel #tank #contents{
+      width:80px;
+      height:100px;
+      background-color: #943634;
+      position:absolute;
+      bottom:0px;
+    }
+#header{
+>>>>>>> 65092c6c58f832310d68ba2ab54fadf94086b603
 
 }
 
