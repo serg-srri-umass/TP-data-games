@@ -32,7 +32,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "v. 01/25/12"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "v. 01/26/12"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -363,7 +363,7 @@
 				}
 			}
 			
-			// randomizeLogOrder() randomly resorts the logs in the log array.
+			// randomizeLogSizePosition() randomly resorts the logs in the log array.
 			protected function randomizeLogSizePosition():void
 			{
 				dynamicLog1.x = Math.random()*120+40;
@@ -702,7 +702,7 @@
 					if (mPrevLevel == mGameLevel)
 						randomizeLogSizePosition();
 				}
-				else	mFirstGame = false;
+				else mFirstGame = false;
 				
 				clearGame(mGameLevel); // Clear any remnants of last game and reset game.
 				
@@ -729,7 +729,7 @@
 					flashGasTank['startDrop']();
 				}
 				dynamicLog1.enabled = true;
-				if (mGameLevel == kFreeCutLevel){
+				if (mGameLevel >= kFreeCutLevel){
 					dynamicLog2.enabled = true;
 					dynamicLog3.enabled = true;
 					dynamicLog4.enabled = true;
@@ -1071,13 +1071,7 @@
 				}
 			}
 			//mouse over event for updating cut as they go through the log
-			protected function logMidLog(e:MouseEvent):void{
-//				sawdustParticles.x = e.stageX+10;
-//				sawdustParticles.y = e.stageY+10;
-//				var offsetX:Number = e.localX - e.currentTarget.content.x;
-//				var offsetY:Number = e.localY - e.currentTarget.content.y;
-//				e.currentTarget.content['midLogMod'](offsetX,offsetY);
-				
+			protected function logMidLog(e:MouseEvent):void{				
 				if (e.currentTarget.content.enabled){
 					var offsetX:Number = e.localX - e.currentTarget.content.x;
 					var offsetY:Number = e.localY - e.currentTarget.content.y;
