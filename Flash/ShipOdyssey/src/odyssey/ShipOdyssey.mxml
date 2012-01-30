@@ -64,7 +64,7 @@
 			private var mLevelWindow:TreasureHuntLevelWindow;// The modal window for choosing a treasure hunt level.
 			private var mHuntLevel:uint		= 0;			// Current hunt level.
 			private var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
-			private var mRatsLeft:uint		= kMaxRats;		// Rats left during current treasure hunt game.
+[Bindable]	private var mRatsLeft:uint		= kMaxRats;		// Rats left during current treasure hunt game.
 			private var mRatsToSend:uint	= kRatsToSend;	// Rats to send at one time.
 			private var mRandomNormal:ParkMiller;			// Class that creates a normal distribution.
 			private var mMathUtils:MathUtilities = new MathUtilities();			// Class that uses SRRI math functions.
@@ -113,33 +113,6 @@
 			private var mPirateShipImage:Class;
 			
 			// ********** TREASURE HUNT IMAGES **********
-			
-			// Embed the Treasure Hunt game play background.
-			// Ship is modified from http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010.
-			// From http://www.iheartvector.com/2009/02/28/pirate-ship-vector/
-			//   "Created by: IHeartVector"
-			//   "Description: Free pirate ship vector for your illustrations."
-			//   "License: Royalty free vector. Free to use in your personal and commercial designs."
-			//
-			// Fish hook is from http://www.4fishin.com/treble.htm/ on 3/7/2011.
-			// No copyright information found. This was a screenshot of fish hooks for sale.
-			[Embed(source="../assets/Daytime Ship on Ocean with Brown Axis.png")]
-			[Bindable]
-			private var mTreasureHuntImage:Class;
-			
-			// Embed the Treasure Hunt game play background - this time with a murky ocean.
-			// Ship is modified from http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010.
-			// From http://www.iheartvector.com/2009/02/28/pirate-ship-vector/
-			//   "Created by: IHeartVector"
-			//   "Description: Free pirate ship vector for your illustrations."
-			//   "License: Royalty free vector. Free to use in your personal and commercial designs."
-			//
-			// Fish hook is from http://www.4fishin.com/treble.htm/ on 3/7/2011.
-			// No copyright information found. This was a screenshot of fish hooks for sale.
-			// Ocean color modified in Photoshop CS5 on 9/9/2011.
-			[Embed(source="../assets/Daytime Ship on Murky Ocean.png")]
-			[Bindable]
-			private var mTreasureHuntMurkyImage:Class;
 			
 			// Embed the scroll paper in the Treasure Hunt game.
 			// Made this placeholder by hand, as original scroll came from a web site that 
@@ -306,6 +279,7 @@
 			// and prepares the game for play.
 			protected function initializeTreasureHunt():void
 			{
+				disableAllButtons();
 				mGameNumber 			+= 1;	// Count current game.
 				mEventNumber			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
 				mRatsSent				= 0;	// Reset number of rats sent.
@@ -339,8 +313,8 @@
 
 				// Set number of rats left to full amount.
 				mRatsLeft					= kMaxRats;	
-				mRatsLeftValueLabel.text 	= mRatsLeft.toString();
-				mRatProgressBar.setProgress(mRatsLeft, mRatProgressBar.maximum); 
+				//mRatsLeftValueLabel.text 	= mRatsLeft.toString();
+				//mRatProgressBar.setProgress(mRatsLeft, mRatProgressBar.maximum); 
 				
 				mRatStepper.maximum	= kMaxRats;	//Set maximum rats-to-send to the full number of rats.
 				mRatStepper.minimum	= kMinRats;	//Set minimum rats-to-send to default.
@@ -353,11 +327,11 @@
 				mHintLabel.text = kWelcomeText;		// Welcome the player.
 				
 				// Enable controls.
-				mStartHuntButton.enabled		= true;
-				mDropHookButton.enabled			= true;
-				mSendRatsButton.enabled			= true;
-				mCenterPositionStepper.enabled	= true;
-				mRatStepper.enabled				= true;
+				//mStartHuntButton.enabled		= true;
+				//mDropHookButton.enabled			= true;
+				//mSendRatsButton.enabled			= true;
+				//mCenterPositionStepper.enabled	= true;
+				//mRatStepper.enabled				= true;
 				
 				// Move hook to center of treasure area.
 				mCenterPosition				= kInitCenter;	
@@ -389,8 +363,8 @@
 				mTreasuresFoundLabel.visible	= false;
 				mSomeTreasuresFoundLabel.visible= false;
 				
-				mStartHuntButton.enabled	= false;	// Disable start button, as game has begun.
-				mSailOnButton.enabled		= true;		// Player can skip current treasure and sail to next.
+				//mStartHuntButton.enabled	= false;	// Disable start button, as game has begun.
+				//mSailOnButton.enabled		= true;		// Player can skip current treasure and sail to next.
 				
 				// Set days left to find treasure to full amount.
 				mDaysLeft					= kMaxDays;	
@@ -415,7 +389,9 @@
 			{
 				mHuntLevel = iLevel; // Set game level to input value.	
 				PopUpManager.removePopUp(mLevelWindow);
-				sailingMovie.doZoomIn();
+				
+				sailThenZoomIn();
+				//sailingMovie.doZoomIn();
 			}
 			
 			// firstHuntLevel() sets the current hunt level to the first level.
@@ -423,7 +399,7 @@
 			{
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				// Set background image and standard deviation that fit with game level.
-				mTreasureHuntGameArea.source	= mTreasureHuntImage;
+				//mTreasureHuntGameArea.source	= mTreasureHuntImage;
 				mStdDeviation					= kStdDeviationClear;
 				Water.fill = clearWater;
 				Sky.backgroundFill = daylight;
@@ -435,10 +411,12 @@
 			{
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				// Set background image and standard deviation that fit with game level.
-				mTreasureHuntGameArea.source	= mTreasureHuntMurkyImage;
+				//mTreasureHuntGameArea.source	= mTreasureHuntMurkyImage;
 				mStdDeviation					= kStdDeviationMurky;
 				Water.fill = murkyWater;
 				Sky.backgroundFill = darkDay;
+				cHerder.init(5,395,0x999999);
+				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelTwo); // Set game level to second level.
 			}
 			
@@ -486,8 +464,8 @@
 			protected function onClickStartHuntButton(iEvent:MouseEvent):void
 			{
 				// Disable Start button while game is in play.
-				mStartHuntButton.enabled	= false;
-				mSailOnButton.enabled		= true;		// Player can skip current treasure and sail to next.
+				//mStartHuntButton.enabled	= false;
+				//mSailOnButton.enabled		= true;		// Player can skip current treasure and sail to next.
 				initializeTreasureHunt();
 			}
 			
@@ -502,8 +480,8 @@
 				
 				// Calculate and display how many rats are left.
 				mRatsLeft -= mRatsToSend;	
-				mRatsLeftValueLabel.text = mRatsLeft.toString();
-				mRatProgressBar.setProgress(mRatsLeft, mRatProgressBar.maximum); 
+				//mRatsLeftValueLabel.text = mRatsLeft.toString();
+				//mRatProgressBar.setProgress(mRatsLeft, mRatProgressBar.maximum); 
 				
 				// Update the cumulative cost of rats sent and profit so far.
 				mRatCostSoFar		+= kCostPerRat * mRatsToSend;
@@ -665,7 +643,7 @@
 						// Player found final treasre. Disable treasure hunt controls.
 						mDropHookButton.enabled			= false;
 						mSendRatsButton.enabled			= false;
-						mStartHuntButton.enabled		= false;
+						//mStartHuntButton.enabled		= false;
 						mSailOnButton.enabled			= false;
 						mCenterPositionStepper.enabled	= false;
 						mRatStepper.enabled				= false;
@@ -748,7 +726,7 @@
 					mRatStepper.enabled				= false;
 					mSailOnButton.enabled			= false;
 					
-					mStartHuntButton.enabled	= true;	// Enable Start button to try again.
+					//mStartHuntButton.enabled	= true;	// Enable Start button to try again.
 					
 					// Tell the player that time ran out.
 					mTimeRanOutAlert.visible		= true;
@@ -814,12 +792,12 @@
 				if ((mCurrentTreasureNum + 1) >= kNumTreasures) // mCurrentTreasureNum is zero-based.
 				{
 					// Player stopped looking for treasures. Disable treasure hunt controls.
-					mDropHookButton.enabled			= false;
-					mSendRatsButton.enabled			= false;
-					mCenterPositionStepper.enabled	= false;
-					mRatStepper.enabled				= false;
-					mSailOnButton.enabled			= false;
-					mStartHuntButton.enabled		= false;
+					//mDropHookButton.enabled			= false;
+					//mSendRatsButton.enabled			= false;
+					//mCenterPositionStepper.enabled	= false;
+					//mRatStepper.enabled				= false;
+					//mSailOnButton.enabled			= false;
+					//mStartHuntButton.enabled		= false;
 					
 					// Tell the player the game is over.
 					if (mTreasuresFound) // At least one treasure was found.
@@ -829,12 +807,12 @@
 						mTreasuresFoundLabel.visible	= true;
 						
 						// Player sailed on having found treasure, knowingly ending the game. No restart.
-						mStartHuntButton.enabled		= false; 
+						//mStartHuntButton.enabled		= false; 
 					}
 					else // No treasures were found.
 					{
 						mNoTreasuresFoundAlert.visible	= true;
-						mStartHuntButton.enabled		= true; // Let player try again.
+						//mStartHuntButton.enabled		= true; // Let player try again.
 					}
 				
 					// Clear text saying which treasure is sought.
@@ -878,12 +856,12 @@
 						mDaysRemainingValue.text 	= mDaysLeft.toString();
 
 						// Player sailed on without enough time to next treasure. Disable treasure hunt controls.
-						mDropHookButton.enabled			= false;
-						mSendRatsButton.enabled			= false;
-						mCenterPositionStepper.enabled	= false;
-						mRatStepper.enabled				= false;
-						mSailOnButton.enabled			= false;
-						mStartHuntButton.enabled		= false;
+						//mDropHookButton.enabled			= false;
+						//mSendRatsButton.enabled			= false;
+						//mCenterPositionStepper.enabled	= false;
+						//mRatStepper.enabled				= false;
+						//mSailOnButton.enabled			= false;
+						//mStartHuntButton.enabled		= false;
 						
 						// Tell the player the game is over.
 						if (mTreasuresFound) // At least one treasure was found.
@@ -933,12 +911,12 @@
 						if (mDaysLeft < kDaysToDropHook)
 						{
 							// Player ran out of time or treasures. Disable treasure hunt controls.
-							mDropHookButton.enabled			= false;
-							mSendRatsButton.enabled			= false;
-							mCenterPositionStepper.enabled	= false;
-							mRatStepper.enabled				= false;
-							mSailOnButton.enabled			= false;
-							mStartHuntButton.enabled		= false;
+							//mDropHookButton.enabled			= false;
+							//mSendRatsButton.enabled			= false;
+							//mCenterPositionStepper.enabled	= false;
+							//mRatStepper.enabled				= false;
+							//mSailOnButton.enabled			= false;
+							//mStartHuntButton.enabled		= false;
 							
 							// Tell the player the game is over.
 							if (mTreasuresFound) // At least one treasure was found.
@@ -986,6 +964,7 @@
 			private var skyAreaMask:Shape;
 			private var sailMask:Shape;
 			private var craneMask:Shape;
+			private var sailTimer:Timer;
 			
 			private function initCrane():void{
 				crane = CraneLoader.content as MovieClip;
@@ -1015,22 +994,6 @@
 				sailingMovie.addEventListener(ZoomEvent.OUT, zoomOutComplete);
 				//start sailing
 				sailingMovie.ToyBoat.startSail();
-				
-			}
-			
-			private function sailOn():void{
-				crane.runTo(100);
-				sailingMovie.visible = true;
-				crane.visible = false;
-				sailingMovie.doZoomOut();
-			}
-			private function zoomInComplete(e:ZoomEvent):void{
-				crane.visible = true;
-				crane.runTo(mCenterPosition);
-				sailingMovie.visible = false;
-			}
-			private function zoomOutComplete(e:ZoomEvent):void{
-				
 			}
 			
 			private function initClouds():void{
@@ -1043,6 +1006,62 @@
 				cHerder.init(5,395,0xDDDDDD);
 				cHerder.startClouds();
 			}
+			
+			private function sailOn():void{
+				disableAllButtons();
+				sailTimer = new Timer(2000, 1);
+				sailTimer.addEventListener(TimerEvent.TIMER_COMPLETE, craneMove);
+				crane.runTo(100);
+				sailTimer.start();
+			}
+			private function craneMove(e:TimerEvent):void{
+				sailingMovie.visible = true;
+				crane.visible = false;
+				sailingMovie.doZoomOut();
+			}
+			private function zoomInComplete(e:ZoomEvent):void{
+				trace("ZoomInComplete");
+				crane.visible = true;
+				crane.runTo(mCenterPosition);
+				sailingMovie.visible = false;
+				enableAllButtons();
+			}
+			private function zoomOutComplete(e:ZoomEvent):void{
+				trace("zoomOutComplete");
+				sailThenZoomIn();
+			}
+			private function sailThenZoomIn():void{
+				cHerder.setCloudSpeed(.5);
+				sailTimer = new Timer(5000, 1);
+				sailTimer.addEventListener(TimerEvent.TIMER_COMPLETE, finishSail);
+				sailTimer.start();
+			}
+			private function finishSail(e:TimerEvent):void{
+				trace("timerFired");
+				sailTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, finishSail);
+				sailingMovie.doZoomIn();
+				cHerder.setCloudSpeed(1.0);
+			}
+			
+			//button control methods
+			private function disableAllButtons():void{
+				mDropHookButton.enabled = false;
+				mCenterPositionStepper.enabled = false;
+				mExitHuntButton.enabled = false;
+				mSailOnButton.enabled = false;
+				mRatStepper.enabled = false;
+				mSendRatsButton.enabled = false;
+			}
+			
+			private function enableAllButtons():void{
+				mDropHookButton.enabled = true;
+				mCenterPositionStepper.enabled = true;
+				mExitHuntButton.enabled = true;
+				mSailOnButton.enabled = true;
+				mRatStepper.enabled = true;
+				mSendRatsButton.enabled = true;
+			}
+			
 
 		]]>
 	</fx:Script>
@@ -1074,9 +1093,9 @@
 			<s:GradientEntry color="0x002358" ratio=".33" alpha=".75"/>
 			<s:GradientEntry color="0x77787E" ratio=".66" alpha=".75"/>
 		</s:LinearGradient>
-		
+		<s:SolidColorStroke id="separator" color="0x000000" weight="1"/>
 	</fx:Declarations>
-	
+	<!--Opening screen -->
 	<mx:Image	id="mStartPageBackground" x="0" y="0" source="{mPirateShipImage}" includeIn="StartPage"/>
 	<s:RichText	id="mGameTitle" x="10" y="10" text="Ship Odyssey" fontFamily="Georgia" fontSize="40" color="#908F17" fontWeight="normal" fontStyle="italic" includeIn="StartPage"/>
 	<s:Group	x="200" y="122" width="200" height="48" includeIn="StartPage">
@@ -1090,68 +1109,74 @@
 		</s:Rect>        
 		<s:Button	id="mTreasureHuntButton" x="10" y="10" label="Treasure Hunt" fontSize="24" fontStyle="italic" fontFamily="Georgia" height="28" click="switchToTreasureHunt(event)"/>
 	</s:Group>
-	<s:Button			id="mExitHuntButton" includeIn="TreasureHunt" x="511" y="424" label="Exit" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" enabled="true" click="onClickExitTreasureHunt(event)" width="75"/>
-	<s:Button			id="mSailOnButton" x="511" y="405" label="Sail On" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" enabled="true" click="onClickSailOnButton(event)" width="75" includeIn="TreasureHunt"/>
-	<s:Button			id="mStartHuntButton" includeIn="TreasureHunt" x="511" y="386" label="Start" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" enabled="true" width="75" click="onClickStartHuntButton(event)"/>
-	<s:Label			id="mTreasureHuntTitle" includeIn="TreasureHunt" x="16" y="326" text="Treasure Hunt" rotation="-90" fontSize="28" fontStyle="normal" color="#B4D5E6" fontFamily="Georgia"/>
 	
-	<mx:Image id="mTreasureHuntGameArea" includeIn="TreasureHunt" x="59" y="95" width="395"
-			  height="286" source="{mTreasureHuntImage}"/>
-	<s:BorderContainer	id="mGameArea" includeIn="TreasureHunt" x="59" y="95" width="395" height="286" backgroundColor="0x555555">
+	<!-- Treasure hunt game and interactive areas -->
+	<s:Label id="mTreasureHuntTitle" includeIn="TreasureHunt" x="5" y="4" width="163" color="#B4D5E6"
+			 fontFamily="Times New Roman" fontSize="12" fontStyle="normal" text="Treasure Hunt(FL) v.12.01.26"/> <!--yy.mm.dd format-->
+	<s:BorderContainer	id="mGameArea" includeIn="TreasureHunt" x="115" y="95" width="395" height="286" backgroundColor="0x555555">
 		<s:BorderContainer id="Sky" width="395" height="186" depth="1" backgroundFill="{daylight}" >
 			<s:SWFLoader id="CloudLoader" source="assets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
 		</s:BorderContainer>	
 		<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="184" width="395" height="100" depth="3" />
 	</s:BorderContainer>
-	<mx:UIComponent id="uic" x="59" y="95"/>
-	<s:SWFLoader id="CraneLoader" x="59" y="95" width="395" height="286" source="assets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
-	<s:SWFLoader id="BoatLoader" x="59" y="95" width="395" height="286" source="assets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
-	<s:BorderContainer	id="mControlContainer" includeIn="TreasureHunt" x="12" y="12" width="576" height="76" backgroundColor="#A4AAB3">
-		<s:Label		id="mRatControlLabel" x="152" y="6" text="Rat Control" fontWeight="bold" color="#000000" fontFamily="Georgia" fontSize="16" fontStyle="normal"/>
-		<s:Label		id="mHookLabel" x="406" y="6" text="Grappling Hook" color="#000000" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
-		<mx:ProgressBar id="mRatProgressBar" x="6" y="19.5" height="21" width="353" mode="manual" labelPlacement="left" label="Rats Remaining:" fontFamily="Georgia" minimum="0" maximum="{kMaxRats}"/>
-		<s:Label		id="mPositionLabel" x="400" y="28" text="Center Position:" fontFamily="Georgia" fontWeight="bold"/>
-		<s:Label		id="mRangeLabel" x="442" y="50" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
-		<s:Label  		id="mNumRatsLabel" x="1" y="42" text="# of Rats to Send:" fontFamily="Georgia" fontWeight="bold" height="27" width="60" textAlign="right"/>
-		<s:NumericStepper id="mRatStepper" x="65" y="43" minimum="{kMinRats}" maximum="{kMaxRats}" stepSize="1" contentBackgroundColor="#5081B4" height="23" change="onChangeRatStepper(event)" width="50"/>
-		<s:Button 		id="mSendRatsButton" x="118" y="43" label="Send Rats" height="23" click="onClickSendRatsButton(event)"/>
-		<s:BorderContainer x="199" y="42" width="155" height="25">
-			<s:Label 	id="mResultsFieldLabel" x="2" y="2" height="19" width="148" color="#9B1D79" lineBreak="explicit" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" textAlign="right"/>
-		</s:BorderContainer>
-		<s:Label 		id="mRatsLeftValueLabel" x="363" y="25" text="{kMaxRats}" fontWeight="bold" fontFamily="Georgia" color="#9B1D79"/>
-		<s:Label id="mRangeValueLabel" x="493" y="52" width="80" color="#9B1D79" fontFamily="Georgia"
-				 fontWeight="bold"/>
-		<mx:Image 		id="mResultsScroll" includeIn="TreasureHunt" x="445" y="82" source="{mScrollImage}" scaleContent="true" height="286" width="129"/>
-		<s:Button 		id="mDropHookButton" x="356" y="43" label="Drop Hook" width="80" height="23" fontSize="12" click="onClickDropHookButton(event)"/>
-		<s:NumericStepper id="mCenterPositionStepper" x="511" y="23" width="57" minimum="0" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
-	</s:BorderContainer>
+	<mx:UIComponent id="uic" x="115" y="95"/>
+	<s:SWFLoader id="CraneLoader" x="115" y="95" width="395" height="286" source="assets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
+	<s:SWFLoader id="BoatLoader" x="115" y="95" width="395" height="286" source="assets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
+
+	<!-- mostly Static Display items -->
 	<s:BorderContainer	id="mHintContainer" includeIn="TreasureHunt" x="59" y="388" width="444" height="50" cornerRadius="10" dropShadowVisible="false" borderWeight="2" borderColor="#000000">
 		<s:Label id="mHintLabel" x="8" y="7" text="{kWelcomeText}" width="424" height="32" color="#000000" fontFamily="Georgia" fontSize="14"/>
 	</s:BorderContainer>
-	<s:Label	id="mTreasureLabel" includeIn="TreasureHunt" x="490" y="105" text="Treasure" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal"/>
-	<s:Label	id="mTimeLabel" includeIn="TreasureHunt" x="501" y="277" text="Time" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal"/>
-	<s:Label	id="mDaysRemainingLabel" includeIn="TreasureHunt" x="480" y="329" text="Days Remaining" height="30" width="70" textAlign="center" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal"/>
-	<mx:Image	id="mMoneyBag0" x="485" y="123" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
-	<mx:Image	id="mMoneyBag1" x="517" y="123" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
-	<mx:Image	id="mMoneyBag2" x="485" y="158" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
-	<mx:Image	id="mMoneyBag3" x="517" y="158" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
-	<mx:Image	id="mMoneyBag4" x="485" y="193" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
-	<mx:Image	id="mMoneyBag5" x="517" y="193" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
-	<s:Label 	id="mDaysRemainingValue" includeIn="TreasureHunt" x="476" y="296" text="{kMaxDays}" fontSize="32" color="#A4804C" fontWeight="bold" fontStyle="normal" textAlign="center" width="78"/>
+	<s:BorderContainer 	id="mResultsBox" x="515" y="95" width="81" height="274" backgroundColor="#A4AAB3" includeIn="TreasureHunt"/>
+	<!--<mx:Image 		id="mResultsScroll" includeIn="TreasureHunt" x="511" y="95" source="{mScrollImage}" scaleContent="true" height="355" width="113"/>-->
+	<s:Label	id="mTreasureLabel" includeIn="TreasureHunt" x="530" y="105" text="Treasure" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal"/>
+	<s:Label	id="mTimeLabel" includeIn="TreasureHunt" x="541" y="277" text="Time" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal"/>
+	<s:Label	id="mDaysRemainingLabel" includeIn="TreasureHunt" x="520" y="329" text="Days Remaining" height="30" width="70" textAlign="center" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal"/>
+	<mx:Image	id="mMoneyBag0" x="525" y="123" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<mx:Image	id="mMoneyBag1" x="557" y="123" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<mx:Image	id="mMoneyBag2" x="525" y="158" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<mx:Image	id="mMoneyBag3" x="557" y="158" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<mx:Image	id="mMoneyBag4" x="525" y="193" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<mx:Image	id="mMoneyBag5" x="557" y="193" source="{mMoneyBagImage}" width="30" height="30" includeIn="TreasureHunt"/>
+	<s:Label 	id="mDaysRemainingValue" includeIn="TreasureHunt" x="516" y="296" text="{kMaxDays}" fontSize="32" color="#A4804C" fontWeight="bold" fontStyle="normal" textAlign="center" width="78"/>
 	<mx:Image	id="mAllTreasuresFoundAlert" includeIn="TreasureHunt" x="110" y="109" source="{mAllTreasuresFoundImage}"/>
 	<mx:Image	id="mTimeRanOutAlert" includeIn="TreasureHunt" x="110" y="109" source="{mTimeRanOutImage}"/>
 	<mx:Image	id="mCongratulationsAlert" includeIn="TreasureHunt" x="110" y="109" source="{mCongratulationsImage}"/>
-	<mx:Image	id="mNoTreasuresFoundAlert" includeIn="TreasureHunt" x="110" y="109" source="{mNoTreasuresFoundImage}"/>
+	<mx:Image	id="mNoTreasuresFoundAlert" includeIn="TreasureHunt" x="109" y="109" source="{mNoTreasuresFoundImage}"/>
 	
+	<!-- Game Treasure, profit, and days displays -->
 	<s:BorderContainer includeIn="TreasureHunt" x="9" y="388" width="46" height="50" borderWeight="2" cornerRadius="8" borderColor="#000000">
 		<mx:Image 	id="mPirateHead" includeIn="TreasureHunt" x="2" y="3" width="34" height="41" source="{mPirateHeadImage}"/>	
 	</s:BorderContainer>
-	<s:Label id="mAxis0" includeIn="TreasureHunt" x="64" y="350" text="0" color="#C9AB61"/>
-	<s:Label id="mAxis50" includeIn="TreasureHunt" x="252" y="350" text="50" color="#C9AB61"/>
-	<s:Label id="mAxis100" includeIn="TreasureHunt" x="430" y="350" text="100" color="#C9AB61"/>
-	<s:Label id="mProfitLabel" x="498" y="234" text="Profit" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal" includeIn="TreasureHunt"/>
-	<s:Label id="mProfitValue" x="476.5" y="254" text="$350,000" fontSize="15" color="#A4804C" fontWeight="bold" fontStyle="normal" includeIn="TreasureHunt" textAlign="center" height="14" width="78"/>
-	<s:Label id="mInSearchOfLabel" includeIn="TreasureHunt" x="275" y="302" text="In search of treasure #" backgroundAlpha="0.0" fontFamily="Times New Roman" fontStyle="italic" fontSize="14" color="#7CB3D0"/>
+	<s:Label id="mProfitLabel" x="538" y="234" text="Profit" color="#000000" fontWeight="normal" fontFamily="Georgia" fontSize="12" fontStyle="normal" includeIn="TreasureHunt"/>
+	<s:Label id="mProfitValue" x="516.5" y="254" text="$350,000" fontSize="15" color="#A4804C" fontWeight="bold" fontStyle="normal" includeIn="TreasureHunt" textAlign="center" height="14" width="78"/>
+	<s:Label id="mInSearchOfLabel" includeIn="TreasureHunt" x="205" y="99" text="In search of treasure #" backgroundAlpha="0.0" fontFamily="Times New Roman" fontStyle="italic" fontSize="14" color="#7CB3D0"/>
 	<s:Label id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="178" y="193" text="Ye found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000"/>
 	<s:Label id="mSomeTreasuresFoundLabel" x="178" y="229" text="Tho' ye did find 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="47" width="169" fontSize="18" textAlign="center" color="#000000" includeIn="TreasureHunt"/>
+	
+	<!-- Hook and Rat controls -->
+	<s:BorderContainer	id="mControlContainer" includeIn="TreasureHunt" x="191" y="15" width="230" height="76" backgroundColor="#A4AAB3">
+		<s:Label		id="mHookLabel" x="56" y="6" text="Grappling Hook" color="#000000" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
+		<s:Label		id="mPositionLabel" x="50" y="28" text="Center Position:" fontFamily="Georgia" fontWeight="bold"/>
+		<s:Label		id="mRangeLabel" x="8" y="50" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
+		<s:Label 		id="mRangeValueLabel" x="57" y="50" width="80" color="#9B1D79" fontFamily="Georgia" fontWeight="bold"/>
+		<s:Button 		id="mDropHookButton" x="142" y="49" label="Drop Hook" width="80" height="23" fontSize="12" click="onClickDropHookButton(event)"/>
+		<s:NumericStepper id="mCenterPositionStepper" x="161" y="23" width="57" minimum="0" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
+	</s:BorderContainer>
+	<s:Button			id="mExitHuntButton" includeIn="TreasureHunt" x="520" y="414" label="Exit" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" enabled="true" click="onClickExitTreasureHunt(event)" width="75"/>
+	<s:Button			id="mSailOnButton" x="520" y="395" label="Sail On" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" click="onClickSailOnButton(event)" width="75" includeIn="TreasureHunt"/>
+	<s:BorderContainer id="RatControls" includeIn="TreasureHunt" x="1" y="96" height="180" backgroundColor="#A4AAB3">
+		<s:Label id="mRatControlLabel" color="#000000" fontFamily="Georgia" fontSize="16" fontStyle="normal" fontWeight="bold" text="Rat Control" x="9" y="2" includeIn="TreasureHunt"/>
+		<s:Line stroke="{separator}" xFrom="0" xTo="100" y="17" />
+		<s:Label id="mRatRemainingLabel" width="99" height="21" fontFamily="Georgia" text="Rats Remaining:" x="8" y="22.5" includeIn="TreasureHunt"/>
+		<s:Label id="mRatsLeftValueLabel" color="#9B1D79" fontFamily="Georgia" fontWeight="bold" text="{mRatsLeft}" includeIn="TreasureHunt" x="19" y="39"/>
+		<s:Label id="mRatsLeftMax" includeIn="TreasureHunt" x="56" y="39" color="#9B1D79" fontFamily="Georgia" fontWeight="bold" text="/{kMaxRats}"/>
+		<s:Label id="mNumRatsLabel" width="60" height="27" fontFamily="Georgia" fontWeight="bold" text="# of Rats to Send:" textAlign="right" x="-1" y="64" includeIn="TreasureHunt"/>
+		<s:NumericStepper id="mRatStepper" width="50" height="23" change="onChangeRatStepper(event)" contentBackgroundColor="#5081B4" maximum="{kMaxRats}" minimum="{kMinRats}" stepSize="1" x="62" y="65" includeIn="TreasureHunt"/>
+		<s:Button id="mSendRatsButton" height="23" label="Send Rats" click="onClickSendRatsButton(event)" x="17" y="94" includeIn="TreasureHunt"/>
+		<s:Label id="mDiveResultsLabel" includeIn="TreasureHunt" x="5" y="123.5" width="99" height="19" fontFamily="Georgia" text="Dive Results:" textAlign="center"/>
+		<s:BorderContainer x="0" y="140" width="111" height="25" includeIn="TreasureHunt">
+			<s:Label 	id="mResultsFieldLabel" x="2" y="2" height="19" width="106" color="#9B1D79" lineBreak="explicit" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" textAlign="right"/>
+		</s:BorderContainer>	
+	</s:BorderContainer> 
 </s:Application>
