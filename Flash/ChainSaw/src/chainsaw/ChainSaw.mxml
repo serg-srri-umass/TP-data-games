@@ -32,7 +32,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.01.30"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "Chainsaw [F] 2012.01.31"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -1104,19 +1104,26 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
-	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30">
+	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xf0f0f0"/>
+				<s:GradientEntry color="0xd8d8d8"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		
 		<s:Label id="mLevelLabel" x="5" y="3" text="PRACTICE LEVEL" width="318" textAlign="left" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" fontStyle="normal" color="#669035"/>
 		
-		<s:Label id="mPlayersNameLabel" x="345" y="9" color="#7B9453" fontFamily="Arial" fontSize="16" fontWeight="bold" text="PLAYER'S NAME:" />
-		<s:TextInput id="mPlayerTextInput" x="485" y="1" width="114" change="onChangePlayerTextInput(event)" color="#7B9453" enabled="true"
+		<s:Label id="mPlayersNameLabel" x="280" y="9" color="#7B9453" fontFamily="Arial" fontSize="16" fontWeight="bold" text="Player's Name:" />
+		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput(event)" color="#7B9453" enabled="true"
 					 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
 		
 		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}"/>
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" maximum="100" value="100"/>
 	</s:BorderContainer>
-		
-	<s:Button id="mStartStopButton" x="20" y="47" width="100" height="29" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
-	<s:Button id="mChangeLevelButton" x="20" y="91" width="100" height="29" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
+	
+	<s:Button id="mStartStopButton" x="20" y="46" width="100" height="30" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
+	<s:Button id="mChangeLevelButton" x="20" y="86" width="100" height="30" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
 	
 	<s:BorderContainer id="mLogYardContainer" x="134" y="46" width="600" height="384" backgroundColor="#EAD1AA" borderVisible="false">
 		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLogTest.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)" mouseChildren="false"/>
@@ -1150,5 +1157,5 @@
 		<s:Label id="continue_msg" x="270" y="35" text="(Click anywhere to continue)"/>
 	</s:BorderContainer>
 	
-	<s:Label id="mVersionLabel" x="600" y="410" width="140" color="#669035" initialize="mVersionLabel.text=VERSION" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="600" y="410" width="140" color="#666666" initialize="mVersionLabel.text=VERSION" textAlign="right" verticalAlign="bottom"/>
 </s:Application>
