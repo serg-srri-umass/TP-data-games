@@ -3,8 +3,8 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   minWidth="745" minHeight="460" backgroundColor="#EAD1AA" creationComplete="startUp()"
-			   pageTitle="Chain Saw">
-
+			   pageTitle="Chain Saw" viewSourceURL="srcview/index.html">
+	
 	<fx:Script>
 		<![CDATA[
 			import chainsaw.GameLevelWindow;
@@ -76,7 +76,7 @@
 			// Used for drawing the down arrow.
 			private var mArrowSprite:SpriteVisualElement = new SpriteVisualElement();
 			private var mArrowBitmapData:BitmapData;
-
+			
 			private var mFirstGame:Boolean			= true;	// Used for initial operations.
 			private var mGameLevel:uint				= 3;	// Current game level. --init as 3 to force it to go through init loops in game select
 			private var mPrevLevel:uint				= 3;	// Used to track level changes.
@@ -125,7 +125,7 @@
 			// Converted from .ani format to .png.
 			[Embed(source="../chainsaw_assets/Chainsaw Cursor 2.png")]
 			private var mChainsawCursor:Class;
-
+			
 			// Embed the reference length image file.
 			[Embed(source="../chainsaw_assets/Reference Length 75 Pixels.png")]
 			[Bindable]
@@ -157,21 +157,21 @@
 			/*
 			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
 			*/
-//			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
+			//			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
 			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-//			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
+			//			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
 			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
-
+			
 			// startUp() is called when the creation of this class is complete
 			// and sets up necessary parameters for game initiation.
 			private	function startUp():void
 			{
-			
+				
 				// Arrays store individual cuts on each log for use in free cut levels.		
 				mLogDetails1 = new Array(dynamicLog1, null, new Array());
 				mLogDetails2 = new Array(dynamicLog2, null, new Array());
@@ -202,7 +202,7 @@
 				sawdustParticles.yOffset = 10;
 				sawdustParticles.pColor = 0xD4B077;
 				sawdustParticles.yFloor = 410;
-
+				
 				mLevelWindow = new GameLevelWindow();
 				levelSelected(kPracticeLevel);
 			}
@@ -250,7 +250,7 @@
 				mLevelWindow["mHeavyFreeCutButton"].addEventListener("click", heavyFreeCutLevel);
 				mLevelWindow["mMixedFreeCutButton"].addEventListener("click", mixedFreeCutLevel);
 			}
-					
+			
 			// practiceLevel() sets the current game level to practice.
 			private function practiceLevel(iEvent:Event):void 
 			{
@@ -457,7 +457,7 @@
 												 iPrevXCut:Number = 0,	// Cut before this cut or game end.
 												 iCutX:Number = 0,		// X cut location on log. 0 if end piece.
 												 iPieceNumber:uint = 0	// Piece number. If not 0, transmit this number instead of mPieceNumber.
-												):void
+			):void
 			{
 				var currentLog:MovieClip = mLogArray[iLogNumber-1][0] as MovieClip; // The current log
 				var log_length:Number = currentLog['LogLength']; // get the length of the current log
@@ -473,7 +473,7 @@
 				statusLabel.setStyle("fontSize", "16");
 				statusLabel.setStyle("antiAliasType", "normal");
 				statusLabel.setStyle("justificationStyle", "auto");
-					
+				
 				// Accept cut piece if it falls within accepted range.
 				var accepted:Boolean = (iLength >= kMinCutLength) && (iLength <= kMaxCutLength);
 				var remnant:Boolean;
@@ -483,7 +483,7 @@
 				if(!accepted)
 				{
 					remnant = false; // Initialize to false
-					 
+					
 					if(iIsEndPiece)
 					{
 						// if there is not enough room for two cuts at the (but more than one)
@@ -506,7 +506,7 @@
 						remnant = true;
 					}
 				}
-					
+				
 				// Keep track of how many cut pieces are accepted / rejected and set status label text.
 				if (accepted){
 					if (mGameLevel != kPracticeLevel)
@@ -542,11 +542,11 @@
 					// End piece or cutting along same log as at the last cut.
 					if (iIsEndPiece || (!iIsEndPiece && !iIsNewLog))
 						statusLabel.x = iPrevXCut + (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
-					// Cutting on new log.
+						// Cutting on new log.
 					else statusLabel.x = (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
 				}
 				else statusLabel.x = iCutX + (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
-
+				
 				//add statusLabel element to holder to be shown later
 				mStatusLabelHolder.addElement(statusLabel);
 				
@@ -625,7 +625,7 @@
 						
 						pieceStatusArray.push(pieceStatus);
 						prevCut = mLogArray[ii][2][j].mCutX;	// Save previous cut position.
-
+						
 						// Calculate the rightmost piece length, if it's the final cut.
 						if (j == (mLogArray[ii][2].length - 1))
 						{
@@ -744,7 +744,7 @@
 				if (mGameLevel >= kFreeCutLevel){
 					checkFreeCuts();
 				}
-				// Directional cut mode. Measure end piece if player has already started cutting current log and we run out of fuel
+					// Directional cut mode. Measure end piece if player has already started cutting current log and we run out of fuel
 				else if (mCurrentLog == mLastLog && mFuelUsed == kFuelCapacity)
 				{
 					// Calculate distance from end of log in the direction player was cutting.
@@ -772,8 +772,8 @@
 				if (mGameLevel != kPracticeLevel)
 				{
 					var gameCollectionName:String	
-						= (mGameLevel >= kFreeCutLevel) ? kCollectionFreeCutGames : kCollectionDirCutGames;
-						
+					= (mGameLevel >= kFreeCutLevel) ? kCollectionFreeCutGames : kCollectionDirCutGames;
+					
 					// Send info on games to TinkerPlots/Fathom.
 					ScriptInterface.AddCaseToCollectionWithValues(
 						//gameCollectionName, //**Tristan
@@ -795,7 +795,7 @@
 				
 				mResultsOverlay.visible		= true;								// Display the results Overlay
 				mAcceptedPiecesValue.text	= mPiecesAccepted.toString();		// Update the number of accepted pieces.
-
+				
 				mFuelLeftValue.text			= fuelLeftAmount.toString() +" ("+ fuelLeftPercent.toFixed();		// Update the percentage of fuel left.
 				mFuelLeftValue.text = mFuelLeftValue.text.replace(/\.\d*/,"") + "%)"; // remove the decimal point and trailing digits, then append '%'
 				
@@ -960,7 +960,7 @@
 			protected function cutLogFreely(	iLog:MovieClip, 
 												iLocalX:Number,
 												iTopToBottom:Boolean = true
-											):void
+			):void
 			{
 				// Don't cut if chainsaw is not running and we're not in practice mode.
 				var iLogNumber:int = iLog['getLogNum']();
@@ -969,7 +969,7 @@
 					if (!mFuelTimer.running)
 						return;
 				}
-
+				
 				++mCutNumber;	// Increment cut number.
 				// Add X position of cut and fuel used to log's cut list.
 				var cutAndFuelUsed:FuelUsedAtCut = new FuelUsedAtCut(iLocalX, mFuelUsed, mCutNumber);
@@ -996,13 +996,13 @@
 					mStartStopButton.label = "Stop";
 				}
 			}
-
+			
 			// onClickChangeLevelButton() allows the user to change the game level.
 			protected function onClickChangeLevelButton(event:MouseEvent):void
 			{
 				chooseGameLevel();
 			}
-
+			
 			//initialize Tristan's gas tank SWF
 			protected function initGasTank():void{
 				flashGasTank = mFuelIcon.content as MovieClip;
@@ -1042,9 +1042,9 @@
 			//mouse in event on currently enabled log
 			protected function logIn(e:MouseEvent):void{
 				if(e.buttonDown && e.currentTarget.content.enabled){
-
-//					sawdustParticles.x = e.stageX+10; //TODO REMOVE
-//					sawdustParticles.y = e.stageY+10;
+					
+					//					sawdustParticles.x = e.stageX+10; //TODO REMOVE
+					//					sawdustParticles.y = e.stageY+10;
 					
 					var offsetX:Number = e.localX - e.currentTarget.content.x;
 					var offsetY:Number = e.localY - e.currentTarget.content.y;
@@ -1080,7 +1080,7 @@
 				
 				if(Math.abs(e.localX - currentCutStartPoint) > 20) logUp(e); //checks to see how far the mouse has moved since beginning to cut
 			}
-
+			
 			protected function updateVolume(vol:Number):void
 			{
 				//cannot do: SoundMixer.soundTransform.volume = vol/100;
@@ -1099,7 +1099,7 @@
 			}
 		]]>
 	</fx:Script>
-
+	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
