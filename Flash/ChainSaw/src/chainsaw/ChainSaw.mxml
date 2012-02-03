@@ -32,7 +32,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.01.31"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "Chainsaw [F] 2012.02.03"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -73,9 +73,11 @@
 			// Create a timer to update the fuel level display and game duration.
 			private var mFuelTimer:Timer = new Timer(kUpdateInterval, kTotalUpdates);
 			
-			// Used for drawing the down arrow.
-			private var mArrowSprite:SpriteVisualElement = new SpriteVisualElement();
-			private var mArrowBitmapData:BitmapData;
+			// The down arrow.
+			private var mArrowSprite:EnhancedSprite = new EnhancedSprite();
+			
+			private var mCutRightSprite:EnhancedSprite = new EnhancedSprite();
+			private var mCutLeftSprite:EnhancedSprite = new EnhancedSprite();
 			
 			private var mFirstGame:Boolean			= true;	// Used for initial operations.
 			private var mGameLevel:uint				= 3;	// Current game level. --init as 3 to force it to go through init loops in game select
@@ -141,6 +143,15 @@
 			[Bindable]
 			private var mDownArrowImage:Class;
 			
+			[Embed(source="../chainsaw_assets/Cut From Here Right.png")]
+			[Bindable]
+			private var mCutRightArrow:Class;
+			
+			[Embed(source="../chainsaw_assets/Cut From Here Left.png")]
+			[Bindable]
+			private var mCutLeftArrow:Class;
+
+			
 			// Embed volume icon
 			[Embed(source="../chainsaw_assets/Volume.png")]
 			[Bindable]
@@ -181,15 +192,18 @@
 				// Create new log array and add log/logtop to array.
 				mLogArray = new Array(mLogDetails1, mLogDetails2, mLogDetails3, mLogDetails4);
 				
-				// Load and draw the bitmap of the cut location arrow.
-				mArrowBitmapData = new mDownArrowImage().bitmapData;
-				mArrowSprite.blendMode = "multiply";
-				mArrowSprite.graphics.clear();
-				mArrowSprite.graphics.beginBitmapFill(mArrowBitmapData);
-				mArrowSprite.graphics.drawRect(0, 0, mArrowBitmapData.width, mArrowBitmapData.height);
-				mArrowSprite.graphics.endFill();
+				// Load and draw the cut location arrow.
+				mArrowSprite.loadImage(mDownArrowImage);
 				mArrowSprite.visible = false;
 				mLogYardContainer.addElement(mArrowSprite);
+				
+				mCutRightSprite.loadImage(mCutRightArrow);
+				mCutRightSprite.visible = false;
+				mLogYardContainer.addElement(mCutRightSprite);
+				
+				mCutLeftSprite.loadImage(mCutLeftArrow);
+				mCutLeftSprite.visible = false;
+				mLogYardContainer.addElement(mCutLeftSprite);
 				
 				// Randomize log array.
 				randomizeLogSizePosition();
@@ -216,6 +230,12 @@
 				mCutEdgeLeftLabel.y		= mLogArray[0][0].y + kCutEdgeLeftYOffset;
 				mCutEdgeRightLabel.x	= mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
 				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
+				
+				mCutRightSprite.x = mLogArray[0][0].x + kCutEdgeLeftXOffset;
+				mCutRightSprite.y = mLogArray[0][0].y + kCutEdgeLeftYOffset;
+				mCutLeftSprite.x = mLogArray[0][0].x + mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
+				mCutLeftSprite.y = mLogArray[0][0].y + kCutEdgeLeftYOffset;
+				
 				// remove all Status Labels from the holder and hide the holder
 				mStatusLabelHolder.visible = false;
 				mStatusLabelHolder.removeAllElements();
@@ -333,6 +353,8 @@
 						mCutEdgeLeftLabel.visible	= false; // Hide left "Cut Edge" label.
 						mCutEdgeRightLabel.visible	= false; // Hide right "Cut Edge" label.
 						mArrowSprite.visible		= false; // Hide cut location arrow.
+						mCutRightSprite.visible		= false; 
+						mCutLeftSprite.visible		= false; 
 						
 						if (!mFreeCutCollectionCreated) //create collection for free cut if not already created
 						{
@@ -349,7 +371,9 @@
 						
 						mCutEdgeLeftLabel.visible	= true;	// Show left "Cut Edge" label.
 						mCutEdgeRightLabel.visible	= true; // Show right "Cut Edge" label.
-						mArrowSprite.visible		= true; // Show cut location arrow.
+						mArrowSprite.visible		= false; // Show cut location arrow.
+						mCutRightSprite.visible		= true;
+						mCutLeftSprite.visible		= false;
 						
 						if (!mDirCutCollectionCreated) //create collection for directional cut if not already created
 						{
@@ -388,8 +412,13 @@
 				mCutEdgeRightLabel.x	= mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
 				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
 				
-				mArrowSprite.x = mLogArray[0][0].x - mArrowBitmapData.width + 5;	// Start with arrow pointing at left edge of first log.
-				mArrowSprite.y = mLogArray[0][0].y - (mArrowBitmapData.height+2);	// Start at top edge of first log.
+				mCutRightSprite.x = mLogArray[0][0].x + kCutEdgeLeftXOffset;
+				mCutRightSprite.y = mLogArray[0][0].y + kCutEdgeLeftYOffset;
+				mCutLeftSprite.x = mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
+				mCutLeftSprite.y = mLogArray[0][0].y + kCutEdgeLeftYOffset;
+				
+				mArrowSprite.x = mLogArray[0][0].x - mArrowSprite.getWidth() + 5;	// Start with arrow pointing at left edge of first log.
+				mArrowSprite.y = mLogArray[0][0].y - (mArrowSprite.getHeight()+2);	// Start at top edge of first log.
 			}
 			
 			/**
@@ -714,6 +743,9 @@
 				{
 					mCutEdgeLeftLabel.visible = true;	//show cut edge labels
 					mCutEdgeRightLabel.visible = true;
+					
+					mCutRightSprite.visible = true;
+					mCutLeftSprite.visible = true;
 				}
 				
 				// Use timer to update the fuel level display and game duration.
@@ -816,6 +848,9 @@
 				mCutEdgeLeftLabel.visible = false; //hide cut edge labels
 				mCutEdgeRightLabel.visible = false;
 				
+				mCutRightSprite.visible = false;
+				mCutLeftSprite.visible = false;
+				
 				if (mGameLevel != kPracticeLevel)
 				{
 					mFuelTimer.stop();													// Stop fuel timer.
@@ -857,7 +892,7 @@
 				// Don't cut if chainsaw is not running and we're not in practice mode.
 				if (mGameLevel != kPracticeLevel && !mFuelTimer.running)return;
 				
-				var newArrowXPosition:Number = iLog.x + iLocalX - (0.75*mArrowBitmapData.width);
+				var newArrowXPosition:Number = iLog.x + iLocalX - (0.75*mArrowSprite.getWidth());
 				
 				//get info from the log we are cutting
 				iNextLog = iLog['getNextLog']();
@@ -887,16 +922,23 @@
 							iLog.enabled		= false;// Stop further cuts on this log.
 							iNextLog.enabled	= true;	// Enable cuts on this log.
 							
-							mArrowSprite.y = iNextLog.y - mArrowBitmapData.height - 3;	// Start at top edge of next log.
-							mArrowSprite.x = iNextLog.x - mArrowBitmapData.width + 3;	// Start with arrow pointing at left edge of next log.
-							if (iNextLog['getCutDirection']()<0)
-								mArrowSprite.x = iNextLog.width+iNextLog.x - (mArrowBitmapData.width) - 5;	// Move to right end of log if just cut left to right.
+							mArrowSprite.y = iNextLog.y - mArrowSprite.getHeight() - 3;	// Start at top edge of next log.
+							mArrowSprite.x = iNextLog.x - mArrowSprite.getWidth() + 3;	// Start with arrow pointing at left edge of next log.
+//							mArrowSprite.visible = false;
+							if (iNextLog['getCutDirection']()<0){
+								mArrowSprite.x = iNextLog.width+iNextLog.x - (mArrowSprite.getWidth()) - 5;	// Move to right end of log if just cut left to right.
+							}
 							
 							// Move "Cut Edge" labels to next log.
 							mCutEdgeLeftLabel.x		= iNextLog.x + kCutEdgeLeftXOffset;
 							mCutEdgeLeftLabel.y		= iNextLog.y + kCutEdgeLeftYOffset;
 							mCutEdgeRightLabel.x	= iNextLog.x + iNextLog.width + kCutEdgeRightXOffset;
 							mCutEdgeRightLabel.y	= iNextLog.y + kCutEdgeRightYOffset;
+							
+							mCutRightSprite.x	= iNextLog.x + kCutEdgeLeftXOffset;
+							mCutRightSprite.y	= iNextLog.y + kCutEdgeLeftYOffset;
+							mCutLeftSprite.x	= iNextLog.x + iNextLog.width + kCutEdgeRightXOffset;
+							mCutLeftSprite.y	= iNextLog.y + kCutEdgeRightYOffset;
 							
 							++mCurrentLog;				// Increment the current log counter.
 						}
@@ -1159,3 +1201,4 @@
 	
 	<s:Label id="mVersionLabel" x="600" y="410" width="140" color="#666666" initialize="mVersionLabel.text=VERSION" textAlign="right" verticalAlign="bottom"/>
 </s:Application>
+
