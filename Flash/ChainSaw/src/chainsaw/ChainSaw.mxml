@@ -411,12 +411,12 @@
 				mCutEdgeLeftLabel.y		= mLogArray[0][0].y + kCutEdgeLeftYOffset;
 				mCutEdgeRightLabel.x	= mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
 				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
-				
+
 				mCutRightSprite.x = mLogArray[0][0].x + kCutEdgeLeftXOffset;
 				mCutRightSprite.y = mLogArray[0][0].y + kCutEdgeLeftYOffset;
 				mCutLeftSprite.x = mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
 				mCutLeftSprite.y = mLogArray[0][0].y + kCutEdgeLeftYOffset;
-				
+
 				mArrowSprite.x = mLogArray[0][0].x - mArrowSprite.getWidth() + 5;	// Start with arrow pointing at left edge of first log.
 				mArrowSprite.y = mLogArray[0][0].y - (mArrowSprite.getHeight()+2);	// Start at top edge of first log.
 			}
