@@ -32,7 +32,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.02.03"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "Chainsaw [F] 2012.02.06"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -75,7 +75,6 @@
 			
 			// The down arrow.
 			private var mArrowSprite:EnhancedSprite = new EnhancedSprite();
-			
 			private var mCutRightSprite:EnhancedSprite = new EnhancedSprite();
 			private var mCutLeftSprite:EnhancedSprite = new EnhancedSprite();
 			
@@ -225,16 +224,8 @@
 			// the previous game, if any.
 			private function clearGame(iNewGameLevel:uint):void
 			{
-				// Move "Cut Edge" labels to first log.
-				mCutEdgeLeftLabel.x		= mLogArray[0][0].x + kCutEdgeLeftXOffset;
-				mCutEdgeLeftLabel.y		= mLogArray[0][0].y + kCutEdgeLeftYOffset;
-				mCutEdgeRightLabel.x	= mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
-				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
-				
-				mCutRightSprite.x = mLogArray[0][0].x + kCutEdgeLeftXOffset;
-				mCutRightSprite.y = mLogArray[0][0].y + kCutEdgeLeftYOffset;
-				mCutLeftSprite.x = mLogArray[0][0].x + mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
-				mCutLeftSprite.y = mLogArray[0][0].y + kCutEdgeLeftYOffset;
+				// Move direction arrow sprites to first log				
+				resetArrowSprites();
 				
 				// remove all Status Labels from the holder and hide the holder
 				mStatusLabelHolder.visible = false;
@@ -350,8 +341,6 @@
 						dynamicLog3['init'](0,dynamicLog4);
 						dynamicLog4['init'](0,null);
 						
-						mCutEdgeLeftLabel.visible	= false; // Hide left "Cut Edge" label.
-						mCutEdgeRightLabel.visible	= false; // Hide right "Cut Edge" label.
 						mArrowSprite.visible		= false; // Hide cut location arrow.
 						mCutRightSprite.visible		= false; 
 						mCutLeftSprite.visible		= false; 
@@ -368,9 +357,7 @@
 						dynamicLog2['init'](-1,dynamicLog3); // cut direction 1=LtoR, -1=RtoL, 0 = free
 						dynamicLog3['init'](1,dynamicLog4);
 						dynamicLog4['init'](-1,null);
-						
-						mCutEdgeLeftLabel.visible	= true;	// Show left "Cut Edge" label.
-						mCutEdgeRightLabel.visible	= true; // Show right "Cut Edge" label.
+
 						mArrowSprite.visible		= false; // Show cut location arrow.
 						mCutRightSprite.visible		= true;
 						mCutLeftSprite.visible		= false;
@@ -406,19 +393,20 @@
 				dynamicLog4.y = 305;
 				dynamicLog4['drawNewLog'](pickLogLength());
 				
-				// Move "Cut Edge" labels to first log.
-				mCutEdgeLeftLabel.x		= mLogArray[0][0].x + kCutEdgeLeftXOffset;
-				mCutEdgeLeftLabel.y		= mLogArray[0][0].y + kCutEdgeLeftYOffset;
-				mCutEdgeRightLabel.x	= mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
-				mCutEdgeRightLabel.y	= mLogArray[0][0].y + kCutEdgeRightYOffset;
-
-				mCutRightSprite.x = mLogArray[0][0].x + kCutEdgeLeftXOffset;
-				mCutRightSprite.y = mLogArray[0][0].y + kCutEdgeLeftYOffset;
-				mCutLeftSprite.x = mLogArray[0][0].x + mLogArray[0][0].width + kCutEdgeRightXOffset;
-				mCutLeftSprite.y = mLogArray[0][0].y + kCutEdgeLeftYOffset;
+				// Move direction arrow sprites to first log
+				resetArrowSprites();
 
 				mArrowSprite.x = mLogArray[0][0].x - mArrowSprite.getWidth() + 5;	// Start with arrow pointing at left edge of first log.
 				mArrowSprite.y = mLogArray[0][0].y - (mArrowSprite.getHeight()+2);	// Start at top edge of first log.
+			}
+			
+			private function resetArrowSprites():void
+			{
+				// Move direction arrow sprites to first log				
+				mCutRightSprite.x = mLogArray[0][0].x - 58;
+				mCutRightSprite.y = mLogArray[0][0].y - 30;
+				mCutLeftSprite.x = mLogArray[0][0].x + mLogArray[0][0].width;
+				mCutLeftSprite.y = mLogArray[0][0].y - 30;
 			}
 			
 			/**
@@ -720,7 +708,7 @@
 				mPiecesRejected		= 0;	// Reset number of cut pieces rejected.
 				mLeftToRight		= true;	// Begin cutting left to right.
 				mCutNumber			= 0;	// Reset cut number.
-				mArrowSprite.visible = true;
+//				mArrowSprite.visible = true;
 				
 				mChainsawSound.play(0,int.MAX_VALUE); // start the chainsaw sound
 				
@@ -739,13 +727,10 @@
 				mPlayerTextInput.enabled	= false;
 				mChainsawCursorID			= CursorManager.setCursor(mChainsawCursor, CursorManagerPriority.HIGH);
 				
-				if (mGameLevel != kFreeCutLevel)
+				if (mGameLevel < kFreeCutLevel)
 				{
-					mCutEdgeLeftLabel.visible = true;	//show cut edge labels
-					mCutEdgeRightLabel.visible = true;
-					
-					mCutRightSprite.visible = true;
-					mCutLeftSprite.visible = true;
+					mCutRightSprite.visible = true; //display direction arrow
+					mCutLeftSprite.visible = false;
 				}
 				
 				// Use timer to update the fuel level display and game duration.
@@ -843,11 +828,8 @@
 				dynamicLog4.enabled = false;
 				
 				mStatusLabelHolder.visible=true;//show all status labels
+				
 				mArrowSprite.visible = false; //hide cut place arrow if it is shown
-				
-				mCutEdgeLeftLabel.visible = false; //hide cut edge labels
-				mCutEdgeRightLabel.visible = false;
-				
 				mCutRightSprite.visible = false;
 				mCutLeftSprite.visible = false;
 				
@@ -929,19 +911,27 @@
 								mArrowSprite.x = iNextLog.width+iNextLog.x - (mArrowSprite.getWidth()) - 5;	// Move to right end of log if just cut left to right.
 							}
 							
-							// Move "Cut Edge" labels to next log.
-							mCutEdgeLeftLabel.x		= iNextLog.x + kCutEdgeLeftXOffset;
-							mCutEdgeLeftLabel.y		= iNextLog.y + kCutEdgeLeftYOffset;
-							mCutEdgeRightLabel.x	= iNextLog.x + iNextLog.width + kCutEdgeRightXOffset;
-							mCutEdgeRightLabel.y	= iNextLog.y + kCutEdgeRightYOffset;
+							mArrowSprite.visible = false;
 							
-							mCutRightSprite.x	= iNextLog.x + kCutEdgeLeftXOffset;
-							mCutRightSprite.y	= iNextLog.y + kCutEdgeLeftYOffset;
+							// Move arrows to next log.
+							mCutRightSprite.x	= iNextLog.x - 58;
+							mCutRightSprite.y	= iNextLog.y - 30;
 							mCutLeftSprite.x	= iNextLog.x + iNextLog.width + kCutEdgeRightXOffset;
-							mCutLeftSprite.y	= iNextLog.y + kCutEdgeRightYOffset;
+							mCutLeftSprite.y	= iNextLog.y - 30;
 							
-							++mCurrentLog;				// Increment the current log counter.
+							//make the appropriate cut direction arrow display
+							var b:Boolean = iLeftToRight<0;
+							mCutRightSprite.visible = b ? true : false;
+							mCutLeftSprite.visible = b ? false : true;
+							
+							++mCurrentLog; // Increment the current log counter.
 						}
+					}
+					else
+					{
+						mArrowSprite.visible	= true;
+						mCutRightSprite.visible	= false;
+						mCutLeftSprite.visible	= false;
 					}
 					
 					var pieceLength:Number	= 0; // Length of piece player has just cut (in pixels).
@@ -1173,8 +1163,6 @@
 		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLogTest.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:SWFLoader		id="mDynamicLog4" x="-5" y="0" source="chainsaw_assets/DynamicLogTest.swf" complete="initLog4()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:Group			id="mStatusLabelHolder" x="0" y="0" width="597" height="324" visible="false"/>
-		<s:Label			id="mCutEdgeRightLabel" x="0" y="0" text="- Cut Log" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="left"/>
-		<s:Label			id="mCutEdgeLeftLabel" x="0" y="0" text="Cut Log -" width="60" height="15" fontSize="11" fontWeight="normal" textAlign="right"/>
 	</s:BorderContainer>
 	
 	<s:BorderContainer id="UI_Elements" x="0" y="156" width="134" height="274" backgroundColor="#EAD1AA" borderVisible="false">
