@@ -1,0 +1,6 @@
+Change Log Chainsaw [Flash]
+Version 2012.02.09
+
+changes:
+-now using the same cut direction arrows as the js version
+-'changelog.txt' added
