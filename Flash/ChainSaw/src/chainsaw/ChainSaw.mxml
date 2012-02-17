@@ -3,7 +3,7 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   minWidth="745" minHeight="460" backgroundColor="#EAD1AA" creationComplete="startUp()"
-			   pageTitle="Chain Saw" viewSourceURL="srcview/index.html">
+			   pageTitle="Chain Saw">
 	
 	<fx:Script>
 		<![CDATA[
@@ -32,7 +32,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.02.09"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "Chainsaw [F] 2012.02.15"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -117,6 +117,9 @@
 			// Holds cut number beginning at 1 for cuts made in free cut levels.
 			private var mCutNumber:uint				= 0;
 			
+			// An array that keeps track of the cuts
+			private var mCutsArray:Array = new Array();
+			
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
 			// Converted from .ani format to .png.
@@ -163,12 +166,12 @@
 			/*
 			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
 			*/
-			//			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
+//			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
 			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-			//			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
+//			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
 			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
@@ -213,7 +216,8 @@
 				sawdustParticles.yFloor = 410;
 				
 				mLevelWindow = new GameLevelWindow();
-				levelSelected(kPracticeLevel);
+//				levelSelected(kPracticeLevel);
+				levelSelected(kFreeCutLevel); //Start in free cut mode
 			}
 			
 			// clearGame() resets the game according to the current level and clears remnants of
@@ -597,6 +601,158 @@
 				}
 			}
 			
+			// startGame() is called whenever the start button is pressed.
+			protected function startGame():void
+			{
+				mLastLog			= 0;	// Reset last cut log counter.
+				mCurrentLog			= 1;	// Reset log counter.
+				mLastCutX			= 0;	// Reset X position of most recent cut.
+				mPiecesAccepted		= 0;	// Reset number of cut pieces accepted.
+				mPiecesRejected		= 0;	// Reset number of cut pieces rejected.
+				mLeftToRight		= true;	// Begin cutting left to right.
+				mCutNumber			= 0;	// Reset cut number.
+				
+				mChainsawSound.play(0,int.MAX_VALUE); // start the chainsaw sound
+				
+				// Randomize log array, but not for first game, as it's already random.
+				if (!mFirstGame)
+				{
+					// Don't randomize if this was just done on level change.
+					if (mPrevLevel == mGameLevel)
+						randomizeLogSizePosition();
+				}
+				else mFirstGame = false;
+				
+				clearGame(mGameLevel); // Clear any remnants of last game and reset game.
+				
+				mChangeLevelButton.enabled	= false;
+				mPlayerTextInput.enabled	= false;
+				mChainsawCursorID			= CursorManager.setCursor(mChainsawCursor, CursorManagerPriority.HIGH);
+				
+				if (mGameLevel < kFreeCutLevel)
+				{
+					mCutRightSprite.visible = true; //display direction arrow
+					mCutLeftSprite.visible = false;
+				}
+				
+				// Use timer to update the fuel level display and game duration.
+				if (mGameLevel != kPracticeLevel)
+				{
+					// Set game number since app launch when new game starts, not counting practice level).
+					++mGameNumber;
+					// Set up the fuel timer and visual gas tank
+					mFuelTimer.addEventListener(TimerEvent.TIMER, timerListener);
+					mFuelTimer.reset();	// Reset the timer to run until fuel runs out.
+					mFuelTimer.start(); // Start the timer, now that all variables are set up.
+					flashGasTank['initGasTank'](kTimeLimit * 24);
+					flashGasTank['startDrop']();
+				}
+				dynamicLog1.enabled = true;
+				if (mGameLevel >= kFreeCutLevel){
+					dynamicLog2.enabled = true;
+					dynamicLog3.enabled = true;
+					dynamicLog4.enabled = true;
+					mArrowSprite.visible = false;
+				}
+			}
+			
+			// endGame() performs all operations necessary when game is complete.
+			protected function endGame():void
+			{
+				doEndGameStop();
+				if (mGameLevel >= kFreeCutLevel){
+					checkFreeCuts();
+					determineCutStyle();
+				}
+					// Directional cut mode. Measure end piece if player has already started cutting current log and we run out of fuel
+				else if (mCurrentLog == mLastLog && mFuelUsed == kFuelCapacity)
+				{
+					// Calculate distance from end of log in the direction player was cutting.
+					// mCurrentLog begins at 1. Array index begins at 0.
+					var woodRemaining:Number	= mLeftToRight? mLogArray[mCurrentLog-1][0].width - mLastCutX -10 : mLastCutX;
+					var isEndPiece:Boolean		= true;
+					
+					// Evaluate the piece's acceptance status and record the outcome by setting a 
+					// visual marker on each log and also transmit the info to Fathom/TinkerPlots.
+					recordPieceStatus(	
+						woodRemaining, 			// Piece length
+						mCurrentLog, 			// Number of log ( 1 is at top).
+						isEndPiece, 			// True if end piece.
+						mLeftToRight, 			// True if cutting left to right.
+						mCurrentLog != mLastLog,// True if measuring on new log for first time.
+						mFuelUsed,				// Raw fuel used at the time of piece creation.
+						mLastCutX);				// X cut location on log. 0 if end piece.
+				}
+				
+				var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates);
+				var fuelLeftAmount:Number	= fuelLeftFraction * kFuelCapacity;
+				var fuelLeftPercent:Number	= fuelLeftFraction * 100;
+				
+				//send game information to TinkerPlots/Fathom
+				if (mGameLevel != kPracticeLevel)
+				{
+					var gameCollectionName:String	
+					= (mGameLevel >= kFreeCutLevel) ? kCollectionFreeCutGames : kCollectionDirCutGames;
+					
+					// Send info on games to TinkerPlots/Fathom.
+					ScriptInterface.AddCaseToCollectionWithValues(
+						//gameCollectionName, //**Tristan
+						"Games",
+						[
+							mGameNumber,		// Game number starting with 1 since launch of application.
+							gameCollectionName,	// Game Type
+							mPlayersName,		// Name of the player.
+							mPiecesAccepted,	// Number of pieces accepted.
+							mPiecesRejected,	// Number of pieces rejected.
+							mPiecesShort,		// Number of pieces rejected as short.
+							mPiecesLong,		// Number of pieces rejected as long.
+							mPiecesRemnant,		// Number of pieces rejected as remnant.
+							fuelLeftAmount,		// Raw amount of fuel left.
+							fuelLeftPercent		// Percent of fuel left.
+						]	
+					);
+				}
+				
+				mResultsOverlay.visible		= true;								// Display the results Overlay
+				mAcceptedPiecesValue.text	= mPiecesAccepted.toString();		// Update the number of accepted pieces.
+				
+				mFuelLeftValue.text	= fuelLeftAmount.toString() +" ("+ fuelLeftPercent.toFixed();		// Update the percentage of fuel left.
+				mFuelLeftValue.text = mFuelLeftValue.text.replace(/\.\d*/,"") + "%)"; // remove the decimal point and trailing digits, then append '%'
+				
+				mPrevLevel 			= mGameLevel;	// Track game level change.
+				mPrevPieceNumber	= mPieceNumber;	// Track piece number at the end of the game.
+			}
+			
+			// sub-function of endGame(), stops all game functions and enables regular UI items
+			private function doEndGameStop():void{
+				dynamicLog1.enabled = false;//disable all logs from being cut
+				dynamicLog2.enabled = false;
+				dynamicLog3.enabled = false;
+				dynamicLog4.enabled = false;
+				
+				mStatusLabelHolder.visible=true;//show all status labels
+				
+				mArrowSprite.visible = false; //hide cut place arrow if it is shown
+				mCutRightSprite.visible = false;
+				mCutLeftSprite.visible = false;
+				
+				if (mGameLevel != kPracticeLevel)
+				{
+					mFuelTimer.stop();													// Stop fuel timer.
+					mFuelTimer.removeEventListener(TimerEvent.TIMER, timerListener);	// Stop listening.
+					flashGasTank['pauseDrop']();	//stop gas tank animation
+				}
+				
+				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
+				SoundMixer.stopAll();							// Stop all currently playing sounds
+				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
+				
+				mStartStopButton.label			= "Start";
+				
+				mChangeLevelButton.enabled		= true;
+				mPlayerTextInput.enabled		= true;
+			}
+			
 			// sub-fucntion of endGame() to create and check pieces from free cut level
 			private function checkFreeCuts():void{
 				// Stores individual pieces to be sorted by cut order in a second pass.
@@ -694,155 +850,64 @@
 				}
 			}
 			
-			// startGame() is called whenever the start button is pressed.
-			protected function startGame():void
+			/**
+			 * Guesses the cut style of the player using data stored in CutProperties objects,
+			 * created after each cut. Only matters for Free Cut levels.
+			 * @author Ryan
+			 */
+			private function determineCutStyle():void
 			{
-				mLastLog			= 0;	// Reset last cut log counter.
-				mCurrentLog			= 1;	// Reset log counter.
-				mLastCutX			= 0;	// Reset X position of most recent cut.
-				mPiecesAccepted		= 0;	// Reset number of cut pieces accepted.
-				mPiecesRejected		= 0;	// Reset number of cut pieces rejected.
-				mLeftToRight		= true;	// Begin cutting left to right.
-				mCutNumber			= 0;	// Reset cut number.
+				var style:String = "OTHER";
+//				mCutsArray.sort(CutProperties.compare, Array.RETURNINDEXEDARRAY | Array.CASEINSENSITIVE);
+				if(mCutsArray.length <= 1) return;
 				
-				mChainsawSound.play(0,int.MAX_VALUE); // start the chainsaw sound
-				
-				// Randomize log array, but not for first game, as it's already random.
-				if (!mFirstGame)
-				{
-					// Don't randomize if this was just done on level change.
-					if (mPrevLevel == mGameLevel)
-						randomizeLogSizePosition();
-				}
-				else mFirstGame = false;
-				
-				clearGame(mGameLevel); // Clear any remnants of last game and reset game.
-				
-				mChangeLevelButton.enabled	= false;
-				mPlayerTextInput.enabled	= false;
-				mChainsawCursorID			= CursorManager.setCursor(mChainsawCursor, CursorManagerPriority.HIGH);
-				
-				if (mGameLevel < kFreeCutLevel)
-				{
-					mCutRightSprite.visible = true; //display direction arrow
-					mCutLeftSprite.visible = false;
-				}
-				
-				// Use timer to update the fuel level display and game duration.
-				if (mGameLevel != kPracticeLevel)
-				{
-					// Set game number since app launch when new game starts, not counting practice level).
-					++mGameNumber;
-					// Set up the fuel timer and visual gas tank
-					mFuelTimer.addEventListener(TimerEvent.TIMER, timerListener);
-					mFuelTimer.reset();	// Reset the timer to run until fuel runs out.
-					mFuelTimer.start(); // Start the timer, now that all variables are set up.
-					flashGasTank['initGasTank'](kTimeLimit * 24);
-					flashGasTank['startDrop']();
-				}
-				dynamicLog1.enabled = true;
-				if (mGameLevel >= kFreeCutLevel){
-					dynamicLog2.enabled = true;
-					dynamicLog3.enabled = true;
-					dynamicLog4.enabled = true;
-					mArrowSprite.visible = false;
-				}
-			}
-			
-			// endGame() performs all operations necessary when game is complete.
-			protected function endGame():void
-			{
-				doEndGameStop();
-				if (mGameLevel >= kFreeCutLevel){
-					checkFreeCuts();
-				}
-					// Directional cut mode. Measure end piece if player has already started cutting current log and we run out of fuel
-				else if (mCurrentLog == mLastLog && mFuelUsed == kFuelCapacity)
-				{
-					// Calculate distance from end of log in the direction player was cutting.
-					// mCurrentLog begins at 1. Array index begins at 0.
-					var woodRemaining:Number	= mLeftToRight? mLogArray[mCurrentLog-1][0].width - mLastCutX -10 : mLastCutX;
-					var isEndPiece:Boolean		= true;
+				//First: check to see if the first two cuts are on the same log
+				if(mCutsArray[0].log == mCutsArray[1].log){
+					//If they are, do this
+					//possible styles: directional, inverse directional, outside to center?
 					
-					// Evaluate the piece's acceptance status and record the outcome by setting a 
-					// visual marker on each log and also transmit the info to Fathom/TinkerPlots.
-					recordPieceStatus(	
-						woodRemaining, 			// Piece length
-						mCurrentLog, 			// Number of log ( 1 is at top).
-						isEndPiece, 			// True if end piece.
-						mLeftToRight, 			// True if cutting left to right.
-						mCurrentLog != mLastLog,// True if measuring on new log for first time.
-						mFuelUsed,				// Raw fuel used at the time of piece creation.
-						mLastCutX);				// X cut location on log. 0 if end piece.
+					if(CutProperties.checkOutterToInner(mCutsArray)) style = "outter to inner";
+					else if(CutProperties.checkDirectional(mCutsArray)) style = "directional";
+
+				} else {
+					//If they are not, do this
+					//possible styles: vertical
+					if(CutProperties.checkVertical(mCutsArray)) style = "vertical";
 				}
 				
-				var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates);
-				var fuelLeftAmount:Number	= fuelLeftFraction * kFuelCapacity;
-				var fuelLeftPercent:Number	= fuelLeftFraction * 100;
+				//If the style does not match any known styles, classify it as 'Other'
 				
-				//send game information to TinkerPlots/Fathom
-				if (mGameLevel != kPracticeLevel)
+				
+				
+		/*
+				var elem:CutProperties = mCutsArray[0];
+				var firstLog:int = elem.log;
+				
+				var index:int;
+				for (index=0; elem.log == firstLog; index++)
 				{
-					var gameCollectionName:String	
-					= (mGameLevel >= kFreeCutLevel) ? kCollectionFreeCutGames : kCollectionDirCutGames;
-					
-					// Send info on games to TinkerPlots/Fathom.
-					ScriptInterface.AddCaseToCollectionWithValues(
-						//gameCollectionName, //**Tristan
-						"Games",
-						[
-							mGameNumber,		// Game number starting with 1 since launch of application.
-							gameCollectionName,	// Game Type
-							mPlayersName,		// Name of the player.
-							mPiecesAccepted,	// Number of pieces accepted.
-							mPiecesRejected,	// Number of pieces rejected.
-							mPiecesShort,		// Number of pieces rejected as short.
-							mPiecesLong,		// Number of pieces rejected as long.
-							mPiecesRemnant,		// Number of pieces rejected as remnant.
-							fuelLeftAmount,		// Raw amount of fuel left.
-							fuelLeftPercent		// Percent of fuel left.
-						]	
-					);
+					elem = mCutsArray[index];
 				}
-				
-				mResultsOverlay.visible		= true;								// Display the results Overlay
-				mAcceptedPiecesValue.text	= mPiecesAccepted.toString();		// Update the number of accepted pieces.
-				
-				mFuelLeftValue.text			= fuelLeftAmount.toString() +" ("+ fuelLeftPercent.toFixed();		// Update the percentage of fuel left.
-				mFuelLeftValue.text = mFuelLeftValue.text.replace(/\.\d*/,"") + "%)"; // remove the decimal point and trailing digits, then append '%'
-				
-				mPrevLevel 			= mGameLevel;	// Track game level change.
-				mPrevPieceNumber	= mPieceNumber;	// Track piece number at the end of the game.
-			}
-			
-			// sub-function of endGame(), stops all game functions and enables regular UI items
-			private function doEndGameStop():void{
-				dynamicLog1.enabled = false;//disable all logs from being cut
-				dynamicLog2.enabled = false;
-				dynamicLog3.enabled = false;
-				dynamicLog4.enabled = false;
-				
-				mStatusLabelHolder.visible=true;//show all status labels
-				
-				mArrowSprite.visible = false; //hide cut place arrow if it is shown
-				mCutRightSprite.visible = false;
-				mCutLeftSprite.visible = false;
-				
-				if (mGameLevel != kPracticeLevel)
+				for (firstLog=elem.log ; elem.log == firstLog; index++)
 				{
-					mFuelTimer.stop();													// Stop fuel timer.
-					mFuelTimer.removeEventListener(TimerEvent.TIMER, timerListener);	// Stop listening.
-					flashGasTank['pauseDrop']();	//stop gas tank animation
+					elem = mCutsArray[index];
+				}
+				for (firstLog=elem.log ; elem.log == firstLog; index++)
+				{
+					elem = mCutsArray[index];
+				}
+				for (firstLog=elem.log ; elem.log == firstLog; index++)
+				{
+					elem = mCutsArray[index];
+				}
+		*/
+				
+				//Temp! - need to clear out array each time
+				while(mCutsArray.length>0){
+					mCutsArray.pop();
 				}
 				
-				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
-				SoundMixer.stopAll();							// Stop all currently playing sounds
-				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
-				
-				mStartStopButton.label			= "Start";
-				
-				mChangeLevelButton.enabled		= true;
-				mPlayerTextInput.enabled		= true;
+				mCutStyleValue.text = style; //set the text to display the determined cut style
 			}
 			
 			// timerListener() is called to update the fuel level display and game duration.
@@ -998,9 +1063,14 @@
 				}
 				
 				++mCutNumber;	// Increment cut number.
+				
 				// Add X position of cut and fuel used to log's cut list.
 				var cutAndFuelUsed:FuelUsedAtCut = new FuelUsedAtCut(iLocalX, mFuelUsed, mCutNumber);
-				mLogArray[iLogNumber-1][2].push(cutAndFuelUsed);			
+				mLogArray[iLogNumber-1][2].push(cutAndFuelUsed);
+				
+				//store the cut properties
+				var prop:CutProperties = new CutProperties(mCutNumber, iLogNumber, iLocalX);
+				mCutsArray.push(prop);
 			}
 			
 			// onChangePlayerTextInput() is called whenever the text is changed in the mPlayerTextInput control.
@@ -1171,6 +1241,7 @@
 	<mx:UIComponent	id="uic" x="0" y="0"/>
 	
 	<s:BorderContainer id="mResultsOverlay" x="0" y="0" width="{this.width}" height="{this.height}" alpha=".5" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
+		<s:Label id="continue_msg" x="270" y="35" text="(Click anywhere to continue)"/>
 		<s:Label id="mResults" x="{260+134}" y="50" fontSize="30" fontWeight="bold" text="Results"/>
 		<s:Label id="mAcceptedPiecesLabel" x="102" y="145" width="323" fontSize="16"
 				 fontWeight="bold" text="Number of Accepted Pieces:" textAlign="right"/>
@@ -1178,8 +1249,9 @@
 		<s:Label id="mFuelLeftLabel" x="174" y="230" width="251" fontSize="16" fontWeight="bold"
 				 text="Fuel Left:" textAlign="right"/>
 		<s:Label id="mFuelLeftValue" x="437" y="230" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="100" textAlign="left" visible="true"/>
-		
-		<s:Label id="continue_msg" x="270" y="35" text="(Click anywhere to continue)"/>
+		<s:Label id="mCutStyleLabel" x="350" y="315" text="Cut Style:" fontSize="16" verticalAlign="middle" fontWeight="bold" 
+				 textAlign="right" visible="true"/>
+		<s:Label id="mCutStyleValue" x="437" y="315" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="200" textAlign="left" visible="true"/>
 	</s:BorderContainer>
 	
 	<s:Label id="mVersionLabel" x="600" y="410" width="140" color="#666666" initialize="mVersionLabel.text=VERSION" textAlign="right" verticalAlign="bottom"/>
