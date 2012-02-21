@@ -865,7 +865,6 @@
 				if(mCutsArray[0].log == mCutsArray[1].log){
 					//If they are, do this
 					//possible styles: directional, inverse directional, outside to center?
-					
 					if(CutProperties.checkOutterToInner(mCutsArray)) style = "outter to inner";
 					else if(CutProperties.checkDirectional(mCutsArray)) style = "directional";
 
@@ -1133,7 +1132,7 @@
 			//mouse up on currently enabled log, sends to the log's SWF for handling
 			protected function logUp(e:MouseEvent):void{
 				e.currentTarget.content['logUp'](e);
-				trace("logUp");
+				//trace("logUp");
 				sawdustParticles['stopParticleAnim']();
 			}
 			//mouse in event on currently enabled log

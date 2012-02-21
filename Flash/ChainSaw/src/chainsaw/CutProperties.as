@@ -47,37 +47,37 @@ package chainsaw
 			{
 				if(arr[i].log != currentLog)
 				{
+					trace("[NEW LOG] " + currentLog);
 					currentLog = arr[i].log;
 					changeLog++;
-//					lastX=arr[i].x_position;
 					direction*=-1;
 					if(changeLog > 4)
 						if(++outliers > tolerance)
 							return false;
 				}
 				else //on same log
-				{	
-					if(arr[i].cutNumber % 2 == 1) //going left to right (logs 1&3)
+				{
+					trace("same log: " + currentLog, "outliers", outliers);
+					if(arr[i].log % 2 == 1) // Direction: Left to Right (logs 1&3)
 					{
-						if(arr[i].x_position <= lastX)
+						trace("direction: L-R");
+						if(arr[i].x_position < lastX)
 							if(++outliers > tolerance)
 								return false;
 					}
-					else if(arr[i].cutNumber % 2 == 0) //going right to left (logs 2&4)
+					else if(arr[i].log % 2 == 0) // Direction: Right to Left (logs 2&4)
 					{
-						if(arr[i].x_position >= lastX)
+						trace("direction: R-L");
+						if(arr[i].x_position > lastX)
 							if(++outliers > tolerance)
 								return false;
 					}
-					
-//					lastX = arr[i].x_position;
 				}
 				lastX = arr[i].x_position;
-				
-//				if( ((arr[i].x_position-lastX) * direction) >= 0)
-//					if(++outliers > tolerance)
-//						return false;
 			}
+			
+			trace("\nCut method: directional");
+			trace("Outliers:", outliers);
 			
 			return true; //it has passed
 		}

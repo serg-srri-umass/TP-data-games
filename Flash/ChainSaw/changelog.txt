@@ -2,6 +2,10 @@ Chainsaw [Flash]
 Change Log
 
 ===========================
+2012.02.21
+Fixed checkDirectional method.
+
+===========================
 2012.02.17
 First attempt at guessing the cutting style/method the player employed.
 

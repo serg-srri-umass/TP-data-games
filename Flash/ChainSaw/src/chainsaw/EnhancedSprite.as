@@ -7,7 +7,7 @@ package chainsaw
 	
 	public class EnhancedSprite extends SpriteVisualElement
 	{
-		private var data:BitmapData;
+		private var _data:BitmapData;
 		private var _image:*;
 		
 		public function EnhancedSprite(image:Class=null)
@@ -21,23 +21,23 @@ package chainsaw
 		public function loadImage(image:Class):void
 		{
 			_image = new image();
-			data = _image.bitmapData;
+			_data = _image.bitmapData;
 			
 			this.blendMode = "multiply";
 			this.graphics.clear();
-			this.graphics.beginBitmapFill(data);
-			this.graphics.drawRect(0, 0, data.width, data.height);
+			this.graphics.beginBitmapFill(_data);
+			this.graphics.drawRect(0, 0, _data.width, _data.height);
 			this.graphics.endFill();
 		}
 		
 		public function getWidth():int
 		{
-			return data.width;
+			return _data.width;
 		}
 		
 		public function getHeight():int
 		{
-			return data.height;
+			return _data.height;
 		}
 	}
 }
