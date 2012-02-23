@@ -38,6 +38,8 @@
 			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
 			
+			public static const VERSION:String = "Rock Roll [F] 2012.01.06"; // Ryan
+			
 			public static const NUMBER_OF_ROCKS:uint	= 16;	// Number of rocks total
 			public static const ROCKS_TO_ROLL:uint		= 4;	// How many rocks to roll at once
 			public static const MAX_SCORE_POSSIBLE:uint	= 480;	// Maximum score possible if all rocks score optimally.
@@ -1203,4 +1205,5 @@
 	<s:Label x="27" y="73" text="AutoPlay Entire Game(s)" id="mAutoPlayLabel" width="90" textAlign="center" color="#4E594E"/>
 	<s:Label x="21" y="288" text="Level One" id="mLevelLabel" fontSize="16" color="#000000" textAlign="center" height="21" verticalAlign="middle"/>
 	<s:Button x="104" y="285" label="Change Level" id="mChangeLevelButton" click="onClickChangeLevelButton(event)" height="21"/>
+	<s:Label id="mVersionLabel" x="627" y="4" width="172" color="#4E594E" initialize="mVersionLabel.text=VERSION" textAlign="right"/>
 </s:Application>

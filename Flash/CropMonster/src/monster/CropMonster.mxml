@@ -414,4 +414,5 @@
 	<s:Label x="72" y="496" text="Your goal is to make the most profit from the crops you plant. A monster will walk through your field, randomly moving one step left or right at each forward step, eating plants as it goes. Widen or narrow the unplanted path by altering the angle to reduce the number of plants eaten, but remember, you can't make a profit if you don't plant anything!" width="458" height="95" id="mInstructionsLabel" fontSize="13" fontFamily="Verdana" fontWeight="bold" fontStyle="normal" color="#BEB5C7" textDecoration="none"/>
 	<s:Label x="313" y="425" text="→" fontWeight="bold" fontSize="20" color="#41DF3D" id="mReplantArrowLabel" visible="false"/>
 	<s:CheckBox x="473" y="457.5" label="Fast" id="mFastCheckBox" chromeColor="#E52974"/>
+	<s:Label id="mVersionLabel" x="50" y="10" width="172" color="#4c2600" initialize="mVersionLabel.text=VERSION" textAlign="left"/>
 	</s:Application>
