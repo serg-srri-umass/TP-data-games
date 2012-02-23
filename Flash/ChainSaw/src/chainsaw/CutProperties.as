@@ -36,12 +36,15 @@ package chainsaw
 		
 		public static function checkDirectional(arr:Array):Boolean
 		{
+			trace("CutProperties.checkDirectional()");
+			
 			var tolerance:int=2;
 			var outliers:int=0;
+			
 			var changeLog:int = 1;
 			var currentLog:int = arr[0].log;
 			var lastX:int = arr[0].x_position;
-			var direction:int = arr[1].x_position-lastX;
+//			var direction:int = arr[1].x_position-lastX;
 			
 			for(var i:int=0; i<arr.length; i++)
 			{
@@ -50,7 +53,7 @@ package chainsaw
 					trace("[NEW LOG] " + currentLog);
 					currentLog = arr[i].log;
 					changeLog++;
-					direction*=-1;
+//					direction*=-1;
 					if(changeLog > 4)
 						if(++outliers > tolerance)
 							return false;
@@ -81,8 +84,10 @@ package chainsaw
 			
 			return true; //it has passed
 		}
-		public static function checkOutterToInner(arr:Array):Boolean
+		public static function checkOutwardIn(arr:Array):Boolean
 		{
+			trace("CutProperties.checkOutwardIn()");
+			
 			var tolerance:int=2;
 			var outliers:int=0;
 
@@ -98,8 +103,8 @@ package chainsaw
 			{
 				if(arr[i].log != currentLog) //changed log
 				{
+					trace("[NEW LOG] " + currentLog);
 					currentLog = arr[i].log;
-//					lastX=arr[i].x_position;
 					
 					boundLeft = 0;
 					boundRight= 1000;
@@ -116,27 +121,41 @@ package chainsaw
 							return false;
 					}
 					
-					if(arr[i].cutNumber % 2 == 1) {
-						boundLeft = arr[i].x_position;
-					} else {
-						boundRight = arr[i].x_position;
+					if(true)
+					{//replace this
+						if(arr[i].cutNumber % 2 == 1) {
+							boundLeft = arr[i].x_position;
+						} else {
+							boundRight = arr[i].x_position;
+						}
 					}
-					
-//					lastX = arr[i].x_position;
+					if(false)
+					{//with this
+						//with this method, order doesn't matter
+						//however, it can accept 'directional' style cuts
+						var pos:int = arr[i].x_position;
+						var a:int = Math.abs(boundLeft - pos);
+						var b:int = Math.abs(boundRight - pos);
+						
+						if(a < b) {
+							boundLeft = arr[i].x_position;
+						} else {
+							boundRight = arr[i].x_position;
+						}
+					}
 				}
 				lastX = arr[i].x_position;
+				trace("outliers:", outliers);
 			}
+			
+			trace("\nCut method: Outward-In");
+			trace("Outliers:", outliers);
 			
 			return true; //it has passed
 		}
 		public static function checkVertical(arr:Array):Boolean
 		{
-//			for(var i:int=0; i<arr.length; i++)
-//			{
-//				if(arr[i].log != ((i%4)+1) ) return false;
-//			}
-//			return true;
-			
+			trace("CutProperties.checkVertical()");
 			var tolerance:int=2;
 			var outliers:int=0;
 			var lastLog:int = 1;
@@ -163,6 +182,7 @@ package chainsaw
 					}
 				}
 				lastLog = arr[i].log;
+				trace("outliers:", outliers);
 			}
 			return true;
 		}

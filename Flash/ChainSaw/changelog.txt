@@ -2,6 +2,10 @@ Chainsaw [Flash]
 Change Log
 
 ===========================
+2012.02.23
+Chainsaw master update
+
+===========================
 2012.02.21
 Fixed checkDirectional method.
 

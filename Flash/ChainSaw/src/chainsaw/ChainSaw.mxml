@@ -32,7 +32,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.02.15"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "Chainsaw [F] 2012.02.23"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -865,13 +865,19 @@
 				if(mCutsArray[0].log == mCutsArray[1].log){
 					//If they are, do this
 					//possible styles: directional, inverse directional, outside to center?
-					if(CutProperties.checkOutterToInner(mCutsArray)) style = "outter to inner";
-					else if(CutProperties.checkDirectional(mCutsArray)) style = "directional";
+					if(CutProperties.checkDirectional(mCutsArray)){
+						style = "Directional";
+						trace("Passed: Directional");
+					}
+					if(CutProperties.checkOutwardIn(mCutsArray)){
+						style = "Outward-In";
+						trace("Passed: Outward-in");
+					}
 
 				} else {
 					//If they are not, do this
 					//possible styles: vertical
-					if(CutProperties.checkVertical(mCutsArray)) style = "vertical";
+					if(CutProperties.checkVertical(mCutsArray)) style = "Vertical";
 				}
 				
 				//If the style does not match any known styles, classify it as 'Other'
