@@ -1,0 +1,1206 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- RockRoll.mxml -->
+<!-- Copyright (c) 2012 by University of Massachusetts and contributors -->
+<!-- Project information: http://srri.umass.edu/datagames/ -->
+<!-- Released under the MIT License http://www.opensource.org/licenses/mit-license.php -->
+
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" height="400" width="800"
+			   xmlns:default="noisy.*"
+			   creationComplete="startUp( )" backgroundAlpha="1.0"> 
+
+	<fx:Script>
+		<![CDATA[
+			import com.kcpt.scriptInterface.ScriptInterface;
+			
+			import common.ParkMiller;
+			
+			import flash.display.Sprite;
+			import flash.errors.ScriptTimeoutError;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.effects.Parallel;
+			import mx.effects.Sequence;
+			import mx.events.EffectEvent;
+			import mx.events.SliderEvent;
+			import mx.managers.CursorManager;
+			import mx.managers.PopUpManager;
+			
+			import noisy.GameLevelWindow;
+			
+			import spark.effects.Move;
+			import spark.effects.Rotate;
+			import spark.effects.easing.IEaser;
+			import spark.effects.easing.Linear;
+			import spark.effects.easing.Sine;
+			import spark.events.IndexChangeEvent;
+			
+			public static const NUMBER_OF_ROCKS:uint	= 16;	// Number of rocks total
+			public static const ROCKS_TO_ROLL:uint		= 4;	// How many rocks to roll at once
+			public static const MAX_SCORE_POSSIBLE:uint	= 480;	// Maximum score possible if all rocks score optimally.
+			public static const MIN_SCORE_POSSIBLE:uint	= 0;	// Minimum score if all rocks get the lowest possible score.
+
+			// Color to use when disabling text associated with controls.
+			public static const DISABLED_TEXT_COLOR:uint= 0x4E594E;	
+			public static const ENABLED_TEXT_COLOR:uint	= 0x000000;	
+			
+			// Sort choices
+			public static const DO_NOT_SORT:uint		= 0;
+			public static const SORT_BY_COLOR:uint		= 1;
+			public static const SORT_BY_PATTERN:uint	= 2;
+			public static const SORT_BY_SHAPE:uint		= 3;
+			public static const SORT_BY_SIZE:uint		= 4;
+			
+			// Game levels
+			public static const kLevelOne:uint			= 1;			// First game level.
+			public static const kLevelTwo:uint			= 2;			// Second game level.
+			public static const kLevelOneLabel:String	= "Level One"	// Level one label.
+			public static const kLevelTwoLabel:String	= "Level Two"	// Level two label.
+				
+			// Standard deviations for top and bottom courts.
+			public static const kStdDeviationA:Number	= 6.7;
+			public static const kStdDeviationB:Number	= 22;
+			
+			private var mRandomNormal:ParkMiller;			// Class that creates a uniform normal distribution.
+			private var mLevelWindow:GameLevelWindow;		// The modal window for choosing a game level.
+			private var mRockArray:Array;					// Array holding rocks played in game.
+			private var mRollDataArray:Array;				// Array holding one game's worth of individual roll data.
+			private var mStrengthArray:Array;				// Array holding one game's worth of strength values.
+			private var mGameLevel:uint				= 1;	// Current game level.
+			private var mPrevLevel:uint				= 1;	// Used to track level changes.
+			private var mStrengthArrayLength:Number	= 0;	// Length of strength arrays.
+			private var mNextRockToRoll:uint		= 0;	// Next rock in queue to roll.
+			private var mMostRecentRockRolled:uint	= 0;	// Keeps track of most recent rock rolled (0 based like mNextRockToRoll).
+			private var mMostRecentGamePlayed:uint	= 0;	// Keeps track of most recent game played (1 based).
+			private var mCurrentGameScore:uint		= 0;	// Game score so far.
+			private var mTopGameScore:uint			= 0;	// Game score of top court so far.
+			private var mBottomGameScore:uint		= 0;	// Game score of bottom court so far.
+			private var mCurrentAverageScore:uint	= 0;	// Average score used in autoplay mode.
+			private var mStartY:Number				= 32; 	// Starting Y position for first rock.
+			private var mOffsetY:Number				= 16; 	// Y distance between rocks.
+			private var mCurrentGameSinceLaunch:uint= 1;	// Track game number for data tracking. Starts at 1.
+			private var mPlayAutomatically:Boolean	= false;// Flag to specify current play mode.
+			private var mRocksAreRolling:Boolean	= false;// Flag true while rocks are rolling.
+			private var mRollRocksButtonDown:Boolean= false;// Flag true while roll rocks button is down.
+			private var mCancelButtonOn:Boolean		= false;// Flag is on after New Game button has been pressed.
+			private var mRollCounter:uint			= 0;	// Counter used for current number of rolls that have played.
+															// 		Used by onRockRollComplete.
+			private var mRollReturnCounter:uint		= 0;	// Counter used for current number of rolls that have 
+															// 		completed their return to the start.
+															// 		Used by onRockReturnComplete.
+			
+			// Info about the 2 distributions used for the top and bottom shuffle courts.
+			private var mStdDeviationA:Number	= kStdDeviationA;
+			private var mStdDeviationB:Number	= kStdDeviationB;
+			private var mMeanA:Number			= 45;
+			private var mMeanB:Number			= 25;
+			
+			[Bindable]
+			public var sortList:ArrayCollection = new ArrayCollection(
+				[	{text:"Unsorted",	choice:DO_NOT_SORT},
+					{text:"Color",		choice:SORT_BY_COLOR},
+					{text:"Pattern",	choice:SORT_BY_PATTERN},
+					{text:"Shape",		choice:SORT_BY_SHAPE},
+					{text:"Size",		choice:SORT_BY_SIZE} 
+				]
+			);
+			
+			// startUp() is called when the creation of this class is complete
+			// and sets up necessary parameters for game initiation.
+			private	function startUp():void	
+			{
+				mRandomNormal = new ParkMiller();	// Create class that generates a uniform normal distribution.
+				var sliderStartValue:Number	= 50;	// Start value of strength sliders.
+				var stepperStartValue:Number= 1;	// Start value if number of games to play.
+				
+				mStrengthSliderA.value		= sliderStartValue;
+				this.changeStrengthA();					// Update the slider label.
+				enableStrengthSliderAAndLabel(false);	// Disable the slider and label.
+				mStrengthSliderB.value		= sliderStartValue;
+				this.changeStrengthB();					// Update the slider label.
+				
+				// Per-roll strengths are saved for game data transmission to TinkerPlots/Fathom.
+				mStrengthArrayLength	= Math.ceil(NUMBER_OF_ROCKS/ROCKS_TO_ROLL);
+				mStrengthArray			= new Array(mStrengthArrayLength);
+				
+				enableStrengthSliderBAndLabel(false);	// Disable the slider and label.
+				mNumberGamesStepper.value	= stepperStartValue;
+				this.updateNumberOfGames();				// Update the stepper label.
+				enableNumberGamesStepperAndLabel(false);// Disable stepper at start.
+				mInstructionsLabel.text 	= "Press 'New Game' Button to Begin";
+				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
+				enableSortRocksListAndLabel(false);		// Disable sort rocks list and label.
+				
+				// Set up and zero out the score bar.
+				mScoreBar.minimum			= MIN_SCORE_POSSIBLE;
+				mScoreBar.maximum			= MAX_SCORE_POSSIBLE;
+				mScoreBar.setProgress(mScoreBar.minimum, mScoreBar.maximum); 
+				
+				// Event listeners can go here. 
+				// A disadvantage is that placing the listeners here instead of in the MXML at 
+				// the end of the file will mean that in Design mode, one will not instantly be 
+				// able to see the name of the event handler.
+//				this.rollRocksButton.addEventListener(MouseEvent.CLICK, this.onRollRocks );
+				this.mRollRocksButton.addEventListener(MouseEvent.MOUSE_OUT, this.onRollRocksMouseOut);
+				this.mRollRocksButton.addEventListener(MouseEvent.MOUSE_OVER, this.onRollRocksMouseOver);
+				
+				this.updateStrengthSliders();
+				this.updateCourtMarkings();
+				
+				// Create the rocks used in every game iteration. There are 16 rocks, each with
+				// 4 attributes, and each attribute has only two options, for a total of 16
+				// unique rocks that together represent each possible combination.
+				var startX:Number	= this.shuffleCourt.mDistanceStartRuleTop.x;
+				mStartY				= 32; 		// Starting Y position for first rock.
+				var currentY:Number	= mStartY;	// Y position for current rock in following for loops. 
+				mOffsetY			= 16; 		// Y distance between rocks.
+				mRockArray			= new Array();
+				
+				for (var i:uint = 0; i < NUMBER_OF_ROCKS; ++i, currentY += mOffsetY) 
+				{ 
+					// Pass in i as the attribute flag parameter, as there are exactly
+					// 16 permutations of 4 attributes with on of two choices. 0 through
+					// 15 will result in correct bitflags for each of the permutations.
+					var rock:ShuffleRock = new ShuffleRock(i);
+					rock.setPosition(startX, currentY);
+					mRockArray.push(rock); 				// add rock to array
+					this.shuffleCourt.addElement(rock); // add rock as element so it can be drawn
+				} 				
+				
+				// Data for each roll is saved until the game is complete before transmitting to 
+				// TinkerPlots/Fathom.
+				mRollDataArray		= new Array(NUMBER_OF_ROCKS);
+				
+				
+				this.randomizeRockOrder();	// Randomize order of rock array.
+				this.drawAllRocks();		// Draw rocks in their initial starting places.
+				
+				mNextRockToRoll			= 0;	// Start with first rock.
+				mMostRecentRockRolled	= 0;	// Keep track of most recent rock rolled.
+				mMostRecentGamePlayed	= 0;	// Keep track of most recent game played.
+				mPlayAutomatically		= false;// Start in non-batch mode.
+				mRocksAreRolling		= false;// Rocks are not rolling yet.
+				mRollRocksButtonDown	= false;// Flag true while roll rocks button is down.
+				mCancelButtonOn			= false;// Flag is off until New Game button has been pressed.
+				mRollCounter			= 0;	// No rolls displayed yet.
+				mRollReturnCounter		= 0;	// No rocks returning to start yet.
+				mCurrentGameScore		= 0;	// Game begins at zero.
+				mTopGameScore			= 0;	// Game begins at zero.
+				mBottomGameScore		= 0;	// Game begins at zero.
+				mCurrentAverageScore	= 0;	// Zero out average score used in autoplay mode.
+				
+				ScriptInterface.NewCollectionWithAttributes(
+					"Rolls",
+					[
+						"GameNumber",	// Game number starting with 1 since launch of application.
+						"RollOrder",	// Roll order within the current game being played.
+						"Court",		// Top or bottom court.
+						ShuffleRock.COLOR_STRING,	// Name of first attribute, such as "Color"
+						ShuffleRock.PATTERN_STRING,	// Name of second attribute, such as "Pattern"
+						ShuffleRock.SHAPE_STRING,	// Name of third attribute, such as "Shape"
+						ShuffleRock.SIZE_STRING,	// Name of fourth attribute, such as "Size"
+						"Strength", 				// Strength at which this roll was executed.
+						"Distance", 				// Distance rocked reached once it stopped rolling.
+						"RollScore"]				// Score earned by this roll of the rock.
+				);
+					
+				ScriptInterface.NewCollectionWithAttributes(
+					"Games",
+					[	"GameNumber",		// Game number starting with 1 since launch of application.
+						"GameScore_Total", 	// Total score for completion of this single game.
+						"GameScore_Top",	// Sub score for rolls 1-8
+						"GameScore_Bottom",	// Sub score for rolls 9-16.
+						"Sorted_By",			// Type by which rocks are sorted, if any.
+						"Strength_Top",			// Use in autplay mode for strength of rolls 1-8.
+						"Strength_Top_1to4",	// Strength used to roll rocks on top half of court for rolls 1-4.
+						"Strength_Top_5to8",	// Strength used to roll rocks on top half of court for rolls 5-8.
+						"Strength_Bottom",		// Use in autplay mode for strength of rolls 9-16.
+						"Strength_Bottom_9to12",	// Strength used to roll rocks on bottom half of court for rolls 9-12.
+						"Strength_Bottom_13to16",	// Strength used to roll rocks on bottom half of court for rolls 13-16.
+					]
+				);
+				
+				// Create display game level modal dialog.
+				// Listen for clicks on level buttons in dialog.
+				mLevelWindow = new GameLevelWindow();
+				chooseGameLevel();
+			}
+			
+			// enableAutoPlayCheckBoxAndLabel() enables/disables the autoplay checkbox
+			// and associated label.
+			protected function enableAutoPlayCheckBoxAndLabel(iEnable:Boolean):void
+			{
+				mAutoPlayCheckBox.enabled	= iEnable;	// Enable/disable autoplay check box.
+				// Enable/disable text associated with autoplay checkbox.
+				mAutoPlayLabel.setStyle("color", iEnable ? ENABLED_TEXT_COLOR : DISABLED_TEXT_COLOR); 
+			}
+			
+			// enableNumberGamesStepperAndLabel() enables/disables the number of games stepper
+			// and associated label.
+			protected function enableNumberGamesStepperAndLabel(iEnable:Boolean):void
+			{
+				mNumberGamesStepper.enabled	= iEnable;	// Enable/disable number of games stepper.
+				// Enable/disable text associated with number of games stepper.
+				mNumberGamesStepperLabel.setStyle("color", iEnable ? ENABLED_TEXT_COLOR : DISABLED_TEXT_COLOR); 
+			}
+			
+			// enableSortRocksListAndLabel() enables/disables the sort rocks list
+			// and associated label.
+			protected function enableSortRocksListAndLabel(iEnable:Boolean):void
+			{
+				mSortRocksList.enabled	= iEnable;	// Enable/disable sort rocks list.
+				// Enable/disable text associated with sort rocks list.
+				mSortRocksLabel.setStyle("color", iEnable ? ENABLED_TEXT_COLOR : DISABLED_TEXT_COLOR); 
+			}
+			
+			// enableStrengthSliderAAndLabel() enables/disables the strength slider A
+			// and associated label.
+			protected function enableStrengthSliderAAndLabel(iEnable:Boolean):void
+			{
+				mStrengthSliderA.enabled	= iEnable;	// Enable/disable strength slider A.
+				// Enable/disable text associated with strength slider A.
+				mStrengthLabelA.setStyle("color", iEnable ? ENABLED_TEXT_COLOR : DISABLED_TEXT_COLOR); 
+			}
+			
+			// enableStrengthSliderBAndLabel() enables/disables the strength slider B
+			// and associated label.
+			protected function enableStrengthSliderBAndLabel(iEnable:Boolean):void
+			{
+				mStrengthSliderB.enabled	= iEnable;	// Enable/disable strength slider A.
+				// Enable/disable text associated with strength slider A.
+				mStrengthLabelB.setStyle("color", iEnable ? ENABLED_TEXT_COLOR : DISABLED_TEXT_COLOR); 
+			}
+			
+			// chooseGameLevel() listens for clicks on the level dialog's level buttons.
+			private function chooseGameLevel():void 
+			{
+				var isModal:Boolean = true;
+				PopUpManager.addPopUp(mLevelWindow, this, isModal); 
+				
+				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
+				mLevelWindow.closeButton.visible = false;	// Hide the close button.
+				
+				mLevelWindow["mLevelOneButton"].addEventListener("click", setLevelOne);   
+				mLevelWindow["mLevelTwoButton"].addEventListener("click", setLevelTwo);   
+			}
+
+			// gameLevelChosen() sets the current game level to the value passed in and closes the modal
+			// dialog.
+			private function gameLevelChosen(iLevel:uint):void 
+			{
+				mGameLevel = iLevel; // Set game level to practice.
+				
+				PopUpManager.removePopUp(mLevelWindow);
+			}
+
+			// setLevelOne() sets the current game level to level one.
+			private function setLevelOne(iEvent:Event):void 
+			{
+				mPrevLevel = mGameLevel;		// Track game level change.
+				
+				// If changing levels, perform any level-changing tasks.
+//				if (mGameLevel != kLevelOne)
+				{
+					// The first level only has the two courts differ by mean, not 
+					// standard deviation.
+					mStdDeviationB = kStdDeviationA;
+				}
+				
+				gameLevelChosen(kLevelOne); // Set game level.
+				mLevelLabel.text = kLevelOneLabel;
+			}
+						
+			// setLevelTwo() sets the current game level to level two.
+			private function setLevelTwo(iEvent:Event):void 
+			{
+				mPrevLevel = mGameLevel;		// Track game level change.
+				
+				// If changing levels, perform any level-changing tasks.
+//				if (mGameLevel != kLevelTwo)
+				{
+					// The second level uses different standard deviations for the top and
+					// bottom courts.
+					mStdDeviationB = kStdDeviationB;
+				}
+				
+				gameLevelChosen(kLevelOne); // Set game level.
+				mLevelLabel.text = kLevelTwoLabel;
+			}
+			
+			// drawAllRocks() draws all rocks according their current settings.
+			protected function drawAllRocks():void
+			{
+				for (var i:Number = 0; i < NUMBER_OF_ROCKS; ++i) 
+					mRockArray[i].drawMe();
+			}
+		
+			// hideAllRocks() hides all rocks.
+			protected function hideAllRocks():void
+			{
+				for (var i:Number = 0; i < NUMBER_OF_ROCKS; ++i) 
+				{
+					mRockArray[i].hideMe();
+				}		
+			}
+			
+			// redrawAllRocks() redraws all rocks according to their current settings.
+			protected function redrawAllRocks():void
+			{
+				for (var i:Number = 0; i < NUMBER_OF_ROCKS; ++i) 
+				{
+					mRockArray[i].drawMe();
+				}		
+			}
+			
+			// randomizeRockOrder() randomizes the order of the rock array.
+			protected function randomizeRockOrder():void
+			{
+				var j:Number = 0;
+				var temp:ShuffleRock;
+				
+				for (var i:Number = 0; i < NUMBER_OF_ROCKS; ++i) 
+				{
+					// Do the random swap.
+					j = Math.floor(Math.random() * (i + 1));
+					temp = mRockArray[i];
+					mRockArray[i] = mRockArray[j];
+					mRockArray[j] = temp;
+					
+					// Set the y position to follow the array order. Otherwise, the 
+					// swapped rocks will still be drawn in the same position as before 
+					// the swap.
+					mRockArray[i].setPositionY(mStartY + (i * mOffsetY));
+					mRockArray[j].setPositionY(mStartY + (j * mOffsetY));
+				}
+			}
+			
+			// sortRockArray() sorts the rock array by the passed in sort attribute.
+			protected function sortRockArray(iSortBy:uint):void
+			{
+				var sortField:String;
+				
+				switch (iSortBy)
+				{
+					case SORT_BY_COLOR:
+						mRockArray.sortOn("mColor", Array.DESCENDING);
+						break;
+					case SORT_BY_PATTERN:
+						mRockArray.sortOn("mPattern", Array.DESCENDING);
+						break;
+					case SORT_BY_SHAPE:
+						mRockArray.sortOn("mShape", Array.DESCENDING);
+						break;
+					case SORT_BY_SIZE:
+						mRockArray.sortOn("mSize", Array.DESCENDING);
+						break;
+					default:
+						return;	// Don't sort if no valid sort attribute.
+				}
+			
+				// Set the y position to follow the array order. Otherwise, the 
+				// swapped rocks will still be drawn in the same position as before 
+				// the swap.
+				for (var i:Number = 0; i < NUMBER_OF_ROCKS; ++i) 
+					mRockArray[i].setPositionY(mStartY + (i * mOffsetY));
+			}
+			
+			// updateStrengthSliders() updates the slider text.
+			protected function updateStrengthSliders():void
+			{
+				// Updates the text beneath the sliders.
+				changeStrengthA();
+				changeStrengthB();
+			}
+			
+			// updateNumberOfGames() records the number of games in the stepper
+			// control, updates any text that relates to this change, and sets
+			// any flags corresponding to the playing of multiple games at once.
+			protected function updateNumberOfGames():void
+			{
+				var numberOfGames:Number = mNumberGamesStepper.value;
+				
+				if (mPlayAutomatically) 		
+				{
+					var repetionString:String = "";
+					
+					switch (numberOfGames)
+					{
+						case 1:
+							repetionString = " Once";
+							break;
+						case 2:
+							repetionString = " Twice";
+							break;
+						default:
+							repetionString = " " + numberOfGames + " Times";
+						break;
+					}
+						
+					mRollRocksButton.label = "Play" + repetionString;
+				}
+				else
+					mRollRocksButton.label	= "Roll Rocks";
+				
+				// Update instructions text.
+				updateInstructionsText();
+
+				// Update label specifing number of games played.
+				// Number changing is only available before game play has begun, so keep game
+				// counter zeroed (spelling?) out.
+				var forceResetToZero:Boolean = true;
+				updateNumberOfRocksRolledLabel(forceResetToZero);
+			}
+			
+			// updateCourtMarkings() updates the text in the shuffle court according
+			// too the selected sort method.
+			protected function updateCourtMarkings():void
+			{
+				switch (mSortRocksList.selectedIndex)
+				{
+					case SORT_BY_COLOR:
+						shuffleCourt.mLaneTextA.text = ShuffleRock.COLOR_RED_STRING;
+						shuffleCourt.mLaneTextB.text = ShuffleRock.COLOR_BLUE_STRING;
+						break;
+					case SORT_BY_PATTERN:
+						shuffleCourt.mLaneTextA.text = ShuffleRock.PATTERN_STRIPED_STRING;
+						shuffleCourt.mLaneTextB.text = ShuffleRock.PATTERN_SOLID_STRING;
+						break;
+					case SORT_BY_SHAPE:
+						shuffleCourt.mLaneTextA.text = ShuffleRock.SHAPE_BALL_STRING;
+						shuffleCourt.mLaneTextB.text = ShuffleRock.SHAPE_CUBE_STRING;
+						break;
+					case SORT_BY_SIZE:
+						shuffleCourt.mLaneTextA.text = ShuffleRock.SIZE_SMALL_STRING;
+						shuffleCourt.mLaneTextB.text = ShuffleRock.SIZE_LARGE_STRING;
+						break;
+					default:
+						shuffleCourt.mLaneTextA.text = ShuffleCourt.LANE_A_DEFAULT_STRING;
+						shuffleCourt.mLaneTextB.text = ShuffleCourt.LANE_B_DEFAULT_STRING;
+						break;
+				}
+			}
+			
+			// changeStrengthA() updates the text associated with strength slider A.
+			protected function changeStrengthA():void
+			{
+				var strengthString:String;
+				
+				switch (mSortRocksList.selectedIndex)
+				{
+					case SORT_BY_COLOR:
+						strengthString = "Strength for " + ShuffleRock.COLOR_RED_STRING + " Rocks = ";
+						break;
+					case SORT_BY_PATTERN:
+						strengthString = "Strength for " + ShuffleRock.PATTERN_STRIPED_STRING + " Rocks = ";
+						break;
+					case SORT_BY_SHAPE:
+						strengthString = "Strength for " + ShuffleRock.SHAPE_BALL_STRING + " Rocks = ";
+						break;
+					case SORT_BY_SIZE:
+						strengthString = "Strength for " + ShuffleRock.SIZE_SMALL_STRING + " Rocks = ";
+						break;
+					default:
+						strengthString = "Strength for " + ShuffleCourt.LANE_A_DEFAULT_STRING + " Rocks = ";
+						break;
+				}
+				
+				mStrengthLabelA.text = strengthString + mStrengthSliderA.value;
+			}			
+
+			// changeStrengthB() updates the text associated with strength slider B.
+			protected function changeStrengthB():void
+			{
+				var strengthString:String;
+				
+				switch (mSortRocksList.selectedIndex)
+				{
+					case SORT_BY_COLOR:
+						strengthString = "Strength for " + ShuffleRock.COLOR_BLUE_STRING + " Rocks = ";
+						break;
+					case SORT_BY_PATTERN:
+						strengthString = "Strength for " + ShuffleRock.PATTERN_SOLID_STRING + " Rocks = ";
+						break;
+					case SORT_BY_SHAPE:
+						strengthString = "Strength for " + ShuffleRock.SHAPE_CUBE_STRING + " Rocks = ";
+						break;
+					case SORT_BY_SIZE:
+						strengthString = "Strength for " + ShuffleRock.SIZE_LARGE_STRING + " Rocks = ";
+						break;
+					default:
+						strengthString = "Strength for " + ShuffleCourt.LANE_B_DEFAULT_STRING + " Rocks = ";
+						break;
+				}
+				
+				mStrengthLabelB.text = strengthString + mStrengthSliderB.value;
+			}
+			
+			// updateInstructionsText() updates the text that helps the user know what to do next.
+			protected function updateInstructionsText():void
+			{
+				if (!mCancelButtonOn || (mMostRecentRockRolled + 1 == NUMBER_OF_ROCKS))
+					// Most recent game is over or user pressed 'Cancel'. Instruct user to press 
+					// 'New Game' button. 
+					mInstructionsLabel.text = "Press 'New Game' Button to Begin";
+				else
+				{
+					// In mid-game. Instruct user to press mRollRocksButton button.
+					if (mPlayAutomatically)
+						mInstructionsLabel.text = "Press 'Play...' Button to Continue";
+					else
+						mInstructionsLabel.text = "Press '" + mRollRocksButton.label + "' Button to Continue";
+				}
+			}
+			
+			// updateNumberOfRocksRolledLabel() updates the text associate with this label.
+			// Force reset to zero by passing iForceZero = true;
+			protected function updateNumberOfRocksRolledLabel(iForceZero:Boolean = false):void
+			{
+				if (mPlayAutomatically)
+					mNumberOfRocksRolledLabel.text = 
+						(iForceZero ? 0 : mMostRecentGamePlayed) + " of " + mNumberGamesStepper.value + " Games AutoPlayed";
+				else
+					mNumberOfRocksRolledLabel.text = 
+						(iForceZero ? 0 : (mMostRecentRockRolled + 1)) + " of " + NUMBER_OF_ROCKS + " Rocks Rolled";
+				
+			}
+			
+			// onRockRollComplete() is used to handle the enabling of buttons only after 
+			// the rock rolling effects have completed. Otherwise, pressing a button during 
+			// and effect that is still playing can have unwanted results.
+			protected function onRockRollComplete(iEvent:EffectEvent):void
+			{
+				mRollCounter += 1;
+				
+				if (mPlayAutomatically)
+				{
+					if (mRollCounter == NUMBER_OF_ROCKS)
+					{
+						mRocksAreRolling		= false;// Rolling has stopped.
+						mRollCounter			= 0;	// Reset counter.
+						
+						// Enable new game button, now that current game is over.
+						mNewGameButton.enabled	= true;
+						
+						// Enable 'Change Level' button, now that current game is over.
+						mChangeLevelButton.enabled	= true;
+						
+						// Toggle 'cancel'/'new game' state and button text.
+						toggleCancelButton();
+					}
+				}
+				else	// single game mode
+				{
+					// ROCKS_TO_ROLL divides evenly into roll counter, so another group of rocks has completed.
+					if ((mRollCounter % ROCKS_TO_ROLL) == 0) 
+					{
+						mRocksAreRolling		= false;	// Rolling has stopped.
+						
+						// Enable 'New Game'/'Cancel" button.
+//						mNewGameButton.enabled	= true;
+						
+						if (mRollCounter == NUMBER_OF_ROCKS)
+						{
+							mRollCounter			= 0;	// Reset counter.
+							
+							// Toggle 'cancel'/'new game' state and button text.
+							toggleCancelButton();
+							
+							// Enable 'New Game'/'Cancel" button.
+							mNewGameButton.enabled	= true;
+							
+							// Enable 'Change Level" button, now that current game is over.
+							mChangeLevelButton.enabled	= true;
+						}
+						else
+						{
+							// Enable Roll Rocks button, and strength sliders, if all current 
+							// rolls are complete and user did not abort.
+							if (mCancelButtonOn)
+							{
+								mRollRocksButton.enabled	= true;
+								enableStrengthSliderAAndLabel(true);
+								enableStrengthSliderBAndLabel(true);
+							}
+						}
+						
+					}
+				}
+				
+				// Update score bar to reflect rock(s) just rolled.
+				var score:uint = mPlayAutomatically ? mCurrentAverageScore : mCurrentGameScore;
+				mScoreBar.maximum = MAX_SCORE_POSSIBLE * ((mMostRecentRockRolled + 1)/NUMBER_OF_ROCKS);
+				mScoreBar.setProgress(score, mScoreBar.maximum); 
+				
+				var percentString:String = Math.floor((score/mScoreBar.maximum) * 100) + "%";
+				mScoreBar.label = percentString;
+
+				// Update score text.
+				if ((mMostRecentRockRolled + 1) == NUMBER_OF_ROCKS)
+				{
+					if (mPlayAutomatically)
+						mScoreTextLabel.text = "Average Score = " + score;
+					else
+						mScoreTextLabel.text = "Final Score = " + score;
+				}
+				else
+					mScoreTextLabel.text = "Score So Far = " + score;
+				
+				updateNumberOfRocksRolledLabel();	// Update number of rocks rolled label.
+				updateInstructionsText();			// Update instructions text.
+				CursorManager.removeBusyCursor();	// Turn off busy cursor.
+			}
+			
+			// onRockReturnComplete() is used to handle the enabling of buttons only after 
+			// the rock rolling effects have completed following the return of all rocks to
+			// their starting places. Otherwise, pressing a button during an effect that 
+			// is still playing can have unwanted results.
+			protected function onRockReturnComplete(iEvent:EffectEvent):void
+			{
+				mRollReturnCounter += 1;
+				
+				if (mRollReturnCounter == NUMBER_OF_ROCKS)
+				{
+					enableSortRocksListAndLabel(true);	// Enable sort feature.
+					mRollRocksButton.enabled	= true;	// Enable "Roll Rocks" button.
+					mRollReturnCounter			= 0;	// Reset roll counter.
+				}
+			}
+			
+			// onRollRocksMouseDown() is called when mRollRocksButton is pressed and handles
+			// all actions that must be done before onRollRocksMouseUp() begins.
+			protected function onRollRocksMouseDown(iEvent:MouseEvent):void	
+			{
+				CursorManager.setBusyCursor();	// Show busy cursor while rocks are rolling.
+				mRollRocksButtonDown = true;
+				stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+			}
+				
+			// onMouseUp() is called when the mouse is released anywhere. Used to clear
+			// any flags on mouse up, even if mouse if off original target.
+			private function onMouseUp(iEvent:MouseEvent ):void
+			{
+				stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+				mRollRocksButtonDown = false;
+			}
+			
+			// onRollRocksMouseOver() is called when cursor is over mRollRocksButton 
+			// and handles busy cursor.
+			protected function onRollRocksMouseOver(iEvent:MouseEvent):void	
+			{
+				if (mRollRocksButtonDown)
+					CursorManager.setBusyCursor();	// Show busy cursor while rocks are rolling.
+			}
+			
+			// onRollRocksMouseOut() is called when the cursor moves out of the mRollRocksButton
+			// and handles actions not covered by onRollRocksMouseUp().
+			protected function onRollRocksMouseOut(iEvent:MouseEvent):void	
+			{
+				if (!mRocksAreRolling)
+					// Don't show busy cursor if rocks aren't rolling.
+					CursorManager.removeBusyCursor();	
+			}
+			
+			// errorHandler() is called when there is an error and allows app to do whatever
+			// cleanup and/or notification is necessary.
+			private function errorHandler(/*iEvent:IOErrorEvent*/):void
+			{
+				Alert.show(
+					"An error has occurred. Data transmitted to TinkerPlots/Fathom may include incomplete games.",
+					"Warning!");
+				
+				// Equivalent of pressing Cancel button. Otherwise, all controls are left in the disabled state.
+				mRollRocksButton.enabled	= false;	// Disable Roll Rocks button until rocks are done rolling.
+				enableStrengthSliderAAndLabel(false);	// Disable strength slider
+				enableStrengthSliderBAndLabel(false);	// Disable strength slider
+				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
+				enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
+				enableSortRocksListAndLabel(false);		// Disable sort feature until new game is started.
+				
+				mRocksAreRolling		= false;// Rolling has stopped.
+				mRollCounter			= 0;	// Reset counter.
+				
+				// Enable new game and 'Change Level' buttons now that current game is over.
+				mNewGameButton.enabled		= true;
+				mChangeLevelButton.enabled	= true;
+				
+				// Toggle 'cancel'/'new game' state and button text.
+				toggleCancelButton();
+				
+				// Update instructions text.
+				updateInstructionsText();
+			}
+			
+			// onRollRocksMouseUp() is called when mRollRocksButton is released and handles game play
+			// associated with rolling rocks on the shuffle court.
+			protected function onRollRocksMouseUp(iEvent:MouseEvent):void	
+			{
+				mRocksAreRolling				= true; // Rock rolling has begun.
+				mRollRocksButtonDown			= false;// Button has been released.
+				
+				// Don't show intermediate rock rolls in batch game play mode.
+				var showGamePlay:Boolean	= !mPlayAutomatically; 		
+				
+				var singleRollDistance:uint		= 0;
+				var singleRollScore:uint		= 0;
+				var randomNumber:Number			= 0;
+				var cumulativeBatchScore:uint	= 0;	// Used in autoplay mode to calculate average score.
+				
+				mRollRocksButton.enabled	= false;	// Disable Roll Rocks button until rocks are done rolling.
+				mNewGameButton.enabled		= false;	// Disable 'Cancel' button until roll animation ends.
+				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
+				enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
+				enableSortRocksListAndLabel(false);		// Disable sort feature until new game is started.
+				enableStrengthSliderAAndLabel(false);	// Disable strength slider
+				enableStrengthSliderBAndLabel(false);	// Disable strength slider
+
+				if (mNextRockToRoll == 0) 
+				{
+					mCurrentGameScore	= 0; // Zero out score on new game.
+					mTopGameScore		= 0; // Zero out score on new game.
+					mBottomGameScore	= 0; // Zero out score on new game.
+					
+					// Erase all entries in the array holding per-roll data.
+					for (var counter:uint = 0; counter < NUMBER_OF_ROCKS; ++counter) 
+						mRollDataArray[counter] = null;
+					
+					// Initialize values in arrays to avoid accessing empty indices when reporting
+					// values to TinkerPlots/Fathom, in the event that this code changes.
+					for (var strengthIndex:Number = 0; strengthIndex < mStrengthArrayLength; ++strengthIndex)
+						mStrengthArray[strengthIndex] = 0;
+				}
+				
+				var rocksToRoll:uint;
+				if (mPlayAutomatically)
+					rocksToRoll				= NUMBER_OF_ROCKS;	// Roll all rocks in multiple game mode.
+				else
+					rocksToRoll				= ROCKS_TO_ROLL;	// Roll a fixed number of rocks in non-batch mode.
+				
+				try	// 
+				{
+					for (var gameCount:uint = 1; gameCount <= mNumberGamesStepper.value; ++gameCount)
+					{
+						// Zero out game score before each full game play.
+						// Do NOT zero out game score in non-batch mode, as game may still be in play.
+						if (mPlayAutomatically)
+						{
+							mCurrentGameScore	= 0;	
+							mTopGameScore		= 0;
+							mBottomGameScore	= 0;
+							
+							// Initialize values in arrays to avoid accessing empty indices when reporting
+							// values to TinkerPlots/Fathom, in the event that this code changes.
+							for (var index:Number = 0; index < mStrengthArrayLength; ++index)
+								mStrengthArray[index] = 0;
+						}
+						
+						// Data for each roll is saved until the game is complete before transmitting to 
+						// TinkerPlots/Fathom.
+						var rollDataArray:Array	= new Array(NUMBER_OF_ROCKS);
+						
+						// Roll a number of rocks, being sure to stop before end of total number of rocks.
+						var i:Number = 0;
+						for (i = 0; (i < rocksToRoll) && (mNextRockToRoll < NUMBER_OF_ROCKS); ++i)
+						{
+							// Distribution of rock distance differs based on rock shape.
+							if (mRockArray[mNextRockToRoll].getShape() == "Ball")
+								//randomNumber = ((Math.random() - 0.5) * mStdDeviationA) + mMeanA;
+								randomNumber = ((mRandomNormal.standardNormal() - 0.5) * mStdDeviationA) + mMeanA;
+							else
+								// randomNumber = ((Math.random() - 0.5) * mStdDeviationB) + mMeanB;
+								randomNumber = ((mRandomNormal.standardNormal() - 0.5) * mStdDeviationB) + mMeanB;
+						
+							// Use the strength slider associated with the shuffle court on which the rock
+							// is rolled.
+							// Intentionally making the slider values be half the value used in the strength
+							// so that users do not get the idea that the strength number maps to the
+							// distance markings on the shuffle court.
+							var strength:Number = 0;
+							if (mNextRockToRoll < (NUMBER_OF_ROCKS/2))
+								strength = mStrengthSliderA.value * 2;
+							else
+								strength = mStrengthSliderB.value * 2;
+							
+							var rollDistance:Number =	strength + randomNumber;
+							singleRollDistance = rollDistance >= 0 ? rollDistance : 0;	// Roll distance can't be less than zero.
+							
+							if (singleRollDistance > 215)
+								singleRollScore = 0;
+							else if (singleRollDistance > 190)
+								singleRollScore = 30;
+							else if (singleRollDistance > 145)
+								singleRollScore = 15;
+							else if (singleRollDistance > 100)
+								singleRollScore = 5;
+							else
+								singleRollScore = 0;
+													
+							mCurrentGameScore += singleRollScore;
+							
+							var whichCourt:String;
+							if ((mNextRockToRoll + 1) <= (NUMBER_OF_ROCKS / 2))
+							{
+								mTopGameScore += singleRollScore;
+								whichCourt = "Top";
+							}
+							else
+							{
+								mBottomGameScore += singleRollScore;
+								whichCourt = "Bottom";
+							}
+							
+							// Only display game play in a manual (non-AutoPlay) mode or in the final
+							// game of a batch, to speed up application time.
+							if (gameCount == mNumberGamesStepper.value)
+							{
+								// Set up the behavior of the rock's motion as it will roll.
+								var easeIn:Number		= 0;	// Rock starts rolling quickly.
+								var easeOut:Number		= 1;	// Rock motion peters out at the end of the roll.
+								var stopSlowly:Linear	= new Linear(easeIn, easeOut);
+								var rockMove:Move		= new Move(mRockArray[mNextRockToRoll]);
+								rockMove.easer 			= stopSlowly;
+								
+								// Create a parallel operation to hold multiple types of animantion to occur at the
+								// same time: translations and rotation.
+								var rockMoveAndRoll:Parallel	= new Parallel(mRockArray[mNextRockToRoll]);
+								
+								if (mPlayAutomatically)
+									// Speed up roll duration on batch game play.
+									rockMoveAndRoll.duration	= 5000 * (singleRollDistance / 250); 
+								else
+									// Roll takes maximum of 2 seconds, based on actual distance.
+									rockMoveAndRoll.duration	= 5000 * (singleRollDistance / 250); 
+								
+								// Do the translation of the rock.
+								rockMove.xTo		= this.shuffleCourt.distanceToXPosition(singleRollDistance);
+								
+								// Do the rotation of the rock.
+								var rotations:uint		= 
+									singleRollDistance / mRockArray[mNextRockToRoll].getCircumference();
+								var rockRotate:Rotate	= new Rotate(mRockArray[mNextRockToRoll]);
+								rockRotate.easer 		= stopSlowly;
+								rockRotate.angleBy		= rotations * 360;
+								
+								// Rotate around center of rock.
+								rockRotate.transformX	= mRockArray[mNextRockToRoll].getPositionX();
+								rockRotate.transformY	= mRockArray[mNextRockToRoll].getPositionY();
+								rockRotate.transformZ	= 0;
+								
+								rockMoveAndRoll.addChild(rockMove);
+		//						rockMoveAndRoll.addChild(rockRotate);
+								
+								// Send notification when play has completed. Used to disable/enable buttons.
+								rockMoveAndRoll.addEventListener(EffectEvent.EFFECT_END, onRockRollComplete);
+								rockMoveAndRoll.play();	// Play instantly vs. in sequence, like scattershot.
+							}
+							
+							// Save data on this individual roll for TinkerPlots/Fathom.
+							// Order in array is incremented by one so that first rock is number 1 vs. 0.
+							mRollDataArray[mNextRockToRoll] = 
+									new RollData(	mCurrentGameSinceLaunch,
+													mNextRockToRoll + 1,
+													whichCourt,
+													mRockArray[mNextRockToRoll].getColor(),
+													mRockArray[mNextRockToRoll].getPattern(),
+													mRockArray[mNextRockToRoll].getShape(),
+													mRockArray[mNextRockToRoll].getSize(),
+													Math.floor(strength / 2),					// Strength used in calculation = twice slider value.
+													singleRollDistance,
+													singleRollScore);
+	
+							mMostRecentRockRolled = mNextRockToRoll; // Keep track of most recent rock rolled.
+							mNextRockToRoll += 1;	// Roll is done and tracked. Increment counter.
+						}	
+						
+						// Save the strengths for later transmission to TinkerPlots/Fathom.
+						if (!mPlayAutomatically)	
+						{	var arrayIndex:Number = Math.floor((mMostRecentRockRolled + 1)/ROCKS_TO_ROLL) - 1;
+							
+							if ((mMostRecentRockRolled + 1) <= (NUMBER_OF_ROCKS / 2))
+								// Top strength slider is relevant for rolls in the top court.
+								mStrengthArray[arrayIndex] = mStrengthSliderA.value;
+							else
+								// Bottom strength slider is relevant for rolls in the bottom court.
+								mStrengthArray[arrayIndex] = mStrengthSliderB.value;
+						}
+						else
+						{
+							// All A and B roll strengths for the entire game are the same, when
+							// playing multiple games at once.
+							for (var thisIndex:Number = 0; thisIndex < mStrengthArrayLength; ++thisIndex)
+							{
+								if ((thisIndex + 1) <= (mStrengthArrayLength / 2))
+									// Top strength slider is relevant for rolls in the top court.
+									mStrengthArray[thisIndex] = mStrengthSliderA.value;
+								else
+									// Bottom strength slider is relevant for rolls in the bottom court.
+									mStrengthArray[thisIndex] = mStrengthSliderB.value;
+							}
+						}
+						
+						// Reset "next rock to roll" back to first rock, if we have moved past the end of the rocks.
+						if (mNextRockToRoll >= NUMBER_OF_ROCKS)
+						{
+							mNextRockToRoll				= 0;		// Reset rock back to first rock.
+							mRollRocksButton.enabled	= false;	// Can't roll again until new game button is pressed.
+							enableStrengthSliderAAndLabel(false);	// Can't roll again until new game button is pressed.
+							enableStrengthSliderBAndLabel(false);	// Can't roll again until new game button is pressed.
+							
+							// Set strength values used for transmission to TinkerPlots/Fathom when in
+							// autoplay mode.
+							var strengthTop:String		= ""; 
+							var strengthBottom:String	= ""; 
+							
+							if (mPlayAutomatically)
+							{
+								strengthTop		= mStrengthSliderA.value.toString(); 
+								strengthBottom	= mStrengthSliderB.value.toString(); 
+							}
+							
+							// Send data for each individual roll to TinkerPlots/Fathom.
+							// Doing so here allows for data not to be sent prematurely in the event
+							// of an aborted game.
+							for (var rollIndex:Number = 0; rollIndex < NUMBER_OF_ROCKS; ++rollIndex)
+							{
+								ScriptInterface.AddCaseToCollectionWithValues("Rolls", 
+									[
+										mRollDataArray[rollIndex].mGameNumber,
+										mRollDataArray[rollIndex].mRollOrder,
+										mRollDataArray[rollIndex].mCourt,
+										mRollDataArray[rollIndex].mColorString,
+										mRollDataArray[rollIndex].mPatternString,
+										mRollDataArray[rollIndex].mShapeString,
+										mRollDataArray[rollIndex].mSizeString,
+										mRollDataArray[rollIndex].mStrength,
+										mRollDataArray[rollIndex].mDistance,
+										mRollDataArray[rollIndex].mRollScore
+									]	
+								);
+							}
+							
+							// Send data on this game to TinkerPlots/Fathom.
+							ScriptInterface.AddCaseToCollectionWithValues("Games", 
+								[	
+									mCurrentGameSinceLaunch,
+									mCurrentGameScore,
+									mTopGameScore,
+									mBottomGameScore,
+									mSortRocksList.selectedItem.text,
+									strengthTop,
+									mStrengthArray[0],
+									mStrengthArray[1],
+									strengthBottom,
+									mStrengthArray[2],
+									mStrengthArray[3]
+								]	
+							);
+		
+							// Calculate the average game score when in batch mode.
+							if (mPlayAutomatically)
+							{
+								cumulativeBatchScore	+= mCurrentGameScore;
+								mCurrentAverageScore	= Math.floor(cumulativeBatchScore/gameCount);
+							}
+							
+							mMostRecentGamePlayed	= gameCount;	// Keep track of most recent game played.
+							mCurrentGameSinceLaunch += 1; 			// Game is done and tracked. Increment counter.
+							mPrevLevel 				= mGameLevel;	// Track game level change.
+						}
+					}
+				}
+				catch(e:ScriptTimeoutError)
+				{
+					trace(e);    	// ScriptTimeoutError: Error #1502: A script has executed for longer than 15 seconds
+					errorHandler();	// Handle error
+				}
+				
+			}
+			
+			// onSortRocks() is called when mSortRocksList is pressed and handles the
+			// sorting of rocks and any corresponding UI changes.
+			protected function onSortRocks(iEvent:IndexChangeEvent):void
+			{
+				// Update anything that may respond to changes in rock sort.
+				this.updateStrengthSliders();
+				this.updateCourtMarkings();
+					
+				// Sort rocks according to user selection.
+				if (mSortRocksList.selectedIndex == DO_NOT_SORT)
+					this.randomizeRockOrder();
+				else
+					this.sortRockArray(mSortRocksList.selectedIndex);
+				
+				// Redraw rocks in their new positions.
+				this.redrawAllRocks();
+			}
+			
+			// toggleCancelButton() toggles 'cancel'/'new game' state and button text.
+			protected function toggleCancelButton():void
+			{
+				mCancelButtonOn			= !mCancelButtonOn;
+				mNewGameButton.label	= mCancelButtonOn ? "Cancel" : "New Game";
+			}
+			
+			// onNewGame() is called when mNewGameButton is pressed and handles
+			// the setup of a new game.
+			protected function onNewGame(iEvent:MouseEvent):void
+			{
+				// User pressed 'Cancel' during a game. Disable controls until user intiates new game.
+				if (mCancelButtonOn) 
+				{
+					mRollRocksButton.enabled	= false;	// Disable Roll Rocks button until rocks are done rolling.
+					enableStrengthSliderAAndLabel(false);	// Disable strength slider
+					enableStrengthSliderBAndLabel(false);	// Disable strength slider
+					enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
+					enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
+					enableSortRocksListAndLabel(false);		// Disable sort feature until new game is started.
+				}
+				else // Handle the setup of a new game
+				{
+					// Move all rocks back to starting point.
+					var startX:Number = 0;
+					var startY:Number = 0;
+					for (var i:uint = 0; i < NUMBER_OF_ROCKS; ++i)
+					{
+						// Do the actual rolling of the rock.
+						var rockMove:Move = new Move(mRockArray[i]);
+						rockMove.duration = 1000; // Roll duration in milliseconds.
+						rockMove.xTo = startX;
+						rockMove.yTo = startY;
+	
+						// Send notification when play has completed. Used to disable/enable buttons.
+						rockMove.addEventListener(EffectEvent.EFFECT_END, onRockReturnComplete);
+						
+						rockMove.play();
+					}
+					
+					mNextRockToRoll				= 0;				// Start with first rock.
+					mMostRecentRockRolled		= 0;				// Reset tracker of most recent rock rolled.
+					mMostRecentGamePlayed		= 0;				// Reset tracker of most recent game played.
+					mCurrentGameScore			= 0;				// Zero out current game score.
+					enableStrengthSliderAAndLabel(true);			// Enable strength A slider
+					enableStrengthSliderBAndLabel(true);			// Enable strength B slider
+					enableAutoPlayCheckBoxAndLabel(true);			// Enable autoplay checkbox and label.
+					mNewGameButton.enabled		= false;			// Disable 'New Game' button.
+					mChangeLevelButton.enabled	= false;			// Disable "Change Level" button.
+					mScoreTextLabel.text		= "Score So Far = " + 0;	// Reset score to zero.
+					mScoreBar.label				= "0%"				// Reset score bar text.
+					mRollCounter				= 0;				// Reset roll animation counter.
+
+					
+					if (mPlayAutomatically)
+						enableNumberGamesStepperAndLabel(true);		// Enable the number of games stepper.
+					
+					// Zero out number of rocks rolled label.
+					var forceResetToZero:Boolean = true;
+					updateNumberOfRocksRolledLabel(forceResetToZero);
+					
+					// Return score bar to zero.
+					mScoreBar.setProgress(mScoreBar.minimum, mScoreBar.maximum); 
+				}
+				
+				// Toggle 'cancel'/'new game' state and button text.
+				toggleCancelButton();
+				
+				// Update instructions text.
+				updateInstructionsText();
+			}
+
+			// onUpdateNumberOfGames() is called when mNumberGamesStepper is changed and 
+			// issues a call to handle all associated changes.
+			protected function onUpdateNumberOfGames(iEvent:Event):void
+			{
+				this.updateNumberOfGames();
+			}
+
+			// onChangeStrengthA is called when mStrengthSliderA is changed and issues a 
+			// call to handle all associated changes.
+			protected function onChangeStrengthA(iEvent:SliderEvent):void
+			{
+				this.changeStrengthA();
+			}
+
+			// onChangeStrengthB is called when mStrengthSliderB is changed and issues a 
+			// call to handle all associated changes.
+			protected function onChangeStrengthB(iEvent:SliderEvent):void
+			{
+				this.changeStrengthB();
+			}
+
+			// onAutoPlay() is called when the mAutoPlayCheckBox is toggled and handles
+			// batch play of one or more games all at once at current settings for all
+			// games.
+			protected function onAutoPlay(iEvent:MouseEvent):void
+			{
+				if (mAutoPlayCheckBox.selected == true)
+				{
+					enableNumberGamesStepperAndLabel(true);
+					mPlayAutomatically			= true;
+				}
+				else
+				{
+					enableNumberGamesStepperAndLabel(false);
+					mPlayAutomatically			= false;
+					mNumberGamesStepper.value	= 1;		// One game is played in non-batch mode.
+				}
+				
+				// Handle anything associated with a change to the number of games.
+				// Update of instruction text and mNumberOfRocksRolledLabel is included.
+				updateNumberOfGames();		
+			}
+
+			// onClickChangeLevelButton() allows the user to change the game level.
+			protected function onClickChangeLevelButton(iEvent:MouseEvent):void
+			{
+				chooseGameLevel();
+			}
+
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<default:ShuffleCourt x="233" y="58" id="shuffleCourt" fontFamily="Verdana">
+	</default:ShuffleCourt>
+	
+	<s:SpriteVisualElement id="mSpriteVE" />
+
+	<s:RichText text="ROCK ROLL" id="mGameTitle" fontFamily="Verdana" fontSize="20" color="#4E594E" x="231" y="2" paddingLeft="10" paddingTop="10" width="559" textAlign="center" verticalAlign="top" height="28" fontStyle="normal" textDecoration="none" fontWeight="normal" backgroundAlpha="1.0"/>
+	<mx:HSlider x="10" y="142" width="200" id="mStrengthSliderA" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthA(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
+	<s:Label x="10" y="193" text="Strength A" id="mStrengthLabelA" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
+	<mx:HSlider x="10" y="219" width="200" id="mStrengthSliderB" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthB(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
+	<s:Label x="10" y="270" text="Strength B" id="mStrengthLabelB" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
+	<s:Button x="102" y="33" label="Roll Rocks" id="mRollRocksButton" enabled="false" width="108" mouseDown="onRollRocksMouseDown(event)" mouseUp="onRollRocksMouseUp(event)" height="23"/>
+	<s:NumericStepper x="126" y="68" minimum="1" maximum="100" stepSize="1" id="mNumberGamesStepper" change="onUpdateNumberOfGames(event)" height="23" width="84" enabled="false"/>
+	<s:Label x="126" y="89" text="Games to Play" verticalAlign="middle" height="23" color="#4E594E" width="84" id="mNumberGamesStepperLabel"/>
+	<s:Label text="0" textAlign="left" id="mDistanceStartLabelTop" color="#000000" x="266" y="39" fontFamily="Verdana"/>
+	<s:Label x="266" y="371" text="0" id="mDistanceStartLabelBottom" textAlign="left" verticalAlign="bottom" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="457" y="39" text="100" id="mDistance235LabelTop" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="457" y="371" text="100" id="mDistance235LabelBottom" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="547" y="39" text="145" color="#000000" id="mDistance325LabelTop" fontFamily="Verdana"/>
+	<s:Label x="547" y="371" text="145" id="mDistance325LabeBottom" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="637" y="371" text="190" id="mDistance415LabeBottom" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="637" y="39" text="190" id="mDistance415LabelTop" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="758" y="39" text="250" id="mDistanceEndLabelTop" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="758" y="371" text="250" id="mDistanceEndLabelBottom" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="687" y="39" text="215" id="mDistance465LabelTop" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="687" y="371" text="215" id="mDistance465LabelBottom" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="327" y="39" text="Distance" id="mDistanceLabelTop" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="327" y="371" text="Distance" id="mDistanceLabelBottom" color="#000000" fontFamily="Verdana"/>
+	<s:Label x="10" y="331" text="Score So Far = 0" id="mScoreTextLabel" color="#DEEBDE" fontSize="20" width="200" textAlign="center" fontWeight="bold"/>
+	<s:Button x="10" y="33" label="New Game" width="87" id="mNewGameButton" enabled="true" click="onNewGame(event)" height="23"/>
+	<s:DropDownList x="98" y="115" width="113" enabled="false" change="onSortRocks(event)" prompt="Sort Rocks by ..." labelField="text" id="mSortRocksList" selectedIndex="0" dataProvider="{sortList}"></s:DropDownList>
+	<s:Label x="10" y="121" text="Sort Rocks By:" id="mSortRocksLabel" color="#4E594E"/>
+	<mx:ProgressBar x="10" y="353" id="mScoreBar" mode="manual" width="200" fontWeight="normal" label="0%" textAlign="center" labelPlacement="center" fontSize="14" color="#FFFFFF"/>
+	<s:Label x="10" y="374" text="% of Best Score Possible" width="200" textAlign="center" id="mGameScoreBarLabel" height="16" verticalAlign="bottom" color="#000000"/>
+	<s:Label x="9.5" y="312" text="0 of 16 Rocks Rolled" width="200" height="16" textAlign="center" verticalAlign="middle" color="#DCDCDC" id="mNumberOfRocksRolledLabel"/>
+	<s:Label x="7" y="10" text="Press 'New Game' Button to Begin" width="206" height="16" verticalAlign="middle" color="#FFFFFF" textAlign="center" id="mInstructionsLabel"/>
+	<s:CheckBox x="12" y="68" id="mAutoPlayCheckBox" height="18" selected="false" enabled="false" click="onAutoPlay(event)" width="15"/>
+	<s:Label x="27" y="73" text="AutoPlay Entire Game(s)" id="mAutoPlayLabel" width="90" textAlign="center" color="#4E594E"/>
+	<s:Label x="21" y="288" text="Level One" id="mLevelLabel" fontSize="16" color="#000000" textAlign="center" height="21" verticalAlign="middle"/>
+	<s:Button x="104" y="285" label="Change Level" id="mChangeLevelButton" click="onClickChangeLevelButton(event)" height="21"/>
+</s:Application>

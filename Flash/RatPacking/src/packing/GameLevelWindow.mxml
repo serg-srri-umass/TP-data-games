@@ -8,7 +8,7 @@
 <s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
-			   width="250" height="264" textAlign="center" 
+			   width="250" height="322" textAlign="center" 
 			   title="          Choose Game Level">
 	
 	<s:layout>
@@ -18,9 +18,11 @@
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
-	<s:Button id="mPracticeButton" x="34" y="137" width="180" height="39" label="Practice"
+	<s:Button id="mPracticeButton" x="22" y="137" width="204" height="39" label="Practice"
 			  fontFamily="Georgia" fontSize="24" fontStyle="italic" fontWeight="bold"/>
-	<s:Button id="mPlayGameButton" x="34" y="182" width="180" height="39" label="Play Game"
+	<s:Button id="mWallMarkLevelButton" x="22" y="182" width="204" height="39" label="Hit Wall Mark"
+			  fontFamily="Georgia" fontSize="24" fontStyle="italic" fontWeight="bold"/>
+	<s:Button id="mKnotsLevelButton" x="22" y="227" width="204" height="39" label="Align Knots"
 			  fontFamily="Georgia" fontSize="24" fontStyle="italic" fontWeight="bold"/>
 	<s:Label id="mPackerNameLabel" x="60" y="64" color="#908F17" fontFamily="Georgia" fontSize="20"
 			 fontStyle="italic" fontWeight="normal" text="Packer Name:"/>

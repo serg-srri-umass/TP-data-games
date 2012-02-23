@@ -1,7 +1,14 @@
+/**
+ * Functions to provide missing functionality
+ * (Function.prototype.bind as well as HTML5 placeholder and slider)
+ * in browsers that are missing these.
+*/
+
+
+
 /*
-Function.prototype.bind is a method introduced in ECMAscript 262-5 which negates the
-necessity for closures by allowing changes to the running context of a function 
-(i.e. the 'this' variable)
+Function.prototype.bind is a method introduced in ECMAscript 262-5 which allows
+changes to the running context of a function  (i.e. the 'this' variable)
 
 This extension provides .bind functionality in browsers (ex. Safari) which haven't
 yet implemented it, and should be a close enough approximation to function in any
@@ -37,3 +44,32 @@ if (!Function.prototype.bind) {
     return fBound;
   };
 }
+
+
+/*
+Using modernizr, replace HTML5 sliders with the jQuery UI eqivalent in
+browsers where this is necessary
+*/
+
+$(function(){
+
+  if( Modernizr.inputtypes.range ){  
+      $('input[type=range]').each(function() {  
+          var $input = $(this);  
+          var $slider = $('<div id="' + $input.attr('id') + '" class="' + $input.attr('class') + '"></div>');  
+          var step = $input.attr('step');  
+    
+          $input.after($slider).hide();  
+    
+          $slider.slider({  
+              min: $input.attr('min'),  
+              max: $input.attr('max'), 
+              step: $input.attr('step'),  
+              change: function(e, ui) {  
+                  $(this).val(parseFloat(ui.value));  
+              } 
+          }).addClass('jqueryui');  
+      });  
+  };
+
+});

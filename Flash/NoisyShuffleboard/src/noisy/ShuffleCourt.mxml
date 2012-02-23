@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- ShuffleCourt.mxml -->
+<!-- Copyright (c) 2012 by University of Massachusetts and contributors -->
+<!-- Project information: http://srri.umass.edu/datagames/ -->
+<!-- Released under the MIT License http://www.opensource.org/licenses/mit-license.php -->
+
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx" 
+				   width="555" height="304" dropShadowVisible="false" 
+				   skinClass="spark.skins.spark.BorderContainerSkin" 
+				   cornerRadius="0" borderWeight="2" backgroundColor="#D9BC64" borderVisible="false">
+	
+	<fx:Script>
+		<![CDATA[
+			// ShuffleCourt class.
+			
+			public static const LANE_A_DEFAULT_STRING:String	= "Top";
+			public static const LANE_B_DEFAULT_STRING:String	= "Bottom";
+			
+			// distanceToXPosition takes iDistance as a parameter and returns
+			// the corresponding x position on the ShuffleCourt.
+			public function distanceToXPosition(iDistance:uint):uint
+			{
+				return (2 * iDistance);
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+
+	<s:Label text="Top" width ="152" rotation = "-90" verticalAlign="middle" id="mLaneTextA" fontFamily="Verdana" x="8" y="152" textAlign="center"/>
+	<s:Label text="Bottom" width="152" rotation = "-90" x="8" y="304" verticalAlign="middle" id="mLaneTextB" fontFamily="Verdana" textAlign="center"/>
+	<s:BorderContainer x="235" y="0" width="90" height="304" id="mRegion5Points" backgroundColor="#CFB25A" borderVisible="false">
+		<s:Label x="0" y="10" text="5" id="mPointRegionTextTop5" width="90" textAlign="center" fontFamily="Verdana"/>
+		<s:Label x="0" y="282" text="5" id="mPointRegionTextBottom5" width="90" textAlign="center" fontFamily="Verdana"/>
+		<mx:VRule x="-1" y="-5" height="5" id="mDistance235RuleTop"/>
+		<mx:VRule x="-1" y="304" id="mDistance235RuleBottom" height="5"/>
+	</s:BorderContainer>
+	<s:BorderContainer x="325" y="0" width="90" height="304" id="mRegion10Points" borderVisible="false" backgroundColor="#C5A850">
+		<s:Label x="0" y="10" text="15" id="mPointRegionTextTop15" width="90" textAlign="center" fontFamily="Verdana"/>
+		<s:Label x="0" y="282" text="15" id="mPointRegionTextBottom15" width="90" textAlign="center" fontFamily="Verdana"/>
+		<mx:VRule x="-1" y="-5" height="5" id="mDistance325RuleTop"/>
+		<mx:VRule x="-1" y="304" id="mDistance325RuleBottom" height="5"/>
+	</s:BorderContainer>
+	<s:BorderContainer x="415" y="0" width="50" height="304" borderVisible="false" backgroundColor="#BB9E46" id="mRegion30Points">
+		<s:Label x="0" y="10" text="30" id="mPointRegionTextTop30" width="50" textAlign="center" fontFamily="Verdana"/>
+		<s:Label x="0" y="282" text="30" id="mPointRegionTextBottom30" width="50" textAlign="center" fontFamily="Verdana"/>
+		<mx:VRule x="-1" y="-5" height="5" id="mDistance415RuleTop"/>
+		<mx:VRule x="-1" y="304" height="5" id="mDistance415RuleBottom"/>
+		<mx:VRule x="49" y="-5" height="5" id="mDistance465RuleTop"/>
+		<mx:VRule x="49" y="304" height="5" id="mDistance465RuleBottom"/>
+	</s:BorderContainer>
+	<mx:HRule x="0" y="151" width="555" id="mDourtDividerRule"/>
+	<s:Label x="465" y="10" text="0" width="50" textAlign="center" id="mPointRegionTextTopOver0" fontFamily="Verdana"/>
+	<s:Label x="465" y="282" text="0" width="50" textAlign="center" id="mPointRegionTextBottomOver0" fontFamily="Verdana"/>
+	<s:Label x="145" y="10" text="0" id="mPointRegionTextTopShort0" width="90" textAlign="center" fontFamily="Verdana"/>
+	<s:Label x="145" y="282" text="0" id="mPointRegionTextBottomShort0" width="90" textAlign="center" fontFamily="Verdana"/>
+	<mx:VRule x="35" y="-5" id="mDistanceStartRuleTop" height="5"/>
+	<mx:VRule x="535" y="-5" height="5" id="mDistanceEndRuleTop"/>
+	<mx:VRule x="535" y="304" id="mDistanceEndRuleBottom" height="5"/>
+	<mx:VRule x="35" y="304" id="mDistanceStartRuleBottom" height="5"/>
+	<s:Label x="94" y="10" text="Score" id="mPointsLabelTop" fontFamily="Verdana"/>
+	<s:Label x="94" y="284" text="Score" id="mPointsLabelBottom" fontFamily="Verdana"/>
+</s:BorderContainer>

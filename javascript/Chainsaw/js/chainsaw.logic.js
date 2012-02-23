@@ -12,6 +12,7 @@ var ChainsawLogic = function(canvasEl, data){
   this.game = {
     playerName: 'Player',
     level: 'practice',
+    logweight: 'normal',
     inProgress: false,
     firstRun: true,
     mousedown: false,
@@ -69,7 +70,7 @@ var ChainsawLogic = function(canvasEl, data){
   /** Global _bind event listeners */
   _bind('startGame', function(e, player){ this.startGame(player); }.bind(this));
   _bind('endGame', function(e){ this.endGame(e); }.bind(this));
-  _bind('levelSelected', function(e, lvl){ this.levelSelected(lvl); }.bind(this) );
+  _bind('levelSelected', function(e, lvl, weight){ this.levelSelected(lvl, weight); }.bind(this) );
   
 };
 
@@ -99,7 +100,7 @@ ChainsawLogic.prototype = {
    * The timer increment function
    */
   timerStep: function(){
-    this.fuel.current = this.fuel.current - this.fuel.step;
+    this.fuel.current -= this.fuel.step;
     _trigger('updateFuel', [this.fuel.current]);
     if(this.fuel.current <= 0){
       this.endGame(); 
@@ -112,8 +113,9 @@ ChainsawLogic.prototype = {
    *
    * @param level The level name as a String
    */
-  levelSelected: function(level){
+  levelSelected: function(level, weight){
     this.game.level = level;
+    this.game.logweight = weight;
     this.game.firstRun = true;
     this.generateLogs();
     this.fuel.current = this.fuel.initial;
@@ -128,8 +130,17 @@ ChainsawLogic.prototype = {
     
     for(var i = 0; i < this.logs.count; i++){
       var newLog = {};
+      
+      if(this.game.logweight == 'mixed'){
+        // Alternate large and small logs
+        newLog.weight = (i % 2 == 0) ? 'heavy' : 'normal';
+      }else{
+        newLog.weight = this.game.logweight;
+      }
+
       newLog.width = 210 + Math.floor(Math.random() * 230);
-      newLog.height = 35;
+      if(newLog.weight == 'normal') newLog.height = 35;
+      if(newLog.weight == 'heavy') newLog.height = 45;
       newLog.x = 50 + Math.floor(Math.random() * 51);
       newLog.y = 75 * i + 40;
       /** Store the beginning and end of the log as pre-existing cuts */
@@ -137,6 +148,7 @@ ChainsawLogic.prototype = {
       newLog.active = (i == 0 || this.game.level == 'free') ? true : false;
       newLog.direction = (i % 2 == 0) ? 'right' : 'left';
       newLog.lastCut = (i % 2 == 0) ? newLog.x : newLog.x + newLog.width;
+      
 
       this.logs.list.push(newLog);
       
@@ -155,7 +167,10 @@ ChainsawLogic.prototype = {
    */
   handleMouse: function(e){
     if(!this.game.inProgress) return;
-    if(!this.game.mousedown) return;
+    if(!this.game.mousedown){
+      _trigger('stopSparks');
+      return;
+    }
     /** Can't use offsetX/layerX here due to browser inconsistencies */
     var x = e.pageX - this.canvasEl.offset().left,
         y = e.pageY - this.canvasEl.offset().top,
@@ -174,6 +189,7 @@ ChainsawLogic.prototype = {
           if(this.game.level != 'free') return false; 
         }
         
+        _trigger('moveSparks', [x,y]);
         /** Make sure that we've left the cut area before we're qualified to make another */
         if(!this.game.alreadyCut){
           this.doCut(log, x,i);
@@ -183,6 +199,13 @@ ChainsawLogic.prototype = {
         
     }.bind(this)); 
     this.game.alreadyCut = justCut;
+  },
+
+  /**
+   * Start a cut (mouse is held down and crosses a log edge)
+   */
+  inProgressCut: function( ) {
+
   },
 
   /**
@@ -263,7 +286,7 @@ ChainsawLogic.prototype = {
    * After the game, run through the cuts made for analysis
    */
   analyzeCuts: function(){
-    /** Keep tallys of accepted and unaccepted cuts */
+    /** Keep totals of accepted and unaccepted cuts */
     var accepted = 0,
         wrong = 0;
 

@@ -1,14 +1,11 @@
 body{
-<<<<<<< HEAD
   color: black;
   background-color: white;
-=======
-  color: #000;
->>>>>>> 65092c6c58f832310d68ba2ab54fadf94086b603
   font: 400 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
-  padding: 10px;
+  padding: 0px 10px;
   margin: 0px;
   cursor: default;
+  background-color: #ead1aa;
 }
 
 h1, h2, h3, h4{ margin:0px; padding: 0px; }
@@ -43,7 +40,6 @@ input[type=button]:disabled, input[type=button][disabled=disabled]:active{
   border:1px solid #eee;
   color:#aaa;
 }
-<<<<<<< HEAD
 input[type=button]:active{
   background: -moz-linear-gradient(bottom, #f0f0f0 0%, #eee 40%, #E5E5E5 61%, #D8D8D8 100%);
   background: -webkit-linear-gradient(bottom, #f0f0f0 0%, #eee 40%, #E5E5E5 61%, #D8D8D8 100%);
@@ -52,22 +48,39 @@ input[type=button]:active{
 
 #banner{
   height: 20px;
-  width: 700px;
+  width: 690px;
   text-align: right;
-  font-size: 10px;
+  font-size: 11px;
+  line-height:18px;
+  background: -moz-linear-gradient(top, #f0f0f0 0%, #d8d8d8 100%);
+  background: -webkit-linear-gradient(top, #f0f0f0 0%, #d8d8d8 100%);
+  padding:2px 5px;
+  border:1px solid #999;
+  border-top:0px;
+  -moz-border-radius-bottomright: 3px;
+  -moz-border-radius-bottomleft: 3px;
+  -webkit-border-radius: 0px 0px 3px 3px;
+  border-radius: 0px 0px 3px 3px;
+  margin-bottom: 5px;
 }
 
-  #banner #version{
+  #banner #info{
     float:left;
     margin-right:20px;
-
   }
 
-  #banner #mute{
+ #banner #mute{
     cursor:pointer;
   }
 
   #banner input[type=range]{
+
+  }
+  #banner #volume.jqueryui{
+    display:inline-block;
+    position: relative;
+    top: -1px;
+    width:100px;
 
   }
 
@@ -75,57 +88,42 @@ input[type=button]:active{
   width: 700px;
   height: 350px;
   position: relative;
-  border: 1px solid #888;
-  border-radius: 5px;
-=======
-input[type=text]{
-  font-size:15px;
-  border:1px solid #bbb;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  padding:3px;
-}
-#container{
-  width:600px;   
-  z-index:100;
-  margin:20px;
-}
-#overlay{
-  width:100%;
-  background: rgba(255, 255, 255, 0.7);
-  height:100%;
-  position:absolute;
-  top:0px;
-  left:0px;
-  z-index:900;
->>>>>>> 65092c6c58f832310d68ba2ab54fadf94086b603
 }
 
   input.action{
-    position:absolute;
-    right: 15px;
-    bottom: 15px;
     width: 120px;
+  }
+
+  input.highlight{
+    -webkit-box-shadow: 0px 0px 3px 1px #30a4ff;
+    -moz-box-shadow: 0px 0px 3px 1px #30a4ff;
+    box-shadow: 0px 0px 3px 1px #30a4ff;
+  }
+  #version{
+    float:right;
+    margin-top: 5px;
+    font-size: 11px;
+    color: #666;
   }
 
 
 #levelselect{
-  display: nane;
   position: absolute;
   top: 0px;
   left: 0px;
-  background-color: #eee;
+  background-color: #f0f0f0;
   width: 660px;
   height: 310px; 
   z-index: 999;
   padding: 20px;
+  border:1px solid #bbb;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  /* background: url('http://subtlepatterns.com/patterns/wood_pattern.png'); */
 }
   #levelselect #player{
-    position: absolute;
-    top: 45px;
-    right: 20px;
-    text-align:right;
+    margin-left: 30px;
   }
     #levelselect #player #playername{
       border:1px solid #ccc;
@@ -137,38 +135,41 @@ input[type=text]{
     }
 
   #levelselect h1{
-    color: #669035;
-    font-size: 60px;
+    /*color: #669035;*/
+    color: #cf623c;
+    font-size: 50px;
     /*text-transform: uppercase; */
+    text-shadow: 1px 1px 0px #999;
   }
 
   #levelselect #splash{
-    border: 1px solid #ddd;
-    height: 140px;
+    /*border: 1px solid #ddd;*/
     padding: 10px;
-    background-color: #fff;
+    /*background-color: #fff;*/
+    font-size: 16px;
     margin-top: 10px;
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
-    text-align: center;
+    text-align: left;
   }
-<<<<<<< HEAD
-=======
-  #levelselect input[type=text]{ width:273px; margin-bottom:30px; text-align:center; }
->>>>>>> 65092c6c58f832310d68ba2ab54fadf94086b603
 
     #splash img{ position: relative; top: 4px; }
 
   #levelselect input[type=text]{
 
   }
+    
+    #levelselect fieldset{
+      border:0px;
+      padding: 0px; margin: 0px 20px;
+      font-size: 16px;
+    }
 
   #levelselect #buttons{
     text-align: center;
     margin-top: 20px;
   }
-<<<<<<< HEAD
 
   #levelselect input[type=button]{
     width: 200px;
@@ -177,31 +178,19 @@ input[type=text]{
   }
 
 #game{
-  background-color: #fff;
-=======
-    #fuel #tank #contents{
-      width:80px;
-      height:100px;
-      background-color: #943634;
-      position:absolute;
-      bottom:0px;
-    }
-#header{
->>>>>>> 65092c6c58f832310d68ba2ab54fadf94086b603
 
 }
 
-  #game, #game #sidebar { height: 100%; }
+  /*#game, #game #sidebar { height: 100%; }*/
   #game #sidebar{
     width: 150px;
-    float:right;
-
+    float:left;
     background-color: #ead1aa;
+    padding-top:7px;
   }
 
     #game #sidebar #fuel{
       padding-left: 20px;
-      padding-top: 13px;
 
     }
 
@@ -231,15 +220,53 @@ input[type=text]{
       }
 
     #game #sidebar input[type=button]{
-      z-index:100;
+      /*z-index:800;*/
+        margin-bottom:10px;
+        margin-left: 3px;
 
     }
 
-  #game #canvas{
+  #game #canvasContainer{
+    background-color: #ead1aa;
+    position: relative;
+    z-index: 601;
     width: 550px;
     height: 350px;
     float: left;
-    background-color: #ead1aa;
+  }
+    #canvas{
+      position:absolute;
+      left:0px;
+      top:0px;
+      height:100%;
+      width: 100%;
+    }
+    #shadows{
+      position: absolute;
+      left:0px;
+      top:0px;
+      height:100%;
+      width:100%;
+      z-index:-1;
+    }
+      #shadows .shadow{
+        background-color:red;
+        position:absolute;
+        z-index:600;
+        -webkit-box-shadow: 0px 8px 18px 0px rgba(0,0,0,0.9);
+        -moz-box-shadow: 0px 8px 18px 0px rgba(0,0,0,0.9);
+        box-shadow: 0px 8px 18px 0px rgba(0,0,0,0.9);
+      }
+  #game #canvasContainer.transit{
+    -webkit-transition: all 600ms ease-in-out;
+    -moz-transition: all 600ms ease-in-out;
+    -o-transition: all 600ms ease-in-out;
+    transition: all 600ms ease-in-out;
+    -moz-transform: scale(0.6) translate(120px, 30px);
+    -webkit-transform: scale(0.6) translate(120px, 30px);
+    -o-transform: scale(0.6) translate(120px, 30px);
+    -ms-transform: scale(0.6) translate(120px, 30px);
+    transform: scale(0.6) translate(120px, 30px);
   }
   #game #canvas.active{
     cursor:url('assets/Chainsaw Cursor 2.gif'), auto;
@@ -255,11 +282,24 @@ input[type=text]{
   position: absolute;
   top: 0px;
   left: 0px;
-  background-color: rgba(255,255,255,0.7);
-  padding: 40px 20px;
+  background-color: rgba(255,255,255,1);
+  padding: 30px 20px;
   width: 660px;
-  height: 270px;
+  height: 290px;
   z-index: 400;
+  border:1px solid #bbb;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
 }
 
+  #results #stats{
+    margin-top: 30px;
 
+  }
+
+  #results #nav{
+    position: absolute;
+    bottom: 80px;
+
+  }
