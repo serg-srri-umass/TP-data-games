@@ -19,6 +19,8 @@
 			import spark.core.SpriteVisualElement;
 			import spark.primitives.BitmapImage;
 			
+			public static const VERSION:String = "Crop Monster [F] 2012.01.06"; // Ryan
+			
 			// Fixed pixel width of border container around field.
 			// See BorderContainer mFieldBorderContainer at bottom of file.
 			public static const kFieldPixelWidth:uint= 707;	
