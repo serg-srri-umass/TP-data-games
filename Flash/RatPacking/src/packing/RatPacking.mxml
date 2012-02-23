@@ -25,6 +25,8 @@
 			
 			import spark.core.SpriteVisualElement;
 			
+			public static const VERSION:String = "Rat Packing [F] 2012.01.06"; // Ryan
+			
 			// Ideal number of rats in each crate. Without noise, this is how many load when stopping the packing
 			// at the correct point (e.g. lining up knots, hitting wall mark, etc.).
 			public static const kIdealRatsPerCrate:uint = kCounterWeightTopStartY + (kCounterWeightHeight/2) - kWallMarkY;
@@ -1035,4 +1037,5 @@
 		<s:Label	id="mAdjustLabel" x="149" y="40" width="90" height="27" text="{kAdjustLabelText}"
 				 		textAlign="center"/>
 	</s:BorderContainer>
+	<s:Label id="mVersionLabel" x="10" y="10" width="172" color="#908F17" initialize="mVersionLabel.text=VERSION" textAlign="left"/>
 </s:Application>
