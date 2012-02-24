@@ -382,15 +382,15 @@
 				dynamicLog1['drawNewLog'](pickLogLength());
 				
 				dynamicLog2.x = Math.random()*120+40;
-				dynamicLog2.y = 127;
+				dynamicLog2.y = 120;//127
 				dynamicLog2['drawNewLog'](pickLogLength());
 				
 				dynamicLog3.x = Math.random()*120+40;
-				dynamicLog3.y = 216;
+				dynamicLog3.y = 202;//216
 				dynamicLog3['drawNewLog'](pickLogLength());
 				
 				dynamicLog4.x = Math.random()*120+40;
-				dynamicLog4.y = 305;
+				dynamicLog4.y = 284;//305
 				dynamicLog4['drawNewLog'](pickLogLength());
 				
 				// Move direction arrow sprites to first log
@@ -1238,9 +1238,9 @@
 	<s:BorderContainer id="UI_Elements" x="0" y="156" width="134" height="274" backgroundColor="#EAD1AA" borderVisible="false">
 		<s:Label id="mFuelLabel" x="15" y="-15" fontSize="16" fontWeight="bold" text="Fuel:"/>
 		<s:SWFLoader id="mFuelIcon" x="15" y="5" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
-		<s:Label id="mReferenceLengthLabel" x="13" y="180" fontSize="16" fontWeight="bold" text="Target Length:"/>
-		<mx:Image id="mTapeMeasure" x="15" y="206" source="{mTapeMeasureImage}"/>
-		<mx:Image id="mReferenceLengthImage" x="15" y="240" source="{mLengthImage}"/>
+		<s:Label id="mReferenceLengthLabel" x="13" y="156" fontSize="16" fontWeight="bold" text="Target Length:"/>
+		<mx:Image id="mTapeMeasure" x="15" y="182" source="{mTapeMeasureImage}"/>
+		<mx:Image id="mReferenceLengthImage" x="15" y="216" source="{mLengthImage}"/>
 	</s:BorderContainer>
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
@@ -1259,6 +1259,6 @@
 		<s:Label id="mCutStyleValue" x="437" y="315" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="200" textAlign="left" visible="true"/>
 	</s:BorderContainer>
 	
-	<s:Label id="mVersionLabel" x="600" y="410" width="140" color="#666666" initialize="mVersionLabel.text=VERSION" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="600" y="386" width="140" color="#666666" initialize="mVersionLabel.text=VERSION" textAlign="right" verticalAlign="bottom"/>
 </s:Application>
 
