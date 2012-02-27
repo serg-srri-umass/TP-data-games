@@ -32,7 +32,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.02.23"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "Chainsaw [F] 2012.02.27"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -857,7 +857,7 @@
 			 */
 			private function determineCutStyle():void
 			{
-				var style:String = "OTHER";
+				var style:String = "Other";
 //				mCutsArray.sort(CutProperties.compare, Array.RETURNINDEXEDARRAY | Array.CASEINSENSITIVE);
 				if(mCutsArray.length <= 1) return;
 				
@@ -1251,14 +1251,13 @@
 		<s:Label id="mAcceptedPiecesLabel" x="102" y="145" width="323" fontSize="16"
 				 fontWeight="bold" text="Number of Accepted Pieces:" textAlign="right"/>
 		<s:Label id="mAcceptedPiecesValue" x="437" y="145" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="50" textAlign="left"/>
-		<s:Label id="mFuelLeftLabel" x="174" y="230" width="251" fontSize="16" fontWeight="bold"
+		<s:Label id="mFuelLeftLabel" x="174" y="225" width="251" fontSize="16" fontWeight="bold"
 				 text="Fuel Left:" textAlign="right"/>
-		<s:Label id="mFuelLeftValue" x="437" y="230" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="100" textAlign="left" visible="true"/>
-		<s:Label id="mCutStyleLabel" x="350" y="315" text="Cut Style:" fontSize="16" verticalAlign="middle" fontWeight="bold" 
+		<s:Label id="mFuelLeftValue" x="437" y="225" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="100" textAlign="left" visible="true"/>
+		<s:Label id="mCutStyleLabel" x="350" y="308" text="Cut Style:" fontSize="16" verticalAlign="middle" fontWeight="bold" 
 				 textAlign="right" visible="true"/>
-		<s:Label id="mCutStyleValue" x="437" y="315" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="200" textAlign="left" visible="true"/>
+		<s:Label id="mCutStyleValue" x="437" y="308" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="200" textAlign="left" visible="true"/>
 	</s:BorderContainer>
 	
 	<s:Label id="mVersionLabel" x="600" y="386" width="140" color="#666666" initialize="mVersionLabel.text=VERSION" textAlign="right" verticalAlign="bottom"/>
 </s:Application>
-

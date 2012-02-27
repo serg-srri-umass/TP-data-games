@@ -2,6 +2,10 @@ Chainsaw [Flash]
 Change Log
 
 ===========================
+2012.02.27
+Improvements to cut style-guessing.
+
+===========================
 2012.02.24
 Shortened the height of the game a little.
 

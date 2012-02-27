@@ -94,6 +94,7 @@ package chainsaw
 			var changeLog:int = 1;
 			var currentLog:int = arr[0].log;
 			var lastX:int = arr[0].x_position;
+			var lastX2:int = arr[0].x_position;
 			
 			var lastBound:int;
 			var boundLeft:int = 0;
@@ -121,7 +122,7 @@ package chainsaw
 							return false;
 					}
 					
-					if(true)
+					if(false)
 					{//replace this
 						if(arr[i].cutNumber % 2 == 1) {
 							boundLeft = arr[i].x_position;
@@ -129,7 +130,7 @@ package chainsaw
 							boundRight = arr[i].x_position;
 						}
 					}
-					if(false)
+					if(true)
 					{//with this
 						//with this method, order doesn't matter
 						//however, it can accept 'directional' style cuts
@@ -144,7 +145,18 @@ package chainsaw
 						}
 					}
 				}
+				
+				//if the last three cuts are in the same direction
+				if( (lastX2<lastX && lastX<arr[i].x_position) || (lastX2>lastX && lastX>arr[i].x_position) )
+				{
+					//trace(">Outliers", outliers);
+					if(++outliers > tolerance)
+						return false;
+				}
+				
+				lastX2 = lastX;
 				lastX = arr[i].x_position;
+				
 				trace("outliers:", outliers);
 			}
 			
