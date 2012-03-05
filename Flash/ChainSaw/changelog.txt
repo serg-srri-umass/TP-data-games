@@ -2,8 +2,12 @@ Chainsaw [Flash]
 Change Log
 
 ===========================
+2012.03.05
+Now tracks whether a cut started at the top or bottom of the log.
+
+===========================
 2012.02.27
-Improvements to cut style-guessing.
+Improvements to cut style guessing.
 
 ===========================
 2012.02.24

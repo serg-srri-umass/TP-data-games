@@ -2,7 +2,7 @@
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
-			   minWidth="745" minHeight="460" backgroundColor="#EAD1AA" creationComplete="startUp()"
+			   minWidth="745" minHeight="410" backgroundColor="#EAD1AA" creationComplete="startUp()"
 			   pageTitle="Chain Saw">
 	
 	<fx:Script>
@@ -32,7 +32,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.02.27"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "Chainsaw [F] 2012.02.28"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -882,37 +882,15 @@
 				
 				//If the style does not match any known styles, classify it as 'Other'
 				
+				style += CutProperties.findCutDirectionStyle(mCutsArray);
 				
-				
-		/*
-				var elem:CutProperties = mCutsArray[0];
-				var firstLog:int = elem.log;
-				
-				var index:int;
-				for (index=0; elem.log == firstLog; index++)
-				{
-					elem = mCutsArray[index];
-				}
-				for (firstLog=elem.log ; elem.log == firstLog; index++)
-				{
-					elem = mCutsArray[index];
-				}
-				for (firstLog=elem.log ; elem.log == firstLog; index++)
-				{
-					elem = mCutsArray[index];
-				}
-				for (firstLog=elem.log ; elem.log == firstLog; index++)
-				{
-					elem = mCutsArray[index];
-				}
-		*/
 				
 				//Temp! - need to clear out array each time
 				while(mCutsArray.length>0){
 					mCutsArray.pop();
 				}
 				
-				mCutStyleValue.text = style; //set the text to display the determined cut style
+				mCutStyleValue.text = style; //finally set the text to display the determined cut style
 			}
 			
 			// timerListener() is called to update the fuel level display and game duration.
@@ -1074,7 +1052,10 @@
 				mLogArray[iLogNumber-1][2].push(cutAndFuelUsed);
 				
 				//store the cut properties
-				var prop:CutProperties = new CutProperties(mCutNumber, iLogNumber, iLocalX);
+//				var currentLog:MovieClip = mLogArray[iLogNumber-1][0] as MovieClip;
+//				var top_bottom:Boolean = currentLog['topToBottomCut']();
+				var top_bottom:Boolean = iLog['isTopToBottomCut']();
+				var prop:CutProperties = new CutProperties(mCutNumber, iLogNumber, iLocalX, top_bottom);
 				mCutsArray.push(prop);
 			}
 			
@@ -1228,10 +1209,10 @@
 	<s:Button id="mChangeLevelButton" x="20" y="86" width="100" height="30" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
 	
 	<s:BorderContainer id="mLogYardContainer" x="134" y="46" width="600" height="384" backgroundColor="#EAD1AA" borderVisible="false">
-		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLogTest.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)" mouseChildren="false"/>
-		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLogTest.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLogTest.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog4" x="-5" y="0" source="chainsaw_assets/DynamicLogTest.swf" complete="initLog4()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)" mouseChildren="false"/>
+		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog4" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog4()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:Group			id="mStatusLabelHolder" x="0" y="0" width="597" height="324" visible="false"/>
 	</s:BorderContainer>
 	
@@ -1256,7 +1237,7 @@
 		<s:Label id="mFuelLeftValue" x="437" y="225" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="100" textAlign="left" visible="true"/>
 		<s:Label id="mCutStyleLabel" x="350" y="308" text="Cut Style:" fontSize="16" verticalAlign="middle" fontWeight="bold" 
 				 textAlign="right" visible="true"/>
-		<s:Label id="mCutStyleValue" x="437" y="308" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="200" textAlign="left" visible="true"/>
+		<s:Label id="mCutStyleValue" x="437" y="308" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="220" textAlign="left" visible="true"/>
 	</s:BorderContainer>
 	
 	<s:Label id="mVersionLabel" x="600" y="386" width="140" color="#666666" initialize="mVersionLabel.text=VERSION" textAlign="right" verticalAlign="bottom"/>
