@@ -9,11 +9,12 @@ package chainsaw
 		var x_position;
 		var top_to_bottom; //direction
 		
-		public function CutProperties(cutNumber:int, log:int, x_pos:int)
+		public function CutProperties(cutNumber:int, log:int, x_pos:int, direction:Boolean)
 		{
 			this.cutNumber = cutNumber;
 			this.log = log;
 			this.x_position = x_pos;
+			this.top_to_bottom = direction;
 		}
 		
 		
@@ -82,13 +83,19 @@ package chainsaw
 			trace("\nCut method: directional");
 			trace("Outliers:", outliers);
 			
+//			//TODO check if player used downward cuts only, or used a zig-zag up/down pattern
+//			for(var j:int=0; j<arr.length; j++){
+//				var b:Boolean = arr[j].top_to_bottom;
+//				trace("TOP TO BOTTOM", b);
+//			}
+			
 			return true; //it has passed
 		}
 		public static function checkOutwardIn(arr:Array):Boolean
 		{
 			trace("CutProperties.checkOutwardIn()");
 			
-			var tolerance:int=2;
+			var tolerance:int=6;
 			var outliers:int=0;
 
 			var changeLog:int = 1;
@@ -96,7 +103,6 @@ package chainsaw
 			var lastX:int = arr[0].x_position;
 			var lastX2:int = arr[0].x_position;
 			
-			var lastBound:int;
 			var boundLeft:int = 0;
 			var boundRight:int= 1000; //no need to have exact number, 1000 is big enough
 			
@@ -122,7 +128,7 @@ package chainsaw
 							return false;
 					}
 					
-					if(false)
+					if(true)
 					{//replace this
 						if(arr[i].cutNumber % 2 == 1) {
 							boundLeft = arr[i].x_position;
@@ -130,7 +136,7 @@ package chainsaw
 							boundRight = arr[i].x_position;
 						}
 					}
-					if(true)
+					if(false)
 					{//with this
 						//with this method, order doesn't matter
 						//however, it can accept 'directional' style cuts
@@ -146,13 +152,13 @@ package chainsaw
 					}
 				}
 				
-				//if the last three cuts are in the same direction
-				if( (lastX2<lastX && lastX<arr[i].x_position) || (lastX2>lastX && lastX>arr[i].x_position) )
-				{
-					//trace(">Outliers", outliers);
-					if(++outliers > tolerance)
-						return false;
-				}
+//				//if the last three cuts are in the same direction
+//				if( (lastX2<lastX && lastX<arr[i].x_position) || (lastX2>lastX && lastX>arr[i].x_position) )
+//				{
+//					//trace(">Outliers", outliers);
+//					if(++outliers > tolerance)
+//						return false;
+//				}
 				
 				lastX2 = lastX;
 				lastX = arr[i].x_position;
@@ -197,6 +203,53 @@ package chainsaw
 				trace("outliers:", outliers);
 			}
 			return true;
+		}
+		
+		public static function findCutDirectionStyle(arr:Array):String
+		{
+			var style_zigzag:Boolean = true;
+			var style_topdown:Boolean = true;
+			var i:int;
+			
+			for(i=0; i<arr.length; i++) //all downward
+			{
+				if(arr[i].top_to_bottom == false){
+					style_topdown = false;
+					break;
+				}
+			}
+			
+			var tolerance:int=2;
+			var outliers:int=0;
+			var changeLog:int = 1;
+			var currentLog:int = arr[0].log;
+			var mod:int = 0;
+			for(i=0; i<arr.length; i++) //alternating (zig-zag)
+			{
+				if(arr[i].top_to_bottom != (i%2 == mod)){ //if cut is in wrong direction
+					if(arr[i].log != currentLog){ //if cut is on a different log
+						currentLog = arr[i].log;
+						changeLog++;
+						mod = mod?0:1; //flip mod between 0 and 1
+					}
+					else {
+						if(i==0) mod = mod?0:1;
+						else if(++outliers > tolerance){
+							style_zigzag = false;
+							break;
+						}
+					}
+				}
+			}
+			
+			if(style_zigzag){
+				return ", zig-zag cuts";
+			} else if(style_topdown){
+				return ", downward cuts";
+			}
+			
+			//if there is not a consistant vertical direction:
+			return "";
 		}
 	}
 }

@@ -32,7 +32,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.02.28"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "Chainsaw [F] 2012.03.07"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -1208,7 +1208,7 @@
 	<s:Button id="mStartStopButton" x="20" y="46" width="100" height="30" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
 	<s:Button id="mChangeLevelButton" x="20" y="86" width="100" height="30" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
 	
-	<s:BorderContainer id="mLogYardContainer" x="134" y="46" width="600" height="384" backgroundColor="#EAD1AA" borderVisible="false">
+	<s:BorderContainer id="mLogYardContainer" x="134" y="46" width="600" height="364" backgroundColor="#EAD1AA" borderVisible="false">
 		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)" mouseChildren="false"/>
 		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
