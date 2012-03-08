@@ -864,14 +864,10 @@
 				//First: check to see if the first two cuts are on the same log
 				if(mCutsArray[0].log == mCutsArray[1].log){
 					//If they are, do this
-					//possible styles: directional, inverse directional, outside to center?
+					//possible styles: directional
 					if(CutProperties.checkDirectional(mCutsArray)){
 						style = "Directional";
 						trace("Passed: Directional");
-					}
-					if(CutProperties.checkOutwardIn(mCutsArray)){
-						style = "Outward-In";
-						trace("Passed: Outward-in");
 					}
 
 				} else {
