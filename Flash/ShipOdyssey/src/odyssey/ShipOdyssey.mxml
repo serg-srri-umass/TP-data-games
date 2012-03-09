@@ -311,8 +311,6 @@
 
 				// Set number of rats left to full amount.
 				mRatsLeft					= kMaxRats;	
-				//mRatsLeftValueLabel.text 	= mRatsLeft.toString();
-				//mRatProgressBar.setProgress(mRatsLeft, mRatProgressBar.maximum); 
 				
 				mRatStepper.maximum	= kMaxRats;	//Set maximum rats-to-send to the full number of rats.
 				mRatStepper.minimum	= kMinRats;	//Set minimum rats-to-send to default.
@@ -320,16 +318,8 @@
 				// Set intial number of rats to send.
 				mRatsToSend			= kRatsToSend;
 				mRatStepper.value	= mRatsToSend;
-				
 				mResultsFieldLabel.text	= "";		// Clear rat results.
 				mHintLabel.text = kWelcomeText;		// Welcome the player.
-				
-				// Enable controls.
-				//mStartHuntButton.enabled		= true;
-				//mDropHookButton.enabled			= true;
-				//mSendRatsButton.enabled			= true;
-				//mCenterPositionStepper.enabled	= true;
-				//mRatStepper.enabled				= true;
 				
 				// Move hook to center of treasure area.
 				mCenterPosition				= kInitCenter;	
@@ -357,16 +347,13 @@
 				mTimeRanOutAlert.visible		= false;
 				mCongratulationsAlert.visible	= false;
 				mNoTreasuresFoundAlert.visible	= false;
-				
 				mTreasuresFoundLabel.visible	= false;
 				mSomeTreasuresFoundLabel.visible= false;
 				
 				//mStartHuntButton.enabled	= false;	// Disable start button, as game has begun.
 				//mSailOnButton.enabled		= true;		// Player can skip current treasure and sail to next.
-				
 				// Set days left to find treasure to full amount.
 				mDaysLeft					= kMaxDays;	
-				//mDaysRemainingValue.text 	= mDaysLeft.toString();
 			}
 			
 			// chooseHuntLevel() listens for clicks on the hunt level dialog's level buttons.
@@ -627,25 +614,14 @@
 						+ " at location " + location.toFixed(1) + "!";	
 					// Send event data to TinkerPlots / Fathom.
 					sendEventData("Hook", "Hit");
+
+					TreasureFoundLabel.text = "Ye found the " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + valueInDollars 
+						+ " at location " + location.toFixed(1) + "!";
+					TreasureFoundAlert.visible = true;
+					
 					// Increment treasure number and update text indicating which treasure is sought.
 					mCurrentTreasureNum++;	
-					mTreasuresFound++;		
-					mInSearchOfLabel.text = kInSearchOf + (mCurrentTreasureNum + 1).toString(); 
-					mResultsFieldLabel.text	= "";	// Clear rat results.
-					mFirstRat				= true;	// Recount rats used per treasure.	
-					if (mCurrentTreasureNum == kNumTreasures)
-					{	// Player found final treasure. Disable treasure hunt controls.
-						disableAllButtons(false);
-						noDaysLeft();
-					}
-					else	// Take time to sail to next treasure.
-					{						
-						if (mDaysLeft >= kDaysToNextTreasure)
-						{
-							updateProfitAfterSail();
-						}
-						else mDaysLeft = 0;//BINDABLE variable self updates text field
-					}
+					mTreasuresFound++;
 				}
 				else // Treasure was not found at drop location.
 				{
@@ -653,7 +629,6 @@
 					// Send event data to TinkerPlots / Fathom.
 					sendEventData("Hook", "Miss");
 				}
-				
 				// Disable the Drop Hook Button if there are not enough days left
 				// to drop the hook again. Game is done.
 				if (mDaysLeft < kDaysToDropHook)
@@ -672,6 +647,9 @@
 				if (!mCurrentGameComplete){
 					sendGameData();	
 				}
+				crane.visible = false;
+				sailingMovie.visible = true;
+				sailingMovie.reset();
 				mCurrentGameComplete = true;// Game is now complete.	
 				currentState='StartPage';	// Return to start screen.
 			}
@@ -701,13 +679,10 @@
 					mInSearchOfLabel.text = kInSearchOf + (mCurrentTreasureNum + 1).toString(); 
 					// Disable the Drop Hook Button if there were not enough days left
 					// to sail to the next treasure. Game is done.
-					if (mDaysLeft < kDaysToNextTreasure)
-					{
+					if (mDaysLeft < kDaysToNextTreasure){
 						updateProfitAfterSail();
 						noDaysLeft();
-					}
-					else // There were enough days left to sail to the next treasure.
-					{
+					}else{ // There were enough days left to sail to the next treasure.
 						updateProfitAfterSail();
 						// Disable the Drop Hook Button if there are not enough days left
 						// to drop the hook again. Game is done.
@@ -764,6 +739,7 @@
 				);
 			}
 			private function sendEventData(type:String, val:String):void{
+				var uniqueTreasureID:String = (mGameNumber+"-"+mTreasureArray[mCurrentTreasureNum][kTreasureID]);
 				if(type=="Hook"){
 					ScriptInterface.AddCaseToCollectionWithValues(
 						"Events", 
@@ -775,8 +751,7 @@
 							mHookDropOrderArray[mHooksDropped], // Hooks dropped so far in current game.
 							mCenterPosition.toFixed(1),			// Location of hook center at time of event.
 							val,		 			// Outcome of dropping hook None, Miss, Hit, etc.).
-							mTreasureArray[mCurrentTreasureNum][kTreasureID],		
-							// Categorical treasure ID (1-based) at time of event.
+							uniqueTreasureID,		// Categorical treasure ID (1-based) at time of event.
 							""						// Exact location of treasure found at time of event
 						]	
 					);
@@ -791,8 +766,7 @@
 							"",						// Hooks dropped so far in current game. Blank for rat events.
 							"",						// Location of hook center at time of event.
 							"",		 				// Outcome of dropping hook. Blank for rat events.
-							mTreasureArray[mCurrentTreasureNum][kTreasureID],		
-													// Categorical treasure ID (1-based) at time of event.
+							uniqueTreasureID,		// Categorical treasure ID (1-based) at time of event.
 							""						// Exact location of treasure found at time of event
 						]	
 					);
@@ -815,7 +789,24 @@
 			//called by the continue button after showing the user they got a treasure
 			//not implemented yet
 			private function sailNextTreasure(e:Event):void{
-				
+				TreasureFoundAlert.visible = false;
+				mInSearchOfLabel.text = kInSearchOf + (mCurrentTreasureNum + 1).toString(); 
+				mResultsFieldLabel.text	= "";	// Clear rat results.
+				mFirstRat				= true;	// Recount rats used per treasure.	
+				if (mCurrentTreasureNum == kNumTreasures)
+				{	// Player found final treasure. Disable treasure hunt controls.
+					disableAllButtons(false);
+					noDaysLeft();
+				}
+				else	// Take time to sail to next treasure.
+				{						
+					if (mDaysLeft >= kDaysToNextTreasure)
+					{
+						updateProfitAfterSail();
+						runSailOnAnim();
+					}
+					else mDaysLeft = 0;//BINDABLE variable self updates text field
+				}
 				
 			}
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
@@ -974,7 +965,7 @@
 	
 	<!-- Treasure hunt game and interactive areas -->
 	<s:Label id="mTreasureHuntTitle" includeIn="TreasureHunt" x="5" y="4" width="163" color="#B4D5E6"
-			 fontFamily="Times New Roman" fontSize="12" fontStyle="normal" text="Treasure Hunt(FL) v.12.01.26"/> <!--yy.mm.dd format-->
+			 fontFamily="Times New Roman" fontSize="12" fontStyle="normal" text="Treasure Hunt(FL) v.12.03.07"/> <!--yy.mm.dd format-->
 	<s:BorderContainer	id="mGameArea" includeIn="TreasureHunt" x="115" y="95" width="395" height="286" backgroundColor="0x555555" borderVisible="false">
 		<s:BorderContainer id="Sky" width="395" height="186" depth="1" backgroundFill="{daylight}" >
 			<s:SWFLoader id="CloudLoader" source="assets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
@@ -1006,10 +997,11 @@
 	<mx:Image	id="mTimeRanOutAlert" includeIn="TreasureHunt" x="160" y="109" source="{mTimeRanOutImage}" depth="6"/>
 	<mx:Image	id="mCongratulationsAlert" includeIn="TreasureHunt" x="160" y="109" source="{mCongratulationsImage}" depth="6"/>
 	<mx:Image	id="mNoTreasuresFoundAlert" includeIn="TreasureHunt" x="160" y="109" source="{mNoTreasuresFoundImage}" depth="6"/>
-	<mx:Container id="TreasureFoundAlert">
+	<s:BorderContainer id="TreasureFoundAlert" backgroundAlpha="0.0" borderAlpha="0.0" visible="false" depth="6">
 		<s:Image id="TreasureFoundAlertImage" includeIn="TreasureHunt" x="160" y="109" source="{mParchmentImage}" depth="6"/>
-		<s:Button id="ContinueOn" includeIn="TreasureHunt" x="240" y="240" label="Next Treasure" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" click="sailNextTreasure(event)" width="75"/>
-	</mx:Container>
+		<s:Label id="TreasureFoundLabel" includeIn="TreasureHunt" x="178" y="163" fontFamily="Georgia" fontStyle="italic" height="120" width="249" fontSize="22" textAlign="center" color="#000000" depth="7"/>
+		<s:Button id="ContinueOn" includeIn="TreasureHunt" x="240" y="290" label="Next Treasure" fontSize="14" fontStyle="italic" fontFamily="Georgia" height="18" click="sailNextTreasure(event)" width="125" depth="7"/>
+	</s:BorderContainer>
 	<!-- Game Treasure, profit, and days displays -->
 	<s:BorderContainer includeIn="TreasureHunt" x="9" y="388" width="46" height="50" borderWeight="2" cornerRadius="8" borderColor="#000000">
 		<mx:Image 	id="mPirateHead" includeIn="TreasureHunt" x="2" y="3" width="34" height="41" source="{mPirateHeadImage}"/>	
