@@ -858,7 +858,7 @@
 			private function determineCutStyle():void
 			{
 				var style:String = "Other";
-//				mCutsArray.sort(CutProperties.compare, Array.RETURNINDEXEDARRAY | Array.CASEINSENSITIVE);
+				
 				if(mCutsArray.length <= 1) return;
 				
 				//First: check to see if the first two cuts are on the same log
@@ -881,7 +881,7 @@
 				style += CutProperties.findCutDirectionStyle(mCutsArray);
 				
 				
-				//Temp! - need to clear out array each time
+				//Important - we need to clear out the array each time
 				while(mCutsArray.length>0){
 					mCutsArray.pop();
 				}

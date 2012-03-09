@@ -2,6 +2,10 @@ Chainsaw [Flash]
 Change Log
 
 ===========================
+2012.03.09
+Removed cut style case.
+
+===========================
 2012.03.08
 Improved cut style guessing.
 

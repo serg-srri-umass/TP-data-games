@@ -7,7 +7,7 @@ package chainsaw
 		var cutNumber;
 		var log:int;
 		var x_position;
-		var top_to_bottom; //direction
+		var top_to_bottom;
 		
 		public function CutProperties(cutNumber:int, log:int, x_pos:int, direction:Boolean)
 		{
@@ -17,19 +17,6 @@ package chainsaw
 			this.top_to_bottom = direction;
 		}
 		
-		
-		/**
-		 * A comparison function to be used by Array.sort()
-		 * @return 
-		 */
-//		A negative return value specifies that A appears before B in the sorted sequence.
-//		A return value of 0 specifies that A and B have the same sort order.
-//		A positive return value specifies that A appears after B in the sorted sequence.
-		public static function compare(arg1:*, arg2:*):int
-		{
-			//TODO
-			return 0;
-		}
 		
 		//
 		//Static functions that check an array for a cut style
@@ -81,7 +68,6 @@ package chainsaw
 		
 		public static function checkVertical(arr:Array):Boolean
 		{
-//			trace("CutProperties.checkVertical()");
 			var tolerance:int=2;
 			var outliers:int=0;
 			var lastLog:int = 1;
@@ -108,7 +94,6 @@ package chainsaw
 					}
 				}
 				lastLog = arr[i].log;
-//				trace("outliers:", outliers);
 			}
 			return true;
 		}
