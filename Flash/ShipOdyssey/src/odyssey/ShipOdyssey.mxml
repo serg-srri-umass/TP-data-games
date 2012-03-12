@@ -497,21 +497,6 @@
 					
 					// Send event data to TinkerPlots / Fathom.
 					sendEventData("Rat", noisyLocation.toString());
-					/*ScriptInterface.AddCaseToCollectionWithValues(
-						"Events", 
-						[
-							mGameNumber,			// Treasure hunt game number starting with 1 since launch of application.
-							getOceanQuality(),		// Clear or murky, based on hunt level chosen.
-							mRatsSent,				// Rats sent so far in current game.
-							noisyLocation,			// Location estimate provided by rat.
-							"",						// Hooks dropped so far in current game. Blank for rat events.
-							"",						// Location of hook center at time of event.
-							"",		 				// Outcome of dropping hook. Blank for rat events.
-							mTreasureArray[mCurrentTreasureNum][kTreasureID],		
-													// Categorical treasure ID (1-based) at time of event.
-							""						// Exact location of treasure found at time of event
-						]	
-					);*/
 				}
 				
 				// Set maximum rats-to-send to the number of rats left.
@@ -628,14 +613,14 @@
 					mHintLabel.text = kMissed;
 					// Send event data to TinkerPlots / Fathom.
 					sendEventData("Hook", "Miss");
-				}
-				// Disable the Drop Hook Button if there are not enough days left
-				// to drop the hook again. Game is done.
-				if (mDaysLeft < kDaysToDropHook)
-				{
-					// Player ran out of time. Disable treasure hunt controls.
-					disableAllButtons(false);
-					noDaysLeft();
+					// Disable the Drop Hook Button if there are not enough days left
+					// to drop the hook again. Game is done.
+					if (mDaysLeft < kDaysToDropHook)
+					{
+						// Player ran out of time. Disable treasure hunt controls.
+						disableAllButtons(false);
+						noDaysLeft();
+					}
 				}
 			}
 			
@@ -741,20 +726,20 @@
 			private function sendEventData(type:String, val:String):void{
 				var uniqueTreasureID:String = (mGameNumber+"-"+mTreasureArray[mCurrentTreasureNum][kTreasureID]);
 				if(type=="Hook"){
-					ScriptInterface.AddCaseToCollectionWithValues(
-						"Events", 
-						[
-							mGameNumber,			// Treasure hunt game number starting with 1 since launch of application.
-							getOceanQuality(),		// Clear or murky, based on hunt level chosen.
-							"",						// Rats sent so far in current game. Blank for hook drop events.
-							"",						// Location estimate provided by rat.
-							mHookDropOrderArray[mHooksDropped], // Hooks dropped so far in current game.
-							mCenterPosition.toFixed(1),			// Location of hook center at time of event.
-							val,		 			// Outcome of dropping hook None, Miss, Hit, etc.).
-							uniqueTreasureID,		// Categorical treasure ID (1-based) at time of event.
-							""						// Exact location of treasure found at time of event
-						]	
-					);
+//					ScriptInterface.AddCaseToCollectionWithValues(
+//						"Events", 
+//						[
+//							mGameNumber,			// Treasure hunt game number starting with 1 since launch of application.
+//							getOceanQuality(),		// Clear or murky, based on hunt level chosen.
+//							"",						// Rats sent so far in current game. Blank for hook drop events.
+//							"",						// Location estimate provided by rat.
+//							mHookDropOrderArray[mHooksDropped], // Hooks dropped so far in current game.
+//							mCenterPosition.toFixed(1),			// Location of hook center at time of event.
+//							val,		 			// Outcome of dropping hook None, Miss, Hit, etc.).
+//							uniqueTreasureID,		// Categorical treasure ID (1-based) at time of event.
+//							""						// Exact location of treasure found at time of event
+//						]	
+//					);
 				}else if (type=="Rat"){
 					ScriptInterface.AddCaseToCollectionWithValues(
 						"Events", 
@@ -781,7 +766,7 @@
 				transitionTimer.start();
 			}
 			private function sailThenZoomIn():void{
-				cHerder.setCloudSpeed(.5);
+				cHerder.setCloudSpeed(-.1);
 				transitionTimer = new Timer(4000, 1);
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, zoomOutTimerFinish);
 				transitionTimer.start();
@@ -792,6 +777,7 @@
 				TreasureFoundAlert.visible = false;
 				mInSearchOfLabel.text = kInSearchOf + (mCurrentTreasureNum + 1).toString(); 
 				mResultsFieldLabel.text	= "";	// Clear rat results.
+				
 				mFirstRat				= true;	// Recount rats used per treasure.	
 				if (mCurrentTreasureNum == kNumTreasures)
 				{	// Player found final treasure. Disable treasure hunt controls.
@@ -812,6 +798,11 @@
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
 			//(decouples visual with state and play so a broken animation doesn't stop play)
 			private function craneStored(e:TimerEvent):void{
+				cHerder.setCloudSpeed(-.1);
+				mCenterPositionStepper.value = 100;
+				onChangeCenterPosition(new Event("Stepper"));
+				//mCenterPosition = 100;
+				
 				//crane is stored and ready to zoom out
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, craneStored);
 				transitionTimer = new Timer(6000, 1); //timer is in milliseconds
@@ -820,6 +811,9 @@
 				crane.visible = false;
 				sailingMovie.doZoomOut();
 				transitionTimer.start()
+			}
+			private function sailOnFast(){
+				
 			}
 			private function zoomOutTimerFinish(e:TimerEvent):void{
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, zoomOutTimerFinish);
@@ -965,7 +959,7 @@
 	
 	<!-- Treasure hunt game and interactive areas -->
 	<s:Label id="mTreasureHuntTitle" includeIn="TreasureHunt" x="5" y="4" width="163" color="#B4D5E6"
-			 fontFamily="Times New Roman" fontSize="12" fontStyle="normal" text="Treasure Hunt(FL) v.12.03.07"/> <!--yy.mm.dd format-->
+			 fontFamily="Times New Roman" fontSize="12" fontStyle="normal" text="Treasure Hunt(FL) v.2012.03.12"/> <!--yyyy.mm.dd format-->
 	<s:BorderContainer	id="mGameArea" includeIn="TreasureHunt" x="115" y="95" width="395" height="286" backgroundColor="0x555555" borderVisible="false">
 		<s:BorderContainer id="Sky" width="395" height="186" depth="1" backgroundFill="{daylight}" >
 			<s:SWFLoader id="CloudLoader" source="assets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
