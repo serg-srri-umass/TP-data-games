@@ -33,9 +33,8 @@ package chainsaw
 			
 			for(var i:int=0; i<arr.length; i++)
 			{
-				if(arr[i].log != currentLog)
+				if(arr[i].log != currentLog) // the player changed logs
 				{
-//					trace("[NEW LOG] " + currentLog);
 					currentLog = arr[i].log;
 					changeLog++;
 					if(changeLog > 4)
@@ -44,17 +43,14 @@ package chainsaw
 				}
 				else //on same log
 				{
-//					trace("same log: " + currentLog, "outliers", outliers);
 					if(arr[i].log % 2 == 1) // Direction: Left to Right (logs 1&3)
 					{
-//						trace("direction: L-R");
 						if(arr[i].x_position < lastX)
 							if(++outliers > tolerance)
 								return false;
 					}
 					else if(arr[i].log % 2 == 0) // Direction: Right to Left (logs 2&4)
 					{
-//						trace("direction: R-L");
 						if(arr[i].x_position > lastX)
 							if(++outliers > tolerance)
 								return false;
