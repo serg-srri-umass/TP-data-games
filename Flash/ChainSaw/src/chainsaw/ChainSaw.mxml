@@ -1230,7 +1230,7 @@
 		<s:Label id="mFuelLeftLabel" x="174" y="225" width="251" fontSize="16" fontWeight="bold"
 				 text="Fuel Left:" textAlign="right"/>
 		<s:Label id="mFuelLeftValue" x="437" y="225" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="100" textAlign="left" visible="true"/>
-		<s:Label id="mCutStyleLabel" x="350" y="308" text="Cut Style:" fontSize="16" verticalAlign="middle" fontWeight="bold" 
+		<s:Label id="mCutStyleLabel" x="325" y="308" text="Cut Strategy:" fontSize="16" verticalAlign="middle" fontWeight="bold" 
 				 textAlign="right" visible="true"/>
 		<s:Label id="mCutStyleValue" x="437" y="308" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="220" textAlign="left" visible="true"/>
 	</s:BorderContainer>
