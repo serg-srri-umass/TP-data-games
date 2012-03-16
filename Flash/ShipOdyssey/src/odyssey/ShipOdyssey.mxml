@@ -479,26 +479,22 @@
 				for (var ratNum:uint = 0; ratNum < mRatsToSend; ++ratNum)
 				{
 					mRatsSent += 1;	// Increment rat counter.
-					
 					// Generate a noisy result based on the current treasure's location.
 					var location:Number		= mTreasureArray[mCurrentTreasureNum][kLocation];
-					var noisyLocation:Number= Math.round((mRandomNormal.standardNormal() * mStdDeviation) + location);
+					var noisyLocation:Number= Math.round((mRandomNormal.standardNormal() * mStdDeviation) + location); // Display nothing after decimal point.
 
 					// Add results of what the rats find to the results field.
-					if (mFirstRat)
+					if (mFirstRat)// If first rat, dont add punctuation.
 					{
-						// If first rat, dont add punctuation.
-						mResultsFieldLabel.text += noisyLocation; // Display nothing after decimal point.
+						mResultsFieldLabel.text += noisyLocation; 
 						mFirstRat = false;
 					}
 					else
 						// All successive results should add comma delimiters.
 						mResultsFieldLabel.text += ", " + noisyLocation; // Display nothing after decimal point.
-					
 					// Send event data to TinkerPlots / Fathom.
 					sendEventData("Rat", noisyLocation.toString());
 				}
-				
 				// Set maximum rats-to-send to the number of rats left.
 				// Adjust rat stepper to comply with any changes.
 				mRatStepper.maximum	= mRatsLeft;
@@ -512,7 +508,7 @@
 					
 					mRatStepper.value	= mRatsToSend;	// Set the stepper to reflect changes.
 				}
-				
+
 				// Disable Send Rats button if there are no more rats left after sending.
 				if (mRatsToSend == 0)
 				{
@@ -527,11 +523,15 @@
 			{
 				// Update the hook's range based on the center position.
 				//mCenterPositionStepper.value = mMathUtils.setPrecision(mCenterPositionStepper.value, kHookCenterPrecision);
+				var prevCP:int = mCenterPosition;
 				mCenterPosition			= mCenterPositionStepper.value;
 				mMinHookRange			= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
 				mMaxHookRange			= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
 				mRangeValueLabel.text	= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
-				crane.runTo(mCenterPosition);
+				if(Math.abs(prevCP - mCenterPosition)>2)
+					crane.tweenTo(mCenterPosition, 1);
+				else
+					crane.runTo(mCenterPosition);
 			}
 			
 			// onChangeRatStepper() is called when the number of rats to be sent
@@ -547,24 +547,41 @@
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent):void
 			{
-				// Clear hint text next to pirate head.
-				mHintLabel.text = "";		
-				mEventNumber 				+= 1; // Dropping a hook counts as an event.
-				mHooksDropped 				+= 1; // Increment counter of hooks dropped.
-				
-				// Set days left to find treasure.
-				mDaysLeft 					-= kDaysToDropHook;	
-				//mDaysRemainingValue.text 	= mDaysLeft.toString();
-				
-				// Update the cumulative cost of using the ship and crew as well as the profit so far.
-				mShipCostSoFar		+= kCostPerDay * kDaysToDropHook;
-				mProfitSoFar		-= kCostPerDay * kDaysToDropHook;
-				mProfitValue.text	= formatDollars(mProfitSoFar);
-				
-				// Show another treasure if the hook was dropped on the current location.
-				var location:Number = mTreasureArray[mCurrentTreasureNum][kLocation];
-				mFoundTreasure = (location >= mMinHookRange && location <= mMaxHookRange);
-				dropHook();
+				mDropHookButton.enabled = false;
+				//check to see if the crane needs to move before we can drop the hook
+				//this happens if someone changes the value of the stepper and then clicks the Drop Hook button before the crane finishes moving
+				if(mCenterPosition != mCenterPositionStepper.value || crane.getFrame() != mCenterPosition){
+					transitionTimer = new Timer(500, 0);
+					transitionTimer.addEventListener(TimerEvent.TIMER,waitOnCraneMove);
+					transitionTimer.start();
+				}else{
+					// Clear hint text next to pirate head.
+					mHintLabel.text = "";		
+					mEventNumber 				+= 1; // Dropping a hook counts as an event.
+					mHooksDropped 				+= 1; // Increment counter of hooks dropped.
+					
+					// Set days left to find treasure.
+					mDaysLeft 					-= kDaysToDropHook;	
+					//mDaysRemainingValue.text 	= mDaysLeft.toString();
+					
+					// Update the cumulative cost of using the ship and crew as well as the profit so far.
+					mShipCostSoFar		+= kCostPerDay * kDaysToDropHook;
+					mProfitSoFar		-= kCostPerDay * kDaysToDropHook;
+					mProfitValue.text	= formatDollars(mProfitSoFar);
+					
+					// Show another treasure if the hook was dropped on the current location.
+					var location:Number = mTreasureArray[mCurrentTreasureNum][kLocation];
+					mFoundTreasure = (location >= mMinHookRange && location <= mMaxHookRange);
+					dropHook();
+				}
+			}
+			//wait and check timer routine for when the hook is moving before a drop
+			private function waitOnCraneMove(e:TimerEvent):void{
+				if(mCenterPosition == mCenterPositionStepper.value && crane.getFrame() == mCenterPosition){
+					transitionTimer.stop();
+					transitionTimer.removeEventListener(TimerEvent.TIMER, waitOnCraneMove);
+					onClickDropHookButton(new MouseEvent(MouseEvent.CLICK));
+				}
 			}
 			
 			//call the animation, disable all buttons during animation, and start a timer
@@ -812,7 +829,7 @@
 				sailingMovie.doZoomOut();
 				transitionTimer.start()
 			}
-			private function sailOnFast(){
+			private function sailOnFast():void{
 				
 			}
 			private function zoomOutTimerFinish(e:TimerEvent):void{
@@ -926,11 +943,11 @@
 							  useThousandsSeparator="true"	alignSymbol="left"/>
 		<s:LinearGradient id="murkyWater" rotation="90">
 			<s:GradientEntry color="0x796f5a" ratio=".33" alpha=".75"/>
-			<s:GradientEntry color="0x000000" ratio=".66" alpha=".75"/>
+			<s:GradientEntry color="0x645a45" ratio=".66" alpha=".75"/>
 		</s:LinearGradient>
 		<s:LinearGradient id="clearWater" rotation="90">
 			<s:GradientEntry color="0x076FA3" ratio=".33" alpha=".6"/>
-			<s:GradientEntry color="0x000000" ratio=".66" alpha=".75"/>
+			<s:GradientEntry color="0x025987" ratio=".66" alpha=".75"/>
 		</s:LinearGradient>
 		<s:LinearGradient id="daylight" rotation="90">
 			<s:GradientEntry color="0x3BCFF3" ratio=".0" alpha=".75"/>
