@@ -38,7 +38,7 @@
 			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
 			
-			public static const VERSION:String = "Rock Roll [F] 2012.01.06"; // Ryan
+			public static const VERSION:String = "Rock Roll [F] 2012.01.06";
 			
 			public static const NUMBER_OF_ROCKS:uint	= 16;	// Number of rocks total
 			public static const ROCKS_TO_ROLL:uint		= 4;	// How many rocks to roll at once
@@ -280,7 +280,7 @@
 			private function chooseGameLevel():void 
 			{
 				var isModal:Boolean = true;
-				PopUpManager.addPopUp(mLevelWindow, this, isModal); 
+				PopUpManager.addPopUp(mLevelWindow, this, isModal);
 				
 				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
 				mLevelWindow.closeButton.visible = false;	// Hide the close button.
@@ -702,7 +702,7 @@
 			{
 				if (!mRocksAreRolling)
 					// Don't show busy cursor if rocks aren't rolling.
-					CursorManager.removeBusyCursor();	
+					CursorManager.removeBusyCursor();
 			}
 			
 			// errorHandler() is called when there is an error and allows app to do whatever
@@ -714,12 +714,7 @@
 					"Warning!");
 				
 				// Equivalent of pressing Cancel button. Otherwise, all controls are left in the disabled state.
-				mRollRocksButton.enabled	= false;	// Disable Roll Rocks button until rocks are done rolling.
-				enableStrengthSliderAAndLabel(false);	// Disable strength slider
-				enableStrengthSliderBAndLabel(false);	// Disable strength slider
-				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
-				enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
-				enableSortRocksListAndLabel(false);		// Disable sort feature until new game is started.
+				cancelPressed();
 				
 				mRocksAreRolling		= false;// Rolling has stopped.
 				mRollCounter			= 0;	// Reset counter.
@@ -1052,12 +1047,7 @@
 				// User pressed 'Cancel' during a game. Disable controls until user intiates new game.
 				if (mCancelButtonOn) 
 				{
-					mRollRocksButton.enabled	= false;	// Disable Roll Rocks button until rocks are done rolling.
-					enableStrengthSliderAAndLabel(false);	// Disable strength slider
-					enableStrengthSliderBAndLabel(false);	// Disable strength slider
-					enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
-					enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
-					enableSortRocksListAndLabel(false);		// Disable sort feature until new game is started.
+					cancelPressed();
 				}
 				else // Handle the setup of a new game
 				{
@@ -1108,6 +1098,16 @@
 				
 				// Update instructions text.
 				updateInstructionsText();
+			}
+			
+			protected function cancelPressed():void
+			{
+				mRollRocksButton.enabled	= false;	// Disable Roll Rocks button until rocks are done rolling.
+				enableStrengthSliderAAndLabel(false);	// Disable strength slider
+				enableStrengthSliderBAndLabel(false);	// Disable strength slider
+				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
+				enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
+				enableSortRocksListAndLabel(false);		// Disable sort feature until new game is started.
 			}
 
 			// onUpdateNumberOfGames() is called when mNumberGamesStepper is changed and 
