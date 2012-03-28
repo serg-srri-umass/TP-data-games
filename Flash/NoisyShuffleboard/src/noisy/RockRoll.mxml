@@ -38,7 +38,7 @@
 			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
 			
-			public static const VERSION:String = "Rock Roll [F] 2012.01.06";
+			public static const VERSION:String = "Rock Roll [F] 2012.03.28";
 			
 			public static const NUMBER_OF_ROCKS:uint	= 16;	// Number of rocks total
 			public static const ROCKS_TO_ROLL:uint		= 4;	// How many rocks to roll at once
@@ -1166,12 +1166,34 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
+	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.width - 10}" height="30" cornerRadius="3">
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xf0f0f0"/>
+				<s:GradientEntry color="0xd8d8d8"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		
+		<s:Label id="mLevelLabel_" x="5" y="3" text="{mLevelLabel.text}" width="318" textAlign="left" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Verdana" fontStyle="normal" color="#669035"/>
+		
+		<s:RichText text="ROCK ROLL" id="mGameTitle" fontFamily="Verdana" fontSize="20" color="#4E594E" x="120" y="6" width="559" textAlign="center" verticalAlign="top" height="28" fontStyle="normal" textDecoration="none" fontWeight="normal" backgroundAlpha="1.0"/>
+		
+		<!--
+		<s:Label id="mPlayersNameLabel" x="280" y="9" color="#7B9453" fontFamily="Arial" fontSize="16" fontWeight="bold" text="Player's Name:" />
+		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput(event)" color="#7B9453" enabled="true"
+					 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
+		-->
+		<!--
+		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}"/>
+		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="100"/>
+		-->
+	</s:BorderContainer>
+	
 	<default:ShuffleCourt x="233" y="58" id="shuffleCourt" fontFamily="Verdana">
 	</default:ShuffleCourt>
 	
 	<s:SpriteVisualElement id="mSpriteVE" />
 
-	<s:RichText text="ROCK ROLL" id="mGameTitle" fontFamily="Verdana" fontSize="20" color="#4E594E" x="231" y="2" paddingLeft="10" paddingTop="10" width="559" textAlign="center" verticalAlign="top" height="28" fontStyle="normal" textDecoration="none" fontWeight="normal" backgroundAlpha="1.0"/>
 	<mx:HSlider x="10" y="142" width="200" id="mStrengthSliderA" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthA(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
 	<s:Label x="10" y="193" text="Strength A" id="mStrengthLabelA" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
 	<mx:HSlider x="10" y="219" width="200" id="mStrengthSliderB" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthB(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
