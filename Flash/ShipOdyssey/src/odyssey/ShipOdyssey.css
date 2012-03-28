@@ -5,12 +5,13 @@
 
 global
 {
-	color: #CEE7F4;
+	color: #cee7f4;
 }
 
-#ContinueOn
-{
-	fillAlphas: 1, 1, 1, 1;
-	fillColors: #D9BE97, #D9BE97, #D9BE97, #D9BE97;
+s|Button#logBtn {
+	skinClass: ClassReference("odyssey.skins.LogButtonSkin");
+}
+s|Button#closeLogBtn {
+	skinClass: ClassReference("odyssey.skins.StatusCloseButtonSkin");
 }
 	
