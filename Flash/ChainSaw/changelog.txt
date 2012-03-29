@@ -2,6 +2,10 @@ Chainsaw [Flash]
 Change Log
 
 ===========================
+2012.03.29
+Changed the cut strategy guessing.
+
+===========================
 2012.03.14
 Changed 'Cut Style' label to 'Cut Strategy'.
 

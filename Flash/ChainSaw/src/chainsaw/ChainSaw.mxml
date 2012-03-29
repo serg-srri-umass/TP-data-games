@@ -857,35 +857,32 @@
 			 */
 			private function determineCutStyle():void
 			{
-				var style:String = "Other";
-				
 				if(mCutsArray.length <= 1) return;
 				
-				//First: check to see if the first two cuts are on the same log
-				if(mCutsArray[0].log == mCutsArray[1].log){
-					//If they are, do this
-					//possible styles: directional
-					if(CutProperties.checkDirectional(mCutsArray)){
-						style = "Directional";
-					}
-
-				} else {
-					//If they are not, do this
-					//possible styles: vertical
-					if(CutProperties.checkVertical(mCutsArray)) style = "Vertical";
+				var strategy:int = CutProperties.determineStrategy(mCutsArray);
+				switch(strategy)
+				{
+					case 0:
+						mCutStyleValue.text = "Single, down";
+						break;
+					case 1:
+						mCutStyleValue.text = "Single, downup"; //'Alternating Cuts' ?
+						break;
+					case 2:
+						mCutStyleValue.text = "Multi, down";
+						break;
+					case 3:
+						mCutStyleValue.text = "Multi, downup";
+						break;
+					default:
+						mCutStyleValue.text = "Other";
 				}
-				
-				//If the style does not match any known styles, classify it as 'Other'
-				
-				style += CutProperties.findCutDirectionStyle(mCutsArray);
-				
 				
 				//Important - we need to clear out the array each time
-				while(mCutsArray.length>0){
+				while(mCutsArray.length>0)
+				{
 					mCutsArray.pop();
 				}
-				
-				mCutStyleValue.text = style; //finally set the text to display the determined cut style
 			}
 			
 			// timerListener() is called to update the fuel level display and game duration.
