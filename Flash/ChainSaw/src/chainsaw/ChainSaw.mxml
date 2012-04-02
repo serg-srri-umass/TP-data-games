@@ -1052,9 +1052,14 @@
 			}
 			
 			// onChangePlayerTextInput() is called whenever the text is changed in the mPlayerTextInput control.
-			protected function onChangePlayerTextInput(iEvent:TextOperationEvent):void
+			protected function onChangePlayerTextInput(iEvent:KeyboardEvent):void
 			{
 				mPlayersName = mPlayerTextInput.text;
+
+				//remove focus when user hits enter (purely visual effect)
+				if(iEvent.keyCode == 13) {
+					mPlayerTextInput.focusManager.hideFocus();
+				}
 			}
 			
 			// Player has pressed the Start/Stop button
@@ -1190,7 +1195,7 @@
 		<s:Label id="mLevelLabel" x="5" y="3" text="PRACTICE LEVEL" width="318" textAlign="left" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" fontStyle="normal" color="#669035"/>
 		
 		<s:Label id="mPlayersNameLabel" x="280" y="9" color="#7B9453" fontFamily="Arial" fontSize="16" fontWeight="bold" text="Player's Name:" />
-		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput(event)" color="#7B9453" enabled="true"
+		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" keyUp="onChangePlayerTextInput(event)" color="#7B9453" enabled="true"
 					 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
 		
 		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}"/>
