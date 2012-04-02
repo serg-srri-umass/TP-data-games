@@ -2,6 +2,10 @@ Chainsaw [Flash]
 Change Log
 
 ===========================
+2012.04.02
+New cut strategy names and altered algorithm.
+
+===========================
 2012.03.29
 Changed the cut strategy guessing.
 

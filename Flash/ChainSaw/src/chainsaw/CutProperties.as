@@ -77,7 +77,7 @@ package chainsaw
 		}
 		
 		public static function isDirectional(arr:Array):Boolean
-		{			
+		{
 			var tolerance:int=2;
 			var outliers:int=0;
 			
@@ -97,6 +97,7 @@ package chainsaw
 				}
 				else //on same log
 				{
+					/*
 					if(arr[i].log % 2 == 1) // Direction: Left to Right (logs 1&3)
 					{
 						if(arr[i].x_position < lastX)
@@ -109,6 +110,7 @@ package chainsaw
 							if(++outliers > tolerance)
 								return false;
 					}
+					*/
 				}
 				lastX = arr[i].x_position;
 			}
