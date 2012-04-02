@@ -4,13 +4,14 @@
 <!-- Copyright (c) 2011-2012 by University of Massachusetts and contributors -->
 <!-- Project information: http://srri.umass.edu/datagames/ -->
 <!-- Released under the MIT License http://www.opensource.org/licenses/mit-license.php -->
+<!-- Keep Calm and Chive On -->
 
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
-			   width="515" height="410" creationComplete="startUp()" currentState="StartPage"
+			   width="518" height="410" creationComplete="startUp()" currentState="StartPage"
 			   pageTitle="Ship Odyssey"
-			   width.TreasureHunt="515" height.TreasureHunt="410"
+			   width.TreasureHunt="518" height.TreasureHunt="410"
 			   backgroundColor="#CCCCCC"
 			   backgroundColor.TreasureHunt="#294867">
 	<fx:Style source="ShipOdyssey.css"/>
@@ -184,6 +185,24 @@
 			[Embed(source="../odysseyAssets/SO-UI2-SearchingSkipped.png")]
 			[Bindable] private var mSearchSkip:Class;
 			
+			// Status Scroll backer
+			[Embed(source="../odysseyAssets/SO-UI2-StatusScroll.png")]
+			[Bindable] private var mScrollImage:Class; 
+			
+			
+			// Embed volume icons
+			[Embed(source="../odysseyAssets/Volume.png")]
+			[Bindable]
+			private var mVolumeIcon:Class;
+			
+			[Embed(source="../odysseyAssets/Volume_half.png")]
+			[Bindable]
+			private var mHalfVolumeIcon:Class;
+			
+			[Embed(source="../odysseyAssets/Volume_off.png")]
+			[Bindable]
+			private var mLowVolumeIcon:Class;
+			
 			// **NOTE: If you are looking for the button images, they are embedded in skin mxml files in the skins folder.
 			
 			// ********** END OF EMBEDDED TREASURE HUNT IMAGES **********
@@ -252,6 +271,7 @@
 			{
 				currentState='TreasureHunt';	// Switch to Treasure Hunt screen.
 				
+				GameLabel.text = "Treasure Hunt";
 				// Create a  game level modal dialog.
 				// Listen for clicks on level buttons in dialog.
 				mLevelWindow = new TreasureHuntLevelWindow();
@@ -341,7 +361,7 @@
 				PopUpManager.addPopUp(mLevelWindow, this, isModal); 
 				
 				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
-				mLevelWindow.closeButton.visible = false;	// Hide the close button.
+				//mLevelWindow.closeButton.visible = false;	// Hide the close button.
 				
 				mLevelWindow["mLevelOneButton"].addEventListener("click", firstHuntLevel);   
 				mLevelWindow["mLevelTwoButton"].addEventListener("click", secondHuntLevel);   
@@ -557,7 +577,6 @@
 				//does the visual and sound items that occur after the hook drop finishes playing
 				//or as the item on the hook comes into view
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);
-				enableAllButtons();
 				var location:Number = mTreasureArray[mCurrentTreasureNum][kLocation];
 				if (mFoundTreasure)
 				{
@@ -585,6 +604,7 @@
 				}
 				else // Treasure was not found at drop location.
 				{
+					enableAllButtons();
 					// Send event data to TinkerPlots / Fathom.
 					sendEventData("Hook", "Miss");
 					// Disable the Drop Hook Button if there are not enough days left
@@ -923,6 +943,23 @@
 				mRatStepper.enabled = true;
 				mSendRatsButton.enabled = true;
 			}
+			
+			private function updateVolume(vol:Number):void
+			{
+				//cannot do: SoundMixer.soundTransform.volume = vol/100;
+				var st:SoundTransform = SoundMixer.soundTransform;
+				st.volume = vol/100; //changes range [0-100] (slider position) to [0-1] (volume level)
+				SoundMixer.soundTransform = st;
+				
+				//adjust the volume level icon
+				if(vol < 33){
+					mVolumeImage.source = mLowVolumeIcon;
+				} else if(vol > 66) {
+					mVolumeImage.source = mVolumeIcon;
+				} else {
+					mVolumeImage.source = mHalfVolumeIcon;
+				}
+			}
 		]]>
 	</fx:Script>
 	
@@ -955,10 +992,11 @@
 		</s:LinearGradient>
 		<s:SolidColorStroke id="separator" color="0x000000" weight="1"/>
 	</fx:Declarations>
+
 	<!--Opening screen -->
 	<mx:Image	id="mStartPageBackground" x="0" y="0" source="{mPirateShipImage}" includeIn="StartPage"/>
-	<s:RichText	id="mGameTitle" x="10" y="10" text="Ship Odyssey" fontFamily="Georgia" fontSize="40" color="#908F17" fontWeight="normal" fontStyle="italic" includeIn="StartPage"/>
-	<s:Group	x="160" y="122" width="200" height="48" includeIn="StartPage">
+	<s:RichText	id="mGameTitle" x="10" y="40" text="Ship Odyssey" fontFamily="Georgia" fontSize="40" color="#908F17" fontWeight="normal" fontStyle="italic" includeIn="StartPage"/>
+	<s:Group	x="160" y="152" width="200" height="48" includeIn="StartPage">
 		<s:Rect		id="mGroupRect" x="0" y="0" radiusX="4" radiusY="4" height="100%" width="100%">
 			<s:stroke>
 				<s:SolidColorStroke weight="1" scaleMode="normal" color="0xFFFFFF" alpha=".75"/>
@@ -967,15 +1005,9 @@
 		</s:Rect>        
 		<s:Button	id="mTreasureHuntButton" x="10" y="10" label="Treasure Hunt" fontSize="24" fontStyle="italic" fontFamily="Georgia" height="28" click="switchToTreasureHunt(event)"/>
 	</s:Group>
-	
-	<!--<s:Image source="odysseyAssets/SO-UI2-PlacementMap.png" includeIn="TreasureHunt"/>-->
-	
-	<!-- Treasure hunt game and interactive areas -->
-		<s:Label id="TreasureHuntVersion" includeIn="TreasureHunt" x="7" y="10" width="163" chromeColor="#294867" color="#294867" fontFamily="Impact" fontSize="12" fontStyle="normal" text="v.2012.03.12(FL)"/> 
-		<s:Label id="TreasureHuntLabel" includeIn="TreasureHunt" x="163" y="7" width="163" chromeColor="#294867" color="#294867" fontFamily="Impact" fontSize="18" fontStyle="normal" text="Treasure Hunt" textAlign="center" verticalAlign="top"/>
-	
+
 	<!-- Animated Ship and Crane area -->
-		<s:BorderContainer	id="mGameArea" includeIn="TreasureHunt" x="117" y="117" width="395" height="286" backgroundColor="0x555555" borderVisible="false">
+		<s:BorderContainer	id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286" backgroundColor="0x555555" borderVisible="false">
 			<s:BorderContainer id="Sky" width="395" height="186" depth="1" backgroundFill="{daylight}" borderVisible="false">
 				<s:SWFLoader id="CloudLoader" source="odysseyAssets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
 			</s:BorderContainer>	
@@ -983,11 +1015,11 @@
 			<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
 			<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
 		</s:BorderContainer>
-		<mx:UIComponent id="uic" x="117" y="117"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
+		<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
 
 	<!-- Scroll status items-->
 		<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt" x="123" y="116">
-			<s:Image id="mStatusScroll" includeIn="TreasureHunt" source="odysseyAssets/SO-UI2-StatusScroll.png" />
+			<s:Image id="mStatusScroll" includeIn="TreasureHunt" source="{mScrollImage}" />
 			<s:Label id="mRatsRemaining" includeIn="TreasureHunt" x="161" y="39" width="71"
 					 color="#433211" fontFamily="Verdana" text="500 of 500" textAlign="left"/>
 			<s:Label id="mDaysSpent" includeIn="TreasureHunt" x="232" y="60" width="71"
@@ -1009,7 +1041,6 @@
 			<s:Button id="mExitHuntButton" includeIn="TreasureHunt" x="171" y="245" width="75" height="18" label="Exit" chromeColor="#D1B38B" click="onClickExitTreasureHunt(event)" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
 			<s:Button id="mSailOnButton" includeIn="TreasureHunt" x="91" y="245" width="75" height="18" label="Sail On" chromeColor="#D1B38B" click="onClickSailOnButton(event)" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
 		</mx:Canvas>
-
 	
 	<!-- Popup Alert items -->
 		
@@ -1029,14 +1060,16 @@
 		</s:Group>
 	<!-- Edge Controls and displays -->
 		<s:Button 	id="logBtn" includeIn="TreasureHunt" x="16" y="209" click="onClickLog(event)"/>
-		<s:Image id="mInSearchBacker" includeIn="TreasureHunt" x="0" y="124" source="odysseyAssets/SO-UI2-SearchingPanel.png"/>
-			<s:Image id="T1Search" includeIn="TreasureHunt" x="9" y="170" source="" visible="false"/>
-			<s:Image id="T2Search" includeIn="TreasureHunt" x="26" y="170" source="" visible="false"/>
-			<s:Image id="T3Search" includeIn="TreasureHunt" x="43" y="170" source="" visible="false"/>
-			<s:Image id="T4Search" includeIn="TreasureHunt" x="61" y="170" source="" visible="false"/>
-			<s:Image id="T5Search" includeIn="TreasureHunt" x="79" y="170" source="" visible="false"/>
-			<s:Image id="T6Search" includeIn="TreasureHunt" x="96" y="170" source="" visible="false"/>
-		<s:Label 	id="mInSearchOfLabel" includeIn="TreasureHunt" x="80" y="156" text="#/6" backgroundAlpha="0.0" fontFamily="Impact" fontStyle="normal" fontSize="16" color="#294867"/>
+		<s:Group id="SearchPanel" x="3" includeIn="TreasureHunt">
+			<s:Image id="mInSearchBacker" includeIn="TreasureHunt" x="0" y="124" source="{mSearchPanel}"/>
+				<s:Image id="T1Search" includeIn="TreasureHunt" x="9" y="170" source="" visible="false"/>
+				<s:Image id="T2Search" includeIn="TreasureHunt" x="26" y="170" source="" visible="false"/>
+				<s:Image id="T3Search" includeIn="TreasureHunt" x="43" y="170" source="" visible="false"/>
+				<s:Image id="T4Search" includeIn="TreasureHunt" x="61" y="170" source="" visible="false"/>
+				<s:Image id="T5Search" includeIn="TreasureHunt" x="79" y="170" source="" visible="false"/>
+				<s:Image id="T6Search" includeIn="TreasureHunt" x="96" y="170" source="" visible="false"/>
+			<s:Label 	id="mInSearchOfLabel" includeIn="TreasureHunt" x="80" y="156" text="#/6" backgroundAlpha="0.0" fontFamily="Impact" fontStyle="normal" fontSize="16" color="#294867"/>
+		</s:Group>
 		<s:SWFLoader id="WatchLoader" includeIn="TreasureHunt" x="9" y="287" complete="initWatch()"
 					 source="odysseyAssets/PocketWatch.swf"/>
 		<s:Label	id="mDaysRemainingValue" includeIn="TreasureHunt" x="19" y="337" text="{mDaysLeft}" fontSize="32" color="#362A1A" fontWeight="bold" fontStyle="normal" textAlign="center" width="78" filters="{[new GlowFilter(0xFF8888,0.75,4.0,4.0)]}" />
@@ -1059,6 +1092,19 @@
 				<s:Label 	id="mResultsFieldLabel" x="2" y="2" height="19" width="106" color="#9B1D79" lineBreak="explicit" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" textAlign="right"/>
 			</s:BorderContainer>
 			<s:Button id="mSendRatsButton" height="23" label="Send Rats" click="onClickSendRatsButton(event)" x="88" y="28" includeIn="TreasureHunt"/>	
-		</s:Group> 
-
+		</s:Group>
+	<!--Game Header Bar-->
+	<s:BorderContainer id="StatusBar" x="3" y="0" width="{this.width - 6}" height="30" cornerRadius="3" depth="10">
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xf0f0f0"/>
+				<s:GradientEntry color="0xd8d8d8"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		<s:Label id="GameVersion" x="7" y="10" width="163" chromeColor="#294867" color="#294867" fontFamily="Impact" fontSize="12" fontStyle="normal" text="v.2012.03.29(FL)"/> 
+		<s:Label id="GameLabel" x="163" y="7" width="163" chromeColor="#294867" color="#294867" fontFamily="Impact" fontSize="18" fontStyle="normal" text="" textAlign="center" verticalAlign="top"/>
+		
+		<s:Image id="mVolumeImage" x="390" y="6" source="{mVolumeIcon}"/>
+		<s:HSlider id="mVolumeSlider" x="415" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="100"/>
+	</s:BorderContainer>
 </s:Application>

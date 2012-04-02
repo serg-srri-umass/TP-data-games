@@ -9,25 +9,14 @@
 <s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
-			   width="260" height="150" backgroundAlpha="0.75" backgroundColor="#B4B35F"
-			   enabled="true" fontSize="16" skinClass="spark.skins.spark.TitleWindowSkin"
-			   textAlign="center" title="     Choose Game Level">
-	
+			   width="387" height="293" backgroundAlpha="0.0"
+			   enabled="true" fontSize="16" skinClass="odyssey.skins.Instruction_DifficultyWindow"
+			   mouseEnabled="false" 
+			   >
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
-	<s:layout>
-		<s:VerticalLayout paddingLeft="12" paddingTop="12" paddingRight="12" paddingBottom="12" gap="12" rowHeight="40" variableRowHeight="false" horizontalAlign="contentJustify"/>
-	</s:layout>
-	
-	<s:Button id="mLevelOneButton" width="227" label="Clear Ocean" chromeColor="#294867"
-			  color="#CEE7F4" enabled="true" fontFamily="Georgia" fontSize="24" fontStyle="italic"
-			  fontWeight="bold"/>
-	<s:Button id="mLevelTwoButton" width="227" label="Murky Ocean" chromeColor="#294867"
-			  color="#CEE7F4" enabled="true" fontFamily="Georgia" fontSize="24" fontStyle="italic"
-			  fontWeight="bold"/>
+	<s:Button id="mLevelOneButton" x="82" y="183" skinClass="odyssey.skins.DifficultyEasyButtonSkin" depth="2" enabled="true"/>
+	<s:Button id="mLevelTwoButton" x="82" y="207" skinClass="odyssey.skins.DifficultyMediumButtonSkin" depth="2" enabled="true"/>
 </s:TitleWindow>
-
-
-
