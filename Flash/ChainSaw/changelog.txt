@@ -2,6 +2,10 @@ Chainsaw [Flash]
 Change Log
 
 ===========================
+2012.04.03
+Modified data ouputted in collections.
+
+===========================
 2012.04.02
 New cut strategy names and altered algorithm.
 

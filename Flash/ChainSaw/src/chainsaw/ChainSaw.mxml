@@ -32,7 +32,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.03.09"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "Chainsaw [F] 2012.04.03"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -55,6 +55,8 @@
 			public static const kCollectionFreeCutPieces:String	= "CutPieces - Free Cut Level";
 			public static const kCollectionDirCutGames:String	= "Directional Cut";
 			public static const kCollectionFreeCutGames:String	= "Free Cut";
+			public static const kCollectionHeavyFreeCutGames:String	= "Heavy Free Cut";
+			public static const kCollectionMixedFreeCutGames:String	= "Mixed Free Cut";
 			
 			// Strings indicating accptance/rejection status of cut pieces.
 			public static const kAcceptString:String		= "Yes";
@@ -433,14 +435,11 @@
 					[
 						"PieceNum",			// Piece number starting with 1 since launch of application.
 						"Player",			// Name of the player.
-						"GameNum",			// Game number starting with 1 since launch of application.
+						"GameNumber",		// Game number starting with 1 since launch of application.
 						"Length",			// Length of cut piece.
 						"Thickness",		// Thin or thick depending on game type
 						"Accepted",			// True if cut piece is within accepted range of cut length.
-						"EndPiece",			// Yes if this piece is an end piece.
-						"LogNum",			// Number of log from which piece was cut.
-						"FuelLeftAmount",	// Raw amount of fuel left at the time of piece creation.
-						"FuelLeftPercent"	// Percent of fuel left at the time of piece creation.
+						"LogNum"			// Number of log from which piece was cut.
 					]
 				);
 				
@@ -451,13 +450,14 @@
 						"GameNumber",		// Game number starting with 1 since launch of application.
 						"GameType",			// Direction Cut or Free Cut
 						"Player",			// Name of the player.
-						"PiecesAccepted",	// Number of pieces accepted.
-						"PiecesRejected",	// Number of pieces rejected.
+						"Pieces_Accepted",	// Number of pieces accepted.
+						"Pieces_Rejected",	// Number of pieces rejected.
 						"Pieces_Short",		// Number of pieces rejected as short.
 						"Pieces_Long",		// Number of pieces rejected as long.
 						"Pieces_Remnant",	// Number of pieces rejected as remnant.
 						"FuelLeftAmount",	// Raw amount of fuel left.
-						"FuelLeftPercent"	// Percent of fuel left.
+						"FuelLeftPercent",	// Percent of fuel left.
+						"CutStrategy"		// 
 					]
 				);
 			}
@@ -567,14 +567,12 @@
 				//add statusLabel element to holder to be shown later
 				mStatusLabelHolder.addElement(statusLabel);
 				
-				if (mGameLevel != kPracticeLevel){	
+				if (mGameLevel != kPracticeLevel)
+				{
 					var lengthTwoDecimals:String	= (iLength * kConvertToInches).toFixed(2);
-					var fuelLeftFraction:Number		= 1 - (iFuelUsed / kTotalUpdates);
-					var fuelLeftAmount:Number		= fuelLeftFraction * kFuelCapacity;
-					var fuelLeftPercent:Number		= fuelLeftFraction * 100;
 					var pieceNumber:uint 			= iPieceNumber == 0 ? mPieceNumber : iPieceNumber;
 					var collectionName:String;
-					var isEnd:String = iIsEndPiece ? "Yes" : "No";
+					
 					// Send info on cut pieces to TinkerPlots/Fathom.
 					if (mGameLevel == kDirectionalCutLevel)
 						collectionName = kCollectionDirCutPieces;
@@ -592,11 +590,8 @@
 							lengthTwoDecimals,	// Piece length.
 							currentLog.getLogWidthLabel(),	//log label "thin" or "thick"
 							acceptString,		// Status of cut piece.
-							isEnd,				// "Yes" if it is an end piece.
-							iLogNumber,			// Number of log from which piece was cut.
-							fuelLeftAmount,		// Raw fuel left at the time of piece creation.
-							fuelLeftPercent		// Percent of fuel left at the time of piece creation.
-						]	
+							iLogNumber			// Number of log from which piece was cut.
+						]
 					);
 				}
 			}
@@ -659,10 +654,11 @@
 			// endGame() performs all operations necessary when game is complete.
 			protected function endGame():void
 			{
+				var strategy:String = "";
 				doEndGameStop();
 				if (mGameLevel >= kFreeCutLevel){
 					checkFreeCuts();
-					determineCutStyle();
+					strategy = determineCutStyle();
 				}
 					// Directional cut mode. Measure end piece if player has already started cutting current log and we run out of fuel
 				else if (mCurrentLog == mLastLog && mFuelUsed == kFuelCapacity)
@@ -691,8 +687,22 @@
 				//send game information to TinkerPlots/Fathom
 				if (mGameLevel != kPracticeLevel)
 				{
-					var gameCollectionName:String	
-					= (mGameLevel >= kFreeCutLevel) ? kCollectionFreeCutGames : kCollectionDirCutGames;
+					var levelName:String;					
+					switch(mGameLevel)
+					{
+						case kDirectionalCutLevel:
+							levelName = kCollectionDirCutGames;
+							break;
+						case kFreeCutLevel:
+							levelName = kCollectionFreeCutGames;
+							break;
+						case kHeavyFreeCutLevel:
+							levelName = kCollectionHeavyFreeCutGames;
+							break;
+						case kMixedFreeCutLevel:
+							levelName = kCollectionMixedFreeCutGames;
+							break;
+					}
 					
 					// Send info on games to TinkerPlots/Fathom.
 					ScriptInterface.AddCaseToCollectionWithValues(
@@ -700,7 +710,7 @@
 						"Games",
 						[
 							mGameNumber,		// Game number starting with 1 since launch of application.
-							gameCollectionName,	// Game Type
+							levelName,			// Game Type
 							mPlayersName,		// Name of the player.
 							mPiecesAccepted,	// Number of pieces accepted.
 							mPiecesRejected,	// Number of pieces rejected.
@@ -708,8 +718,9 @@
 							mPiecesLong,		// Number of pieces rejected as long.
 							mPiecesRemnant,		// Number of pieces rejected as remnant.
 							fuelLeftAmount,		// Raw amount of fuel left.
-							fuelLeftPercent		// Percent of fuel left.
-						]	
+							fuelLeftPercent,	// Percent of fuel left.
+							strategy			// the determined cut strategy
+						]
 					);
 				}
 				
@@ -855,9 +866,9 @@
 			 * created after each cut. Only matters for Free Cut levels.
 			 * @author Ryan
 			 */
-			private function determineCutStyle():void
+			private function determineCutStyle():String
 			{
-				if(mCutsArray.length <= 1) return;
+				if(mCutsArray.length <= 1) return "";
 				
 				var strategy:int = CutProperties.determineStrategy(mCutsArray);
 				switch(strategy)
@@ -866,7 +877,7 @@
 						mCutStyleValue.text = "Single, down";
 						break;
 					case 1:
-						mCutStyleValue.text = "Single, downup"; //'Alternating Cuts' ?
+						mCutStyleValue.text = "Single, downup";
 						break;
 					case 2:
 						mCutStyleValue.text = "Multi, down";
@@ -883,6 +894,8 @@
 				{
 					mCutsArray.pop();
 				}
+				
+				return mCutStyleValue.text;
 			}
 			
 			// timerListener() is called to update the fuel level display and game duration.
