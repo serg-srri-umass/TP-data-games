@@ -21,6 +21,7 @@
 			import mx.managers.CursorManagerPriority;
 			import mx.managers.PopUpManager;
 			
+			import spark.components.CheckBox;
 			import spark.components.TitleWindow;
 			import spark.core.SpriteVisualElement;
 			import spark.events.TextOperationEvent;
@@ -32,7 +33,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.04.03"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "Chainsaw [F] 2012.04.05"; // A string containing the version number (should be manually incremented for each build)
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -98,6 +99,8 @@
 			private var mPlayersName:String			= "Player"; // Stores player's name.
 			
 			private var currentCutStartPoint:Number; // Holds the starting position for each cut.
+			
+			private var practice:Boolean = false; // whether the game is in practice mode or not
 			
 			// These arrays store the details of individual logs for access by all who need to know.
 			private var mLogDetails1:Array;
@@ -218,7 +221,7 @@
 				sawdustParticles.yFloor = 410;
 				
 				mLevelWindow = new GameLevelWindow();
-//				levelSelected(kPracticeLevel);
+
 				levelSelected(kFreeCutLevel); //Start in free cut mode
 			}
 			
@@ -257,23 +260,18 @@
 				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
 				mLevelWindow.closeButton.visible = false;	// Hide the close button.
 				
-				mLevelWindow["mPracticeLevelButton"].addEventListener("click", practiceLevel);
-				mLevelWindow["mDirectionalCutButton"].addEventListener("click", directionalCutLevel);
 				mLevelWindow["mFreeCutButton"].addEventListener("click", freeCutLevel);
 				mLevelWindow["mHeavyFreeCutButton"].addEventListener("click", heavyFreeCutLevel);
 				mLevelWindow["mMixedFreeCutButton"].addEventListener("click", mixedFreeCutLevel);
+				
+				mLevelWindow["PracticeCheckBox"].addEventListener("change", togglePractice);
+				this.practice = (mLevelWindow["PracticeCheckBox"] as CheckBox).selected;
 			}
 			
-			// practiceLevel() sets the current game level to practice.
-			private function practiceLevel(iEvent:Event):void 
+			private function togglePractice(e:Event):void
 			{
-				levelSelected(kPracticeLevel);
-			}
-			
-			// directionalCutLevel() sets the current game level to directional cut.
-			private function directionalCutLevel(iEvent:Event):void 
-			{
-				levelSelected(kDirectionalCutLevel);
+				var selected:Boolean = (e.currentTarget as CheckBox).selected;
+				this.practice = selected;
 			}
 			
 			// freeCutLevel() sets the current game level to free cut.
@@ -374,6 +372,9 @@
 						if (levelNum == kPracticeLevel)			mLevelLabel.text = "PRACTICE LEVEL";
 					}
 				}
+				
+				mLevelLabel.text = mLevelLabel.text.replace(" (practice)", "");
+				if(practice) mLevelLabel.text += " (practice)";
 			}
 			
 			// randomizeLogSizePosition() randomly resorts the logs in the log array.
@@ -448,7 +449,7 @@
 					"Games",
 					[
 						"GameNumber",		// Game number starting with 1 since launch of application.
-						"GameType",			// Direction Cut or Free Cut
+						"Level",			// The current level type
 						"Player",			// Name of the player.
 						"Pieces_Accepted",	// Number of pieces accepted.
 						"Pieces_Rejected",	// Number of pieces rejected.
@@ -526,20 +527,20 @@
 				
 				// Keep track of how many cut pieces are accepted / rejected and set status label text.
 				if (accepted){
-					if (mGameLevel != kPracticeLevel)
+					if (!practice)
 						++mPieceNumber;
 					++mPiecesAccepted;
 					statusLabel.text	= "√";					// Check mark = OK.
 					statusLabel.setStyle("color", "0x00FF00");	// Green = OK.
 					acceptString = kAcceptString;
 				}else if (remnant){
-					if (mGameLevel != kPracticeLevel)  ++mPieceNumber;	
+					if (!practice)  ++mPieceNumber;	
 					statusLabel.text = "O";
 					statusLabel.setStyle("color", "0xFFFF00"); // Yellow
 					acceptString = "Remnant";
 					++mPiecesRemnant;
 				}else{
-					if (mGameLevel != kPracticeLevel) ++mPieceNumber;
+					if (!practice) ++mPieceNumber;
 					++mPiecesRejected;
 					statusLabel.text = "X";						// X = not OK.
 					statusLabel.setStyle("color", "0xFF0000");	// Red = not OK.
@@ -567,7 +568,7 @@
 				//add statusLabel element to holder to be shown later
 				mStatusLabelHolder.addElement(statusLabel);
 				
-				if (mGameLevel != kPracticeLevel)
+				if (!practice)
 				{
 					var lengthTwoDecimals:String	= (iLength * kConvertToInches).toFixed(2);
 					var pieceNumber:uint 			= iPieceNumber == 0 ? mPieceNumber : iPieceNumber;
@@ -631,7 +632,7 @@
 				}
 				
 				// Use timer to update the fuel level display and game duration.
-				if (mGameLevel != kPracticeLevel)
+				if (!practice)
 				{
 					// Set game number since app launch when new game starts, not counting practice level).
 					++mGameNumber;
@@ -685,7 +686,7 @@
 				var fuelLeftPercent:Number	= fuelLeftFraction * 100;
 				
 				//send game information to TinkerPlots/Fathom
-				if (mGameLevel != kPracticeLevel)
+				if (!practice)
 				{
 					var levelName:String;					
 					switch(mGameLevel)
@@ -747,7 +748,7 @@
 				mCutRightSprite.visible = false;
 				mCutLeftSprite.visible = false;
 				
-				if (mGameLevel != kPracticeLevel)
+				if (!practice)
 				{
 					mFuelTimer.stop();													// Stop fuel timer.
 					mFuelTimer.removeEventListener(TimerEvent.TIMER, timerListener);	// Stop listening.
@@ -868,8 +869,6 @@
 			 */
 			private function determineCutStyle():String
 			{
-				if(mCutsArray.length <= 1) return "";
-				
 				var strategy:int = CutProperties.determineStrategy(mCutsArray);
 				switch(strategy)
 				{
@@ -920,7 +919,7 @@
 												iTopToBottom:Boolean = true):void
 			{
 				// Don't cut if chainsaw is not running and we're not in practice mode.
-				if (mGameLevel != kPracticeLevel && !mFuelTimer.running)return;
+				if (!practice && !mFuelTimer.running)return;
 				
 				var newArrowXPosition:Number = iLog.x + iLocalX - (0.75*mArrowSprite.getWidth());
 				
@@ -1044,7 +1043,7 @@
 			{
 				// Don't cut if chainsaw is not running and we're not in practice mode.
 				var iLogNumber:int = iLog['getLogNum']();
-				if (mGameLevel != kPracticeLevel)
+				if (!practice)
 				{
 					if (!mFuelTimer.running)
 						return;

@@ -24,7 +24,7 @@ package chainsaw
 		
 		public static function determineStrategy(arr:Array):int
 		{
-			if(arr.length <= 0) return -1;
+			if(arr.length <= 1) return -1;
 			
 			//flags -- 0==null, 1==directional, -1==vertical
 			//flags -- 0==null, 1==downward, -1==up/down
@@ -51,7 +51,6 @@ package chainsaw
 			if(isUpDown(arr))
 				style_b = -1;
 			
-//			trace("A:",style_a,"\nB:",style_b);
 			//now return the style
 			{
 				if(style_a == 1){

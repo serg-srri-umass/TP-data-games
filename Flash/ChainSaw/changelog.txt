@@ -2,6 +2,10 @@ Chainsaw [Flash]
 Change Log
 
 ===========================
+2012.04.06
+New change level dialog with 'practice' checkbox.
+
+===========================
 2012.04.03
 Modified data ouputted in collections.
 
