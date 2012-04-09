@@ -1,5 +1,6 @@
 Chainsaw [Flash]
 Change Log
+Newer entries first
 
 ===========================
 2012.02.27
@@ -25,3 +26,5 @@ changes:
 -now the game can determine the cutting style/method the player used
 -now using the same cut direction arrows as the js version
 -'changelog.txt' added
+
+=== e n d   o f   l o g ===
