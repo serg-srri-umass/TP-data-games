@@ -2,6 +2,10 @@ Chainsaw [Flash]
 Change Log
 
 ===========================
+2012.04.11
+Ouputted data attributes reordered.
+
+===========================
 2012.04.06
 New change level dialog with 'practice' checkbox.
 
@@ -60,8 +64,3 @@ Fixed checkDirectional method.
 ===========================
 2012.02.17
 First attempt at guessing the cutting style/method the player employed.
-
-changes:
--now the game can determine the cutting style/method the player used
--now using the same cut direction arrows as the js version
--'changelog.txt' added
