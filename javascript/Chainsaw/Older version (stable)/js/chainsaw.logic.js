@@ -11,7 +11,8 @@ var ChainsawLogic = function(canvasEl, data){
   /** Initiate variables related to the current game */
   this.game = {
     playerName: 'Player',
-    level: 'practice',
+    level: 'directional',
+    mode: 'practice',
     logweight: 'normal',
     inProgress: false,
     firstRun: true,
@@ -65,12 +66,15 @@ var ChainsawLogic = function(canvasEl, data){
   /** Provide handlers for mouse events */
   this.canvasEl.mousedown(function(){ this.game.mousedown = true; }.bind(this))
           .mouseup(function(){ this.game.mousedown = false; }.bind(this))
-          .mousemove(function(e){ this.handleMouse(e); }.bind(this));
+          //.mousemove(function(e){ this.handleMouse(e); }.bind(this));
 
   /** Global _bind event listeners */
   _bind('startGame', function(e, player){ this.startGame(player); }.bind(this));
   _bind('endGame', function(e){ this.endGame(e); }.bind(this));
-  _bind('levelSelected', function(e, lvl, weight){ this.levelSelected(lvl, weight); }.bind(this) );
+  _bind('levelSelected', function(e, lvl, weight, mode){ this.levelSelected(lvl, weight, mode); }.bind(this) );
+  _bind('potentialBeginCut', function (e, mouseevent, log){ this.potentialBeginCut(mouseevent, log); }.bind(this));
+  _bind('continuePartialCut', function (e, mouseevent, log){ this.continuePartialCut(mouseevent, log); }.bind(this));
+  _bind('finishPartialCut', function(e, log, x, i){ this.finishPartialCut(log,x,i); }.bind(this));
   
 };
 
@@ -92,7 +96,7 @@ ChainsawLogic.prototype = {
     this.game.inProgress = true;
 
     /** Initiate the fuel timer */
-    if(this.game.level != 'practice')
+    if(this.game.mode != 'practice')
       this.fuel.timer = setInterval(function(){ this.timerStep(); }.bind(this), this.fuel.speed);
   },
 
@@ -113,9 +117,10 @@ ChainsawLogic.prototype = {
    *
    * @param level The level name as a String
    */
-  levelSelected: function(level, weight){
+  levelSelected: function(level, weight, mode){
     this.game.level = level;
     this.game.logweight = weight;
+    this.game.mode = mode;
     this.game.firstRun = true;
     this.generateLogs();
     this.fuel.current = this.fuel.initial;
@@ -148,6 +153,7 @@ ChainsawLogic.prototype = {
       newLog.active = (i == 0 || this.game.level == 'free') ? true : false;
       newLog.direction = (i % 2 == 0) ? 'right' : 'left';
       newLog.lastCut = (i % 2 == 0) ? newLog.x : newLog.x + newLog.width;
+      newLog.i = i;
       
 
       this.logs.list.push(newLog);
@@ -162,50 +168,73 @@ ChainsawLogic.prototype = {
   },
 
   /**
-   * Handle mouse drag events, and check if they translate into a valid cut
-   * @param e The triggered mouse event
+   * Mouse event to handle mouse moving over a 'cut surface' - decide whether this makes a valid cut or not
    */
-  handleMouse: function(e){
-    if(!this.game.inProgress) return;
+  potentialBeginCut: function(e, log){
+    if(!this.game.inProgress || !log.active) return;
     if(!this.game.mousedown){
       _trigger('stopSparks');
       return;
     }
+
     /** Can't use offsetX/layerX here due to browser inconsistencies */
     var x = e.pageX - this.canvasEl.offset().left,
         y = e.pageY - this.canvasEl.offset().top,
         justCut = false;
     
     /** Loop through each cut, and: */
-    $.each(this.logs.list, function(i,log){
+    //$.each(this.logs.list, function(i,log){
+      //if(!log.active) return;
       /** Test that it fits within a defined cut boundary */
-      if(x > log.x && x < (log.x + log.width) && 
-         y > (log.y-1) && y < log.y + 6 && log.active){
-
-        /** Test that we're cutting in the correct direction */
-        if((log.direction == 'right' && x < log.lastCut) ||
-           (log.direction == 'left' && x > log.lastCut)){
-          console.log("Invalid cut direction");
-          if(this.game.level != 'free') return false; 
-        }
-        
-        _trigger('moveSparks', [x,y]);
-        /** Make sure that we've left the cut area before we're qualified to make another */
-        if(!this.game.alreadyCut){
-          this.doCut(log, x,i);
-        }
-        justCut = true;
+      var direction;
+      if(y < (log.y + (log.height / 2))){
+        // We're cutting from the top
+        direction = "down";
+      }else{
+        direction = "up";
       }
-        
-    }.bind(this)); 
-    this.game.alreadyCut = justCut;
+      /** Test that we're cutting in the correct direction */
+      if((log.direction == 'right' && x < log.lastCut) ||
+         (log.direction == 'left' && x > log.lastCut)){
+        console.log("Invalid cut direction");
+        if(this.game.level != 'free') return false; 
+      }
+      
+      _trigger('moveSparks', [x,y]);
+      this.beginPartialCut(log, x, y, direction);
+
+    //}.bind(this));
+     
   },
 
   /**
    * Start a cut (mouse is held down and crosses a log edge)
+   * @param direction "down" or "up"
    */
-  inProgressCut: function( ) {
+  beginPartialCut: function (log, x, y, direction) {
+    //For now, since this is a WIP, just render a cut from edge to edge
+    var topOfCut, bottomOfCut, cutPath;
+    topOfCut = Raphael.getPointAtLength(log.path, x - log.x);
+    bottomOfCut = Raphael.getPointAtLength(log.path, log.width+log.height+(log.width-(x-log.x)+2));
+    if(direction == "down")
+      cutPath = "M"+topOfCut.x+","+topOfCut.y+"S"+(topOfCut.x+6)+","+(topOfCut.y + bottomOfCut.y)/2+" "+bottomOfCut.x+","+bottomOfCut.y;
+    if(direction == "up")
+      cutPath = "M"+bottomOfCut.x+","+bottomOfCut.y+"S"+(topOfCut.x+6)+","+(topOfCut.y + bottomOfCut.y)/2+" "+topOfCut.x+","+topOfCut.y;
+    _trigger('beginPartialCut', [cutPath, log, x, y, direction]);
+  },
 
+
+  continuePartialCut: function(e) {
+    var x = e.pageX - this.canvasEl.offset().left,
+        y = e.pageY - this.canvasEl.offset().top;
+    
+    _trigger('continuePartialCutView', [x, y]);
+
+  },
+
+  finishPartialCut: function(log, x, i){
+      this.finishCut(log, x,i);
+      _trigger('endPartialCut');
   },
 
   /**
@@ -216,7 +245,7 @@ ChainsawLogic.prototype = {
    * @param i The index of the log in the logs.list array. 
    *    TODO: possibly negate the need for index
    */
-  doCut: function(log, x, i){
+  finishCut: function(log, x, i){
     
     /** Test whether or not the cut is of the correct length */ 
     var valid = this.referenceLog.test(log.lastCut, x);
@@ -228,7 +257,6 @@ ChainsawLogic.prototype = {
     log.lastCut = x;
 
     if(this.game.level != 'free') _trigger('updateCutPointer', [log.y, x]);
-    _trigger('renderCut', [log, x]);
 
 
     /** If we don't need to check that we're nearing the end of the log, stop here */
@@ -276,7 +304,7 @@ ChainsawLogic.prototype = {
     this.data.endGame(this.fuel.current, (this.fuel.current/this.fuel.initial)*100);
     this.game.inProgress = false;
     this.game.firstRun = false;
-    if(this.game.level != 'practice') clearInterval(this.fuel.timer);
+    if(this.game.mode != 'practice') clearInterval(this.fuel.timer);
     this.analyzeCuts();
     /** If this wasn't triggered by the view, make sure to update that */
     if(!e) _trigger('endGameView');
@@ -304,7 +332,7 @@ ChainsawLogic.prototype = {
 
         /** Calculate the X and Y positions of the checkmark/X labels */
         var midX = (cut.pos + previousCut)/2, 
-            midY = log.y + 18;
+            midY = log.y + (log.height/2);
 
         /** Determine which label to draw, then draw it */
         if(this.referenceLog.test(cut.pos, previousCut) == "Yes"){

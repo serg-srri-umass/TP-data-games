@@ -124,7 +124,7 @@ Sparks.prototype = {
       }
     }
 
-    while (this.particles.length > this.maxParticles) {
+    while (this.particles.length > this.maxParticles && this.particles.length > 0) {
       this.particles.shift().destroy();
     }
 

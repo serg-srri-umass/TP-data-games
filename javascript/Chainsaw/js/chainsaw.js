@@ -1,19 +1,33 @@
-var Chainsaw = function(){
+/**
+ * Chainsaw (JS) version 4/3/2012
+ */
 
-  //console.log("Chainsaw loaded.");
-  
-  /*
-   * Create aliases for jQuery's bind & trigger, just to make things easier on the eyes.
-   * _bind listens for global events, _trigger triggers them
-   */ 
-  var beacon = $({}); /* Generic element to bind events to */
-  _bind = function(e,fn){ beacon.bind(e, fn); }
-  _trigger = function(e, params){ beacon.trigger(e, params); }
+$(function(){
 
-  /*
-   * Initiate the Chainsaw classes
-   */
-  this.Data = new ChainsawData();
-  this.Logic = new ChainsawLogic($('#canvas'), this.Data);
-  this.View = new ChainsawView($('#canvas'));
-}
+  // Get references to HTML elements using jQuery selectors
+  var DOM = {
+    shadows: $('#shadows'), // Container 
+    dialogs: {
+      levelSelect: $('#levelselect'),
+      results: $('#results')
+    }
+  };
+
+  // Initiate a Raphael instance
+  var canvasEl = $('#canvas'), // The DOM element to bind Raphael to
+      width = 550,
+      height = 350,
+      context = Raphael(canvasEl[0], width, height);
+
+  // Prevent text/etc from being highlighted
+  document.onselectstart = document.ondragstart = function () { return false; };
+
+  // Keep track of whether the mouse is currently up or down
+  var mouseDown = false;
+  canvasEl.mousedown(function() { mouseDown = true; });
+  canvasEl.mouseup(function(){ mouseDown = false; });
+  canvasEl.mouseleave(function(){ mouseDown = false; });
+
+  var Chainsaw = new Game();
+
+});

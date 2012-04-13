@@ -14,7 +14,7 @@ var ChainsawView = function(canvasEl){
   this.paper = Raphael(canvasEl[0], this.width, this.height);
 
   /** Prevent text from being highlighted */
-  document.onselectstart = function () { return false; };
+  document.onselectstart = document.ondragstart = function () { return false; };
 
 
   /** Button event handlers */
@@ -32,7 +32,10 @@ var ChainsawView = function(canvasEl){
     }.bind(this)),
     
     selectLevel: $('#levelChosen').click(function(e){
-      this.levelSelected($('input:radio[name=level]:checked').attr('id'), $('input:radio[name=weight]:checked').attr('id'));
+      this.levelSelected($('input:radio[name=level]:checked').attr('id'), // Level name
+                         $('input:radio[name=weight]:checked').attr('id'), // Log weight
+                         $('input:radio[name=mode]:checked').attr('id')
+                         );
     }.bind(this)),
 
     mainMenu: $('.mainMenu').click(function(e){
@@ -72,9 +75,16 @@ var ChainsawView = function(canvasEl){
   /** Audio elements and functions */
   this.audio = {
     el: null,
-    volume: $('#volume').change(function(){
-      this.audio.el.volume = parseFloat(this.audio.volume[0].value);
-    }.bind(this)),
+    volume: $('#volume').slider({
+      max: 1,
+      min: 0,
+      step: 0.01,
+      value: 1,
+      slide: function(event, ui){
+        console.log(ui.value);
+        this.audio.el.volume = ui.value;
+      }.bind(this)
+    }),
 
     toggleMute: function(){
       if(this.muted){
@@ -93,7 +103,7 @@ var ChainsawView = function(canvasEl){
     play: function(sound){
       if(this.el) this.el.pause();
       this.el = new Audio(sound);
-      this.el.volume = this.volume[0].value;
+      this.el.volume = this.volume.slider('value');
       this.el.play();
     }
   }
@@ -101,10 +111,28 @@ var ChainsawView = function(canvasEl){
   this.gameInProgress = false;
   this.currentLevel = 'directional';
   this.currentWeight = 'normal';
+  this.currentMode = 'practice';
+
+  this.partialCut = {
+    active: false,
+    fullPath: null,
+    log: null,
+    x: null,
+    initialX: null,
+    y: null,
+    direction: null,
+    oldDistance: 0,
+    reset: function(){
+      this.active = false;
+      this.fullPath = this.log = this.x = this.initialX = this.y = this.direction = null;
+      this.oldDistance = 0;
+    }
+  };
+
+  this.canvasEl.mouseup(function(){ this.partialCut.reset(); this.sparks.stop(); }.bind(this));
   
   /** Event listeners to be called by the Logic code */
   _bind('renderLog', function(e, log){ this.renderLog(log) }.bind(this));
-  _bind('renderCut', function(e, log, x){ this.renderCut(log, x); }.bind(this));
   _bind('clear', function(){ this.clear(); }.bind(this));
   _bind('endGameView', function(){ this.endGame(); }.bind(this));
   _bind('updateFuel', function(e, fuel){ this.updateFuel(fuel); }.bind(this));
@@ -114,6 +142,9 @@ var ChainsawView = function(canvasEl){
   _bind('updateCutPointer', function(e, y, cut){ this.updateCutPointer(y, cut); }.bind(this));
   _bind('moveSparks', function (e, x, y) { this.moveSparks(x,y); }.bind(this));
   _bind('stopSparks', function () { this.stopSparks(); }.bind(this));
+  _bind('beginPartialCut', function(e, cutpath, log, x, y, direction){ this.beginPartialCut(cutpath, log, x, y, direction); }.bind(this));
+  _bind('continuePartialCutView', function(e, x, y){ this.continuePartialCutView(x,y); }.bind(this));
+  _bind('endPartialCut', function(){ this.endPartialCut(); }.bind(this));
 
   this.clear();
 };
@@ -134,22 +165,29 @@ ChainsawView.prototype = {
     this.labels.cutBeginArrow = this.paper.image("assets/Cut From Here left.png", 0, 0, 58, 38).attr({opacity: 0});
   },
 
+  capitalize: function(word){
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  },
+
 
   /**
    * Handle level selection
    */
-  levelSelected: function(level, weight){
+  levelSelected: function(level, weight, mode){
     this.currentLevel = level;
     this.currentWeight = weight;
+    this.currentMode = mode;
     this.clear();
     /** Update labels */
     var playerName = this.labels.playerInput.val() || "Player";
     this.labels.nametag.html(playerName);
-    var niceLevelName = level.replace('practice','Practice').replace('directional','Directional Cut').replace('free','Free Cut');
-    this.labels.infoLabel.html(niceLevelName+" - "+playerName);
+
+    var niceLevelName = this.capitalize(level);
+    niceLevelName += " Cut Level - " + this.capitalize(mode) + " Mode  - " + playerName;
+    this.labels.infoLabel.html(niceLevelName);
     this.buttons.start.removeAttr('disabled');
     this.dialogs.levelSelect.fadeOut(100);
-    _trigger('levelSelected', [level, weight]);
+    _trigger('levelSelected', [level, weight, mode]);
   },
 
 
@@ -208,7 +246,7 @@ ChainsawView.prototype = {
   tryAgain: function(){
     this.dialogs.results.fadeOut(200);
     this.canvasEl.parent().removeClass('transit');
-    this.levelSelected(this.currentLevel, this.currentWeight);
+    this.levelSelected(this.currentLevel, this.currentWeight, this.currentMode);
   },
   
   /**
@@ -240,7 +278,8 @@ ChainsawView.prototype = {
    * Update fuel tank
    */
   updateFuel: function(fuel){
-    this.labels.fuelTank.height(fuel);
+    var realHeight = fuel * (73/85);
+    this.labels.fuelTank.height(realHeight);
   },
 
   /**
@@ -352,30 +391,81 @@ ChainsawView.prototype = {
       'width': log.width-6,
       'height': log.height-6
     }).appendTo(this.labels.shadows);
-    console.log("Drew shadow with width "+shadow.width() + " and height "+shadow.height());
-
 
     /** Add the new log to the Raphael set */
+    log.path = newPath;
     var newLog = this.paper.path(newPath);
     this.svgLogs.push(newLog, newLogEnd.toFront());
 
-    /** Create the cut surface */
-    log.cutSurface = this.paper.rect(log.x+5, log.y, log.width-5, 5).attr({ fill: '#764d13', opacity: 0});
-    if(!log.active){ log.cutSurface.hide(); }
+    /** Create the cut surfaces */
+    newLog.mouseover(function(e){
+      if(this.partialCut.active) return;
+      _trigger('potentialBeginCut', [e, log]);
+    }.bind(this));
+    newLog.mousemove(function(e){
+      _trigger('continuePartialCut', [e, log]);
+    });
+    newLog.mouseout(function(e){
+      _trigger('continuePartialCut', [e, log]);
+    });
 
     /** Define styles on the Raphael log set */
     this.svgLogs.attr({ fill: "90-#b17603-#bea379", 'stroke-width': 2, stroke: '#764d13' });
   },
 
-  /**
-   * Render a completed 'cut'
-   * 
-   * @param log The log being cut
-   * @param x The x coordinate of the cut
-   */
-  renderCut: function(log, x){
-    this.paper.path("M"+x+","+log.y+"s3,0 0,35")
-              .attr({ 'stroke-width': 2, stroke: '#764d13'});
+  beginPartialCut: function(cutpath, log, x, y, direction){
+    if(this.partialCut.active || !log.active) return;
+    this.partialCut.active = true;
+    this.partialCut.fullPath = cutpath;
+    this.partialCut.log = log;
+    this.partialCut.initialX = this.partialCut.x = x;
+    this.partialCut.y = y; 
+
+    this.partialCut.direction = direction;
+
+    cutpath = Raphael.getSubpath(cutpath, 0, 10);
+    //this.paper.path(cutpath);
+  },
+
+  continuePartialCutView: function(x,y){
+    //TODO check if we're allowed to keep going brah
+    if(!this.partialCut.active) return;
+    if(this.partialCut.direction == "up" && y > this.partialCut.y ||
+       this.partialCut.direction == "down" && y < this.partialCut.y){
+      console.log("Can't cut in that direction");
+      return;
+    }else{
+      var distance;
+      if(this.partialCut.direction == "up"){
+        distance = (this.partialCut.log.y + this.partialCut.log.height) - y;
+      }else{
+        distance = y - this.partialCut.log.y;
+      }
+
+      var cutpath = Raphael.getSubpath(this.partialCut.fullPath, this.partialCut.oldDistance, distance);
+      this.partialCut.oldDistance = distance;
+      this.paper.path(cutpath).attr({'stroke-width': 2, stroke: '#764d13'});
+      this.moveSparks(x,y);
+
+      if(distance >= this.partialCut.log.height){
+        /* Green stripeth
+        this.paper.path(this.partialCut.fullPath).attr({'stroke-width': 3, stroke: '#00ff00', opacity: 0.8})
+          .animate(Raphael.animation({ opacity: 1 }, 200))
+          .animate(Raphael.animation({ opacity: 0 }, 200).delay(200));
+          */
+        _trigger('finishPartialCut', [this.partialCut.log, this.partialCut.initialX, this.partialCut.log.i]);
+        this.stopSparks();
+        this.partialCut.reset();
+
+
+      }
+
+
+    }
+  },
+
+  endPartialCut: function(){
+    this.partialCut.reset();
 
   },
 
@@ -386,8 +476,6 @@ ChainsawView.prototype = {
    * @param newLog THe new 'current' log
    */
   updateActiveLog: function(oldLog, newLog){
-    if(oldLog) oldLog.cutSurface.hide();
-    newLog.cutSurface.show();
     this.updateCutEdgeLabels(newLog);
   },
 
