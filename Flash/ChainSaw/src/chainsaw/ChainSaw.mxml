@@ -33,7 +33,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.04.11"; // A string containing the version number (should be manually incremented for each build)
+			public static const VERSION:String 			= "Chainsaw [F] 2012.04.19";
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -604,6 +604,9 @@
 				mLastCutX			= 0;	// Reset X position of most recent cut.
 				mPiecesAccepted		= 0;	// Reset number of cut pieces accepted.
 				mPiecesRejected		= 0;	// Reset number of cut pieces rejected.
+				mPiecesRemnant		= 0;	// Reset number of remnants
+				mPiecesShort		= 0;	// Reset number of rejected short pieces
+				mPiecesLong			= 0;	// Reset number of rejected long pieces
 				mLeftToRight		= true;	// Begin cutting left to right.
 				mCutNumber			= 0;	// Reset cut number.
 				
