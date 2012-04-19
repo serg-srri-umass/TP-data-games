@@ -588,8 +588,8 @@
 							mPlayersName,		// Name of the player.
 							mGameNumber,		// Game number starting with 1 since launch of application.  Ignore practice levels.
 							lengthTwoDecimals,	// Piece length.
+							thickness,			// log label "thin" or "thick"
 							acceptString,		// Status of cut piece.
-							thickness,			//log label "thin" or "thick"
 							iLogNumber			// Number of log from which piece was cut.
 						]
 					);
