@@ -11,7 +11,6 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   width="518" height="410" creationComplete="startUp()" currentState="StartPage"
 			   pageTitle="Ship Odyssey"
-			   width.TreasureHunt="518" height.TreasureHunt="410"
 			   backgroundColor="#CCCCCC"
 			   backgroundColor.TreasureHunt="#294867">
 	<fx:Style source="ShipOdyssey.css"/>
@@ -23,7 +22,9 @@
 			import common.MathUtilities;
 			import common.ParkMiller;
 			
+			import mx.controls.Alert;
 			import mx.core.SoundAsset;
+			import mx.events.CloseEvent;
 			import mx.flash.UIMovieClip;
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
@@ -353,6 +354,7 @@
 				mScrollContainer.visible = false;
 				// Set days left to find treasure to full amount.
 				mDaysLeft					= kMaxDays;	
+				mDaysLeftTarget 			= kMaxDays;
 			}
 			
 			// chooseHuntLevel() listens for clicks on the hunt level dialog's level buttons.
@@ -532,7 +534,7 @@
 				mDropHookButton.enabled = false;
 				//check to see if the crane needs to move before we can drop the hook
 				//this happens if someone changes the value of the stepper and then clicks the Drop Hook button before the crane finishes moving
-				if(mCenterPosition != mCenterPositionStepper.value || crane.getFrame() != mCenterPosition){
+				if(mCenterPosition != mCenterPositionStepper.value || Math.abs(crane.getFrame()- mCenterPosition)>1){
 					transitionTimer = new Timer(500, 0);
 					transitionTimer.addEventListener(TimerEvent.TIMER,waitOnCraneMove);
 					transitionTimer.start();
@@ -558,7 +560,7 @@
 			}
 			//wait and check timer routine for when the hook is moving before a drop
 			private function waitOnCraneMove(e:TimerEvent):void{
-				if(mCenterPosition == mCenterPositionStepper.value && crane.getFrame() == mCenterPosition){
+				if(mCenterPosition == mCenterPositionStepper.value && Math.abs(crane.getFrame()- mCenterPosition)<1){
 					transitionTimer.stop();
 					transitionTimer.removeEventListener(TimerEvent.TIMER, waitOnCraneMove);
 					onClickDropHookButton(new MouseEvent(MouseEvent.CLICK));
@@ -619,6 +621,18 @@
 				}
 			}
 			
+			protected function AlertOnSailOn(event:CloseEvent):void{
+				if(event.detail == Alert.YES){
+					onClickSailOnButton(new MouseEvent(MouseEvent.CLICK));
+				}
+				//else do nothing
+			}
+			protected function AlertOnExit(event:CloseEvent):void{
+				if(event.detail == Alert.YES){
+					onClickExitTreasureHunt(new MouseEvent(MouseEvent.CLICK));
+				}
+			}
+			
 			// onClickExitTreasureHunt() sets the current state to the Treasure Hunt game
 			// screen and initializes the game.
 			protected function onClickExitTreasureHunt(iEvent:MouseEvent):void
@@ -637,6 +651,8 @@
 				mExitFinishButton.visible = false; 
 				mScrollContainer.visible = false;
 				crane.visible = false;
+				CraneHandle.visible = false;
+				
 				sailingMovie.visible = true;
 				sailingMovie.reset();
 				mCurrentGameComplete = true;// Game is now complete.	
@@ -667,30 +683,13 @@
 				}
 				else // There are still treasures left after current treasure, so sail on!
 				{
-					//mCurrentTreasureNum++; // Increment current treasure counter.	
-					// Update label indicating treasure sought.
-					//mInSearchOfLabel.text = (mCurrentTreasureNum + 1).toString()+"/6"; 
-					// Disable the Drop Hook Button if there were not enough days left
-					// to sail to the next treasure. Game is done.
 					if (mDaysLeft <= kDaysToNextTreasure){
 						updateProfitAfterSail();
-						//gameFinish();
 					}
-//					else{ // There were enough days left to sail to the next treasure.
-//						updateProfitAfterSail();
-//						// Disable the Drop Hook Button if there are not enough days left
-//						// to drop the hook again. Game is done.
-//						if (mDaysLeft < kDaysToDropHook)
-//						{
-//							noDaysLeft();
-//						}
-//					}
 				}
 			}
 			
 			private function updateProfitAfterSail():void{
-				//set days left to find treasure
-				//mDaysLeft = Math.max(0, mDaysLeft-kDaysToNextTreasure);
 				//update the cumulative cost of using the ship and crew as well as the profit so far
 				mCurrentTreasureNum++; // Increment current treasure counter.
 				mInSearchOfLabel.text = (mCurrentTreasureNum + 1).toString()+"/6"; 
@@ -701,7 +700,12 @@
 			
 			private function gameFinish():void{
 				// Tell the player the game is over.
-				if (mTreasuresFound) // At least one treasure was found.
+				if(mDaysLeft == 0){
+					mTimeRanOutAlert.visible = true;
+					mTreasuresFoundLabel.text		= treasuresFoundString();
+					mTreasuresFoundLabel.visible	= true;
+				}
+				else if (mTreasuresFound) // At least one treasure was found.
 				{
 					mCongratulationsAlert.visible	= true;
 					mTreasuresFoundLabel.text		= treasuresFoundString();
@@ -723,7 +727,7 @@
 				//update status items
 				mRatsRemaining.text = mRatsLeft.toString() + " of " + kMaxRats.toString();
 				mDaysSpent.text = (kMaxDays-mDaysLeft).toString() + " of " +kMaxDays.toString();
-				mTreasuresFoundLabel.text = mTreasuresFound.toString() + " of " + kNumTreasures.toString();
+				mTrsrsFound.text = mTreasuresFound.toString() + " of " + kNumTreasures.toString();
 				mStartingAmt.text = formatDollars(100000);
 				mTreasureProfit.text = formatDollars(mTreasureValueSoFar);
 				mRatCost.text = formatDollars(mRatCostSoFar);
@@ -739,9 +743,6 @@
 				mScrollContainer.visible = false;
 				enableAllButtons();
 			}
-		
-			// ********** END OF TREASURE HUNT FUNCTIONS **********
-			//*****NEW FUNCTIONS*****
 			
 			private function sendGameData():void{
 				ScriptInterface.AddCaseToCollectionWithValues(
@@ -800,7 +801,7 @@
 				mResultsFieldLabel.text	= "";	// Clear rat results.
 				
 				mFirstRat				= true;	// Recount rats used per treasure.	
-				if (mCurrentTreasureNum == kNumTreasures)
+				if (mCurrentTreasureNum+1 == kNumTreasures)
 				{	// Player found final treasure. Disable treasure hunt controls.
 					mInSearchOfLabel.text = "";
 					//disableAllButtons(false);
@@ -808,22 +809,15 @@
 				}
 				else	// Take time to sail to next treasure.
 				{						
-					if (mDaysLeft >= kDaysToNextTreasure)
-					{
-						//updateProfitAfterSail();
-						runSailOnAnim();
-					}
-					else mDaysLeft = 0;//BINDABLE variable self updates text field
+					runSailOnAnim();
 				}
-				
 			}
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
 			//(decouples visual with state and play so a broken animation doesn't stop play)
 			private function zoomOutAndSail(e:TimerEvent):void{
 				cHerder.setCloudSpeed(-.5);
 				mCenterPositionStepper.value = 100;
-				onChangeCenterPosition(new Event("Stepper"));
-				
+				onChangeCenterPosition(new Event("Stepper"));	
 				//crane is stored and ready to zoom out
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, zoomOutAndSail);
 				transitionTimer = new Timer(6000, 1); //timer is in milliseconds
@@ -851,6 +845,7 @@
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, readyToZoomIn);
 				if(mCurrentGameComplete || mDaysLeftTarget == 0 || mCurrentTreasureNum == kNumTreasures){
 					//finish and show end screen
+					mInSearchOfLabel.text = "";
 					gameFinish();
 				}else{
 					//zoom back in
@@ -883,8 +878,25 @@
 					}
 				}
 			}
+			//button control methods
+			private function disableAllButtons(incExit:Boolean):void{
+				logBtn.enabled = false;
+				mDropHookButton.enabled = false;
+				mCenterPositionStepper.enabled = false;
+				mRatStepper.enabled = false;
+				mSendRatsButton.enabled = false;
+				CraneHandle.visible = false;
+			}	
+			private function enableAllButtons():void{
+				logBtn.enabled = true;
+				mDropHookButton.enabled = true;
+				mCenterPositionStepper.enabled = true;
+				mRatStepper.enabled = true;
+				mSendRatsButton.enabled = true;
+				CraneHandle.visible = true;
+			}
 			
-			//new visual items and visual only code --
+			//********new visual items and visual only code **********
 			private var crane:MovieClip;
 			private var sailingMovie:MovieClip;
 			private var cHerder:MovieClip;
@@ -939,29 +951,7 @@
 				watchMovie = WatchLoader.content as MovieClip;
 			}
 			
-			//button control methods
-			private function disableAllButtons(incExit:Boolean):void{
-				logBtn.enabled = false;
-				mDropHookButton.enabled = false;
-				mCenterPositionStepper.enabled = false;
-				//mSailOnButton.enabled = false;
-				mRatStepper.enabled = false;
-				mSendRatsButton.enabled = false;
-				//if(incExit)
-					//mExitHuntButton.enabled = false;
-				//else
-					//mExitHuntButton.enabled = true; //force it to be active so we can call disable a second time when everything is disabled to enable exit (used on gameComplete)
-			}	
-			private function enableAllButtons():void{
-				logBtn.enabled = true;
-				mDropHookButton.enabled = true;
-				mCenterPositionStepper.enabled = true;
-				mExitHuntButton.enabled = true;
-				mSailOnButton.enabled = true;
-				mRatStepper.enabled = true;
-				mSendRatsButton.enabled = true;
-			}
-			
+			//********** Title Bar Volume Control*********
 			private function updateVolume(vol:Number):void
 			{
 				//cannot do: SoundMixer.soundTransform.volume = vol/100;
@@ -1025,14 +1015,16 @@
 	</s:Group>
 
 	<!-- Animated Ship and Crane area -->
-		<s:BorderContainer	id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286" backgroundColor="0x555555" borderVisible="false">
+		<s:Group	id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286">
 			<s:BorderContainer id="Sky" width="395" height="186" depth="1" backgroundFill="{daylight}" borderVisible="false">
 				<s:SWFLoader id="CloudLoader" source="odysseyAssets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
 			</s:BorderContainer>	
 			<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="186" width="395" height="100" depth="3" />
 			<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
 			<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
-		</s:BorderContainer>
+			<s:HSlider id="CraneHandle" includeIn="TreasureHunt" x="149" y="144" width="100" height="20" alpha="0" buttonMode="true" change="mCenterPositionStepper.value=CraneHandle.value;onChangeCenterPosition(event);"
+					   liveDragging="true" depth="6" maximum="100" minimum="0"/>
+		</s:Group>
 		<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
 
 	<!-- Scroll status items-->
@@ -1056,8 +1048,8 @@
 					 color="#433211" fontFamily="Verdana" text="$900,000" textAlign="right"/>
 			<s:Button id="closeLogBtn" includeIn="TreasureHunt" x="293" y="21"
 					  click="onClickCloseLog(event)"/>
-			<s:Button id="mExitHuntButton" includeIn="TreasureHunt" x="190" y="235" width="90" height="18" label="Exit Game" chromeColor="#D1B38B" click="onClickExitTreasureHunt(event)" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
-			<s:Button id="mSailOnButton" includeIn="TreasureHunt" x="110" y="235" width="75" height="18" label="Sail On" chromeColor="#D1B38B" click="onClickSailOnButton(event)" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
+			<s:Button id="mExitHuntButton" includeIn="TreasureHunt" x="190" y="235" width="90" height="18" label="Exit Game" chromeColor="#D1B38B" click="Alert.show('Are you sure you would like to exit the game?','Exit Game',3,this,AlertOnExit);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
+			<s:Button id="mSailOnButton" includeIn="TreasureHunt" x="110" y="235" width="75" height="18" label="Sail On" chromeColor="#D1B38B" click="Alert.show('Are you sure you would like to skip this treasure and sail on?','Sail On to Next Treasure',3,this,AlertOnSailOn);" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
 		</mx:Canvas>
 	
 	<!-- Popup Alert items -->
@@ -1065,7 +1057,7 @@
 		<mx:Image	id="mAllTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mAllTreasuresFoundImage}" depth="6"/>
 		<mx:Image	id="mTimeRanOutAlert" includeIn="TreasureHunt" x="170" y="119" source="{mTimeRanOutImage}" depth="6"/>
 		<mx:Image	id="mCongratulationsAlert" includeIn="TreasureHunt" x="170" y="119" source="{mCongratulationsImage}" depth="6"/>
-		<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="203" text="Ye found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/>
+		<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="Ye found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/>
 		<mx:Image	id="mNoTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mNoTreasuresFoundImage}" depth="6"/>
 		<s:Button id="mExitFinishButton" visible="false" depth="7" includeIn="TreasureHunt" x="270" y="335" width="90" height="18" label="Exit Game" chromeColor="#D1B38B" click="onClickExitTreasureHunt(event)" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
 		<s:Group id="TreasureFoundAlert" visible="false" depth="6">
@@ -1100,7 +1092,8 @@
 		</s:Group>		
 	<!--Rat controls -->
 		<s:Group id="RatControls" includeIn="TreasureHunt" x="51" y="33" width="215" height="85">
-			<s:Image id="mDivingRatBacker" x="-5" y="-2" source="{mRatBacker}"/>
+			<s:Image id="mDivingRatBacker" x="-48" y="1" width="263" height="81"
+					 source="{mRatBacker}"/>
 			<s:Label 	id="mRatControlLabel" color="#000000" fontFamily="Georgia" fontSize="16" fontStyle="normal" fontWeight="bold" text="Diving Rats" x="58" y="5" includeIn="TreasureHunt"/>
 			<s:NumericStepper id="mRatStepper" width="50" height="23" change="onChangeRatStepper(event)" contentBackgroundColor="#5081B4" maximum="{kMaxRats}" minimum="{kMinRats}" stepSize="1" x="34" y="28" includeIn="TreasureHunt"/>
 			<s:Label id="mDiveResultsLabel" includeIn="TreasureHunt" x="-2" y="59.5" width="99" height="19" fontFamily="Georgia" text="Rat Readings:" textAlign="center"/>
@@ -1117,7 +1110,7 @@
 				<s:GradientEntry color="0xd8d8d8"/>
 			</s:LinearGradient>
 		</s:backgroundFill>
-		<s:Label id="GameVersion" x="7" y="10" width="163" chromeColor="#294867" color="#294867" fontFamily="Impact" fontSize="12" fontStyle="normal" text="v.2012.04.06(FL)"/> 
+		<s:Label id="GameVersion" x="7" y="10" width="163" chromeColor="#294867" color="#294867" fontFamily="Impact" fontSize="12" fontStyle="normal" text="v.2012.04.09(FL)"/> 
 		<s:Label id="GameLabel" x="163" y="7" width="163" chromeColor="#294867" color="#294867" fontFamily="Impact" fontSize="18" fontStyle="normal" text="Ship Odyssey" textAlign="center" verticalAlign="top"/>
 		
 		<s:Image id="mVolumeImage" x="390" y="6" source="{mVolumeIcon}"/>
