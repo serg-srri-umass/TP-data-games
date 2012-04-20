@@ -193,7 +193,7 @@
 			[Bindable] private var mScrollImage:Class; 
 			
 			
-			// Embed volume icons
+			// Embed volume icons -- source: Ryan McCann
 			[Embed(source="../odysseyAssets/Volume.png")]
 			[Bindable]
 			private var mVolumeIcon:Class;
@@ -374,10 +374,8 @@
 			private function huntLevelChosen(iLevel:uint):void 
 			{
 				mHuntLevel = iLevel; // Set game level to input value.	
-				PopUpManager.removePopUp(mLevelWindow);
-				
+				PopUpManager.removePopUp(mLevelWindow);	
 				sailThenZoomIn();
-				//sailingMovie.doZoomIn();
 			}
 			
 			// firstHuntLevel() sets the current hunt level to the first level.
@@ -385,7 +383,6 @@
 			{
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				//Set background image and standard deviation that fit with game level.
-				//mTreasureHuntGameArea.source	= mTreasureHuntImage;
 				mStdDeviation					= kStdDeviationClear;
 				Water.fill = clearWater;
 				Sky.backgroundFill = daylight;
@@ -450,6 +447,7 @@
 				initializeTreasureHunt();
 			}
 			
+			// ************MAIN GAME FUNCTIONS************
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent):void{
@@ -471,7 +469,7 @@
 					mRatsSent += 1;	// Increment rat counter.
 					// Generate a noisy result based on the current treasure's location.
 					var location:Number		= mTreasureArray[mCurrentTreasureNum][kLocation];
-					var noisyLocation:Number= Math.round((mRandomNormal.standardNormal() * mStdDeviation) + location); // Display nothing after decimal point.
+					var noisyLocation:Number = Math.round((mRandomNormal.standardNormal() * mStdDeviation) + location); // Display nothing after decimal point.
 					// Add results of what the rats find to the results field.
 					if (mFirstRat){// If first rat, dont add punctuation.
 						mResultsFieldLabel.text += noisyLocation; 
@@ -513,7 +511,7 @@
 				mMaxHookRange			= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
 				mRangeValueLabel.text	= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
 				if(Math.abs(prevCP - mCenterPosition)>2)
-					crane.tweenTo(mCenterPosition, 1);
+					crane.tweenTo(mCenterPosition, 1); //goto frame = mCenterPosition, tween length = 1 second
 				else
 					crane.runTo(mCenterPosition);
 			}
@@ -779,6 +777,7 @@
 					);
 				}
 			}
+			
 			//group function calls for state changes for different events
 			private function runSailOnAnim():void{
 				disableAllButtons(false);
