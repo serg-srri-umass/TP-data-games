@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="555" height="304" creationComplete="this.displayGraph()">
+	
+	<fx:Script>
+		<![CDATA[
+			import flash.display.*;
+			
+			public var data:Array = [ [1,1], [2,2], [3,3], [4,2], [5,5], [6,6], [7,2] ];
+//			public var data:Array =[ [1,7.0], [2,2.0], [3,9.0], [4,4.0], [5,1.0], [6,3.5], [7,6.0], [8,7.0], [9,9.0], [10,5.0] ];
+
+			public var h_gap:Number, v_gap:Number;
+			
+			public var commands:Vector.<int>;
+			public var dataVect:Vector.<Number>;
+			
+			public function displayGraph():void
+			{	
+				h_gap = this.width / data.length;
+				v_gap = this.height / data.length;
+				
+				trace("GAP: " + h_gap);
+				trace("VGAP: " + v_gap);
+				
+				commands = new Vector.<int>();
+				dataVect = new Vector.<Number>();
+				
+				doGraph();
+			}
+			private function doGraph():void
+			{
+				canvas.graphics.beginFill(0xFFFFFF);
+				canvas.graphics.drawRect(0,0,this.width,this.height);
+				canvas.graphics.endFill();
+				
+				for(var i:int=0; i<data.length; i++)
+				{
+					var real_x:int, real_y:int;
+					real_x = data[i][0]*h_gap;
+						real_x = real_x - (h_gap/2); //shift points to left to center graph
+					real_y = data[i][1]*v_gap;
+						real_y = this.height - real_y; //flip it -> align (0,0) to bottom left
+					
+					drawPoint(real_x, real_y, i);
+//					trace(data[i][0], data[i][1], i);
+					
+					if(i==0) commands.push(GraphicsPathCommand.MOVE_TO);
+					else commands.push(GraphicsPathCommand.LINE_TO);
+					dataVect.push(real_x);
+					dataVect.push(real_y);
+				}
+				
+				connectTheDots();
+			}
+			private function drawPoint(x:int, y:int, i:int):void
+			{				
+				canvas.graphics.beginFill(0xFF0000);
+				canvas.graphics.drawCircle(x, y, 4);
+				canvas.graphics.endFill();
+			}
+			private function connectTheDots():void
+			{
+//				canvas.graphics.beginFill(0xFF00FF);
+				canvas.graphics.lineStyle(3, 0xFF00FF);
+				canvas.graphics.drawPath(commands, dataVect);
+//				canvas.graphics.endFill();
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:Graphic id="canvas" width="555" height="304" contentBackgroundColor="0xFFFFFF">
+		
+	</s:Graphic>
+	
+</s:Group>
