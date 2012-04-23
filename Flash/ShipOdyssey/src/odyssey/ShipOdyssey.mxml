@@ -103,7 +103,7 @@
 			// Array of treasures (zero-based).
 			private var mTreasureArray:Array;
 			
-			// Array of numberic hook drop order (1st, 2nd, 3rd, etc.)
+			// Array of numeric hook drop order (1st, 2nd, 3rd, etc.)
 			private var mHookDropOrderArray:Array;
 			
 			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
@@ -464,6 +464,7 @@
 //				mRatSound.play(); // Play rat sound.
 				
 				// For every rat sent...
+				var readingsAdded:String = ""; //added to hopefully speed things up for large calls since I think the display call slows things down.
 				for (var ratNum:uint = 0; ratNum < mRatsToSend; ++ratNum)
 				{
 					mRatsSent += 1;	// Increment rat counter.
@@ -472,15 +473,19 @@
 					var noisyLocation:Number = Math.round((mRandomNormal.standardNormal() * mStdDeviation) + location); // Display nothing after decimal point.
 					// Add results of what the rats find to the results field.
 					if (mFirstRat){// If first rat, dont add punctuation.
-						mResultsFieldLabel.text += noisyLocation; 
+						//mResultsFieldLabel.text += noisyLocation; 
+						readingsAdded += noisyLocation;
 						mFirstRat = false;
 					}
 					else
 						// All successive results should add comma delimiters.
-						mResultsFieldLabel.text += ", " + noisyLocation; // Display nothing after decimal point.
+						//mResultsFieldLabel.text += ", " + noisyLocation; // Display nothing after decimal point.
+						readingsAdded += ", " + noisyLocation;
 					// Send event data to TinkerPlots / Fathom.
 					sendEventData("Rat", noisyLocation.toString());
 				}
+				mResultsFieldLabel.text += readingsAdded;
+				
 				// Set maximum rats-to-send to the number of rats left.
 				// Adjust rat stepper to comply with any changes.
 				mRatStepper.maximum	= mRatsLeft;
