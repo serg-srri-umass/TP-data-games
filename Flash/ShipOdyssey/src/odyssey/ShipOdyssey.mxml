@@ -38,11 +38,15 @@
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES **********
 			public static const kHuntLevelOne:uint = 0;	// First treasure hunt game level.
 			public static const kHuntLevelTwo:uint = 1;	// Second treasure hunt game level.
-			public static const kMaxRats:uint	= 500;	// Number of rats available per Treasure Hunt Game.
-			public static const kMinRats:uint	= 1;	// Default minimum number of rats to send.
-			public static const kRatsToSend:uint= 10;	// Default number of rats to send.
-			public static const kCostPerRat:uint= 100;	// Cost per rat in dollars.
+			//**these former constant are now maleable due to a change to level mechanics**
+[Bindable]	public static var kMaxRats:uint	= 500;	// Number of rats available per Treasure Hunt Game.
+[Bindable]	public static var kMinRats:uint	= 1;	// Default minimum number of rats to send.
+			public static var kRatsToSend:uint= 10;	// Default number of rats to send.
+			public static var kCostPerRat:uint= 100;	// Cost per rat in dollars.
+			//** **
 			public static const kMaxDays:uint	= 28;	// Initial number of days given to find all treasures.
+			public static const kMaxHookDrops:int = 8;	//Changing from day based game play to hook drop try based.
+			public static const kCostPerHoodDrop:int = 4500; // Cost each time you drop a hook
 			public static const kDaysToDropHook:uint = 1;	 // Number of days used dropping the grappling hook.
 			public static const kDaysToNextTreasure:uint = 4;// Number of days to sail to next treasure.
 			public static const kCostPerDay:uint=3000;	// Cost for crew and ship per day in dollars.
@@ -75,6 +79,7 @@
 			private var mMathUtils:MathUtilities = new MathUtilities();			// Class that uses SRRI math functions.
 			private var mFirstRat:Boolean	= true;			// Is this the first rat sent looking for next treasure?
 [Bindable]	private var mDaysLeft:uint		= kMaxDays;		// Days left to find treasure.
+[Bindable]	private var mHookDropsLeft:int	= kMaxHookDrops;	// Number of drops left in current game.
 			private var mCenterPosition:Number= kInitCenter;	// Center position of grappling hook.
 			private var mMinHookRange:Number	= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
 			private var mMaxHookRange:Number	= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
@@ -169,7 +174,7 @@
 			// All components created by Tristan Warneke except the Parchment which is the same as above
 			
 			// Backer to Hook/Crane controls
-			[Embed(source="../odysseyAssets/SO-UI2-HookDropBacker.png")]
+			[Embed(source="../odysseyAssets/SO-UI2-HookDropBackerExt.png")]
 			[Bindable] private var mHookDropBacker:Class;
 			
 			// Backer to Rat controls
@@ -383,10 +388,17 @@
 			{
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				//Set background image and standard deviation that fit with game level.
-				mStdDeviation					= kStdDeviationClear;
+				mStdDeviation	= kStdDeviationClear;
 				Water.fill = clearWater;
 				Sky.backgroundFill = daylight;
 				huntLevelChosen(kHuntLevelOne); // Set game level to first level.
+				
+				kMaxRats	= 2400;	// Number of rats available per Treasure Hunt Game.
+				kMinRats	= 200;	// Default minimum number of rats to send.
+				mRatsToSend	= 200;	// Default number of rats to send.
+				kCostPerRat	= 0;	// Cost per rat in dollars.
+				mRatsLeft = kMaxRats; 
+				mRatStepper.maximum = 200;
 			}
 			
 			// secondHuntLevel() sets the current hunt level to the second level.
@@ -543,12 +555,12 @@
 					transitionTimer.start();
 				}else{
 					// Clear hint text next to pirate head.
-					mEventNumber 				+= 1; // Dropping a hook counts as an event.
-					mHooksDropped 				+= 1; // Increment counter of hooks dropped.
+					mEventNumber 	+= 1; // Dropping a hook counts as an event.
+					mHooksDropped 	+= 1; // Increment counter of hooks dropped.
 					
 					// Set days left to find treasure.
-					mDaysLeft 					-= kDaysToDropHook;	
-					//mDaysRemainingValue.text 	= mDaysLeft.toString();
+					//mDaysLeft 		-= kDaysToDropHook;	
+					mHookDropsLeft--;
 					
 					// Update the cumulative cost of using the ship and crew as well as the profit so far.
 					mShipCostSoFar		+= kCostPerDay * kDaysToDropHook;
@@ -615,7 +627,7 @@
 					sendEventData("Hook", "Miss");
 					// Disable the Drop Hook Button if there are not enough days left
 					// to drop the hook again. Game is done.
-					if (mDaysLeft < kDaysToDropHook)
+					if (mHookDropsLeft == 0 || mDaysLeft < kDaysToDropHook)
 					{
 						// Player ran out of time. Disable treasure hunt controls.
 						disableAllButtons(false);
@@ -703,7 +715,7 @@
 			
 			private function gameFinish():void{
 				// Tell the player the game is over.
-				if(mDaysLeft == 0){
+				if(mHookDropsLeft == 0 || mDaysLeft == 0){
 					mTimeRanOutAlert.visible = true;
 					mTreasuresFoundLabel.text		= treasuresFoundString();
 					mTreasuresFoundLabel.visible	= true;
@@ -729,7 +741,7 @@
 			private function onClickLog(e:Event):void{
 				//update status items
 				mRatsRemaining.text = mRatsLeft.toString() + " of " + kMaxRats.toString();
-				mDaysSpent.text = (kMaxDays-mDaysLeft).toString() + " of " +kMaxDays.toString();
+				mDaysSpent.text = (kMaxDays-mDaysLeft).toString();// + " of " +kMaxDays.toString();
 				mTrsrsFound.text = mTreasuresFound.toString() + " of " + kNumTreasures.toString();
 				mStartingAmt.text = formatDollars(100000);
 				mTreasureProfit.text = formatDollars(mTreasureValueSoFar);
@@ -828,23 +840,21 @@
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, readyToZoomIn);
 				//spin watch hand and click down days
 				watchMovie.tweenHands(10,6);//watch animation is (speed, timeInSeconds)
-				dayTickOffClockTimer = new Timer(1000);
-				dayTickOffClockTimer.addEventListener(TimerEvent.TIMER, dayTick);
-				dayTickOffClockTimer.start();
+//				dayTickOffClockTimer = new Timer(1000);
+//				dayTickOffClockTimer.addEventListener(TimerEvent.TIMER, dayTick);
+//				dayTickOffClockTimer.start();
 				
-				if(kDaysToNextTreasure >= mDaysLeft)
-					mDaysLeftTarget = 0;
-				else 
-					mDaysLeftTarget = mDaysLeft - kDaysToNextTreasure;
+//				if(kDaysToNextTreasure >= mDaysLeft)
+//					mDaysLeftTarget = 0;
+//				else 
+//					mDaysLeftTarget = mDaysLeft - kDaysToNextTreasure;
 				
 				sailingMovie.visible = true;
 				crane.visible = false;
 				sailingMovie.doZoomOut();
 				transitionTimer.start()
 			}
-			private function sailOnFast():void{
-				
-			}
+
 			private function readyToZoomIn(e:TimerEvent):void{
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, readyToZoomIn);
 				if(mCurrentGameComplete || mDaysLeftTarget == 0 || mCurrentTreasureNum == kNumTreasures){
@@ -870,18 +880,19 @@
 			private function ratDropTimerFinish(e:TimerEvent):void{
 				
 			}
-			private function dayTick(e:TimerEvent):void{
-				var repeat:int = dayTickOffClockTimer.currentCount;
-				if(repeat > 2 && repeat <(3+kDaysToNextTreasure)){
-					mDaysLeft = Math.max(0, mDaysLeft - 1);
-					if (mDaysLeft > 1000) mDaysLeft = 0; // in case the uint flips to highest value possible
-					if(repeat == (2+kDaysToNextTreasure)){
-						updateProfitAfterSail();
-						dayTickOffClockTimer.stop();
-						dayTickOffClockTimer.removeEventListener(TimerEvent.TIMER, dayTick);
-					}
-				}
-			}
+			//deprecated due to using hook drops instead of days
+//			private function dayTick(e:TimerEvent):void{
+//				var repeat:int = dayTickOffClockTimer.currentCount;
+//				if(repeat > 2 && repeat <(3+kDaysToNextTreasure)){
+//					mDaysLeft = Math.max(0, mDaysLeft - 1);
+//					if (mDaysLeft > 1000) mDaysLeft = 0; // in case the uint flips to highest value possible
+//					if(repeat == (2+kDaysToNextTreasure)){
+//						updateProfitAfterSail();
+//						dayTickOffClockTimer.stop();
+//						dayTickOffClockTimer.removeEventListener(TimerEvent.TIMER, dayTick);
+//					}
+//				}
+//			}
 			//button control methods
 			private function disableAllButtons(incExit:Boolean):void{
 				logBtn.enabled = false;
@@ -1084,15 +1095,16 @@
 		</s:Group>
 		<s:SWFLoader id="WatchLoader" includeIn="TreasureHunt" x="9" y="287" complete="initWatch()"
 					 source="odysseyAssets/PocketWatch.swf"/>
-		<s:Label	id="mDaysRemainingValue" includeIn="TreasureHunt" x="19" y="337" text="{mDaysLeft}" fontSize="32" color="#362A1A" fontWeight="bold" fontStyle="normal" textAlign="center" width="78" filters="{[new GlowFilter(0xFF8888,0.75,4.0,4.0)]}" />
 	<!-- Hook controls -->
-		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="274" y="33" width="230" height="76">
-			<s:Image 		id="mHookBacker" x="-1" y="-2" source="{mHookDropBacker}"/>
-			<s:Label		id="mHookLabel" x="12" y="7" text="Grappling Hook" color="#000000" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
-			<s:Label		id="mRangeLabel" x="20" y="57" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
-			<s:Label 		id="mRangeValueLabel" x="69" y="57" width="80" color="#9B1D79" fontFamily="Georgia" fontWeight="bold"/>
-			<s:Button 		id="mDropHookButton" x="72" y="28" label="Drop Hook" width="80" height="23" fontSize="12" click="onClickDropHookButton(event)"/>
-			<s:NumericStepper id="mCenterPositionStepper" x="9" y="28" width="57" minimum="0" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
+		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="273" y="31" width="240" height="76">
+			<s:Image 		id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
+			<s:Label		id="mHookLabel" x="41" y="9" text="Grappling Hook" color="#000000" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
+			<s:Label		id="mRangeLabel" x="29" y="59" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
+			<s:Label 		id="mRangeValueLabel" x="78" y="59" width="80" color="#9B1D79" fontFamily="Georgia" fontWeight="bold"/>
+			<s:Button 		id="mDropHookButton" x="81" y="30" label="Drop Hook" width="80" height="23" fontSize="12" click="onClickDropHookButton(event)"/>
+			<s:NumericStepper id="mCenterPositionStepper" x="18" y="30" width="57" minimum="0" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
+			<s:Label id="mDaysRemainingValue" includeIn="TreasureHunt" x="162" y="31" width="78" color="#1A1A1A" fontSize="32"
+					 fontStyle="normal" fontWeight="bold" text="{mHookDropsLeft}" textAlign="center"/>
 		</s:Group>		
 	<!--Rat controls -->
 		<s:Group id="RatControls" includeIn="TreasureHunt" x="51" y="33" width="215" height="85">
