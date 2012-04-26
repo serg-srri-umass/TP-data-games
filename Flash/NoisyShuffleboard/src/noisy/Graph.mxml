@@ -1,49 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx" width="555" height="304" creationComplete="this.displayGraph()">
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="555" height="304" creationComplete="displayGraph()">
 	
 	<fx:Script>
 		<![CDATA[
 			import flash.display.*;
 			
-			public var data:Array = [ [1,1], [2,2], [3,3], [4,2], [5,5], [6,6], [7,2] ];
-//			public var data:Array =[ [1,7.0], [2,2.0], [3,9.0], [4,4.0], [5,1.0], [6,3.5], [7,6.0], [8,7.0], [9,9.0], [10,5.0] ];
+//			public var data:Array = [ [1,1], [2,2], [3,3], [4,4], [5,5], [6,6], [7,7] ]; //linear
+//			public var data:Array = [ [1,1], [2,2], [3,3], [4,2], [5,5], [6,6], [7,2] ];
+//			public var data:Array = [ [1,7.0], [2,2.0], [3,9.0], [4,4.0], [5,1.0], [6,3.5], [7,6.0], [8,7.0], [9,9.0], [10,5.0] ];
+//			public var data:Array = [ [1,10], [2,60], [3,100], [4,110], [5,120], [6,160], [7,200] ];
+			public var data:Array = [ [1,1], [2,60], [3,100], [4,110], [5,120], [6,160], [7,200] ];
+//			public var data:Array = [];
 
 			public var h_gap:Number, v_gap:Number;
 			
 			public var commands:Vector.<int>;
 			public var dataVect:Vector.<Number>;
 			
+			
+			
 			public function displayGraph():void
 			{	
 				h_gap = this.width / data.length;
 				v_gap = this.height / data.length;
 				
-				trace("GAP: " + h_gap);
-				trace("VGAP: " + v_gap);
+//				trace("HGAP: " + h_gap);
+//				trace("VGAP: " + v_gap);
 				
 				commands = new Vector.<int>();
 				dataVect = new Vector.<Number>();
 				
 				doGraph();
+				//clear out data
+//				trace("old data array: ", data);
+				data = new Array();
+//				trace("cleared array: ", data);
 			}
 			private function doGraph():void
 			{
 				canvas.graphics.beginFill(0xFFFFFF);
-				canvas.graphics.drawRect(0,0,this.width,this.height);
+				canvas.graphics.drawRect(0,0,this.width,this.height); //clear canvas
 				canvas.graphics.endFill();
 				
 				for(var i:int=0; i<data.length; i++)
 				{
 					var real_x:int, real_y:int;
+					
 					real_x = data[i][0]*h_gap;
-						real_x = real_x - (h_gap/2); //shift points to left to center graph
-					real_y = data[i][1]*v_gap;
-						real_y = this.height - real_y; //flip it -> align (0,0) to bottom left
+					real_x = real_x - (h_gap/2); //shift points to left to center graph
+					
+					/*
+						NOTE:
+						adding 1 to diff, and (v_gap/2) to real_y
+						adds one half-unit padding to the top and bottom
+					*/
+					var y_max = findMax();
+					var y_min = findMin();
+					var diff = (y_max - y_min) + 1;
+					v_gap = this.height / diff;
+					real_y = ((data[i][1] - y_min) * v_gap) + (v_gap / 2);
+					real_y = this.height - real_y; //invert
 					
 					drawPoint(real_x, real_y, i);
-//					trace(data[i][0], data[i][1], i);
+					
+//					trace("a,b", data[i][0], data[i][1]);
+//					trace("x,y", real_x, real_y);
 					
 					if(i==0) commands.push(GraphicsPathCommand.MOVE_TO);
 					else commands.push(GraphicsPathCommand.LINE_TO);
@@ -66,6 +89,32 @@
 				canvas.graphics.drawPath(commands, dataVect);
 //				canvas.graphics.endFill();
 			}
+			
+			public function addDataPoint(arr:Array):void
+			{
+				data.push(arr);
+				game.text = "Game: " + arr[0];
+				score.text = "Average Score: " + arr[1];
+			}
+			
+			private function findMax():Number
+			{
+				var value:Number = data[0][1];
+				for(var i:int=1; i<data.length; i++)
+				{
+					if(data[i][1] > value) value = data[i][1];
+				}
+				return value;
+			}
+			private function findMin():Number
+			{
+				var value:Number = data[0][1];
+				for(var i:int=1; i<data.length; i++)
+				{
+					if(data[i][1] < value) value = data[i][1];
+				}
+				return value;
+			}
 		]]>
 	</fx:Script>
 	
@@ -76,5 +125,7 @@
 	<s:Graphic id="canvas" width="555" height="304" contentBackgroundColor="0xFFFFFF">
 		
 	</s:Graphic>
+	<s:Label id="game" text="Game: " fontSize="20" fontFamily="Verdana" />
+	<s:Label id="score" text="Average Score: " fontSize="20" fontFamily="Verdana" y="20" />
 	
 </s:Group>
