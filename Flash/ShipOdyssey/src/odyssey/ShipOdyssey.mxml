@@ -50,7 +50,7 @@
 			public static const kCostPerHoodDrop:int = 4500; // Cost each time you drop a hook
 			public static const kDaysToDropHook:uint = 1;	 // Number of days used dropping the grappling hook.
 			public static const kDaysToNextTreasure:uint = 4;// Number of days to sail to next treasure.
-			public static const kCostPerDay:uint=3000;	// Cost for crew and ship per day in dollars.
+			public static const kCostPerDay:uint= 0;	// Cost for crew and ship per day in dollars. Was 3000 before change of level settings.
 			public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
 			public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
 			public static const kHookRadius:uint= 2;	// Radius of grappling hook area.
@@ -102,6 +102,7 @@
 			private var mTreasureLocArr:Array;				//location of each treasure at current loc, treasures are removed as found
 			private var mDropLocationNum:int;				//Treasure num != Drop Location in lvl 2 so need this to access the 2 arrays above this
 			private var mAutoSailOnAfterFoundTreasure:Boolean; //Added for lvl 2 where the user must choose when to sail on because there can be 0, 1, or 2 treasures
+			private var mLocationFound:Number;					// for storing the location of a found treasure across timer steps
 			
 			// These arrays store the details of individual treasures.
 			private var mTreasure0:Array;
@@ -248,8 +249,7 @@
 			private	function startUp():void	
 			{
 				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
-				
-				// Create rat collection.
+				// Create rat collection. 
 				ScriptInterface.NewCollectionWithAttributes(
 					"Events",
 					[
@@ -257,11 +257,12 @@
 						"Ocean_Quality",	// Clear or murky, based on hunt level chosen.
 						"Rats_Sent",		// Rats sent so far in current game.
 						"Rat_Reading",		// Location estimate provided by rat.
-						//"Drop_Order",		// Hooks dropped so far in current game.
+						//"Drop_Order",		// Hooks dropped so far in current game. 
 						//"Drop_Location",	// Location of hook center at time of event.
 						//"Drop_Result",		// Outcome of dropping hook (None, Miss, Hit, etc.).
 						"Treasure_Sought"//,	// Categorical treasure ID (1-based) at time of event.
 						//"Treasure_Location"// Exact location of treasure found at time of event
+											//** TW:Items commented out have been removed until the data system can better handle multiple level data types
 					]
 				);
 				// Create game collection.
@@ -423,12 +424,12 @@
 				huntLevelChosen(kHuntLevelTwo); // Set game level to second level.
 				
 				kMaxRats	= 2400;	// Number of rats available per Treasure Hunt Game.
-				kMinRats	= 100;	// Default minimum number of rats to send.
+				kMinRats	= 200;	// Default minimum number of rats to send.
 				mRatsToSend	= 200;	// Default number of rats to send.
 				kCostPerRat	= 0;	// Cost per rat in dollars.
 				mRatsLeft = kMaxRats; 
 				mRatStepper.maximum = 200;
-				mTreasuresAtLocArr = new Array(0,1,2,0,1,2);
+				mTreasuresAtLocArr = new Array(0,1,2,0,1,2); // hard code for testing
 				mAutoSailOnAfterFoundTreasure = false;
 //				var treasureCount:int;
 //				do{
@@ -590,15 +591,13 @@
 						evenOdd = (evenOdd+1)%2;
 					}
 				}
-				mResultsFieldLabel.text += readingsAdded;
-				
+				mResultsFieldLabel.text += readingsAdded;	
 				// Set maximum rats-to-send to the number of rats left.
 				// Adjust rat stepper to comply with any changes.
 				mRatStepper.maximum	= mRatsLeft;
 				if (mRatsToSend > mRatsLeft)
 				{
-					mRatsToSend			= mRatsLeft;	// Can't send more rats than there are!
-					
+					mRatsToSend	= mRatsLeft;	// Can't send more rats than there are!
 					// If there are not enough rats left to send the default minimum, allow 
 					// mimimum rats-to-send to drop below default minimum.
 					if (mRatsToSend < mRatStepper.minimum) mRatStepper.minimum = mRatsToSend;				
@@ -672,7 +671,16 @@
 						loc1 = mTreasureLocArr[0];
 						loc2 = mTreasureLocArr[1];
 					}
-					mFoundTreasure = ((loc1 >= mMinHookRange && loc1 <= mMaxHookRange)||(loc2 >= mMinHookRange && loc2 <= mMaxHookRange));
+					mFoundTreasure = false;
+					if(loc1 >= mMinHookRange && loc1 <= mMaxHookRange){
+						mFoundTreasure = true; //sets that we found the treasure
+						mLocationFound = loc1; //gives us the loc for displaying in the feedback panel
+						mTreasureLocArr.shift();
+					}else if(loc2 >= mMinHookRange && loc2 <= mMaxHookRange){
+						mFoundTreasure = true; //same as above
+						mLocationFound = loc2;
+						mTreasureLocArr.splice(-1,1);
+					}
 					dropHook();
 				}
 			}
@@ -697,8 +705,7 @@
 			protected function hookDropTimerFinish(e:TimerEvent):void{
 				//does the visual and sound items that occur after the hook drop finishes playing
 				//or as the item on the hook comes into view
-				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);
-				var location:Number = mTreasureArray[mCurrentTreasureNum][kLocation];
+				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);				
 				if (mFoundTreasure)
 				{
 					// Add treasure value to accumulated wealth.
@@ -713,12 +720,11 @@
 					sendEventData("Hook", "Hit");
 
 					TreasureFoundLabel.text = "Ye found the " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + valueInDollars 
-						+ " at location " + location.toFixed(1) + "!";
+						+ " at location " + mLocationFound.toFixed(1) + "!";
 					TreasureFoundAlert.visible = true;
 					//update Search Panel that you found the treasure
 					mTreasureArray[mCurrentTreasureNum][kSearch].source = mSearchFound;
 					mTreasureArray[mCurrentTreasureNum][kSearch].visible = true;
-					
 					// Increment treasure number and update text indicating which treasure is sought.
 					//mCurrentTreasureNum++;	
 					mTreasuresFound++;
@@ -808,6 +814,7 @@
 				for(var i:int=0; i<mTreasureLocArr.length; i++){
 					mTreasureArray[mCurrentTreasureNum+i][kSearch].source = mSearchSkip;
 					mTreasureArray[mCurrentTreasureNum+i][kSearch].visible = true;
+					mCurrentTreasureNum++;
 				}
 				runSailOnAnim();
 				mResultsFieldLabel.text	= "";	// Clear rat results.
@@ -1098,6 +1105,10 @@
 			<s:GradientEntry color="0x796f5a" ratio=".33" alpha=".75"/>
 			<s:GradientEntry color="0x645a45" ratio=".66" alpha=".75"/>
 		</s:LinearGradient>
+		<s:LinearGradient id="greenWater" rotation="90">
+			<s:GradientEntry color="0x6ba898" ratio=".33" alpha=".75"/>
+			<s:GradientEntry color="0x1cdbc1" ratio=".66" alpha=".75"/>
+		</s:LinearGradient>
 		<s:LinearGradient id="clearWater" rotation="90">
 			<s:GradientEntry color="0x076FA3" ratio=".33" alpha=".6"/>
 			<s:GradientEntry color="0x025987" ratio=".66" alpha=".75"/>
@@ -1105,6 +1116,10 @@
 		<s:LinearGradient id="daylight" rotation="90">
 			<s:GradientEntry color="0x3BCFF3" ratio=".0" alpha=".75"/>
 			<s:GradientEntry color="0xBFEFFB" ratio=".66" alpha=".75"/>
+		</s:LinearGradient>
+		<s:LinearGradient id="evening" rotation="90">
+			<s:GradientEntry color="0xb197ed" ratio=".0" alpha=".75"/>
+			<s:GradientEntry color="0x346dd1" ratio=".66" alpha=".75"/>
 		</s:LinearGradient>
 		<s:LinearGradient id="darkDay" rotation="90">
 			<s:GradientEntry color="0x002358" ratio=".33" alpha=".75"/>
