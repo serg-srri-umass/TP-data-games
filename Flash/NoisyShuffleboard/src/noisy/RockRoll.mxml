@@ -877,10 +877,8 @@
 								// Send notification when play has completed. Used to disable/enable buttons.
 								rockMoveAndRoll.addEventListener(EffectEvent.EFFECT_END, onRockRollComplete);
 								rockMoveAndRoll.play();	// Play instantly vs. in sequence, like scattershot.
-								trace("Roll " + i + " completed.");
-								if(i==(rocksToRoll-1)) this.graph.displayGraph();
 							}
-							trace("Gamecount: " + gameCount);
+//							trace("Gamecount: " + gameCount);
 							
 							// Save data on this individual roll for TinkerPlots/Fathom.
 							// Order in array is incremented by one so that first rock is number 1 vs. 0.
@@ -999,6 +997,7 @@
 							mPrevLevel 				= mGameLevel;	// Track game level change.
 						}
 					}
+					this.graph.displayGraph(); //display graph for this set of games
 				}
 				catch(e:ScriptTimeoutError)
 				{
