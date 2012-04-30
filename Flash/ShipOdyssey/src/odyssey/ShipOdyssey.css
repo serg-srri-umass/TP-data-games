@@ -15,9 +15,9 @@ s|Button#closeLogBtn {
 	skinClass: ClassReference("odyssey.skins.StatusCloseButtonSkin");
 }	
 s|Button#mLevelOneButton {
-	skinClass: ClassReference("odyssey.skins.DifficultyEasyButtonSkin");
+	skinClass: ClassReference("odyssey.skins.DifficultyLevel1ButtonSkin");
 }
 s|Button#mLevelTwoButton {
-	skinClass: ClassReference("odyssey.skins.DifficultyMediumButtonSkin");
+	skinClass: ClassReference("odyssey.skins.DifficultyLevel2ButtonSkin");
 }
 	
