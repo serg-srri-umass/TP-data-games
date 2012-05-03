@@ -6,6 +6,7 @@
 	<fx:Script>
 		<![CDATA[
 			import flash.display.*;
+			import spark.components.Label;
 			
 //			public var data:Array = [ [1,1], [2,2], [3,3], [4,4], [5,5], [6,6], [7,7] ]; //linear
 //			public var data:Array = [ [1,1], [2,2], [3,3], [4,2], [5,5], [6,6], [7,2] ];
@@ -39,7 +40,6 @@
 			private function doGraph():void
 			{
 				canvas.graphics.clear(); //clear everything previous first
-				
 				canvas.graphics.beginFill(0xFFFFFF);
 				canvas.graphics.drawRect(0,0,this.width,this.height); //clear canvas
 				canvas.graphics.endFill();
@@ -48,27 +48,10 @@
 				{
 					var real_x:int, real_y:int;
 					
-					real_x = getRealX(data[i][0]);
-//					real_x = data[i][0]*h_gap;
-//					real_x = real_x - (h_gap/2); //shift points to left to center graph
-					
-//					/*
-//						NOTE:
-//						adding 1 to diff, and (v_gap/2) to real_y
-//						adds one half-unit padding to the top and bottom
-//					*/
-//					var y_max = findMax();
-//					var y_min = findMin();
-//					var diff = (y_max - y_min) + 1;
-//					v_gap = this.height / diff;
-//					real_y = ((data[i][1] - y_min) * v_gap) + (v_gap / 2);
-//					real_y = this.height - real_y; //invert
+					real_x = getRealX(data[i][0]);					
 					real_y = getRealY(data[i][1]);
 					
 					drawPoint(real_x, real_y, i);
-					
-//					trace("a,b", data[i][0], data[i][1]);
-//					trace("x,y", real_x, real_y);
 					
 					if(i==0) commands.push(GraphicsPathCommand.MOVE_TO);
 					else commands.push(GraphicsPathCommand.LINE_TO);
@@ -88,10 +71,17 @@
 			private function connectTheDots():void
 			{
 //				if(data.length < 1) return;
-//				canvas.graphics.beginFill(0xFF00FF);
 				canvas.graphics.lineStyle(3, 0xFF00FF);
 				canvas.graphics.drawPath(commands, dataVect);
-//				canvas.graphics.endFill();
+			}
+			private function drawString(str:String, x:int, y:int):void
+			{
+				var label:Label = new Label();
+				label.text = str;
+				label.setStyle("fontSize", 72); //
+				label.x = x;
+				label.y = y;
+				this.canvas.addElement(label);
 			}
 			private function labelPoints():void
 			{
@@ -105,6 +95,8 @@
 					this.min.x = 5;
 					this.min.y = getRealY(findMin());
 				}
+				
+//				drawString("TEST", 10, this.min.y);
 			}
 			
 			public function addDataPoint(arr:Array):void

@@ -38,7 +38,7 @@
 			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
 			
-			public static const VERSION:String = "Rock Roll [F] 2012.04.26";
+			public static const VERSION:String = "Rock Roll [F] 2012.05.03";
 			
 			public static const NUMBER_OF_ROCKS:uint	= 16;	// Number of rocks total
 			public static const ROCKS_TO_ROLL:uint		= 4;	// How many rocks to roll at once
@@ -1128,7 +1128,7 @@
 				{
 					enableNumberGamesStepperAndLabel(true);
 					mPlayAutomatically			= true;
-					graph.visible = true;
+//					graph.visible = true; //TODO: uncomment to enable graph
 				}
 				else
 				{
@@ -1187,10 +1187,8 @@
 	<default:ShuffleCourt x="233" y="58" id="shuffleCourt" fontFamily="Verdana">
 	</default:ShuffleCourt>
 	
-	<default:Graph x="233" y="58" id="graph" visible="false">
+	<default:Graph x="233" y="58" id="graph" visible="false" >
 	</default:Graph>
-	
-	<!-- <s:SpriteVisualElement id="mSpriteVE" /> -->
 
 	<mx:HSlider x="10" y="103" width="200" id="mStrengthSliderA" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthA(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
 	<s:Label x="10" y="154" text="Strength A" id="mStrengthLabelA" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
