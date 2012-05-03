@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="555" height="304" creationComplete="displayGraph()">
+	
+	<fx:Script>
+		<![CDATA[
+			import flash.display.*;
+			
+//			public var data:Array = [ [1,1], [2,2], [3,3], [4,4], [5,5], [6,6], [7,7] ]; //linear
+//			public var data:Array = [ [1,1], [2,2], [3,3], [4,2], [5,5], [6,6], [7,2] ];
+//			public var data:Array = [ [1,7.0], [2,2.0], [3,9.0], [4,4.0], [5,1.0], [6,3.5], [7,6.0], [8,7.0], [9,9.0], [10,5.0] ];
+//			public var data:Array = [ [1,10], [2,60], [3,100], [4,110], [5,120], [6,160], [7,200] ];
+//			public var data:Array = [ [1,1], [2,60], [3,100], [4,110], [5,120], [6,160], [7,200] ];
+//			public var data:Array = [ [0,99],[1,100],[2,90],[3,96],[4,100],[5,102],[6,105],[7,104],[8,105],[9,104],[10,106],[11,105],[12,105],[13,105],[14,105],[15,104],[16,104],[17,104],[18,103],[19,103],[20,103],[21,102],[22,103],[23,103],[24,103],[25,103],[26,103],[27,103],[28,103],[29,102],[30,102],[31,102],[32,102],[33,102],[34,102],[35,103],[36,104],[37,104],[38,103],[39,103],[40,102],[41,102],[42,102],[43,102],[44,101],[45,102],[46,101],[47,101],[48,101],[49,101],[50,101],[51,101],[52,101],[53,101],[54,101],[55,101],[56,101],[57,100],[58,100],[59,100],[60,101],[61,100],[62,100],[63,100],[64,100],[65,100],[66,100],[67,100],[68,100],[69,100],[70,100],[71,100],[72,100],[73,100],[74,100],[75,100],[76,101],[77,100],[78,100],[79,101],[80,101],[81,101],[82,100],[83,100],[84,100],[85,100],[86,100],[87,100],[88,100],[89,100],[90,100],[91,100],[92,100],[93,100],[94,100],[95,100],[96,100],[97,100],[98,100],[99,100] ];
+//			public var data:Array = [ [1,100],[1,120],[2,115],[3,106],[4,110],[5,112],[6,108],[7,107],[8,105],[9,105],[10,104],[11,102],[12,103],[13,103],[14,102],[15,102],[16,104],[17,103],[18,103],[19,103],[20,103],[21,103],[22,102],[23,102],[24,103],[25,103],[26,104],[27,103],[28,103],[29,103],[30,102],[31,103],[32,103],[33,103],[34,103],[35,103],[36,102],[37,102],[38,101],[39,101],[40,101],[41,101],[42,101],[43,101],[44,101],[45,101],[46,101],[47,101],[48,101],[49,101],[50,101],[51,101],[52,101],[53,101],[54,101],[55,101],[56,100],[57,101],[58,100],[59,101],[60,100],[61,101],[62,101],[63,101],[64,101],[65,100],[66,100],[67,100],[68,100],[69,100],[70,100],[71,101],[72,101],[73,100],[74,100],[75,100],[76,100],[77,100],[78,100],[79,100],[80,100],[81,100],[82,100],[83,100],[84,100],[85,99],[86,99],[87,99],[88,99],[89,99],[90,99],[91,99],[92,99],[93,99],[94,99],[95,99],[96,99],[97,99],[98,99],[99,99] ];
+			public var data:Array = [];
+
+			public var h_gap:Number, v_gap:Number;
+			
+			public var commands:Vector.<int>;
+			public var dataVect:Vector.<Number>;
+			
+			public var _max_y, _min_y;
+			
+			public function displayGraph():void
+			{	
+				h_gap = this.width / data.length;
+				v_gap = this.height / data.length;
+				
+				commands = new Vector.<int>();
+				dataVect = new Vector.<Number>();
+				
+				doGraph();
+				
+				//clear out data
+				data = new Array();
+			}
+			private function doGraph():void
+			{
+				canvas.graphics.clear(); //clear everything previous first
+				
+				canvas.graphics.beginFill(0xFFFFFF);
+				canvas.graphics.drawRect(0,0,this.width,this.height); //clear canvas
+				canvas.graphics.endFill();
+				
+				for(var i:int=0; i<data.length; i++)
+				{
+					var real_x:int, real_y:int;
+					
+					real_x = getRealX(data[i][0]);
+//					real_x = data[i][0]*h_gap;
+//					real_x = real_x - (h_gap/2); //shift points to left to center graph
+					
+//					/*
+//						NOTE:
+//						adding 1 to diff, and (v_gap/2) to real_y
+//						adds one half-unit padding to the top and bottom
+//					*/
+//					var y_max = findMax();
+//					var y_min = findMin();
+//					var diff = (y_max - y_min) + 1;
+//					v_gap = this.height / diff;
+//					real_y = ((data[i][1] - y_min) * v_gap) + (v_gap / 2);
+//					real_y = this.height - real_y; //invert
+					real_y = getRealY(data[i][1]);
+					
+					drawPoint(real_x, real_y, i);
+					
+//					trace("a,b", data[i][0], data[i][1]);
+//					trace("x,y", real_x, real_y);
+					
+					if(i==0) commands.push(GraphicsPathCommand.MOVE_TO);
+					else commands.push(GraphicsPathCommand.LINE_TO);
+					dataVect.push(real_x);
+					dataVect.push(real_y);
+				}
+				
+				connectTheDots();
+				labelPoints();
+			}
+			private function drawPoint(x:int, y:int, i:int):void
+			{				
+				canvas.graphics.beginFill(0xFF0000);
+				canvas.graphics.drawCircle(x, y, 4);
+				canvas.graphics.endFill();
+			}
+			private function connectTheDots():void
+			{
+//				if(data.length < 1) return;
+//				canvas.graphics.beginFill(0xFF00FF);
+				canvas.graphics.lineStyle(3, 0xFF00FF);
+				canvas.graphics.drawPath(commands, dataVect);
+//				canvas.graphics.endFill();
+			}
+			private function labelPoints():void
+			{
+				if(data.length >= 1)
+				{
+					this.max.text = findMax().toString();
+					this.max.x = 5;
+					this.max.y = getRealY(findMax());
+					
+					this.min.text = findMin().toString();
+					this.min.x = 5;
+					this.min.y = getRealY(findMin());
+				}
+			}
+			
+			public function addDataPoint(arr:Array):void
+			{
+				data.push(arr);
+				game.text = "Game: " + arr[0];
+				score.text = "Average Score: " + arr[1];
+			}
+			
+			private function findMax():Number
+			{
+				var value:Number = data[0][1];
+				for(var i:int=1; i<data.length; i++)
+				{
+					if(data[i][1] > value){
+						value = data[i][1];
+						_max_y = data
+					}
+				}
+				return value;
+			}
+			private function findMin():Number
+			{
+				var value:Number = data[0][1];
+				for(var i:int=1; i<data.length; i++)
+				{
+					if(data[i][1] < value) value = data[i][1];
+				}
+				return value;
+			}
+			private function getRealX(fakeX:Number):Number
+			{
+				var real_x:Number;
+				real_x = fakeX*h_gap;
+				real_x = real_x - (h_gap/2); //shift points to left to center graph
+				return real_x;
+			}
+			private function getRealY(fakeY:Number):Number
+			{
+				/*
+				NOTE:
+				adding 1 to diff, and (v_gap/2) to real_y
+				adds one half-unit padding to the top and bottom
+				*/
+				var real_y:Number;
+				var y_max = findMax();
+				var y_min = findMin();
+				var diff = (y_max - y_min) + 1;
+				v_gap = this.height / diff;
+				real_y = ((fakeY - y_min) * v_gap) + (v_gap / 2);
+				real_y = this.height - real_y; //invert
+				return real_y;
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:Graphic id="canvas" width="555" height="304" contentBackgroundColor="0xFFFFFF">
+		
+	</s:Graphic>
+	<s:Label id="game" text="Game: " fontSize="20" fontFamily="Verdana" />
+	<s:Label id="score" text="Average Score: " fontSize="20" fontFamily="Verdana" y="20" />
+	
+	<s:Label id="max" />
+	<s:Label id="min" />
+	
+</s:Group>

@@ -3,8 +3,52 @@ Change Log
 Newer entries first
 
 ===========================
+2012.04.11
+Ouputted data attributes reordered.
+
+===========================
+2012.04.06
+New change level dialog with 'practice' checkbox.
+
+===========================
+2012.04.03
+Modified data ouputted in collections.
+
+===========================
+2012.04.02
+New cut strategy names and altered algorithm.
+
+===========================
+2012.03.29
+Changed the cut strategy guessing.
+
+===========================
+2012.03.14
+Changed 'Cut Style' label to 'Cut Strategy'.
+
+===========================
+2012.03.12
+removed unused code
+
+===========================
+2012.03.09
+Removed cut style case.
+
+===========================
+2012.03.08
+Improved cut style guessing.
+
+===========================
+2012.03.07
+Better detecting vertical direction of cuts.
+
+===========================
+2012.03.05
+Now tracks whether a cut started at the top or bottom of the log.
+
+===========================
 2012.02.27
-Improvements to cut style-guessing.
+Improvements to cut style guessing.
 
 ===========================
 2012.02.24
@@ -28,3 +72,4 @@ changes:
 -'changelog.txt' added
 
 === e n d   o f   l o g ===
+

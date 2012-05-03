@@ -38,12 +38,12 @@
 			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
 			
-			public static const VERSION:String = "Rock Roll [F] 2012.01.06"; // Ryan
+			public static const VERSION:String = "Rock Roll [F] 2012.04.26";
 			
 			public static const NUMBER_OF_ROCKS:uint	= 16;	// Number of rocks total
 			public static const ROCKS_TO_ROLL:uint		= 4;	// How many rocks to roll at once
-			public static const MAX_SCORE_POSSIBLE:uint	= 480;	// Maximum score possible if all rocks score optimally.
-			public static const MIN_SCORE_POSSIBLE:uint	= 0;	// Minimum score if all rocks get the lowest possible score.
+//			public static const MAX_SCORE_POSSIBLE:uint	= 480;	// Maximum score possible if all rocks score optimally.
+//			public static const MIN_SCORE_POSSIBLE:uint	= 0;	// Minimum score if all rocks get the lowest possible score.
 
 			// Color to use when disabling text associated with controls.
 			public static const DISABLED_TEXT_COLOR:uint= 0x4E594E;	
@@ -134,12 +134,14 @@
 				enableNumberGamesStepperAndLabel(false);// Disable stepper at start.
 				mInstructionsLabel.text 	= "Press 'New Game' Button to Begin";
 				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
-				enableSortRocksListAndLabel(false);		// Disable sort rocks list and label.
+				enableSortRocksList(false);		// Disable sort rocks list and label.
 				
+				/*
 				// Set up and zero out the score bar.
 				mScoreBar.minimum			= MIN_SCORE_POSSIBLE;
 				mScoreBar.maximum			= MAX_SCORE_POSSIBLE;
-				mScoreBar.setProgress(mScoreBar.minimum, mScoreBar.maximum); 
+				mScoreBar.setProgress(mScoreBar.minimum, mScoreBar.maximum);
+				*/
 				
 				// Event listeners can go here. 
 				// A disadvantage is that placing the listeners here instead of in the MXML at 
@@ -249,13 +251,10 @@
 				mNumberGamesStepperLabel.setStyle("color", iEnable ? ENABLED_TEXT_COLOR : DISABLED_TEXT_COLOR); 
 			}
 			
-			// enableSortRocksListAndLabel() enables/disables the sort rocks list
-			// and associated label.
-			protected function enableSortRocksListAndLabel(iEnable:Boolean):void
+			// enableSortRocksList() enables/disables the sort rocks list
+			protected function enableSortRocksList(iEnable:Boolean):void
 			{
 				mSortRocksList.enabled	= iEnable;	// Enable/disable sort rocks list.
-				// Enable/disable text associated with sort rocks list.
-				mSortRocksLabel.setStyle("color", iEnable ? ENABLED_TEXT_COLOR : DISABLED_TEXT_COLOR); 
 			}
 			
 			// enableStrengthSliderAAndLabel() enables/disables the strength slider A
@@ -280,7 +279,7 @@
 			private function chooseGameLevel():void 
 			{
 				var isModal:Boolean = true;
-				PopUpManager.addPopUp(mLevelWindow, this, isModal); 
+				PopUpManager.addPopUp(mLevelWindow, this, isModal);
 				
 				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
 				mLevelWindow.closeButton.visible = false;	// Hide the close button.
@@ -448,12 +447,6 @@
 				
 				// Update instructions text.
 				updateInstructionsText();
-
-				// Update label specifing number of games played.
-				// Number changing is only available before game play has begun, so keep game
-				// counter zeroed (spelling?) out.
-				var forceResetToZero:Boolean = true;
-				updateNumberOfRocksRolledLabel(forceResetToZero);
 			}
 			
 			// updateCourtMarkings() updates the text in the shuffle court according
@@ -556,19 +549,6 @@
 				}
 			}
 			
-			// updateNumberOfRocksRolledLabel() updates the text associate with this label.
-			// Force reset to zero by passing iForceZero = true;
-			protected function updateNumberOfRocksRolledLabel(iForceZero:Boolean = false):void
-			{
-				if (mPlayAutomatically)
-					mNumberOfRocksRolledLabel.text = 
-						(iForceZero ? 0 : mMostRecentGamePlayed) + " of " + mNumberGamesStepper.value + " Games AutoPlayed";
-				else
-					mNumberOfRocksRolledLabel.text = 
-						(iForceZero ? 0 : (mMostRecentRockRolled + 1)) + " of " + NUMBER_OF_ROCKS + " Rocks Rolled";
-				
-			}
-			
 			// onRockRollComplete() is used to handle the enabling of buttons only after 
 			// the rock rolling effects have completed. Otherwise, pressing a button during 
 			// and effect that is still playing can have unwanted results.
@@ -633,11 +613,11 @@
 				
 				// Update score bar to reflect rock(s) just rolled.
 				var score:uint = mPlayAutomatically ? mCurrentAverageScore : mCurrentGameScore;
-				mScoreBar.maximum = MAX_SCORE_POSSIBLE * ((mMostRecentRockRolled + 1)/NUMBER_OF_ROCKS);
-				mScoreBar.setProgress(score, mScoreBar.maximum); 
-				
-				var percentString:String = Math.floor((score/mScoreBar.maximum) * 100) + "%";
-				mScoreBar.label = percentString;
+//				mScoreBar.maximum = MAX_SCORE_POSSIBLE * ((mMostRecentRockRolled + 1)/NUMBER_OF_ROCKS);
+//				mScoreBar.setProgress(score, mScoreBar.maximum); 
+//				
+//				var percentString:String = Math.floor((score/mScoreBar.maximum) * 100) + "%";
+//				mScoreBar.label = percentString;
 
 				// Update score text.
 				if ((mMostRecentRockRolled + 1) == NUMBER_OF_ROCKS)
@@ -648,11 +628,13 @@
 						mScoreTextLabel.text = "Final Score = " + score;
 				}
 				else
-					mScoreTextLabel.text = "Score So Far = " + score;
+					mScoreTextLabel.text = "Score = " + score;
 				
-				updateNumberOfRocksRolledLabel();	// Update number of rocks rolled label.
 				updateInstructionsText();			// Update instructions text.
 				CursorManager.removeBusyCursor();	// Turn off busy cursor.
+				
+				//TEMP --Ryan
+				this.updateGraph(iEvent);
 			}
 			
 			// onRockReturnComplete() is used to handle the enabling of buttons only after 
@@ -665,7 +647,7 @@
 				
 				if (mRollReturnCounter == NUMBER_OF_ROCKS)
 				{
-					enableSortRocksListAndLabel(true);	// Enable sort feature.
+					enableSortRocksList(true);	// Enable sort feature.
 					mRollRocksButton.enabled	= true;	// Enable "Roll Rocks" button.
 					mRollReturnCounter			= 0;	// Reset roll counter.
 				}
@@ -702,7 +684,7 @@
 			{
 				if (!mRocksAreRolling)
 					// Don't show busy cursor if rocks aren't rolling.
-					CursorManager.removeBusyCursor();	
+					CursorManager.removeBusyCursor();
 			}
 			
 			// errorHandler() is called when there is an error and allows app to do whatever
@@ -714,12 +696,7 @@
 					"Warning!");
 				
 				// Equivalent of pressing Cancel button. Otherwise, all controls are left in the disabled state.
-				mRollRocksButton.enabled	= false;	// Disable Roll Rocks button until rocks are done rolling.
-				enableStrengthSliderAAndLabel(false);	// Disable strength slider
-				enableStrengthSliderBAndLabel(false);	// Disable strength slider
-				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
-				enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
-				enableSortRocksListAndLabel(false);		// Disable sort feature until new game is started.
+				cancelPressed();
 				
 				mRocksAreRolling		= false;// Rolling has stopped.
 				mRollCounter			= 0;	// Reset counter.
@@ -754,7 +731,7 @@
 				mNewGameButton.enabled		= false;	// Disable 'Cancel' button until roll animation ends.
 				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
 				enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
-				enableSortRocksListAndLabel(false);		// Disable sort feature until new game is started.
+				enableSortRocksList(false);		// Disable sort feature until new game is started.
 				enableStrengthSliderAAndLabel(false);	// Disable strength slider
 				enableStrengthSliderBAndLabel(false);	// Disable strength slider
 
@@ -869,11 +846,15 @@
 								var rockMoveAndRoll:Parallel	= new Parallel(mRockArray[mNextRockToRoll]);
 								
 								if (mPlayAutomatically)
+								{
 									// Speed up roll duration on batch game play.
-									rockMoveAndRoll.duration	= 5000 * (singleRollDistance / 250); 
+									rockMoveAndRoll.duration	= 5000 * (singleRollDistance / 250);
+								}
 								else
+								{
 									// Roll takes maximum of 2 seconds, based on actual distance.
-									rockMoveAndRoll.duration	= 5000 * (singleRollDistance / 250); 
+									rockMoveAndRoll.duration	= 5000 * (singleRollDistance / 250);
+								}
 								
 								// Do the translation of the rock.
 								rockMove.xTo		= this.shuffleCourt.distanceToXPosition(singleRollDistance);
@@ -897,6 +878,7 @@
 								rockMoveAndRoll.addEventListener(EffectEvent.EFFECT_END, onRockRollComplete);
 								rockMoveAndRoll.play();	// Play instantly vs. in sequence, like scattershot.
 							}
+//							trace("Gamecount: " + gameCount);
 							
 							// Save data on this individual roll for TinkerPlots/Fathom.
 							// Order in array is incremented by one so that first rock is number 1 vs. 0.
@@ -914,7 +896,7 @@
 	
 							mMostRecentRockRolled = mNextRockToRoll; // Keep track of most recent rock rolled.
 							mNextRockToRoll += 1;	// Roll is done and tracked. Increment counter.
-						}	
+						}
 						
 						// Save the strengths for later transmission to TinkerPlots/Fathom.
 						if (!mPlayAutomatically)	
@@ -1004,6 +986,10 @@
 							{
 								cumulativeBatchScore	+= mCurrentGameScore;
 								mCurrentAverageScore	= Math.floor(cumulativeBatchScore/gameCount);
+								
+								//add current average score to graph
+								this.graph.addDataPoint([gameCount, mCurrentAverageScore]);
+								trace("adding data point: [",[gameCount, mCurrentAverageScore],"]");
 							}
 							
 							mMostRecentGamePlayed	= gameCount;	// Keep track of most recent game played.
@@ -1011,6 +997,7 @@
 							mPrevLevel 				= mGameLevel;	// Track game level change.
 						}
 					}
+					this.graph.displayGraph(); //display graph for this set of games
 				}
 				catch(e:ScriptTimeoutError)
 				{
@@ -1052,12 +1039,7 @@
 				// User pressed 'Cancel' during a game. Disable controls until user intiates new game.
 				if (mCancelButtonOn) 
 				{
-					mRollRocksButton.enabled	= false;	// Disable Roll Rocks button until rocks are done rolling.
-					enableStrengthSliderAAndLabel(false);	// Disable strength slider
-					enableStrengthSliderBAndLabel(false);	// Disable strength slider
-					enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
-					enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
-					enableSortRocksListAndLabel(false);		// Disable sort feature until new game is started.
+					cancelPressed();
 				}
 				else // Handle the setup of a new game
 				{
@@ -1087,20 +1069,16 @@
 					enableAutoPlayCheckBoxAndLabel(true);			// Enable autoplay checkbox and label.
 					mNewGameButton.enabled		= false;			// Disable 'New Game' button.
 					mChangeLevelButton.enabled	= false;			// Disable "Change Level" button.
-					mScoreTextLabel.text		= "Score So Far = " + 0;	// Reset score to zero.
-					mScoreBar.label				= "0%"				// Reset score bar text.
+					mScoreTextLabel.text		= "Score = 0";		// Reset score to zero.
+//					mScoreBar.label				= "0%"				// Reset score bar text.
 					mRollCounter				= 0;				// Reset roll animation counter.
 
 					
 					if (mPlayAutomatically)
 						enableNumberGamesStepperAndLabel(true);		// Enable the number of games stepper.
 					
-					// Zero out number of rocks rolled label.
-					var forceResetToZero:Boolean = true;
-					updateNumberOfRocksRolledLabel(forceResetToZero);
-					
 					// Return score bar to zero.
-					mScoreBar.setProgress(mScoreBar.minimum, mScoreBar.maximum); 
+//					mScoreBar.setProgress(mScoreBar.minimum, mScoreBar.maximum);
 				}
 				
 				// Toggle 'cancel'/'new game' state and button text.
@@ -1108,6 +1086,16 @@
 				
 				// Update instructions text.
 				updateInstructionsText();
+			}
+			
+			protected function cancelPressed():void
+			{
+				mRollRocksButton.enabled	= false;	// Disable Roll Rocks button until rocks are done rolling.
+				enableStrengthSliderAAndLabel(false);	// Disable strength slider
+				enableStrengthSliderBAndLabel(false);	// Disable strength slider
+				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
+				enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
+				enableSortRocksList(false);		// Disable sort feature until new game is started.
 			}
 
 			// onUpdateNumberOfGames() is called when mNumberGamesStepper is changed and 
@@ -1140,16 +1128,18 @@
 				{
 					enableNumberGamesStepperAndLabel(true);
 					mPlayAutomatically			= true;
+					graph.visible = true;
 				}
 				else
 				{
 					enableNumberGamesStepperAndLabel(false);
 					mPlayAutomatically			= false;
 					mNumberGamesStepper.value	= 1;		// One game is played in non-batch mode.
+					graph.visible = false;
 				}
 				
 				// Handle anything associated with a change to the number of games.
-				// Update of instruction text and mNumberOfRocksRolledLabel is included.
+				// Update of instruction text is included.
 				updateNumberOfGames();		
 			}
 
@@ -1157,6 +1147,13 @@
 			protected function onClickChangeLevelButton(iEvent:MouseEvent):void
 			{
 				chooseGameLevel();
+			}
+			
+//			protected function rollComplete()
+			protected function updateGraph(e:EffectEvent)
+			{
+				//this.graph.score.text = "Avg Score: " + mCurrentAverageScore;
+//				this.graph.displayGraph();
 			}
 
 		]]>
@@ -1166,44 +1163,52 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
+	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.width - 10}" height="30" cornerRadius="3">
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xf0f0f0"/>
+				<s:GradientEntry color="0xd8d8d8"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		
+		<s:Label x="6" y="4" text="Level One" id="mLevelLabel" fontSize="16" color="#000000" textAlign="center" height="21" verticalAlign="middle"/>
+		
+		<s:RichText text="ROCK ROLL" id="mGameTitle" fontFamily="Verdana" fontSize="20" color="#4E594E" x="120" y="6" width="559" textAlign="center" verticalAlign="top" height="28" fontStyle="normal" textDecoration="none" fontWeight="normal" backgroundAlpha="1.0"/>
+		
+		<s:Label id="mVersionLabel" x="610" y="8" width="172" color="#4E594E" initialize="mVersionLabel.text=VERSION" textAlign="right"/>
+		
+		<!-- //TODO: Volume slider from chainsaw: -->
+		<!--
+		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}"/>
+		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="100"/>
+		-->
+	</s:BorderContainer>
+	
 	<default:ShuffleCourt x="233" y="58" id="shuffleCourt" fontFamily="Verdana">
 	</default:ShuffleCourt>
 	
-	<s:SpriteVisualElement id="mSpriteVE" />
+	<default:Graph x="233" y="58" id="graph" visible="false">
+	</default:Graph>
+	
+	<!-- <s:SpriteVisualElement id="mSpriteVE" /> -->
 
-	<s:RichText text="ROCK ROLL" id="mGameTitle" fontFamily="Verdana" fontSize="20" color="#4E594E" x="231" y="2" paddingLeft="10" paddingTop="10" width="559" textAlign="center" verticalAlign="top" height="28" fontStyle="normal" textDecoration="none" fontWeight="normal" backgroundAlpha="1.0"/>
-	<mx:HSlider x="10" y="142" width="200" id="mStrengthSliderA" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthA(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
-	<s:Label x="10" y="193" text="Strength A" id="mStrengthLabelA" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
-	<mx:HSlider x="10" y="219" width="200" id="mStrengthSliderB" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthB(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
-	<s:Label x="10" y="270" text="Strength B" id="mStrengthLabelB" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
-	<s:Button x="102" y="33" label="Roll Rocks" id="mRollRocksButton" enabled="false" width="108" mouseDown="onRollRocksMouseDown(event)" mouseUp="onRollRocksMouseUp(event)" height="23"/>
-	<s:NumericStepper x="126" y="68" minimum="1" maximum="100" stepSize="1" id="mNumberGamesStepper" change="onUpdateNumberOfGames(event)" height="23" width="84" enabled="false"/>
-	<s:Label x="126" y="89" text="Games to Play" verticalAlign="middle" height="23" color="#4E594E" width="84" id="mNumberGamesStepperLabel"/>
-	<s:Label text="0" textAlign="left" id="mDistanceStartLabelTop" color="#000000" x="266" y="39" fontFamily="Verdana"/>
-	<s:Label x="266" y="371" text="0" id="mDistanceStartLabelBottom" textAlign="left" verticalAlign="bottom" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="457" y="39" text="100" id="mDistance235LabelTop" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="457" y="371" text="100" id="mDistance235LabelBottom" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="547" y="39" text="145" color="#000000" id="mDistance325LabelTop" fontFamily="Verdana"/>
-	<s:Label x="547" y="371" text="145" id="mDistance325LabeBottom" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="637" y="371" text="190" id="mDistance415LabeBottom" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="637" y="39" text="190" id="mDistance415LabelTop" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="758" y="39" text="250" id="mDistanceEndLabelTop" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="758" y="371" text="250" id="mDistanceEndLabelBottom" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="687" y="39" text="215" id="mDistance465LabelTop" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="687" y="371" text="215" id="mDistance465LabelBottom" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="327" y="39" text="Distance" id="mDistanceLabelTop" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="327" y="371" text="Distance" id="mDistanceLabelBottom" color="#000000" fontFamily="Verdana"/>
-	<s:Label x="10" y="331" text="Score So Far = 0" id="mScoreTextLabel" color="#DEEBDE" fontSize="20" width="200" textAlign="center" fontWeight="bold"/>
-	<s:Button x="10" y="33" label="New Game" width="87" id="mNewGameButton" enabled="true" click="onNewGame(event)" height="23"/>
-	<s:DropDownList x="98" y="115" width="113" enabled="false" change="onSortRocks(event)" prompt="Sort Rocks by ..." labelField="text" id="mSortRocksList" selectedIndex="0" dataProvider="{sortList}"></s:DropDownList>
-	<s:Label x="10" y="121" text="Sort Rocks By:" id="mSortRocksLabel" color="#4E594E"/>
-	<mx:ProgressBar x="10" y="353" id="mScoreBar" mode="manual" width="200" fontWeight="normal" label="0%" textAlign="center" labelPlacement="center" fontSize="14" color="#FFFFFF"/>
-	<s:Label x="10" y="374" text="% of Best Score Possible" width="200" textAlign="center" id="mGameScoreBarLabel" height="16" verticalAlign="bottom" color="#000000"/>
-	<s:Label x="9.5" y="312" text="0 of 16 Rocks Rolled" width="200" height="16" textAlign="center" verticalAlign="middle" color="#DCDCDC" id="mNumberOfRocksRolledLabel"/>
-	<s:Label x="7" y="10" text="Press 'New Game' Button to Begin" width="206" height="16" verticalAlign="middle" color="#FFFFFF" textAlign="center" id="mInstructionsLabel"/>
-	<s:CheckBox x="12" y="68" id="mAutoPlayCheckBox" height="18" selected="false" enabled="false" click="onAutoPlay(event)" width="15"/>
-	<s:Label x="27" y="73" text="AutoPlay Entire Game(s)" id="mAutoPlayLabel" width="90" textAlign="center" color="#4E594E"/>
-	<s:Label x="21" y="288" text="Level One" id="mLevelLabel" fontSize="16" color="#000000" textAlign="center" height="21" verticalAlign="middle"/>
-	<s:Button x="104" y="285" label="Change Level" id="mChangeLevelButton" click="onClickChangeLevelButton(event)" height="21"/>
-	<s:Label id="mVersionLabel" x="627" y="4" width="172" color="#4E594E" initialize="mVersionLabel.text=VERSION" textAlign="right"/>
+	<mx:HSlider x="10" y="103" width="200" id="mStrengthSliderA" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthA(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
+	<s:Label x="10" y="154" text="Strength A" id="mStrengthLabelA" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
+	<mx:HSlider x="10" y="248" width="200" id="mStrengthSliderB" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthB(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
+	<s:Label x="10" y="298" text="Strength B" id="mStrengthLabelB" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
+	<s:Button x="9" y="202" label="Roll Rocks" id="mRollRocksButton" enabled="false" width="108" mouseDown="onRollRocksMouseDown(event)" mouseUp="onRollRocksMouseUp(event)" height="22"/>
+	<s:NumericStepper x="126" y="64" minimum="1" maximum="100" stepSize="1" id="mNumberGamesStepper" change="onUpdateNumberOfGames(event)" height="23" width="84" enabled="false"/>
+	<s:Label x="126" y="85" text="Games to Play" verticalAlign="middle" height="23" color="#4E594E" width="84" id="mNumberGamesStepperLabel"/>
+	
+	<s:Button x="10" y="34" label="New Game" width="87" id="mNewGameButton" enabled="true" click="onNewGame(event)" height="22"/>
+	<s:DropDownList x="233" y="35" width="90" enabled="false" change="onSortRocks(event)" prompt="Sort Rocks by ..." labelField="text" id="mSortRocksList" selectedIndex="0" dataProvider="{sortList}"></s:DropDownList>
+	
+	<s:Label x="10" y="343" text="Score = 0" id="mScoreTextLabel" color="#DEEBDE" fontSize="20" width="200" textAlign="center" fontWeight="bold"/>
+	<!-- <mx:ProgressBar x="10" y="353" id="mScoreBar" mode="manual" width="200" fontWeight="normal" label="0%" textAlign="center" labelPlacement="center" fontSize="14" color="#FFFFFF"/> -->
+	
+	<s:Label x="10" y="381" text="Press 'New Game' Button to Begin" width="206" height="16" verticalAlign="middle" color="#FFFFFF" textAlign="center" id="mInstructionsLabel"/>
+	<s:CheckBox x="12" y="64" id="mAutoPlayCheckBox" height="18" selected="false" enabled="false" click="onAutoPlay(event)" width="15"/>
+	<s:Label x="27" y="69" text="AutoPlay Entire Game(s)" id="mAutoPlayLabel" width="90" textAlign="center" color="#4E594E"/>
+	
+	<s:Button x="113" y="34" label="Change Level" id="mChangeLevelButton" click="onClickChangeLevelButton(event)" height="22"/>
 </s:Application>
