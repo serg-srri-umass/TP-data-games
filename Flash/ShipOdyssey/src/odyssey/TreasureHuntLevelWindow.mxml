@@ -19,4 +19,5 @@
 	
 	<s:Button id="mLevelOneButton" x="82" y="183" skinClass="odyssey.skins.DifficultyEasyButtonSkin" depth="2" enabled="true"/>
 	<s:Button id="mLevelTwoButton" x="82" y="207" skinClass="odyssey.skins.DifficultyMediumButtonSkin" depth="2" enabled="true"/>
+	<s:Button id="mLevelThreeButton" x="82" y="231" skinClass="odyssey.skins.DifficultyHardButtonSkin" depth="2" enabled="true"/>
 </s:TitleWindow>
