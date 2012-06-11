@@ -33,7 +33,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.04.19";
+			public static const VERSION:String 			= "Chainsaw [F] 2012.06.11";
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -434,7 +434,7 @@
 				ScriptInterface.NewCollectionWithAttributes(
 					"Cuts",
 					[
-						"Player",			// Name of the player.
+						//"Player",			// Name of the player.
 						"GameNumber",		// Game number starting with 1 since launch of application.
 						"Length",			// Length of cut piece.
 						"Thickness",		// Thin or thick depending on game type
@@ -447,8 +447,8 @@
 				ScriptInterface.NewCollectionWithAttributes(
 					"Games",
 					[
-						"Player",			// Name of the player.
 						"GameNumber",		// Game number starting with 1 since launch of application.
+						"Player",			// Name of the player.
 						"Level",			// The current level type
 						"CutStrategy",		// The Cut Strategy Used by the player
 						"Pieces_Accepted",	// Number of pieces accepted.
@@ -585,7 +585,7 @@
 						//kCollectionDirCutPieces,  //**Tristan
 						"Cuts",
 						[
-							mPlayersName,		// Name of the player.
+							//mPlayersName,		// Name of the player.
 							mGameNumber,		// Game number starting with 1 since launch of application.  Ignore practice levels.
 							lengthTwoDecimals,	// Piece length.
 							thickness,			// log label "thin" or "thick"
@@ -712,8 +712,8 @@
 						//gameCollectionName, //**Tristan
 						"Games",
 						[
-							mPlayersName,		// Name of the player.
 							mGameNumber,		// Game number starting with 1 since launch of application.
+							mPlayersName,		// Name of the player.
 							levelName,			// Game Type
 							strategy,			// the determined cut strategy
 							mPiecesAccepted,	// Number of pieces accepted.

@@ -263,7 +263,7 @@
 					"Events",
 					[
 						"Game_Number",		// Treasure hunt game number starting with 1 since launch of application.
-						"Level",			// Clear or murky, based on hunt level chosen.
+						//"Level",			// Clear or murky, based on hunt level chosen.
 						"Rat_Number",		// Rats sent so far in current game.
 						"Rat_Reading",		// Location estimate provided by rat.
 						//"Drop_Order",		// Hooks dropped so far in current game. 
@@ -972,7 +972,7 @@
 						"Events", //****TW -- items edited out because they were null spot holders for items sent with the "Hook" event
 						[
 							mGameNumber,			// Treasure hunt game number starting with 1 since launch of application.
-							getOceanQuality(),		// Clear or murky, based on hunt level chosen.
+							//getOceanQuality(),		// Clear or murky, based on hunt level chosen.
 							mRatsSent,				// Rats sent so far in current game.
 							val,					// Location estimate provided by rat.
 							//"",						// Hooks dropped so far in current game. Blank for rat events.
@@ -1187,9 +1187,8 @@
 		
 	</s:BorderContainer>
 	<mx:Image	id="mStartPageBackground" x="0" y="0" source="{mPirateShipImage}" includeIn="StartPage"/>
-	<s:Label id="GameVersion" includeIn="StartPage" x="253" y="61" width="99"
-			 chromeColor="#294867" color="#294867" fontFamily="Impact" fontSize="12"
-			 fontStyle="normal" text="v.2012.04.30(FL)"/>
+	<s:Label id="GameVersion" includeIn="StartPage" x="256" y="61" width="99" color="#16203a" 
+			 fontFamily="Georgia" fontSize="12" fontStyle="normal" text="v.2012.06.11(FL)"/>
 	<s:RichText	id="mGameTitle" x="10" y="40" text="Ship Odyssey" fontFamily="Georgia" fontSize="40" color="#908F17" fontWeight="normal" fontStyle="italic" includeIn="StartPage"/>
 	<s:Group	x="160" y="152" width="200" height="48" includeIn="StartPage">
 		<s:Rect		id="mGroupRect" x="0" y="0" radiusX="4" radiusY="4" height="100%" width="100%">
