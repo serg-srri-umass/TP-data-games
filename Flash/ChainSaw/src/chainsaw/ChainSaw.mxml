@@ -3,7 +3,7 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   minWidth="745" minHeight="410" backgroundColor="#EAD1AA" creationComplete="startUp()"
-			   pageTitle="Chain Saw">
+			   pageTitle="Chainsaw">
 	
 	<fx:Script>
 		<![CDATA[
@@ -25,6 +25,8 @@
 			import spark.components.TitleWindow;
 			import spark.core.SpriteVisualElement;
 			import spark.events.TextOperationEvent;
+			
+			import com.adobe.serialization.json.JSON;
 			
 			public var flashGasTank:MovieClip;
 			public var sawdustParticles:ParticleLauncherXYFloor = new ParticleLauncherXYFloor();
@@ -52,12 +54,12 @@
 			public static const kMixedFreeCutLevel:uint   = 4;		// Mixed log size free cut level
 			
 			// Collection names according to level played.
-			public static const kCollectionDirCutPieces:String	= "CutPieces - Directional Cut Level";
-			public static const kCollectionFreeCutPieces:String	= "CutPieces - Free Cut Level";
-			public static const kCollectionDirCutGames:String	= "Directional Cut";
-			public static const kCollectionFreeCutGames:String	= "Free Cut";
-			public static const kCollectionHeavyFreeCutGames:String	= "Heavy Free Cut";
-			public static const kCollectionMixedFreeCutGames:String	= "Mixed Free Cut";
+			public static const kCutsCollectionName:String	= "Cuts";
+			public static const kGameCollectionName:String	= "Games";
+			public static const kLevelDirCut:String	= "Directional Cut";
+			public static const kLevelFreeCut:String	= "Free Cut";
+			public static const kLevelHeavyFreeCut:String	= "Heavy Free Cut";
+			public static const kLevelMixedFreeCut:String	= "Mixed Free Cut";
 			
 			// Strings indicating accptance/rejection status of cut pieces.
 			public static const kAcceptString:String		= "Yes";
@@ -80,8 +82,9 @@
 			private var mFirstGame:Boolean			= true;	// Used for initial operations.
 			private var mGameLevel:uint				= 3;	// Current game level. --init as 3 to force it to go through init loops in game select
 			private var mPrevLevel:uint				= 3;	// Used to track level changes.
-			private var mDirCutCollectionCreated:Boolean = false;	// Collection created on first play at each level.
-			private var mFreeCutCollectionCreated:Boolean = false;	// Collection created on first play at each level.
+			//private var mDirCutCollectionCreated:Boolean = false;	// Collection created on first play at each level.
+			//private var mFreeCutCollectionCreated:Boolean = false;	// Collection created on first play at each level.
+			private var mUseDataGamesInterface:Boolean = false; // if true, use the latest DG game interface, if false, use the TinkerPlots 2.0 RE compatible data interface.
 			private var mLevelWindow:GameLevelWindow;		// The modal window for choosing a game level.
 			private var mLogsPerGame:uint			= 4;	// Number of logs being used in each game.
 			private var mFuelUsed:Number			= 0;	// Stores how many units of fuel have been used.
@@ -99,7 +102,7 @@
 			private var mPlayersName:String			= "Player"; // Stores player's name.
 			
 			private var currentCutStartPoint:Number; // Holds the starting position for each cut.
-			
+			private	var	parentCaseID:int = 0;
 			private var practice:Boolean = false; // whether the game is in practice mode or not
 			
 			// These arrays store the details of individual logs for access by all who need to know.
@@ -221,8 +224,63 @@
 				sawdustParticles.yFloor = 410;
 				
 				mLevelWindow = new GameLevelWindow();
+				this.createDataCollections();		//		set it up so we can emit data
 
 				levelSelected(kFreeCutLevel); //Start in free cut mode
+			}
+			
+
+			// Set up the game data to send to DG.  The collections are the tables of cases and attributes.
+			private	function	createDataCollections( ):void	{
+				var	arg:String;
+				var	result:String;
+				
+				if( mUseDataGamesInterface ) 
+				{	// use the DG-compatible data interface for extra functionality; not compatible with TinkerPlots 2.0 Research Edition
+					arg = this.initGameString;				
+					result = ScriptInterface.doCommand( arg );
+				}
+				else {
+					// use the old data interface compatible with TinkerPlots 2.0 Research Edition; 
+					// works poorly with DG, does not give game dimensions, does not identify numeric/catigorical type of attributes, etc.
+					createDataCollectionsForTP();
+				}
+			}
+			
+			
+			// replaced by createDataCollections() and initGameString for DG.
+			private function createDataCollectionsForTP():void
+			{
+				// event collection and attributes
+				ScriptInterface.NewCollectionWithAttributes(
+				"Cuts",
+					[
+					//"Player",			// Name of the player.
+					"GameNumber",		// Game number starting with 1 since launch of application.
+					"Length",			// Length of cut piece.
+					"Thickness",		// Thin or thick depending on game type
+					"Accepted",			// True if cut piece is within accepted range of cut length.
+					"LogNumber"			// Number of log from which piece was cut.
+					]
+				);
+			
+				// game collection and attributes
+				ScriptInterface.NewCollectionWithAttributes(
+				kGameCollectionName,
+					[
+					"GameNumber",		// Game number starting with 1 since launch of application.
+					"Player",			// Name of the player.
+					"Level",			// The current level type
+					"CutStrategy",		// The Cut Strategy Used by the player
+					"Pieces_Accepted",	// Number of pieces accepted.
+					"Pieces_Remnant",	// Number of remnant pieces
+					"Pieces_Rejected",	// Number of pieces rejected.
+					"Pieces_Short",		// Number of pieces rejected as short.
+					"Pieces_Long",		// Number of pieces rejected as long.
+					"FuelLeftAmount",	// Raw amount of fuel left.
+					"FuelLeftPercent"	// Percent of fuel left.
+					]
+				);
 			}
 			
 			// clearGame() resets the game according to the current level and clears remnants of
@@ -345,11 +403,6 @@
 						mCutRightSprite.visible		= false; 
 						mCutLeftSprite.visible		= false; 
 						
-						if (!mFreeCutCollectionCreated) //create collection for free cut if not already created
-						{
-							createCollectionMod(kCollectionFreeCutPieces, kCollectionFreeCutGames);
-							mFreeCutCollectionCreated = true;
-						}
 					}else // If Practice or Directional Cut level was selected
 					{
 						clearGame(0);
@@ -361,12 +414,6 @@
 						mArrowSprite.visible		= false; // Show cut location arrow.
 						mCutRightSprite.visible		= true;
 						mCutLeftSprite.visible		= false;
-						
-						if (!mDirCutCollectionCreated) //create collection for directional cut if not already created
-						{
-							createCollectionMod(kCollectionDirCutPieces, kCollectionDirCutGames);
-							mDirCutCollectionCreated = true;
-						}
 						
 						if (levelNum == kDirectionalCutLevel)	mLevelLabel.text = "DIRECTIONAL CUT LEVEL";
 						if (levelNum == kPracticeLevel)			mLevelLabel.text = "PRACTICE LEVEL";
@@ -427,40 +474,7 @@
 				length+= Math.ceil(Math.random()*(kReferenceLength*0.36)+0.5);	// Finally add 1/2 to 6/7 of a piece to the log as padding
 				return length;	// Return the length
 			}
-			
-			//called by directionalCutLevel() and freeCutLevel() to initially create TinkerPlot/DG collection spaces
-			private function createCollectionMod(collection1:String, collection2:String):void
-			{
-				ScriptInterface.NewCollectionWithAttributes(
-					"Cuts",
-					[
-						//"Player",			// Name of the player.
-						"GameNumber",		// Game number starting with 1 since launch of application.
-						"Length",			// Length of cut piece.
-						"Thickness",		// Thin or thick depending on game type
-						"Accepted",			// True if cut piece is within accepted range of cut length.
-						"LogNumber"			// Number of log from which piece was cut.
-					]
-				);
-				
-				// Create collection for each game.
-				ScriptInterface.NewCollectionWithAttributes(
-					"Games",
-					[
-						"GameNumber",		// Game number starting with 1 since launch of application.
-						"Player",			// Name of the player.
-						"Level",			// The current level type
-						"CutStrategy",		// The Cut Strategy Used by the player
-						"Pieces_Accepted",	// Number of pieces accepted.
-						"Pieces_Remnant",	// Number of remnant pieces
-						"Pieces_Rejected",	// Number of pieces rejected.
-						"Pieces_Short",		// Number of pieces rejected as short.
-						"Pieces_Long",		// Number of pieces rejected as long.
-						"FuelLeftAmount",	// Raw amount of fuel left.
-						"FuelLeftPercent"	// Percent of fuel left.
-					]
-				);
-			}
+
 			
 			// recordPieceStatus() evaluates the piece's acceptance status and records the outcome
 			// by setting a visual marker on each log and also transmitting the info to 
@@ -571,28 +585,37 @@
 				{
 					var lengthTwoDecimals:String	= (iLength * kConvertToInches).toFixed(2);
 					var pieceNumber:uint 			= iPieceNumber == 0 ? mPieceNumber : iPieceNumber;
-					var collectionName:String;
 					var thickness:String = currentLog.getLogWidthLabel();
 					
 					// Send info on cut pieces to TinkerPlots/Fathom.
-					if (mGameLevel == kDirectionalCutLevel)
-						collectionName = kCollectionDirCutPieces;
-						//TODO replace these AddCaseToCollectionWithValues() calls with a single one
-					else
-						collectionName = kCollectionFreeCutPieces;
-					
-					ScriptInterface.AddCaseToCollectionWithValues(
-						//kCollectionDirCutPieces,  //**Tristan
-						"Cuts",
-						[
-							//mPlayersName,		// Name of the player.
-							mGameNumber,		// Game number starting with 1 since launch of application.  Ignore practice levels.
-							lengthTwoDecimals,	// Piece length.
-							thickness,			// log label "thin" or "thick"
-							acceptString,		// Status of cut piece.
-							iLogNumber			// Number of log from which piece was cut.
-						]
-					);
+					if( mUseDataGamesInterface ) 
+					{
+						// send data for case in Cut collection to DG
+						var	createCaseString:String = 
+							'{ "action" : "createCase",' +
+							' "args" : { "collection" : "' + kCutsCollectionName + '", ' +
+							' "parent" : ' + this.parentCaseID + ',' +
+							' "values" : [ ' +
+							lengthTwoDecimals + ', ' +
+							'"' + thickness + '", ' +
+							'"' + acceptString + '", ' +
+							iLogNumber + '"] } }';
+						ScriptInterface.doCommand( createCaseString );
+					}
+					else {
+						// send data for case in Cut collection to TinkerPlots/Fathom
+						ScriptInterface.AddCaseToCollectionWithValues(		
+							kCutsCollectionName,
+							[
+								//mPlayersName,		// Name of the player.
+								mGameNumber,		// Game number starting with 1 since launch of application.  Ignore practice levels.
+								lengthTwoDecimals,	// Piece length.
+								thickness,			// log label "thin" or "thick"
+								acceptString,		// Status of cut piece.
+								iLogNumber			// Number of log from which piece was cut.
+							]
+						);
+					}
 				}
 			}
 			
@@ -652,6 +675,61 @@
 					dynamicLog4.enabled = true;
 					mArrowSprite.visible = false;
 				}
+				
+				if (!practice)
+				{
+					var levelName:String;					
+					switch(mGameLevel)
+					{
+						case kDirectionalCutLevel:
+							levelName = kLevelDirCut;
+							break;
+						case kFreeCutLevel:
+							levelName = kLevelFreeCut;
+							break;
+						case kHeavyFreeCutLevel:
+							levelName = kLevelHeavyFreeCut;
+							break;
+						case kMixedFreeCutLevel:
+							levelName = kLevelMixedFreeCut;
+							break;
+					}
+					
+					if( mUseDataGamesInterface )  {
+						// send data to open a case in Game collection to DG
+						var	openCaseString:String =
+							'{ "action" : "openCase", ' +
+							' "args" : { "collection" : "' + kGameCollectionName + '", ' +
+							' "values" : [ ' +
+							mGameNumber + ', ' +
+							'"'+ mPlayersName +'", '+
+							'"'+ levelName +'", '+
+							'"", '+
+							'"undefined", ' +
+							'"undefined", ' +
+							'"undefined", ' +
+							'"undefined", ' +
+							'"undefined", ' +
+							'"undefined", ' +
+							'"undefined", ' + '] } }' ;
+						
+						var	resultString:String = ScriptInterface.doCommand( openCaseString );
+						
+						if (resultString) {
+							var	result:Object  = JSON.decode( resultString );		//	if we're not in DG, resultString won't exist
+						}
+						
+						if (result && result.success) {		//	only if we're in DG, otherwise result won't exist
+							this.parentCaseID = result.caseID;
+						} else {
+							this.parentCaseID = -1;
+						}				
+					}
+					else {
+						// send data to open a case in Game collection to TinkerPlots/Fathom
+						// (Nothing to do)
+					}
+				}
 			}
 			
 			// endGame() performs all operations necessary when game is complete.
@@ -694,37 +772,58 @@
 					switch(mGameLevel)
 					{
 						case kDirectionalCutLevel:
-							levelName = kCollectionDirCutGames;
+							levelName = kLevelDirCut;
 							break;
 						case kFreeCutLevel:
-							levelName = kCollectionFreeCutGames;
+							levelName = kLevelFreeCut;
 							break;
 						case kHeavyFreeCutLevel:
-							levelName = kCollectionHeavyFreeCutGames;
+							levelName = kLevelHeavyFreeCut;
 							break;
 						case kMixedFreeCutLevel:
-							levelName = kCollectionMixedFreeCutGames;
+							levelName = kLevelMixedFreeCut;
 							break;
 					}
 					
 					// Send info on games to TinkerPlots/Fathom.
-					ScriptInterface.AddCaseToCollectionWithValues(
-						//gameCollectionName, //**Tristan
-						"Games",
-						[
-							mGameNumber,		// Game number starting with 1 since launch of application.
-							mPlayersName,		// Name of the player.
-							levelName,			// Game Type
-							strategy,			// the determined cut strategy
-							mPiecesAccepted,	// Number of pieces accepted.
-							mPiecesRemnant,		// Number of pieces remnant.
-							mPiecesRejected,	// Number of pieces rejected.
-							mPiecesShort,		// Number of pieces rejected as short.
-							mPiecesLong,		// Number of pieces rejected as long.
-							fuelLeftAmount,		// Raw amount of fuel left.
-							fuelLeftPercent		// Percent of fuel left.
-						]
-					);
+					if( mUseDataGamesInterface )  {
+						// send data to close a case in Game collection to DG
+						var	closeCaseString:String = 
+							'{ "action" : "closeCase",' +
+							' "args" : { "collection" : "' + kGameCollectionName + '", ' +
+							' "caseID" : ' + this.parentCaseID + ',' +
+							' "values" : [ ' +
+							mGameNumber + ', ' +
+							'"'+ mPlayersName +'", '+
+							'"'+ levelName +'", '+
+							'"'+ strategy +'", '+
+							mPiecesAccepted + ', ' +
+							mPiecesRemnant + ', ' +
+							mPiecesRejected + ', ' +
+							mPiecesShort + ', ' +
+							mPiecesLong + ', ' +
+							fuelLeftAmount + ', ' +
+							fuelLeftPercent + '] } }' ;
+						ScriptInterface.doCommand( closeCaseString );				}
+					else {
+						// send data to close a case in Game collection to TinkerPlots/Fathom
+						ScriptInterface.AddCaseToCollectionWithValues(
+							kGameCollectionName,
+							[
+								mGameNumber,		// Game number starting with 1 since launch of application.
+								mPlayersName,		// Name of the player.
+								levelName,			// Game Type
+								strategy,			// the determined cut strategy
+								mPiecesAccepted,	// Number of pieces accepted.
+								mPiecesRemnant,		// Number of pieces remnant.
+								mPiecesRejected,	// Number of pieces rejected.
+								mPiecesShort,		// Number of pieces rejected as short.
+								mPiecesLong,		// Number of pieces rejected as long.
+								fuelLeftAmount,		// Raw amount of fuel left.
+								fuelLeftPercent		// Percent of fuel left.
+							]
+						);
+					}
 				}
 				
 				mResultsOverlay.visible		= true;								// Display the results Overlay
@@ -1196,6 +1295,46 @@
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<fx:String id="initGameString">
+			<![CDATA[
+			{
+			"action"	: "initGame",
+			"args"	: {
+			"name"	:	"Chainsaw",
+			"dimensions" : { "width" : 745 , "height" : 410 } ,
+			"collections" : [
+			{
+			"name": "Games",
+			"attrs":[
+			{"name": "Player" , "type" : "nominal" ,  "description": "Name of the player"   } ,
+			{"name": "GameNumber" , "type" : "numeric" , "precision" : 0, "description": "Game number"   } , 
+			{"name": "Level" , "type" : "nominal" ,  "description": "Game level"   } ,	
+			{"name": "CutStrategy" , "type" : "nominal" ,  "description": "Cut strategy used by the player"   } ,	
+			{"name": "Pieces_Accepted" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces accepted"   } , 
+			{"name": "Pieces_Remnant" , "type" : "numeric" , "precision" : 0, "description": "Number of remnant pieces"   } , 
+			{"name": "Pieces_Rejected" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces rejected"   } , 
+			{"name": "Pieces_Short" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces rejected as short"   } , 
+			{"name": "Pieces_Long" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces rejected as long"   } , 
+			{"name": "FuelLeftAmount" , "type" : "numeric" , "precision" : 0, "description": "Amount of fuel left"   } , 
+			{"name": "FuelLeftPercent" , "type" : "numeric" , "precision" : 0, "description": "Percent of fuel left"   }			
+			] ,
+			"childAttrName" : "Cut_Record"
+			} ,
+			{
+			"name": "Cuts" ,
+			"attrs"	:	[
+			{ "name" : "Length" , "type" : "numeric" , "precision" : 2, "description": "Length of cut"   } , 
+			{ "name" : "Thickness" , "type" : "nominal" , "description": "Thickness of log"  } , 
+			{ "name" : "Accepted" , "type" : "nominal" , "description": "Is piece an acceptable length?"  } , 
+			{ "name" : "LogNumber" , "type" : "numeric" , "precision" : 0, "description": "Log number"  }
+			],
+			"defaults" : { "xAttr" : "Length", "yAttr" : "GameNumber" }
+			}
+			]
+			}
+			}
+			]]>
+		</fx:String>
 	</fx:Declarations>
 	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
