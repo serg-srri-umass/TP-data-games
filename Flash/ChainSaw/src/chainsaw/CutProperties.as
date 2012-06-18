@@ -4,10 +4,10 @@ package chainsaw
 
 	public class CutProperties
 	{
-		var cutNumber;
-		var log:int;
-		var x_position;
-		var top_to_bottom;
+		private var cutNumber:int;
+		private var log:int;
+		private var x_position:int;
+		private var top_to_bottom:Boolean;
 		
 		public function CutProperties(cutNumber:int, log:int, x_pos:int, direction:Boolean)
 		{

@@ -28,14 +28,20 @@
 			
 			import com.adobe.serialization.json.JSON;
 			
+			// BUILD FOR DG
+			private static const kUseDataGamesInterface:Boolean = true; // use DG edition data interfaces
+			public static const  VERSION:String 			= "Chainsaw [fl-dg] 2012.06.18"; // DG edition
+			// OR BUILD FOR TP
+			//private static const kUseDataGamesInterface:Boolean = false; // use TP edition data interface (compatible with TinkerPlots 2.0 Research Edition)
+			//public static const  VERSION:String 			= "Chainsaw [fl-tp] 2012.06.18"; // TP edition
+			
+			
 			public var flashGasTank:MovieClip;
 			public var sawdustParticles:ParticleLauncherXYFloor = new ParticleLauncherXYFloor();
 			public var dynamicLog1:MovieClip;
 			public var dynamicLog2:MovieClip;
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
-			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.06.11";
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -82,9 +88,6 @@
 			private var mFirstGame:Boolean			= true;	// Used for initial operations.
 			private var mGameLevel:uint				= 3;	// Current game level. --init as 3 to force it to go through init loops in game select
 			private var mPrevLevel:uint				= 3;	// Used to track level changes.
-			//private var mDirCutCollectionCreated:Boolean = false;	// Collection created on first play at each level.
-			//private var mFreeCutCollectionCreated:Boolean = false;	// Collection created on first play at each level.
-			private var mUseDataGamesInterface:Boolean = false; // if true, use the latest DG game interface, if false, use the TinkerPlots 2.0 RE compatible data interface.
 			private var mLevelWindow:GameLevelWindow;		// The modal window for choosing a game level.
 			private var mLogsPerGame:uint			= 4;	// Number of logs being used in each game.
 			private var mFuelUsed:Number			= 0;	// Stores how many units of fuel have been used.
@@ -174,13 +177,13 @@
 			/*
 			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
 			*/
-//			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
-			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
+//			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-//			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
-			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
+//			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 			
@@ -235,14 +238,14 @@
 				var	arg:String;
 				var	result:String;
 				
-				if( mUseDataGamesInterface ) 
+				if( kUseDataGamesInterface ) 
 				{	// use the DG-compatible data interface for extra functionality; not compatible with TinkerPlots 2.0 Research Edition
 					arg = this.initGameString;				
 					result = ScriptInterface.doCommand( arg );
 				}
 				else {
 					// use the old data interface compatible with TinkerPlots 2.0 Research Edition; 
-					// works poorly with DG, does not give game dimensions, does not identify numeric/catigorical type of attributes, etc.
+					// works less well with DG, does not give game dimensions, does not identify numeric/categorical type of attributes, etc.
 					createDataCollectionsForTP();
 				}
 			}
@@ -254,8 +257,8 @@
 				// event collection and attributes
 				ScriptInterface.NewCollectionWithAttributes(
 				"Cuts",
-					[
-					//"Player",			// Name of the player.
+					[  // Note: "Player" used in at cuts level in TP only (not DG)
+					"Player",			// Name of the player.
 					"GameNumber",		// Game number starting with 1 since launch of application.
 					"Length",			// Length of cut piece.
 					"Thickness",		// Thin or thick depending on game type
@@ -268,8 +271,8 @@
 				ScriptInterface.NewCollectionWithAttributes(
 				kGameCollectionName,
 					[
-					"GameNumber",		// Game number starting with 1 since launch of application.
 					"Player",			// Name of the player.
+					"GameNumber",		// Game number starting with 1 since launch of application.
 					"Level",			// The current level type
 					"CutStrategy",		// The Cut Strategy Used by the player
 					"Pieces_Accepted",	// Number of pieces accepted.
@@ -588,7 +591,7 @@
 					var thickness:String = currentLog.getLogWidthLabel();
 					
 					// Send info on cut pieces to TinkerPlots/Fathom.
-					if( mUseDataGamesInterface ) 
+					if( kUseDataGamesInterface ) 
 					{
 						// send data for case in Cut collection to DG
 						var	createCaseString:String = 
@@ -596,10 +599,12 @@
 							' "args" : { "collection" : "' + kCutsCollectionName + '", ' +
 							' "parent" : ' + this.parentCaseID + ',' +
 							' "values" : [ ' +
+							// NOTE: no Player name in Cuts collection for DG
+							mGameNumber + ', ' +
 							lengthTwoDecimals + ', ' +
 							'"' + thickness + '", ' +
 							'"' + acceptString + '", ' +
-							iLogNumber + '"] } }';
+							iLogNumber + '] } }';
 						ScriptInterface.doCommand( createCaseString );
 					}
 					else {
@@ -607,7 +612,7 @@
 						ScriptInterface.AddCaseToCollectionWithValues(		
 							kCutsCollectionName,
 							[
-								//mPlayersName,		// Name of the player.
+								mPlayersName,		// Name of the player.
 								mGameNumber,		// Game number starting with 1 since launch of application.  Ignore practice levels.
 								lengthTwoDecimals,	// Piece length.
 								thickness,			// log label "thin" or "thick"
@@ -695,14 +700,14 @@
 							break;
 					}
 					
-					if( mUseDataGamesInterface )  {
+					if( kUseDataGamesInterface )  {
 						// send data to open a case in Game collection to DG
 						var	openCaseString:String =
 							'{ "action" : "openCase", ' +
 							' "args" : { "collection" : "' + kGameCollectionName + '", ' +
 							' "values" : [ ' +
-							mGameNumber + ', ' +
 							'"'+ mPlayersName +'", '+
+							mGameNumber + ', ' +
 							'"'+ levelName +'", '+
 							'"", '+
 							'"undefined", ' +
@@ -711,7 +716,7 @@
 							'"undefined", ' +
 							'"undefined", ' +
 							'"undefined", ' +
-							'"undefined", ' + '] } }' ;
+							'"undefined" ] } }' ;
 						
 						var	resultString:String = ScriptInterface.doCommand( openCaseString );
 						
@@ -786,15 +791,15 @@
 					}
 					
 					// Send info on games to TinkerPlots/Fathom.
-					if( mUseDataGamesInterface )  {
+					if( kUseDataGamesInterface )  {
 						// send data to close a case in Game collection to DG
 						var	closeCaseString:String = 
 							'{ "action" : "closeCase",' +
 							' "args" : { "collection" : "' + kGameCollectionName + '", ' +
 							' "caseID" : ' + this.parentCaseID + ',' +
 							' "values" : [ ' +
-							mGameNumber + ', ' +
 							'"'+ mPlayersName +'", '+
+							mGameNumber + ', ' +
 							'"'+ levelName +'", '+
 							'"'+ strategy +'", '+
 							mPiecesAccepted + ', ' +
@@ -810,8 +815,8 @@
 						ScriptInterface.AddCaseToCollectionWithValues(
 							kGameCollectionName,
 							[
-								mGameNumber,		// Game number starting with 1 since launch of application.
 								mPlayersName,		// Name of the player.
+								mGameNumber,		// Game number starting with 1 since launch of application.
 								levelName,			// Game Type
 								strategy,			// the determined cut strategy
 								mPiecesAccepted,	// Number of pieces accepted.
@@ -1295,6 +1300,7 @@
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<!-- initGameString used by createDataCollections() to send to ScriptInterface.doCommand() -->
 		<fx:String id="initGameString">
 			<![CDATA[
 			{
@@ -1323,12 +1329,13 @@
 			{
 			"name": "Cuts" ,
 			"attrs"	:	[
-			{ "name" : "Length" , "type" : "numeric" , "precision" : 2, "description": "Length of cut"   } , 
-			{ "name" : "Thickness" , "type" : "nominal" , "description": "Thickness of log"  } , 
-			{ "name" : "Accepted" , "type" : "nominal" , "description": "Is piece an acceptable length?"  } , 
-			{ "name" : "LogNumber" , "type" : "numeric" , "precision" : 0, "description": "Log number"  }
+			{ "name": "GameNumber" , "type" : "numeric" , "precision" : 0, "description": "Game number"   } ,
+			{ "name": "Length" , "type" : "numeric" , "precision" : 2, "description": "Length of cut"   } , 
+			{ "name": "Thickness" , "type" : "nominal" , "description": "Thickness of log"  } , 
+			{ "name": "Accepted" , "type" : "nominal" , "description": "Is piece an acceptable length?"  } , 
+			{ "name": "LogNumber" , "type" : "numeric" , "precision" : 0, "description": "Log number"  }
 			],
-			"defaults" : { "xAttr" : "Length", "yAttr" : "GameNumber" }
+			"defaults" : { "xAttrName" : "Length", "yAttrName" : "GameNumber" }
 			}
 			]
 			}
