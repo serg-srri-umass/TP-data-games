@@ -5,6 +5,52 @@
 			   minWidth="745" minHeight="410" backgroundColor="#EAD1AA" creationComplete="startUp()"
 			   pageTitle="Chainsaw">
 	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<!-- initGameString used by createDataCollections() to send to ScriptInterface.doCommand() -->
+		<fx:String id="initGameString">
+			<![CDATA[
+			{
+			"action"	: "initGame",
+			"args"	: {
+			"name"	:	"Chainsaw",
+			"dimensions" : { "width" : 745 , "height" : 410 } ,
+			"collections" : [
+			{
+			"name": "Games",
+			"attrs":[
+			{"name": "Player" , "type" : "nominal" ,  "description": "Name of the player"   } ,
+			{"name": "GameNumber" , "type" : "nominal" , "precision" : 0, "description": "Game number"   } , 
+			{"name": "Level" , "type" : "nominal" ,  "description": "Game level"   } ,	
+			{"name": "CutStrategy" , "type" : "nominal" ,  "description": "Cut strategy used by the player"   } ,	
+			{"name": "Pieces_Accepted" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces accepted"   } , 
+			{"name": "Pieces_Remnant" , "type" : "numeric" , "precision" : 0, "description": "Number of remnant pieces"   } , 
+			{"name": "Pieces_Rejected" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces rejected"   } , 
+			{"name": "Pieces_Short" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces rejected as short"   } , 
+			{"name": "Pieces_Long" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces rejected as long"   } , 
+			{"name": "FuelLeftAmount" , "type" : "numeric" , "precision" : 0, "description": "Amount of fuel left"   } , 
+			{"name": "FuelLeftPercent" , "type" : "numeric" , "precision" : 0, "description": "Percent of fuel left"   }			
+			] ,
+			"childAttrName" : "Cut_Record"
+			} ,
+			{
+			"name": "Cuts" ,
+			"attrs"	:	[
+			{ "name": "GameNumber" , "type" : "nominal" , "precision" : 0, "description": "Game number"   } ,
+			{ "name": "Length" , "type" : "numeric" , "precision" : 2, "description": "Length of cut"   } , 
+			{ "name": "Thickness" , "type" : "nominal" , "description": "Thickness of log"  } , 
+			{ "name": "Accepted" , "type" : "nominal" , "description": "Is piece an acceptable length?"  } , 
+			{ "name": "LogNumber" , "type" : "numeric" , "precision" : 0, "description": "Log number"  }
+			],
+			"defaults" : { "xAttr" : "Length", "yAttr" : "GameNumber" }
+			}
+			]
+			}
+			}
+			]]>
+		</fx:String>
+	</fx:Declarations>
+	
 	<fx:Script>
 		<![CDATA[
 			import chainsaw.GameLevelWindow;
@@ -30,7 +76,7 @@
 			
 			// BUILD FOR DG
 			private static const kUseDataGamesInterface:Boolean = true; // use DG edition data interfaces
-			public static const  VERSION:String 			= "Chainsaw [fl-dg] 2012.06.18"; // DG edition
+			public static const  VERSION:String 			= "Chainsaw [fl-dg] 2012.06.19"; // DG edition
 			// OR BUILD FOR TP
 			//private static const kUseDataGamesInterface:Boolean = false; // use TP edition data interface (compatible with TinkerPlots 2.0 Research Edition)
 			//public static const  VERSION:String 			= "Chainsaw [fl-tp] 2012.06.18"; // TP edition
@@ -257,7 +303,7 @@
 				// event collection and attributes
 				ScriptInterface.NewCollectionWithAttributes(
 				"Cuts",
-					[  // Note: "Player" used in at cuts level in TP only (not DG)
+					[  // Note: "Player" used at cuts level in TP only (not DG)
 					"Player",			// Name of the player.
 					"GameNumber",		// Game number starting with 1 since launch of application.
 					"Length",			// Length of cut piece.
@@ -1297,52 +1343,6 @@
 			}
 		]]>
 	</fx:Script>
-	
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<!-- initGameString used by createDataCollections() to send to ScriptInterface.doCommand() -->
-		<fx:String id="initGameString">
-			<![CDATA[
-			{
-			"action"	: "initGame",
-			"args"	: {
-			"name"	:	"Chainsaw",
-			"dimensions" : { "width" : 745 , "height" : 410 } ,
-			"collections" : [
-			{
-			"name": "Games",
-			"attrs":[
-			{"name": "Player" , "type" : "nominal" ,  "description": "Name of the player"   } ,
-			{"name": "GameNumber" , "type" : "numeric" , "precision" : 0, "description": "Game number"   } , 
-			{"name": "Level" , "type" : "nominal" ,  "description": "Game level"   } ,	
-			{"name": "CutStrategy" , "type" : "nominal" ,  "description": "Cut strategy used by the player"   } ,	
-			{"name": "Pieces_Accepted" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces accepted"   } , 
-			{"name": "Pieces_Remnant" , "type" : "numeric" , "precision" : 0, "description": "Number of remnant pieces"   } , 
-			{"name": "Pieces_Rejected" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces rejected"   } , 
-			{"name": "Pieces_Short" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces rejected as short"   } , 
-			{"name": "Pieces_Long" , "type" : "numeric" , "precision" : 0, "description": "Number of pieces rejected as long"   } , 
-			{"name": "FuelLeftAmount" , "type" : "numeric" , "precision" : 0, "description": "Amount of fuel left"   } , 
-			{"name": "FuelLeftPercent" , "type" : "numeric" , "precision" : 0, "description": "Percent of fuel left"   }			
-			] ,
-			"childAttrName" : "Cut_Record"
-			} ,
-			{
-			"name": "Cuts" ,
-			"attrs"	:	[
-			{ "name": "GameNumber" , "type" : "numeric" , "precision" : 0, "description": "Game number"   } ,
-			{ "name": "Length" , "type" : "numeric" , "precision" : 2, "description": "Length of cut"   } , 
-			{ "name": "Thickness" , "type" : "nominal" , "description": "Thickness of log"  } , 
-			{ "name": "Accepted" , "type" : "nominal" , "description": "Is piece an acceptable length?"  } , 
-			{ "name": "LogNumber" , "type" : "numeric" , "precision" : 0, "description": "Log number"  }
-			],
-			"defaults" : { "xAttrName" : "Length", "yAttrName" : "GameNumber" }
-			}
-			]
-			}
-			}
-			]]>
-		</fx:String>
-	</fx:Declarations>
 	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
 		<s:backgroundFill>
