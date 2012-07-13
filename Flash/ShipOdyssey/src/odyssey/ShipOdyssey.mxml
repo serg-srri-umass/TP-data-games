@@ -38,7 +38,7 @@
 			
 			// BUILD FOR DG
 			private static const kUseDataGamesInterface:Boolean = true; // use DG edition data interfaces
-			public static const  VERSION:String 			= "v.2012.07.05(fl-dg)"; // DG edition
+			public static const  VERSION:String 			= "v.2012.07.13(fl-dg)"; // DG edition
 			// OR BUILD FOR TP
 			//private static const kUseDataGamesInterface:Boolean = false; // use TP edition data interface (compatible with TinkerPlots 2.0 Research Edition)
 			//public static const  VERSION:String 			= "v.2012.07.02(fl-tp)"; // TP edition
@@ -375,8 +375,6 @@
 				mHooksDropped			= 0;	// Reset number of hooks dropped.
 				mCurrentGameComplete	= false;// Game is in play.
 				
-				openGameData();
-				
 				// Create the numeric hook drop order array.
 				mHookDropOrderArray = new Array(	"0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th",
 													"10th", "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th",
@@ -457,7 +455,8 @@
 			// gameLevelChosen() sets the current game level to the value passed in and closes the modal dialog.
 			private function huntLevelChosen(iLevel:uint):void 
 			{
-				mHuntLevel = iLevel; // Set game level to input value.	
+				mHuntLevel = iLevel; // Set game level to input value.
+				openGameData();		 // now that we have all of the game data send to DG
 				PopUpManager.removePopUp(mLevelWindow);	
 				sailThenZoomIn();
 			}
