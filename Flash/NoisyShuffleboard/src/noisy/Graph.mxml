@@ -21,7 +21,7 @@
 			public var commands:Vector.<int>;
 			public var dataVect:Vector.<Number>;
 			
-			public var _max_y, _min_y;
+			//public var _max_y, _min_y;
 			
 			public function displayGraph():void
 			{	
@@ -121,7 +121,7 @@
 				{
 					if(data[i][1] > value){
 						value = data[i][1];
-						_max_y = data
+						//_max_y = data
 					}
 				}
 				return value;
@@ -150,9 +150,9 @@
 				adds one half-unit padding to the top and bottom
 				*/
 				var real_y:Number;
-				var y_max = findMax();
-				var y_min = findMin();
-				var diff = (y_max - y_min) + 1;
+				var y_max:Number = findMax();
+				var y_min:Number = findMin();
+				var diff:Number = (y_max - y_min) + 1;
 				v_gap = this.height / diff;
 				real_y = ((fakeY - y_min) * v_gap) + (v_gap / 2);
 				real_y = this.height - real_y; //invert

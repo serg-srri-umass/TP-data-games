@@ -35,13 +35,14 @@
 			import spark.core.SpriteVisualElement;
 			import spark.events.TextOperationEvent;
 			
-			// BUILD FOR DG
-			private static const kUseDataGamesInterface:Boolean = true; // use DG edition data interfaces
-			public static const  VERSION:String 			= "Chainsaw v.2012.07.18(fl-dg)"; // DG edition
-			// OR BUILD FOR TP
-			//private static const kUseDataGamesInterface:Boolean = false; // use TP edition data interface (compatible with TinkerPlots 2.0 Research Edition)
-			//public static const  VERSION:String 			= "Chainsaw v.2012.07.18(fl-tp)"; // TP edition
-			
+			// BUILD FOR TinkerPlots or DG -- edit true/false and rebuild to create a new build for each.
+			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
+			public static const VERSION:String   = "Chainsaw v.2012.07.26";
+			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
+			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
+			private function getVersion():String {
+				return( VERSION + (kUseDataGamesInterface ? DG_suffix : TP_suffix ));
+			}
 			
 			public var flashGasTank:MovieClip;
 			public var sawdustParticles:ParticleLauncherXYFloor = new ParticleLauncherXYFloor();
@@ -234,7 +235,7 @@
 				sawdustParticles.yFloor = 410;
 				
 				mLevelWindow = new GameLevelWindow();
-				this.createDataCollections();		//		set it up so we can emit data
+				this.sendCollectionData();		// send initGame data to TinkerPlots/DG
 
 				levelSelected(kFreeCutLevel); //Start in free cut mode
 				
@@ -242,8 +243,8 @@
 			}
 			
 
-			// Set up the game data to send to DG.  The collections are the tables of cases and attributes.
-			private	function	createDataCollections( ):void	{
+			// Send the initial game data to TinkerPlots or DG.  The collections are the tables of cases and attributes.
+			private	function	sendCollectionData( ):void	{
 				var	result:String;
 				
 				if( kUseDataGamesInterface ) 
@@ -280,6 +281,13 @@
 										{ name: "Accepted" , type: "nominal" , description: "Is piece an acceptable length?"  } , 
 										{ name: "LogNumber" , type: "numeric" , precision: 0, description: "Log number"  }
 									],
+									labels: {
+										singleCase: "piece",
+										pluralCase: "pieces",
+										singleCaseWithArticle: "a piece",
+										setOfCases: "cut record",
+										setOfCasesWithArticle: "a cut record"
+									},
 									defaults: { xAttr: "Length", yAttr: "GameNumber" }
 								}
 							] // collections
@@ -291,45 +299,39 @@
 				else {
 					// use the old data interface compatible with TinkerPlots 2.0 Research Edition; 
 					// works less well with DG, does not give game dimensions, does not identify numeric/categorical type of attributes, etc.
-					createDataCollectionsForTP();
+					// event collection and attributes
+					ScriptInterface.NewCollectionWithAttributes(
+						"Cuts",
+						[  // Note: "Player" used at cuts level in TP only (not DG)
+							"Player",			// Name of the player.
+							"GameNumber",		// Game number starting with 1 since launch of application.
+							"Length",			// Length of cut piece.
+							"Thickness",		// Thin or thick depending on game type
+							"Accepted",			// True if cut piece is within accepted range of cut length.
+							"LogNumber"			// Number of log from which piece was cut.
+						]
+					);
+					
+					// game collection and attributes
+					ScriptInterface.NewCollectionWithAttributes(
+						kGamesCollectionName,
+						[
+							"Player",			// Name of the player.
+							"GameNumber",		// Game number starting with 1 since launch of application.
+							"Level",			// The current level type
+							"CutStrategy",		// The Cut Strategy Used by the player
+							"Pieces_Accepted",	// Number of pieces accepted.
+							"Pieces_Remnant",	// Number of remnant pieces
+							"Pieces_Rejected",	// Number of pieces rejected.
+							"Pieces_Short",		// Number of pieces rejected as short.
+							"Pieces_Long",		// Number of pieces rejected as long.
+							"FuelLeftAmount",	// Raw amount of fuel left.
+							"FuelLeftPercent"	// Percent of fuel left.
+						]
+					);
 				}
 			}
-			
-			
-			// replaced by createDataCollections() and initGameString for DG.
-			private function createDataCollectionsForTP():void
-			{
-				// event collection and attributes
-				ScriptInterface.NewCollectionWithAttributes(
-				"Cuts",
-					[  // Note: "Player" used at cuts level in TP only (not DG)
-					"Player",			// Name of the player.
-					"GameNumber",		// Game number starting with 1 since launch of application.
-					"Length",			// Length of cut piece.
-					"Thickness",		// Thin or thick depending on game type
-					"Accepted",			// True if cut piece is within accepted range of cut length.
-					"LogNumber"			// Number of log from which piece was cut.
-					]
-				);
-			
-				// game collection and attributes
-				ScriptInterface.NewCollectionWithAttributes(
-				kGamesCollectionName,
-					[
-					"Player",			// Name of the player.
-					"GameNumber",		// Game number starting with 1 since launch of application.
-					"Level",			// The current level type
-					"CutStrategy",		// The Cut Strategy Used by the player
-					"Pieces_Accepted",	// Number of pieces accepted.
-					"Pieces_Remnant",	// Number of remnant pieces
-					"Pieces_Rejected",	// Number of pieces rejected.
-					"Pieces_Short",		// Number of pieces rejected as short.
-					"Pieces_Long",		// Number of pieces rejected as long.
-					"FuelLeftAmount",	// Raw amount of fuel left.
-					"FuelLeftPercent"	// Percent of fuel left.
-					]
-				);
-			}
+
 			
 			// clearGame() resets the game according to the current level and clears remnants of
 			// the previous game, if any.
@@ -1406,5 +1408,5 @@
 		<s:Label id="mCutStyleValue" x="437" y="308" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="220" textAlign="left" visible="true"/>
 	</s:BorderContainer>
 	
-	<s:Label id="mVersionLabel" x="580" y="386" width="160" color="#666666" initialize="mVersionLabel.text=VERSION" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="580" y="386" width="160" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
 </s:Application>

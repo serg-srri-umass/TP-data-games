@@ -7,11 +7,15 @@
 
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
-			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="800" minHeight="600" width="800" height="600" pageTitle="Crop Monster"
-			   creationComplete="startUp( )" backgroundColor="#887E62">
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   minWidth="800" minHeight="600" width="800" height="600" 
+			   pageTitle="Crop Monster"
+			   creationComplete="startUp( )" 
+			   backgroundColor="#887E62">
 	
 	<fx:Script>
 		<![CDATA[
+			import com.adobe.serialization.json.JSON;
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
 			import mx.core.SoundAsset;
@@ -19,7 +23,14 @@
 			import spark.core.SpriteVisualElement;
 			import spark.primitives.BitmapImage;
 			
-			public static const VERSION:String = "Crop Monster [F] 2012.01.06"; // Ryan
+			// BUILD FOR TinkerPlots or DG -- edit true/false and rebuild to create a new build for each.
+			private static const kUseDataGamesInterface:Boolean = false; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
+			public static const VERSION:String = "v.2012.07.26";
+			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
+			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
+			private function getVersion():String {
+				return( VERSION + (kUseDataGamesInterface ? DG_suffix : TP_suffix ));
+			}
 			
 			// Fixed pixel width of border container around field.
 			// See BorderContainer mFieldBorderContainer at bottom of file.
@@ -66,6 +77,7 @@
 			private var mAngle:Number			= 0;	// Angle used to pick planting region. Start with straight path.
 			
 			private var mMustReplant:Boolean	= false;// Flag set when path angle has been changed.
+			private	var	parentCaseID:int = 0;
 			
 			// The following are used with a timer to track the monster's walk.
 			// Leftmost x pixel of block monster is on.
@@ -114,9 +126,19 @@
 				
 				// Set field to uneaten
 				resetField();
+				
+				sendCollectionData();
+			}
+			
+			public static const kEventsCollectionName:String = "IndividualSteps";
+			public static const kGamesCollectionName:String = "CompleteWalks";
+			
+			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
+			private	function sendCollectionData():void	{
+				var	result:String;
 
 				ScriptInterface.NewCollectionWithAttributes(
-					"IndividualSteps",
+					kEventsCollectionName,
 					[
 						"WalkNumber",	// Walk number starting with 1 since launch of application.
 						"StepNumber",	// Step number in current walk (1 based).
@@ -128,7 +150,7 @@
 				);
 			
 				ScriptInterface.NewCollectionWithAttributes(
-					"CompleteWalks",
+					kGamesCollectionName,
 					[
 						"WalkNumber",	// Walk number starting with 1 since launch of application.
 						"NumberPlanted",// How many plants were there before monster visited?
@@ -140,6 +162,77 @@
 						"Angle"			// The angle of the path edge.
 					]
 				);
+			}
+
+			// send the Game-level data to TinkerPlots or DG.
+			// this creates and opens the game case, see also sendGameDataClose()
+			private function sendGameDataOpen( iGameCaseValues:Array ):void 
+			{
+				if( kUseDataGamesInterface ) { // if DG
+					var openGameCaseObj:Object = {
+						action: "openCase",
+						args: { 
+							collection: kGamesCollectionName,
+							values: iGameCaseValues
+						} 	
+					}
+					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
+					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+					this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
+				} else {
+					// else do nothing for TinkerPlots; old game API wants nothing for start of game
+				}
+			}
+			
+			private function sendGameDataUpdate():void 
+			{
+				// update the game data (relies on the global values to have changed)
+				//sendGameDataClose( "", "", [undefined,undefined,undefined,undefined], false );
+			}
+			
+			// send the Game-level data to TinkerPlots or DG.
+			// this updates and closes the game case created by sendGameDataOpen()
+			private function sendGameDataClose( iGameCaseValues:Array, wantCaseClosed:Boolean = true ):void
+			{
+
+				if( kUseDataGamesInterface ) { // if DG 
+					var	closeGameCaseObj:Object = { 
+						action: (wantCaseClosed ? "closeCase" : "updateCase" ),
+						args: { 
+							collection: kGamesCollectionName,
+							caseID: this.parentCaseID,
+							values: iGameCaseValues
+						}
+					};
+					ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
+				} 
+				else { // TinkerPlots 2.0 Research Edition interface
+					ScriptInterface.AddCaseToCollectionWithValues(
+						kGamesCollectionName, 
+						iGameCaseValues );
+				}
+			}
+			
+			// send the Event-level data to TinkerPlots or DG.
+			private function sendEventData( iEventArray:Array ):void 
+			{
+				if( kUseDataGamesInterface ) { // DG interface
+					var createEventCaseObj:Object = {
+						action: "createCase",
+						args: {
+							collection: kEventsCollectionName,
+							parent: this.parentCaseID,
+							values: iEventArray
+						}
+					};
+					ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
+				}
+				else { // TinkerPlots interface
+						ScriptInterface.AddCaseToCollectionWithValues( 
+							kEventsCollectionName, 
+							iEventArray
+						);
+				}
 			}
 						
 			protected function resetField():void
@@ -226,6 +319,18 @@
 				
 				mGameInProgress = true; // Game is starting.
 				
+				sendGameDataOpen(
+					[
+						mWalkNumber,		// Walk number starting with 1 since launch of application.
+						mInitialPlanted,	// How many plants were there before monster visited?
+						mPlantingCost,		// Cost to plant field.
+						0,		// How many plants were eaten by monster?
+						0,	// How many plants were left after monster ate?
+						0,		// How much is the remaining crop worth?
+						0,				// Final crop value minus cost to plant.
+						mAngle				// The angle of the path edge.
+					]); // start sending game case data to TinkerPlots/DG
+				
 				// Don't wait for timed events if the fast box is selected.
 				if (mFastCheckBox.selected)
 				{
@@ -301,7 +406,8 @@
 					// Update number of plants eaten during course of monster's walk.
 					mNumberEatenLabel.text = "Plants Eaten = " + (mInitialPlanted - mRemainingPlanted).toString();
 					
-					ScriptInterface.AddCaseToCollectionWithValues("IndividualSteps", 
+					// send data to TinkerPlots / DG
+					sendEventData(
 						[
 							mWalkNumber,	// Walk number starting with 1 since launch of application.
 							mStepNumber,		// Step number in current walk (1 based).
@@ -309,8 +415,7 @@
 							mX - kMiddleColumn + 1,// Horizontal position relative to starting position in middle of field (1 based)
 							mY + 1,				// Vertical position relative to starting position at edge of field (1 based)
 							plantEaten		// Was a plant eaten at this step ("Yes" or "No")?
-						]	
-					);
+						] );
 					
 					++mStepNumber;	// Increment step counter.
 					++mY;			// Increment y value.
@@ -327,7 +432,7 @@
 					var numberEaten:uint	= mInitialPlanted - mRemainingPlanted;	// Plants eaten.
 					var profit:uint			= finalCropValue - mPlantingCost;		// Profit after monster walk.
 					
-					ScriptInterface.AddCaseToCollectionWithValues("CompleteWalks", 
+					sendGameDataClose( 
 						[
 							mWalkNumber,		// Walk number starting with 1 since launch of application.
 							mInitialPlanted,	// How many plants were there before monster visited?
@@ -372,7 +477,7 @@
 				
 				// Enable replant button if monster is not in the middle of a walk.
 				if (!mTimer.running)	
-					mReplantButton.enabled	= true;		
+					mReplantButton.enabled	= true;
 			}
 			
 			// onClickReplantField() is called when the replant field button is pressed.
@@ -414,5 +519,5 @@
 	<s:Label x="72" y="496" text="Your goal is to make the most profit from the crops you plant. A monster will walk through your field, randomly moving one step left or right at each forward step, eating plants as it goes. Widen or narrow the unplanted path by altering the angle to reduce the number of plants eaten, but remember, you can't make a profit if you don't plant anything!" width="458" height="95" id="mInstructionsLabel" fontSize="13" fontFamily="Verdana" fontWeight="bold" fontStyle="normal" color="#BEB5C7" textDecoration="none"/>
 	<s:Label x="313" y="425" text="→" fontWeight="bold" fontSize="20" color="#41DF3D" id="mReplantArrowLabel" visible="false"/>
 	<s:CheckBox x="473" y="457.5" label="Fast" id="mFastCheckBox" chromeColor="#E52974"/>
-	<s:Label id="mVersionLabel" x="50" y="10" width="172" color="#4c2600" initialize="mVersionLabel.text=VERSION" textAlign="left"/>
+	<s:Label id="mVersionLabel" x="550" y="23" width="200" color="#4c2600" initialize="mVersionLabel.text=getVersion()" textAlign="right"/>
 	</s:Application>

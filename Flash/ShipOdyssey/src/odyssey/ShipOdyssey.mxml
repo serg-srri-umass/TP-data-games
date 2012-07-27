@@ -40,12 +40,14 @@
 			
 			import spark.filters.GlowFilter;
 			
-			// BUILD FOR DG
-			private static const kUseDataGamesInterface:Boolean = true; // use DG edition data interfaces
-			public static const  VERSION:String 			= "v.2012.07.18(fl-dg)"; // DG edition
-			// OR BUILD FOR TP
-			//private static const kUseDataGamesInterface:Boolean = false; // use TP edition data interface (compatible with TinkerPlots 2.0 Research Edition)
-			//public static const  VERSION:String 			= "v.2012.07.18(fl-tp)"; // TP edition
+			// BUILD FOR TinkerPlots or DG -- edit true/false and rebuild to create a new build for each.
+			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
+			public static const VERSION:String = "v.2012.07.26";
+			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
+			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
+			private function getVersion():String {
+				return( VERSION + (kUseDataGamesInterface ? DG_suffix : TP_suffix ));
+			}
 			
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES **********
 			public static const kHuntLevelOne:uint = 0;	// First treasure hunt game level.
@@ -289,7 +291,7 @@
 						action: "initGame",
 						args: {
 							name: "ShipOdyssey",
-							dimensions: { width: 518, height: 410 }, // should match 'Application' width and height
+							dimensions: { width: this.width, height: this.height },
 							collections: [
 								{
 									name: kGamesCollectionName,
@@ -311,6 +313,13 @@
 										{ name: "Rat_Reading", type: "numeric", precision: 0, description: "Location estimate provided by rat"  } , 
 										{ name: "Treasure_Sought", type: "nominal", description: "Treasure ID at time of event"  }
 									],
+									labels: {
+										singleCase: "rat sent",
+										pluralCase: "rats sent",
+										singleCaseWithArticle: "a rat reading",
+										setOfCases: "events",
+										setOfCasesWithArticle: "events"
+									},
 									defaults: { xAttr: "Rat_Reading", yAttr: "Treasure_Sought" }
 								}
 							] // collections
@@ -995,9 +1004,10 @@
 				enableAllButtons();
 			}
 			
+			// send the Game-level data to TinkerPlots or DG.
+			// this creates and opens the game case, see also sendGameDataClose()
 			private function sendGameDataOpen():void{
-				if( kUseDataGamesInterface ) {
-					// send data to open a case in Game collection to DG
+				if( kUseDataGamesInterface ) { // if DG
 					var openGameCaseObj:Object = {
 						action: "openCase",
 						args: { 
@@ -1022,8 +1032,9 @@
 					} else {
 						this.parentCaseID = -1;
 					}	
+				} else {
+					// else do nothing for TinkerPlots; old game API wants nothing for start of game
 				}
-				// else do nothing for TinkerPlots; old game API wants nothing for start of game
 			}
 			
 			// send the Game-level data to TinkerPlots or DG.
@@ -1042,15 +1053,15 @@
 						args: { 
 							collection: kGamesCollectionName,
 							caseID: this.parentCaseID,
-								values: [
-									mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
-									getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
-									mRatsSent,			 // Total number of rats sent during current game.
-									mHooksDropped,		 // Number of times hook was dropped during current game.
-									mTreasuresFound, 	 // Number of treasures found during current game.
-									//kMaxDays - mDaysLeft,// Number of days used to complete treasure hunt game.
-									mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
-								]
+							values: [
+								mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
+								getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+								mRatsSent,			 // Total number of rats sent during current game.
+								mHooksDropped,		 // Number of times hook was dropped during current game.
+								mTreasuresFound, 	 // Number of treasures found during current game.
+								//kMaxDays - mDaysLeft,// Number of days used to complete treasure hunt game.
+								mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+							]
 						}
 					};
 					ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
@@ -1316,7 +1327,7 @@
 	</s:BorderContainer>
 	<mx:Image	id="mStartPageBackground" x="0" y="0" source="{mPirateShipImage}" includeIn="StartPage"/>
 	<s:Label id="GameVersion" includeIn="StartPage" x="252" y="61" width="150" color="#16203a" 
-			 fontFamily="Georgia" fontSize="12" fontStyle="normal" initialize="GameVersion.text=VERSION" />
+			 fontFamily="Georgia" fontSize="12" fontStyle="normal" initialize="GameVersion.text=getVersion()" />
 	<s:RichText	id="mGameTitle" x="10" y="40" text="Ship Odyssey" fontFamily="Georgia" fontSize="40" color="#908F17" fontWeight="normal" fontStyle="italic" includeIn="StartPage"/>
 	<s:Group	x="160" y="152" width="200" height="48" includeIn="StartPage">
 		<s:Rect		id="mGroupRect" x="0" y="0" radiusX="4" radiusY="4" height="100%" width="100%">
