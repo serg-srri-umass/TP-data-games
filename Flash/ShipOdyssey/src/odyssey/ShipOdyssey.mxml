@@ -40,9 +40,12 @@
 			
 			import spark.filters.GlowFilter;
 			
-			// BUILD FOR TinkerPlots or DG -- edit true/false and rebuild to create a new build for each.
+			// BUILD FOR TinkerPlots or DG: 
+			// edit true/false and rebuild to create a new build for each.
+			// export the DG version to ./bin-release
+			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2012.07.26";
+			public static const VERSION:String = "v.2012.07.30";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -491,7 +494,7 @@
 				mRatsToSend	= 100;	// Default number of rats to send.
 				kCostPerRat	= 0;	// Cost per rat in dollars.
 				mRatsLeft = kMaxRats;
-				mRatStepper.value = 100;
+				mRatStepper.value = mRatsToSend;
 				mRatStepper.maximum = 200;
 				mTreasuresAtLocArr = new Array(1,1,1,1,1,1);
 				mAutoSailOnAfterFoundTreasure = true;
@@ -514,10 +517,10 @@
 				
 				kMaxRats	= 2400;	// Number of rats available per Treasure Hunt Game.
 				kMinRats	= 50;	// Default minimum number of rats to send.
-				mRatsToSend	= 200;	// Default number of rats to send.
+				mRatsToSend	= 100;	// Default number of rats to send.
 				kCostPerRat	= 0;	// Cost per rat in dollars.
 				mRatsLeft = kMaxRats; 
-				mRatStepper.value = 100;
+				mRatStepper.value = mRatsToSend;
 				mRatStepper.maximum = 200;
 				mAutoSailOnAfterFoundTreasure = false;
 				mCurrentLevel = "LEVEL 2";
@@ -568,7 +571,7 @@
 				mRatsToSend	= 10;	// Default number of rats to send.
 				kCostPerRat	= 100;	// Cost per rat in dollars.
 				mRatsLeft = kMaxRats; 
-				mRatStepper.value = 10;
+				mRatStepper.value = mRatsToSend;
 				mRatStepper.maximum = mRatsLeft;
 				mTreasuresAtLocArr = new Array(1,1,1,1,1,1);
 				mAutoSailOnAfterFoundTreasure = true;
@@ -592,7 +595,7 @@
 				mRatsToSend	= 10;	// Default number of rats to send.
 				kCostPerRat	= 100;	// Cost per rat in dollars.
 				mRatsLeft = kMaxRats; 
-				mRatStepper.value = 10;
+				mRatStepper.value = mRatsToSend;
 				mRatStepper.maximum = mRatsLeft;
 				mTreasuresAtLocArr = new Array(1,1,1,1,1,1);
 				mAutoSailOnAfterFoundTreasure = true;
@@ -1023,15 +1026,8 @@
 						} 	
 					}
 					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
-					
-					if (resultString) {
-						var	result:Object  = JSON.decode( resultString );		//	if we're not in DG, resultString won't exist
-					}
-					if (result && result.success) {		//	only if we're in DG, otherwise result won't exist
-						this.parentCaseID = result.caseID;
-					} else {
-						this.parentCaseID = -1;
-					}	
+					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+					this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );	
 				} else {
 					// else do nothing for TinkerPlots; old game API wants nothing for start of game
 				}

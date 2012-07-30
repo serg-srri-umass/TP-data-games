@@ -23,9 +23,12 @@
 			import spark.core.SpriteVisualElement;
 			import spark.primitives.BitmapImage;
 			
-			// BUILD FOR TinkerPlots or DG -- edit true/false and rebuild to create a new build for each.
-			private static const kUseDataGamesInterface:Boolean = false; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2012.07.26";
+			// BUILD FOR TinkerPlots or DG: 
+			// edit true/false and rebuild to create a new build for each.
+			// export the DG version to ./bin-release
+			// export the TinkerPlots version to ./bin-release-tp
+			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
+			public static const VERSION:String = "v.2012.07.30";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -134,34 +137,85 @@
 			public static const kGamesCollectionName:String = "CompleteWalks";
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
-			private	function sendCollectionData():void	{
+			private	function sendCollectionData():void	{		
 				var	result:String;
-
-				ScriptInterface.NewCollectionWithAttributes(
-					kEventsCollectionName,
-					[
-						"WalkNumber",	// Walk number starting with 1 since launch of application.
-						"StepNumber",	// Step number in current walk (1 based).
-						"LeftOrRight",	// Did monster step left to get here or right ("Left" or "Right")?
-						"X",			// Horizontal position relative to starting position in middle of field.
-						"Y",			// Vertical position relative to starting position at edge of field.
-						"PlantEaten"	// Was a  plant eaten at this step ("Yes" or "No")?
-					]
-				);
-			
-				ScriptInterface.NewCollectionWithAttributes(
-					kGamesCollectionName,
-					[
-						"WalkNumber",	// Walk number starting with 1 since launch of application.
-						"NumberPlanted",// How many plants were there before monster visited?
-						"PlantingCost",	// Cost to plant field.
-						"PlantsLost",	// How many plants were eaten by monster?
-						"PlantsLeft",	// How many plants were left after monster ate?
-						"CropValue",	// How much is the remaining crop worth?
-						"Profit",		// Final crop value minus cost to plant (CropValue - PlantingCost).
-						"Angle"			// The angle of the path edge.
-					]
-				);
+				
+				if( kUseDataGamesInterface ) 
+				{	// use the DG-compatible data interface for extra functionality; not compatible with TinkerPlots 2.0 Research Edition	
+					var initGameObj:Object = {
+						action: "initGame",
+						args: {
+							name: "Crop Monster",
+							dimensions: { width: this.width, height: this.height },
+							collections: [
+								{
+									name: kGamesCollectionName,
+									attrs:[
+										{name: "WalkNumber", type: "nominal", precision: 0, description: "Walk number"   } , 
+										{name: "NumberPlanted", type: "numeric", precision: 0, description: "How many plants were there before monster visited?"   } ,	
+										{name: "PlantingCost", type: "numeric", precision: 0, description: "Cost to plant field"   } ,	
+										{name: "PlantsLost", type: "numeric", precision: 0, description: "How many plants were eaten by monster?"   } ,
+										{name: "PlantsLeft", type: "numeric", precision: 0, description: "How many plants were left after monster ate?"   } ,
+										{name: "CropValue", type: "numeric", precision: 0, description: "How much is the remaining crop worth?"   } ,
+										{name: "Profit", type: "numeric", precision: 0, description: "Final crop value minus cost to plant (CropValue - PlantingCost)"   } ,
+										{name: "Angle", type: "numeric", precision: 0, description: "The angle of the path edge"   } ,
+									] ,
+									childAttrName: "game_record"
+								},
+								{
+									name: kEventsCollectionName,
+									attrs:	[
+										{name: "WalkNumber", type: "nominal", precision: 0, description: "Walk number"   } , 
+										{name: "StepNumber", type: "numeric", precision: 0, description: "Step number in current walk"   } ,	
+										{name: "LeftOrRight", type: "nominal", description: "Did monster step left to get here or right?"   } ,	
+										{name: "X", type: "numeric", precision: 0, description: "Horizontal position in field"   } ,
+										{name: "Y", type: "numeric", precision: 0, description: "Vertical position in field"   } ,
+										{name: "PlantEaten", type: "nominal", precision: 0, description: "Was a  plant eaten at this step?"   } 
+									],
+									labels: {
+										singleCase: "step",
+										pluralCase: "steps",
+										singleCaseWithArticle: "a step",
+										setOfCases: "individual steps",
+										setOfCasesWithArticle: "the individual steps"
+									},
+									defaults: { xAttr: "X", yAttr: "Y" }
+								}
+							] // collections
+						} // args
+					}; //initGameObj
+					var	initGameString:String = JSON.encode( initGameObj );
+					result = ScriptInterface.doCommand( initGameString );
+				}
+				else {
+					// use the old data interface compatible with TinkerPlots 2.0 Research Edition; 
+					// works less well with DG, does not give game dimensions, does not identify numeric/categorical type of attributes, etc.
+					ScriptInterface.NewCollectionWithAttributes(
+						kEventsCollectionName,
+						[
+							"WalkNumber",	// Walk number starting with 1 since launch of application.
+							"StepNumber",	// Step number in current walk (1 based).
+							"LeftOrRight",	// Did monster step left to get here or right ("Left" or "Right")?
+							"X",			// Horizontal position relative to starting position in middle of field.
+							"Y",			// Vertical position relative to starting position at edge of field.
+							"PlantEaten"	// Was a  plant eaten at this step ("Yes" or "No")?
+						]
+					);
+				
+					ScriptInterface.NewCollectionWithAttributes(
+						kGamesCollectionName,
+						[
+							"WalkNumber",	// Walk number starting with 1 since launch of application.
+							"NumberPlanted",// How many plants were there before monster visited?
+							"PlantingCost",	// Cost to plant field.
+							"PlantsLost",	// How many plants were eaten by monster?
+							"PlantsLeft",	// How many plants were left after monster ate?
+							"CropValue",	// How much is the remaining crop worth?
+							"Profit",		// Final crop value minus cost to plant (CropValue - PlantingCost).
+							"Angle"			// The angle of the path edge.
+						]
+					);
+				}
 			}
 
 			// send the Game-level data to TinkerPlots or DG.

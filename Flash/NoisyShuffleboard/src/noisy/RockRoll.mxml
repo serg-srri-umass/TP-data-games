@@ -42,9 +42,12 @@
 			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
 			
-			// BUILD FOR TinkerPlots or DG -- edit true/false and rebuild to create a new build for each.
+			// BUILD FOR TinkerPlots or DG: 
+			// edit true/false and rebuild to create a new build for each.
+			// export the DG version to ./bin-release
+			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "Rock Roll v.2012.07.26";
+			public static const VERSION:String = "Rock Roll v.2012.07.30";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
