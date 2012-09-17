@@ -1,10 +1,12 @@
 // File src/com/kcpt/scriptInterface/ScriptInterface.as
 // import com.kcpt.scriptInterface.ScriptInterface;
-// Copyright (c) 2010 KCP Technologies, Inc.
+
 
 package com.kcpt.scriptInterface {
 
 	import flash.external.ExternalInterface;
+	
+	import mx.controls.Alert;
 
 	/**
 	* The ScriptInterface manages communication between a flex application and a Fathom/Tinkerplots container.
@@ -25,6 +27,12 @@ package com.kcpt.scriptInterface {
 	* @param iAttributeNames Names for each of the attributes.
  	* @return true if creation of the new collection was successful, false otherwise. 
 	*/
+		
+	public	static	function	LogUserAction( actionType:String, data:Array ) : Boolean	
+	{
+		return CallContainerWithArrayArgs("LogUserAction", actionType, data);
+	}
+		
 	public static function NewCollectionWithAttributes(iCollectionName: String, iAttributeNames:Array) : Boolean
 	{
 		return CallContainerWithArrayArgs("NewCollectionWithAttributes", iCollectionName, iAttributeNames);
@@ -92,11 +100,29 @@ package com.kcpt.scriptInterface {
 	{
 		if( ExternalInterface.available)
 		{
-			return XMLReturnToBoolean( ExternalInterface.call(iStatementKind, iCollectionName, iValues.map(makeString)));
+			var	preConversion:String;
+			
+			preConversion = ExternalInterface.call(iStatementKind, iCollectionName, iValues.map(makeString));
+			return XMLReturnToBoolean(preConversion);
 		}
 				
 		return false;
 	}
+	
+	/**
+	 * doCommand implementation!
+	 * NOTE: capitalize DoCommand on JS side :)
+	 * */
+	
+	public static function	doCommand( args:String ):String	{
+		
+		var	result:String = ExternalInterface.call("DoCommand", args);
+		
+		//	Alert.show( "result: " + result + "\n" + args, "Return from doCommand") ;
+		return	 result ;
+		
+	}
+	
 	
 	/**
 	 @private

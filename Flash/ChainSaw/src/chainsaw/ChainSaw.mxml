@@ -2,8 +2,16 @@
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
-			   minWidth="745" minHeight="410" backgroundColor="#EAD1AA" creationComplete="startUp()"
-			   pageTitle="Chain Saw">
+			   minWidth="745" minHeight="410" 
+			   backgroundColor="#EAD1AA" 
+			   creationComplete="startUp()"
+			   activate="ScriptInterface.signalActivation()" 
+			   deactivate="ScriptInterface.signalDeactivation()"
+			   pageTitle="Chainsaw">
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
 	
 	<fx:Script>
 		<![CDATA[
@@ -11,6 +19,7 @@
 			
 			import chainsaw_assets.*;
 			
+			import com.adobe.serialization.json.JSON;
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
 			import flash.media.Sound;
@@ -26,14 +35,24 @@
 			import spark.core.SpriteVisualElement;
 			import spark.events.TextOperationEvent;
 			
+			// BUILD FOR TinkerPlots or DG: 
+			// edit true/false and rebuild to create a new build for each.
+			// export the DG version to ./bin-release
+			// export the TinkerPlots version to ./bin-release-tp
+			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
+			public static const VERSION:String   = "Chainsaw v.2012.08.07";
+			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
+			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
+			private function getVersion():String {
+				return( VERSION + (kUseDataGamesInterface ? DG_suffix : TP_suffix ));
+			}
+			
 			public var flashGasTank:MovieClip;
 			public var sawdustParticles:ParticleLauncherXYFloor = new ParticleLauncherXYFloor();
 			public var dynamicLog1:MovieClip;
 			public var dynamicLog2:MovieClip;
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
-			
-			public static const VERSION:String 			= "Chainsaw [F] 2012.04.19";
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -52,12 +71,15 @@
 			public static const kMixedFreeCutLevel:uint   = 4;		// Mixed log size free cut level
 			
 			// Collection names according to level played.
-			public static const kCollectionDirCutPieces:String	= "CutPieces - Directional Cut Level";
-			public static const kCollectionFreeCutPieces:String	= "CutPieces - Free Cut Level";
-			public static const kCollectionDirCutGames:String	= "Directional Cut";
-			public static const kCollectionFreeCutGames:String	= "Free Cut";
-			public static const kCollectionHeavyFreeCutGames:String	= "Heavy Free Cut";
-			public static const kCollectionMixedFreeCutGames:String	= "Mixed Free Cut";
+			public static const kCutsCollectionName:String	= "Cuts";
+			public static const kGamesCollectionName:String	= "Games";
+			public static const kLevelDirCut:String	= "Directional Cut";
+			public static const kLevelNameThinLogs:String	= "Thin Logs";
+			public static const kLevelNameThickLogs:String	= "Thick Logs";
+			public static const kLevelNameMixedLogs:String	= "Mixed Logs";
+			public static const kLevelLabelThinLogs:String	= "THIN LOGS LEVEL";
+			public static const kLevelLabelThickLogs:String	= "THICK LOGS LEVEL";
+			public static const kLevelLabelMixedLogs:String	= "MIXED LOGS LEVEL";
 			
 			// Strings indicating accptance/rejection status of cut pieces.
 			public static const kAcceptString:String		= "Yes";
@@ -80,8 +102,6 @@
 			private var mFirstGame:Boolean			= true;	// Used for initial operations.
 			private var mGameLevel:uint				= 3;	// Current game level. --init as 3 to force it to go through init loops in game select
 			private var mPrevLevel:uint				= 3;	// Used to track level changes.
-			private var mDirCutCollectionCreated:Boolean = false;	// Collection created on first play at each level.
-			private var mFreeCutCollectionCreated:Boolean = false;	// Collection created on first play at each level.
 			private var mLevelWindow:GameLevelWindow;		// The modal window for choosing a game level.
 			private var mLogsPerGame:uint			= 4;	// Number of logs being used in each game.
 			private var mFuelUsed:Number			= 0;	// Stores how many units of fuel have been used.
@@ -99,7 +119,7 @@
 			private var mPlayersName:String			= "Player"; // Stores player's name.
 			
 			private var currentCutStartPoint:Number; // Holds the starting position for each cut.
-			
+			private	var	parentCaseID:int = 0;
 			private var practice:Boolean = false; // whether the game is in practice mode or not
 			
 			// These arrays store the details of individual logs for access by all who need to know.
@@ -171,13 +191,13 @@
 			/*
 			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
 			*/
-//			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
-			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
+//			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-//			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
-			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
+//			[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 			
@@ -221,9 +241,103 @@
 				sawdustParticles.yFloor = 410;
 				
 				mLevelWindow = new GameLevelWindow();
+				this.sendCollectionData();		// send initGame data to TinkerPlots/DG
 
 				levelSelected(kFreeCutLevel); //Start in free cut mode
+				
+				updateVolume(50); // start with volume at 50% level
 			}
+			
+
+			// Send the initial game data to TinkerPlots or DG.  The collections are the tables of cases and attributes.
+			private	function	sendCollectionData( ):void	{
+				var	result:String;
+				
+				if( kUseDataGamesInterface ) 
+				{	// use the DG-compatible data interface for extra functionality; not compatible with TinkerPlots 2.0 Research Edition
+					var initGameObj:Object = {
+						action: "initGame",
+						args: {
+							name: "Chainsaw",
+							dimensions: { width: 745, height: 410 }, // should match 'Application' width and height
+							collections: [
+								{
+									name: kGamesCollectionName,
+									attrs:[
+										{ name: "Player" , type: "nominal" ,  description: "Name of the player"   } ,
+										{ name: "GameNumber" , type: "nominal" , precision: 0, description: "Game number"   } , 
+										{ name: "Level" , type: "nominal" ,  description: "Game level"   } ,	
+										{ name: "Strategy" , type: "nominal" ,  description: "Cut strategy used by the player"   } ,	
+										{ name: "Accepted" , type: "numeric" , precision: 0, description: "Number of pieces accepted"   } , 
+										{ name: "Remnant" , type: "numeric" , precision: 0, description: "Number of remnant pieces"   } , 
+										//{ name: "Pieces_Rejected" , type: "numeric" , precision: 0, description: "Number of pieces rejected"   } , 
+										{ name: "Short" , type: "numeric" , precision: 0, description: "Number of pieces rejected as short"   } , 
+										{ name: "Long" , type: "numeric" , precision: 0, description: "Number of pieces rejected as long"   } , 
+										{ name: "FuelLeft" , type: "numeric" , precision: 0, description: "Amount of fuel left"   } , 
+										{ name: "FuelLeftPercent" , type: "numeric" , precision: 0, description: "Percent of fuel left"   }			
+									] ,
+									childAttrName: "Cut_Record"
+								},
+								{
+									name: kCutsCollectionName,
+									attrs:	[
+										{ name: "GameNumber" , type: "nominal" , precision: 0, description: "Game number"   } ,
+										{ name: "Length" , type: "numeric" , precision: 2, description: "Length of cut"   } , 
+										{ name: "Thickness" , type: "nominal" , description: "Thickness of log"  } , 
+										{ name: "Accepted" , type: "nominal" , description: "Is piece an acceptable length?"  } , 
+										{ name: "Log" , type: "numeric" , precision: 0, description: "Log number"  }
+									],
+									labels: {
+										singleCase: "piece",
+										pluralCase: "pieces",
+										singleCaseWithArticle: "a piece",
+										setOfCases: "cut record",
+										setOfCasesWithArticle: "a cut record"
+									},
+									defaults: { xAttr: "Length", yAttr: "GameNumber" }
+								}
+							] // collections
+						} // args
+					}; //initGameObj
+					var	initGameString:String = JSON.encode( initGameObj );
+					result = ScriptInterface.doCommand( initGameString );
+				}
+				else {
+					// use the old data interface compatible with TinkerPlots 2.0 Research Edition; 
+					// works less well with DG, does not give game dimensions, does not identify numeric/categorical type of attributes, etc.
+					// event collection and attributes
+					ScriptInterface.NewCollectionWithAttributes(
+						"Cuts",
+						[  // Note: "Player" used at cuts level in TP only (not DG)
+							"Player",			// Name of the player.
+							"Game",				// Game number starting with 1 since launch of application.
+							"Length",			// Length of cut piece.
+							"Thickness",		// Thin or thick depending on game type
+							"Accepted",			// True if cut piece is within accepted range of cut length.
+							"Log"				// Number of log from which piece was cut.
+						]
+					);
+					
+					// game collection and attributes
+					ScriptInterface.NewCollectionWithAttributes(
+						kGamesCollectionName,
+						[
+							"Player",			// Name of the player.
+							"Game",				// Game number starting with 1 since launch of application.
+							"Level",			// The current level type
+							"Strategy",			// The Cut Strategy Used by the player
+							"Accepted",			// Number of pieces accepted.
+							"Remnant",			// Number of remnant pieces
+							//"Pieces_Rejected",	// Number of pieces rejected.
+							"Short",			// Number of pieces rejected as short.
+							"Long",				// Number of pieces rejected as long.
+							"FuelLeft",			// Raw amount of fuel left.
+							"FuelLeftPercent"	// Percent of fuel left.
+						]
+					);
+				}
+			}
+
 			
 			// clearGame() resets the game according to the current level and clears remnants of
 			// the previous game, if any.
@@ -321,7 +435,7 @@
 							dynamicLog3.setLogWidthLabel("thick");
 							dynamicLog4.resizeLogFront(50,15);
 							dynamicLog4.setLogWidthLabel("thick");
-							mLevelLabel.text = "HEAVY FREE CUT LEVEL";
+							mLevelLabel.text = kLevelLabelThickLogs;
 						}else if(levelNum == kMixedFreeCutLevel){
 							dynamicLog1.resizeLogFront(50,15);
 							dynamicLog1.setLogWidthLabel("thick");
@@ -331,9 +445,9 @@
 							dynamicLog3.setLogWidthLabel("thick");
 							dynamicLog4.resizeLogFront(35,15);
 							dynamicLog4.setLogWidthLabel("thin");
-							mLevelLabel.text = "MIXED FREE CUT LEVEL";
+							mLevelLabel.text = kLevelLabelMixedLogs;
 						}else{
-							mLevelLabel.text = "FREE CUT LEVEL";
+							mLevelLabel.text = kLevelLabelThinLogs;
 						}
 						clearGame(kFreeCutLevel); 
 						dynamicLog1['init'](0,dynamicLog2); // send cut direction and link to next log
@@ -345,11 +459,6 @@
 						mCutRightSprite.visible		= false; 
 						mCutLeftSprite.visible		= false; 
 						
-						if (!mFreeCutCollectionCreated) //create collection for free cut if not already created
-						{
-							createCollectionMod(kCollectionFreeCutPieces, kCollectionFreeCutGames);
-							mFreeCutCollectionCreated = true;
-						}
 					}else // If Practice or Directional Cut level was selected
 					{
 						clearGame(0);
@@ -361,12 +470,6 @@
 						mArrowSprite.visible		= false; // Show cut location arrow.
 						mCutRightSprite.visible		= true;
 						mCutLeftSprite.visible		= false;
-						
-						if (!mDirCutCollectionCreated) //create collection for directional cut if not already created
-						{
-							createCollectionMod(kCollectionDirCutPieces, kCollectionDirCutGames);
-							mDirCutCollectionCreated = true;
-						}
 						
 						if (levelNum == kDirectionalCutLevel)	mLevelLabel.text = "DIRECTIONAL CUT LEVEL";
 						if (levelNum == kPracticeLevel)			mLevelLabel.text = "PRACTICE LEVEL";
@@ -427,40 +530,7 @@
 				length+= Math.ceil(Math.random()*(kReferenceLength*0.36)+0.5);	// Finally add 1/2 to 6/7 of a piece to the log as padding
 				return length;	// Return the length
 			}
-			
-			//called by directionalCutLevel() and freeCutLevel() to initially create TinkerPlot/DG collection spaces
-			private function createCollectionMod(collection1:String, collection2:String):void
-			{
-				ScriptInterface.NewCollectionWithAttributes(
-					"Cuts",
-					[
-						"Player",			// Name of the player.
-						"GameNumber",		// Game number starting with 1 since launch of application.
-						"Length",			// Length of cut piece.
-						"Thickness",		// Thin or thick depending on game type
-						"Accepted",			// True if cut piece is within accepted range of cut length.
-						"LogNumber"			// Number of log from which piece was cut.
-					]
-				);
-				
-				// Create collection for each game.
-				ScriptInterface.NewCollectionWithAttributes(
-					"Games",
-					[
-						"Player",			// Name of the player.
-						"GameNumber",		// Game number starting with 1 since launch of application.
-						"Level",			// The current level type
-						"CutStrategy",		// The Cut Strategy Used by the player
-						"Pieces_Accepted",	// Number of pieces accepted.
-						"Pieces_Remnant",	// Number of remnant pieces
-						"Pieces_Rejected",	// Number of pieces rejected.
-						"Pieces_Short",		// Number of pieces rejected as short.
-						"Pieces_Long",		// Number of pieces rejected as long.
-						"FuelLeftAmount",	// Raw amount of fuel left.
-						"FuelLeftPercent"	// Percent of fuel left.
-					]
-				);
-			}
+
 			
 			// recordPieceStatus() evaluates the piece's acceptance status and records the outcome
 			// by setting a visual marker on each log and also transmitting the info to 
@@ -571,28 +641,42 @@
 				{
 					var lengthTwoDecimals:String	= (iLength * kConvertToInches).toFixed(2);
 					var pieceNumber:uint 			= iPieceNumber == 0 ? mPieceNumber : iPieceNumber;
-					var collectionName:String;
 					var thickness:String = currentLog.getLogWidthLabel();
 					
 					// Send info on cut pieces to TinkerPlots/Fathom.
-					if (mGameLevel == kDirectionalCutLevel)
-						collectionName = kCollectionDirCutPieces;
-						//TODO replace these AddCaseToCollectionWithValues() calls with a single one
-					else
-						collectionName = kCollectionFreeCutPieces;
-					
-					ScriptInterface.AddCaseToCollectionWithValues(
-						//kCollectionDirCutPieces,  //**Tristan
-						"Cuts",
-						[
-							mPlayersName,		// Name of the player.
-							mGameNumber,		// Game number starting with 1 since launch of application.  Ignore practice levels.
-							lengthTwoDecimals,	// Piece length.
-							thickness,			// log label "thin" or "thick"
-							acceptString,		// Status of cut piece.
-							iLogNumber			// Number of log from which piece was cut.
-						]
-					);
+					if( kUseDataGamesInterface ) 
+					{
+						// send data for case in Cut collection to DG
+						var createCaseObj:Object = {
+								action: "createCase",
+								args: {
+									collection: kCutsCollectionName,
+									parent: this.parentCaseID,
+									values: [
+										mGameNumber,
+										lengthTwoDecimals,
+										thickness,
+										acceptString,
+										iLogNumber
+									]
+								}
+							};
+						ScriptInterface.doCommand( JSON.encode( createCaseObj ));
+					}
+					else {
+						// send data for case in Cut collection to TinkerPlots/Fathom
+						ScriptInterface.AddCaseToCollectionWithValues(		
+							kCutsCollectionName,
+							[
+								mPlayersName,		// Name of the player (Note: "Player" used at cuts level in TP only (not DG))
+								mGameNumber,		// Game number starting with 1 since launch of application.  Ignore practice levels.
+								lengthTwoDecimals,	// Piece length.
+								thickness,			// log label "thin" or "thick"
+								acceptString,		// Status of cut piece.
+								iLogNumber			// Number of log from which piece was cut.
+							]
+						);
+					}
 				}
 			}
 			
@@ -652,6 +736,48 @@
 					dynamicLog4.enabled = true;
 					mArrowSprite.visible = false;
 				}
+				
+				if (!practice)
+				{
+					var levelName:String;					
+					switch(mGameLevel)
+					{
+						case kDirectionalCutLevel:
+							levelName = kLevelDirCut;
+							break;
+						case kFreeCutLevel:
+							levelName = kLevelNameThinLogs;
+							break;
+						case kHeavyFreeCutLevel:
+							levelName = kLevelNameThickLogs;
+							break;
+						case kMixedFreeCutLevel:
+							levelName = kLevelNameMixedLogs;
+							break;
+					}
+					
+					if( kUseDataGamesInterface )  {
+						// send data to open a case in Game collection to DG
+						var openGameCaseObj:Object = {
+								action: "openCase",
+								args: { 
+									collection: kGamesCollectionName,
+									values: [
+										mPlayersName,
+										mGameNumber,
+										levelName
+									]
+								} 	
+							}
+						var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
+						var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+						this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
+					}
+					else {
+						// send data to open a case in Game collection to TinkerPlots/Fathom
+						// (Nothing to do)
+					}
+				}
 			}
 			
 			// endGame() performs all operations necessary when game is complete.
@@ -694,37 +820,63 @@
 					switch(mGameLevel)
 					{
 						case kDirectionalCutLevel:
-							levelName = kCollectionDirCutGames;
+							levelName = kLevelDirCut;
 							break;
 						case kFreeCutLevel:
-							levelName = kCollectionFreeCutGames;
+							levelName = kLevelNameThinLogs;
 							break;
 						case kHeavyFreeCutLevel:
-							levelName = kCollectionHeavyFreeCutGames;
+							levelName = kLevelNameThickLogs;
 							break;
 						case kMixedFreeCutLevel:
-							levelName = kCollectionMixedFreeCutGames;
+							levelName = kLevelNameMixedLogs;
 							break;
 					}
 					
 					// Send info on games to TinkerPlots/Fathom.
-					ScriptInterface.AddCaseToCollectionWithValues(
-						//gameCollectionName, //**Tristan
-						"Games",
-						[
-							mPlayersName,		// Name of the player.
-							mGameNumber,		// Game number starting with 1 since launch of application.
-							levelName,			// Game Type
-							strategy,			// the determined cut strategy
-							mPiecesAccepted,	// Number of pieces accepted.
-							mPiecesRemnant,		// Number of pieces remnant.
-							mPiecesRejected,	// Number of pieces rejected.
-							mPiecesShort,		// Number of pieces rejected as short.
-							mPiecesLong,		// Number of pieces rejected as long.
-							fuelLeftAmount,		// Raw amount of fuel left.
-							fuelLeftPercent		// Percent of fuel left.
-						]
-					);
+					if( kUseDataGamesInterface )  {
+						// send data to close a case in Game collection to DG
+						var	closeGameCaseObj:Object = { 
+								action: "closeCase",
+								args: { 
+									collection: kGamesCollectionName,
+									caseID: this.parentCaseID,
+									values: [
+										mPlayersName,
+										mGameNumber,
+										levelName,
+										strategy,
+										mPiecesAccepted,
+										mPiecesRemnant,
+										//mPiecesRejected,
+										mPiecesShort,
+										mPiecesLong,
+										fuelLeftAmount,
+										fuelLeftPercent
+									]
+								}
+							};
+						ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
+					}
+					else {
+						// send data to close a case in Game collection to TinkerPlots/Fathom
+						ScriptInterface.AddCaseToCollectionWithValues(
+							kGamesCollectionName,
+							[
+								mPlayersName,		// Name of the player.
+								mGameNumber,		// Game number starting with 1 since launch of application.
+								levelName,			// Game Type
+								strategy,			// the determined cut strategy
+								mPiecesAccepted,	// Number of pieces accepted.
+								mPiecesRemnant,		// Number of pieces remnant.
+								//mPiecesRejected,	// Number of pieces rejected.
+								mPiecesShort,		// Number of pieces rejected as short.
+								mPiecesLong,		// Number of pieces rejected as long.
+								fuelLeftAmount,		// Raw amount of fuel left.
+								fuelLeftPercent		// Percent of fuel left.
+							]
+						);
+					}
 				}
 				
 				mResultsOverlay.visible		= true;								// Display the results Overlay
@@ -1066,14 +1218,14 @@
 			}
 			
 			// onChangePlayerTextInput() is called whenever the text is changed in the mPlayerTextInput control.
-			protected function onChangePlayerTextInput(iEvent:KeyboardEvent):void
+			protected function onChangePlayerTextInput(/*iEvent:KeyboardEvent*/):void
 			{
 				mPlayersName = mPlayerTextInput.text;
 
 				//remove focus when user hits enter (purely visual effect)
-				if(iEvent.keyCode == 13) {
-					mPlayerTextInput.focusManager.hideFocus();
-				}
+				//if(iEvent.keyCode == 13) {
+				//	mPlayerTextInput.focusManager.hideFocus();
+				//}
 			}
 			
 			// Player has pressed the Start/Stop button
@@ -1194,10 +1346,6 @@
 		]]>
 	</fx:Script>
 	
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
-	</fx:Declarations>
-	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
 		<s:backgroundFill>
 			<s:LinearGradient rotation="90">
@@ -1209,11 +1357,11 @@
 		<s:Label id="mLevelLabel" x="5" y="3" text="PRACTICE LEVEL" width="318" textAlign="left" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" fontStyle="normal" color="#669035"/>
 		
 		<s:Label id="mPlayersNameLabel" x="280" y="9" color="#7B9453" fontFamily="Arial" fontSize="16" fontWeight="bold" text="Player's Name:" />
-		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" keyUp="onChangePlayerTextInput(event)" color="#7B9453" enabled="true"
+		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput()" color="#7B9453" enabled="true"
 					 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
 		
 		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}"/>
-		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="100"/>
+		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
 	</s:BorderContainer>
 	
 	<s:Button id="mStartStopButton" x="20" y="46" width="100" height="30" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
@@ -1251,5 +1399,5 @@
 		<s:Label id="mCutStyleValue" x="437" y="308" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="220" textAlign="left" visible="true"/>
 	</s:BorderContainer>
 	
-	<s:Label id="mVersionLabel" x="600" y="386" width="140" color="#666666" initialize="mVersionLabel.text=VERSION" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="580" y="386" width="160" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
 </s:Application>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- http://blog.flexexamples.com/2010/03/24/using-a-bitmap-image-skin-in-a-spark-button-control-in-flex-4/ -->
-<s:SparkSkin name="DifficultyEasyButtonSkin"
+<s:SparkSkin name="DifficultyMediumButtonSkin"
 			 xmlns:fx="http://ns.adobe.com/mxml/2009"
 			 xmlns:s="library://ns.adobe.com/flex/spark"
 			 xmlns:fb="http://ns.adobe.com/flashbuilder/2009"
@@ -30,16 +30,16 @@
 			}
 			
 			override protected function initializationComplete():void {
-				useChromeColor = true;
+				useChromeColor = false;
 				super.initializationComplete();
 			}
 		]]>
 	</fx:Script>
 	
 	<s:BitmapImage id="bitImg" 
-				   source="@Embed('../../odysseyAssets/SO-UI2-DifficultyEasy-Up.png')"
-				   source.over="@Embed('../../odysseyAssets/SO-UI2-DifficultyEasy-Over.png')"
-				   source.down="@Embed('../../odysseyAssets/SO-UI2-DifficultyEasy-Down.png')"
+				   source="@Embed('../../odysseyAssets/Difficulty-Level2-Up.png')"
+				   source.over="@Embed('../../odysseyAssets/Difficulty-Level2-Over.png')"
+				   source.down="@Embed('../../odysseyAssets/Difficulty-Level2-Down.png')"
 				   left="0" right="0" top="0" bottom="0" />
 	
 </s:SparkSkin>

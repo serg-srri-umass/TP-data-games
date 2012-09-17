@@ -17,6 +17,8 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
-	<s:Button id="mLevelOneButton" x="82" y="183" skinClass="odyssey.skins.DifficultyEasyButtonSkin" depth="2" enabled="true"/>
-	<s:Button id="mLevelTwoButton" x="82" y="207" skinClass="odyssey.skins.DifficultyMediumButtonSkin" depth="2" enabled="true"/>
+	<s:Button id="mLevelOneButton" x="82" y="157" skinClass="odyssey.skins.DifficultyLevel1ButtonSkin" depth="2" enabled="true"/>
+	<s:Button id="mLevelTwoButton" x="82" y="181" skinClass="odyssey.skins.DifficultyLevel2ButtonSkin" depth="2" enabled="true"/>
+	<s:Button id="mLevelThreeButton" x="82" y="205" skinClass="odyssey.skins.DifficultyLevel3ButtonSkin" depth="2" enabled="true"/>
+	<s:Button id="mLevelFourButton" x="82" y="229" skinClass="odyssey.skins.DifficultyLevel4ButtonSkin" depth="2" enabled="true"/>
 </s:TitleWindow>

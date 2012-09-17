@@ -9,10 +9,14 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
 			   xmlns:mx="library://ns.adobe.com/flex/mx" height="400" width="800"
 			   xmlns:default="noisy.*"
-			   creationComplete="startUp( )" backgroundAlpha="1.0"> 
+			   creationComplete="startUp( )"
+			   activate="ScriptInterface.signalActivation()" 
+			   deactivate="ScriptInterface.signalDeactivation()"
+			   backgroundAlpha="1.0"> 
 
 	<fx:Script>
 		<![CDATA[
+			import com.adobe.serialization.json.JSON;
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
 			import common.ParkMiller;
@@ -38,7 +42,17 @@
 			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
 			
-			public static const VERSION:String = "Rock Roll [F] 2012.05.03";
+			// BUILD FOR TinkerPlots or DG: 
+			// edit true/false and rebuild to create a new build for each.
+			// export the DG version to ./bin-release
+			// export the TinkerPlots version to ./bin-release-tp
+			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
+			public static const VERSION:String = "Rock Roll v.2012.08.07";
+			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
+			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
+			private function getVersion():String {
+				return( VERSION + (kUseDataGamesInterface ? DG_suffix : TP_suffix ));
+			}
 			
 			public static const NUMBER_OF_ROCKS:uint	= 16;	// Number of rocks total
 			public static const ROCKS_TO_ROLL:uint		= 4;	// How many rocks to roll at once
@@ -61,6 +75,9 @@
 			public static const kLevelTwo:uint			= 2;			// Second game level.
 			public static const kLevelOneLabel:String	= "Level One"	// Level one label.
 			public static const kLevelTwoLabel:String	= "Level Two"	// Level two label.
+			
+			public static const kEventsCollectionName:String = "Rolls";
+			public static const kGamesCollectionName:String = "Games";
 				
 			// Standard deviations for top and bottom courts.
 			public static const kStdDeviationA:Number	= 6.7;
@@ -75,6 +92,7 @@
 			private var mPrevLevel:uint				= 1;	// Used to track level changes.
 			private var mStrengthArrayLength:Number	= 0;	// Length of strength arrays.
 			private var mNextRockToRoll:uint		= 0;	// Next rock in queue to roll.
+			private var mNextRockToSend:uint		= 0;	// Next rock in queue to send to DG/TinkerPlots (always <= mNextRockToRoll).
 			private var mMostRecentRockRolled:uint	= 0;	// Keeps track of most recent rock rolled (0 based like mNextRockToRoll).
 			private var mMostRecentGamePlayed:uint	= 0;	// Keeps track of most recent game played (1 based).
 			private var mCurrentGameScore:uint		= 0;	// Game score so far.
@@ -84,6 +102,7 @@
 			private var mStartY:Number				= 32; 	// Starting Y position for first rock.
 			private var mOffsetY:Number				= 16; 	// Y distance between rocks.
 			private var mCurrentGameSinceLaunch:uint= 1;	// Track game number for data tracking. Starts at 1.
+			private var mLastGameOpened:uint		= 0;	// Track game number last used by sendGameDataOpen()
 			private var mPlayAutomatically:Boolean	= false;// Flag to specify current play mode.
 			private var mRocksAreRolling:Boolean	= false;// Flag true while rocks are rolling.
 			private var mRollRocksButtonDown:Boolean= false;// Flag true while roll rocks button is down.
@@ -93,6 +112,7 @@
 			private var mRollReturnCounter:uint		= 0;	// Counter used for current number of rolls that have 
 															// 		completed their return to the start.
 															// 		Used by onRockReturnComplete.
+			private	var	parentCaseID:int = 0;
 			
 			// Info about the 2 distributions used for the top and bottom shuffle courts.
 			private var mStdDeviationA:Number	= kStdDeviationA;
@@ -183,6 +203,7 @@
 				this.drawAllRocks();		// Draw rocks in their initial starting places.
 				
 				mNextRockToRoll			= 0;	// Start with first rock.
+				mNextRockToSend			= 0;	// Start with first rock.
 				mMostRecentRockRolled	= 0;	// Keep track of most recent rock rolled.
 				mMostRecentGamePlayed	= 0;	// Keep track of most recent game played.
 				mPlayAutomatically		= false;// Start in non-batch mode.
@@ -196,41 +217,220 @@
 				mBottomGameScore		= 0;	// Game begins at zero.
 				mCurrentAverageScore	= 0;	// Zero out average score used in autoplay mode.
 				
-				ScriptInterface.NewCollectionWithAttributes(
-					"Rolls",
-					[
-						"GameNumber",	// Game number starting with 1 since launch of application.
-						"RollOrder",	// Roll order within the current game being played.
-						"Court",		// Top or bottom court.
-						ShuffleRock.COLOR_STRING,	// Name of first attribute, such as "Color"
-						ShuffleRock.PATTERN_STRING,	// Name of second attribute, such as "Pattern"
-						ShuffleRock.SHAPE_STRING,	// Name of third attribute, such as "Shape"
-						ShuffleRock.SIZE_STRING,	// Name of fourth attribute, such as "Size"
-						"Strength", 				// Strength at which this roll was executed.
-						"Distance", 				// Distance rocked reached once it stopped rolling.
-						"RollScore"]				// Score earned by this roll of the rock.
-				);
-					
-				ScriptInterface.NewCollectionWithAttributes(
-					"Games",
-					[	"GameNumber",		// Game number starting with 1 since launch of application.
-						"GameScore_Total", 	// Total score for completion of this single game.
-						"GameScore_Top",	// Sub score for rolls 1-8
-						"GameScore_Bottom",	// Sub score for rolls 9-16.
-						"Sorted_By",			// Type by which rocks are sorted, if any.
-						"Strength_Top",			// Use in autplay mode for strength of rolls 1-8.
-						"Strength_Top_1to4",	// Strength used to roll rocks on top half of court for rolls 1-4.
-						"Strength_Top_5to8",	// Strength used to roll rocks on top half of court for rolls 5-8.
-						"Strength_Bottom",		// Use in autplay mode for strength of rolls 9-16.
-						"Strength_Bottom_9to12",	// Strength used to roll rocks on bottom half of court for rolls 9-12.
-						"Strength_Bottom_13to16",	// Strength used to roll rocks on bottom half of court for rolls 13-16.
-					]
-				);
+				sendCollectionData();
 				
 				// Create display game level modal dialog.
 				// Listen for clicks on level buttons in dialog.
 				mLevelWindow = new GameLevelWindow();
 				chooseGameLevel();
+			}
+			
+			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
+			private	function sendCollectionData():void	{
+				var	result:String;
+				
+				if( kUseDataGamesInterface ) 
+				{	// use the DG-compatible data interface for extra functionality; not compatible with TinkerPlots 2.0 Research Edition	
+					var initGameObj:Object = {
+						action: "initGame",
+						args: {
+							name: "Rock Roll",
+							dimensions: { width: this.width, height: this.height },
+							collections: [
+								{
+									name: kGamesCollectionName,
+									attrs:[
+										{name: "GameNumber", type: "nominal", precision: 0, description: "Game number"   } , 
+										{name: "Score_Total", type: "numeric", precision: 0, description: "Total score for completion of game"   } ,	
+										{name: "Score_Top", type: "numeric", precision: 0, description: "Sub score for rolls 1-8"   } ,	
+										{name: "Score_Bottom", type: "numeric", precision: 0, description: "Sub score for rolls 9-16"   } ,	
+										{name: "Sorted_By", type: "nominal", description: "Type by which rocks are sorted, if any"   } ,
+										{name: "Top_Strength", type: "numeric", precision: 0, description: "Use in autplay mode for strength of rolls 1-8"   } ,	
+										{name: "Top_1to4_Strength", type: "numeric", precision: 0, description: "Strength used to roll rocks on top half of court for rolls 1-4"   } ,	
+										{name: "Top_5to8_Strength", type: "numeric", precision: 0, description: "Strength used to roll rocks on top half of court for rolls 5-8"   } ,	
+										{name: "Bottom_Strength", type: "numeric", precision: 0, description: "Use in autplay mode for strength of rolls 9-16"   } ,	
+										{name: "Bottom_9to12_Strength", type: "numeric", precision: 0, description: "Strength used to roll rocks on bottom half of court for rolls 9-12"   } ,	
+										{name: "Bottom_13to16_Strength", type: "numeric", precision: 0, description: "Strength used to roll rocks on bottom half of court for rolls 13-16"   }
+									] ,
+									childAttrName: "game_record"
+								},
+								{
+									name: kEventsCollectionName,
+									attrs:	[
+										{name: "GameNumber", type: "nominal", precision: 0, description: "Game number"   } , 
+										{name: "RollOrder", type: "numeric", precision: 0, description: "Roll order within the game"   } ,	
+										{name: "Court", type: "nominal", description: "Top or bottom court"   } ,	
+										{name: ShuffleRock.COLOR_STRING, type: "nominal", description: "Color of rock"   } , 
+										{name: ShuffleRock.PATTERN_STRING, type: "nominal", description: "Pattern on rock"   } ,
+										{name: ShuffleRock.SHAPE_STRING, type: "nominal", description: "Shape of rock"   } ,
+										{name: ShuffleRock.SIZE_STRING, type: "nominal", description: "Size of rock"   } ,
+										{name: "Strength", type: "numeric", precision: 0, description: "Strength of roll"   } ,
+										{name: "Distance", type: "numeric", precision: 0, description: "Distance rocked reached once it stopped rolling"   } ,
+										{name: "RollScore", type: "numeric", precision: 0, description: "Score earned by this roll of the rock"   } 
+									],
+									labels: {
+										singleCase: "roll",
+										pluralCase: "rolls",
+										singleCaseWithArticle: "a roll",
+										setOfCases: "game events",
+										setOfCasesWithArticle: "the game events"
+									},
+									defaults: { xAttr: "Distance", yAttr: "Court" }
+								}
+							] // collections
+						} // args
+					}; //initGameObj
+					var	initGameString:String = JSON.encode( initGameObj );
+					result = ScriptInterface.doCommand( initGameString );
+				}
+				else {
+					// use the old data interface compatible with TinkerPlots 2.0 Research Edition; 
+					// works less well with DG, does not give game dimensions, does not identify numeric/categorical type of attributes, etc.
+					ScriptInterface.NewCollectionWithAttributes(
+						kEventsCollectionName,
+						[
+							"GameNumber",	// Game number starting with 1 since launch of application.
+							"RollOrder",	// Roll order within the current game being played.
+							"Court",		// Top or bottom court.
+							ShuffleRock.COLOR_STRING,	// Name of first attribute, such as "Color"
+							ShuffleRock.PATTERN_STRING,	// Name of second attribute, such as "Pattern"
+							ShuffleRock.SHAPE_STRING,	// Name of third attribute, such as "Shape"
+							ShuffleRock.SIZE_STRING,	// Name of fourth attribute, such as "Size"
+							"Strength", 				// Strength at which this roll was executed.
+							"Distance", 				// Distance rocked reached once it stopped rolling.
+							"RollScore"]				// Score earned by this roll of the rock.
+					);
+					
+					ScriptInterface.NewCollectionWithAttributes(
+						kGamesCollectionName,
+						[	"GameNumber",		// Game number starting with 1 since launch of application.
+							"Score_Total", 	// Total score for completion of this single game.
+							"Score_Top",	// Sub score for rolls 1-8
+							"Score_Bottom",	// Sub score for rolls 9-16.
+							"Sorted_By",			// Type by which rocks are sorted, if any.
+							"Strength_Top",			// Use in autplay mode for strength of rolls 1-8.
+							"Strength_Top_1to4",	// Strength used to roll rocks on top half of court for rolls 1-4.
+							"Strength_Top_5to8",	// Strength used to roll rocks on top half of court for rolls 5-8.
+							"Strength_Bottom",		// Use in autplay mode for strength of rolls 9-16.
+							"Strength_Bottom_9to12",	// Strength used to roll rocks on bottom half of court for rolls 9-12.
+							"Strength_Bottom_13to16",	// Strength used to roll rocks on bottom half of court for rolls 13-16.
+						]
+					);
+				}
+			}
+			
+			// send the Game-level data to TinkerPlots or DG.
+			// this creates and opens the game case, see also sendGameDataClose()
+			private function sendGameDataOpen():void 
+			{
+				var vals:Array = [
+					mCurrentGameSinceLaunch,
+					0,
+					0,
+					0,
+					mSortRocksList.selectedItem.text
+				];
+				if( kUseDataGamesInterface ) { // if DG
+					var openGameCaseObj:Object = {
+							action: "openCase",
+							args: { 
+								collection: kGamesCollectionName,
+								values: vals
+							} 	
+						}
+					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
+					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+					this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
+				} else {
+					// else do nothing for TinkerPlots; old game API wants nothing for start of game
+				}
+				// save the game number opened, to help us know when to open a new game with auto-play
+				mLastGameOpened = mCurrentGameSinceLaunch;
+			}
+			
+			private function sendGameDataUpdate():void 
+			{
+				// update the game data (relies on the global values to have changed)
+				sendGameDataClose( "", "", [undefined,undefined,undefined,undefined], false );
+			}
+			
+			// send the Game-level data to TinkerPlots or DG.
+			// this updates and closes the game case created by sendGameDataOpen()
+			private function sendGameDataClose( iStrengthTop:String, iStrengthBottom:String, iStrengthArray:Array, wantCaseClosed:Boolean = true ):void
+			{
+				var vals:Array = [
+							mCurrentGameSinceLaunch,
+							mCurrentGameScore,
+							mTopGameScore,
+							mBottomGameScore,
+							mSortRocksList.selectedItem.text,
+							iStrengthTop,
+							iStrengthArray[0],
+							iStrengthArray[1],
+							iStrengthBottom,
+							iStrengthArray[2],
+							iStrengthArray[3]
+						];
+			
+				if( kUseDataGamesInterface ) { // if DG 
+					var	closeGameCaseObj:Object = { 
+							action: (wantCaseClosed ? "closeCase" : "updateCase" ),
+							args: { 
+								collection: kGamesCollectionName,
+								caseID: this.parentCaseID,
+								values: vals
+							}
+						};
+					ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
+				} 
+				else { // TinkerPlots 2.0 Research Edition interface
+					ScriptInterface.AddCaseToCollectionWithValues(
+						kGamesCollectionName, 
+						vals );
+				}
+			}
+			
+			// send the Event-level data to TinkerPlots or DG.
+			private function sendEventData( iRollsArray:Array, iStartIndex:int, iEndIndex:int ):void 
+			{
+				var arrayOfEvents:Array = [];
+				for (var rollIndex:Number = iStartIndex; rollIndex < iEndIndex; ++rollIndex)
+				{
+					//trace("sendEventData() adding roll "+iRollsArray[rollIndex].mRollOrder);
+					var oneEvent:Array = [
+						iRollsArray[rollIndex].mGameNumber,
+						iRollsArray[rollIndex].mRollOrder,
+						iRollsArray[rollIndex].mCourt,
+						iRollsArray[rollIndex].mColorString,
+						iRollsArray[rollIndex].mPatternString,
+						iRollsArray[rollIndex].mShapeString,
+						iRollsArray[rollIndex].mSizeString,
+						iRollsArray[rollIndex].mStrength,
+						iRollsArray[rollIndex].mDistance,
+						iRollsArray[rollIndex].mRollScore
+					];
+					arrayOfEvents.push( oneEvent );
+				}
+				if( kUseDataGamesInterface ) { // DG interface
+					var createEventCaseObj:Object = {
+						action: "createCases",
+						args: {
+							collection: kEventsCollectionName,
+							parent: this.parentCaseID,
+							values: arrayOfEvents
+						}
+					};
+					ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
+				}
+				else { // TinkerPlots interface
+					for (var eventIndex:int = 0; eventIndex < arrayOfEvents.length; ++eventIndex) 
+					{
+						ScriptInterface.AddCaseToCollectionWithValues( 
+							kEventsCollectionName, 
+							arrayOfEvents[ eventIndex ]
+						);
+					}
+				}
 			}
 			
 			// enableAutoPlayCheckBoxAndLabel() enables/disables the autoplay checkbox
@@ -777,7 +977,13 @@
 						
 						// Data for each roll is saved until the game is complete before transmitting to 
 						// TinkerPlots/Fathom.
-						var rollDataArray:Array	= new Array(NUMBER_OF_ROCKS);
+						//var rollDataArray:Array	= new Array(NUMBER_OF_ROCKS);
+						
+						// Send data on this game to TinkerPlots/Fathom/DG.
+						if( mCurrentGameSinceLaunch != mLastGameOpened ) {
+							sendGameDataOpen(); // if not opened by onNewNewGame(), e.g. during auto-play
+						}
+						sendGameDataUpdate();
 						
 						// Roll a number of rocks, being sure to stop before end of total number of rocks.
 						var i:Number = 0;
@@ -896,7 +1102,7 @@
 	
 							mMostRecentRockRolled = mNextRockToRoll; // Keep track of most recent rock rolled.
 							mNextRockToRoll += 1;	// Roll is done and tracked. Increment counter.
-						}
+						}	// for( i=rock 0 to n)
 						
 						// Save the strengths for later transmission to TinkerPlots/Fathom.
 						if (!mPlayAutomatically)	
@@ -924,10 +1130,18 @@
 							}
 						}
 						
+						
+						// Send data for each individual roll to TinkerPlots/Fathom/DG.
+						var numRocksToSend:int = mNextRockToRoll - mNextRockToSend;
+						//trace( "sending data for roll "+mNextRockToSend+" plus "+numRocksToSend );
+						sendEventData( mRollDataArray, mNextRockToSend, mNextRockToRoll ); // send rocksToRoll events (max is NUMBER_OF_ROCKS)
+						mNextRockToSend = mNextRockToRoll;
+						
 						// Reset "next rock to roll" back to first rock, if we have moved past the end of the rocks.
 						if (mNextRockToRoll >= NUMBER_OF_ROCKS)
 						{
 							mNextRockToRoll				= 0;		// Reset rock back to first rock.
+							mNextRockToSend				= 0;	// Start with first rock.
 							mRollRocksButton.enabled	= false;	// Can't roll again until new game button is pressed.
 							enableStrengthSliderAAndLabel(false);	// Can't roll again until new game button is pressed.
 							enableStrengthSliderBAndLabel(false);	// Can't roll again until new game button is pressed.
@@ -943,43 +1157,8 @@
 								strengthBottom	= mStrengthSliderB.value.toString(); 
 							}
 							
-							// Send data for each individual roll to TinkerPlots/Fathom.
-							// Doing so here allows for data not to be sent prematurely in the event
-							// of an aborted game.
-							for (var rollIndex:Number = 0; rollIndex < NUMBER_OF_ROCKS; ++rollIndex)
-							{
-								ScriptInterface.AddCaseToCollectionWithValues("Rolls", 
-									[
-										mRollDataArray[rollIndex].mGameNumber,
-										mRollDataArray[rollIndex].mRollOrder,
-										mRollDataArray[rollIndex].mCourt,
-										mRollDataArray[rollIndex].mColorString,
-										mRollDataArray[rollIndex].mPatternString,
-										mRollDataArray[rollIndex].mShapeString,
-										mRollDataArray[rollIndex].mSizeString,
-										mRollDataArray[rollIndex].mStrength,
-										mRollDataArray[rollIndex].mDistance,
-										mRollDataArray[rollIndex].mRollScore
-									]	
-								);
-							}
-							
-							// Send data on this game to TinkerPlots/Fathom.
-							ScriptInterface.AddCaseToCollectionWithValues("Games", 
-								[	
-									mCurrentGameSinceLaunch,
-									mCurrentGameScore,
-									mTopGameScore,
-									mBottomGameScore,
-									mSortRocksList.selectedItem.text,
-									strengthTop,
-									mStrengthArray[0],
-									mStrengthArray[1],
-									strengthBottom,
-									mStrengthArray[2],
-									mStrengthArray[3]
-								]	
-							);
+							// Send data on this game to TinkerPlots/Fathom/DG.
+							sendGameDataClose( strengthTop, strengthBottom, mStrengthArray );
 		
 							// Calculate the average game score when in batch mode.
 							if (mPlayAutomatically)
@@ -996,7 +1175,7 @@
 							mCurrentGameSinceLaunch += 1; 			// Game is done and tracked. Increment counter.
 							mPrevLevel 				= mGameLevel;	// Track game level change.
 						}
-					}
+					}	// for game = 0 to n
 					this.graph.displayGraph(); //display graph for this set of games
 				}
 				catch(e:ScriptTimeoutError)
@@ -1086,6 +1265,9 @@
 				
 				// Update instructions text.
 				updateInstructionsText();
+				
+				// Send data on this game to TinkerPlots/Fathom/DG.
+				sendGameDataOpen();
 			}
 			
 			protected function cancelPressed():void
@@ -1128,7 +1310,7 @@
 				{
 					enableNumberGamesStepperAndLabel(true);
 					mPlayAutomatically			= true;
-//					graph.visible = true; //TODO: uncomment to enable graph
+					graph.visible = true;
 				}
 				else
 				{
@@ -1150,7 +1332,7 @@
 			}
 			
 //			protected function rollComplete()
-			protected function updateGraph(e:EffectEvent)
+			protected function updateGraph(e:EffectEvent):void
 			{
 				//this.graph.score.text = "Avg Score: " + mCurrentAverageScore;
 //				this.graph.displayGraph();
@@ -1175,7 +1357,7 @@
 		
 		<s:RichText text="ROCK ROLL" id="mGameTitle" fontFamily="Verdana" fontSize="20" color="#4E594E" x="120" y="6" width="559" textAlign="center" verticalAlign="top" height="28" fontStyle="normal" textDecoration="none" fontWeight="normal" backgroundAlpha="1.0"/>
 		
-		<s:Label id="mVersionLabel" x="610" y="8" width="172" color="#4E594E" initialize="mVersionLabel.text=VERSION" textAlign="right"/>
+		<s:Label id="mVersionLabel" x="610" y="8" width="172" color="#4E594E" initialize="mVersionLabel.text=getVersion()" textAlign="right"/>
 		
 		<!-- //TODO: Volume slider from chainsaw: -->
 		<!--
@@ -1187,8 +1369,10 @@
 	<default:ShuffleCourt x="233" y="58" id="shuffleCourt" fontFamily="Verdana">
 	</default:ShuffleCourt>
 	
-	<default:Graph x="233" y="58" id="graph" visible="false" >
+	<default:Graph x="233" y="58" id="graph" visible="false">
 	</default:Graph>
+	
+	<!-- <s:SpriteVisualElement id="mSpriteVE" /> -->
 
 	<mx:HSlider x="10" y="103" width="200" id="mStrengthSliderA" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthA(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
 	<s:Label x="10" y="154" text="Strength A" id="mStrengthLabelA" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
