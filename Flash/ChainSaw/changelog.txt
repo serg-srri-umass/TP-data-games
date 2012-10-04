@@ -3,6 +3,12 @@ Change Log
 Newer entries first
 
 ===========================
+2012.10.01
+Data is now sent to dg in chunks.
+Removed CutLogInOrderMod()
+Moved acceptance logic to PieceStatus class
+
+===========================
 2012.04.11
 Ouputted data attributes reordered.
 

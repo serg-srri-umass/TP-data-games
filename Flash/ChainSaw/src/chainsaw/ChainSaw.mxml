@@ -40,7 +40,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2012.08.07";
+			public static const VERSION:String   = "Chainsaw v.2012.10.01";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -85,6 +85,7 @@
 			public static const kAcceptString:String		= "Yes";
 			public static const kRejectShortString:String	= "No-Short";
 			public static const kRejectLongString:String	= "No-Long";
+			public static const kRemnantString:String		= "Remnant";
 			
 			// Minimum accepted cut length in pixels.
 			public static const kMinCutLength:Number	= kReferenceLength * (1.0 - (kPercentAllowance / 100));	
@@ -533,91 +534,41 @@
 
 			
 			// recordPieceStatus() evaluates the piece's acceptance status and records the outcome
-			// by setting a visual marker on each log and also transmitting the info to 
-			// Fathom/TinkerPlots.
-			protected function recordPieceStatus(iLength:Number,		// Piece length
-												 iLogNumber:int, 		// Number of log ( 1 is at top).
-												 iIsEndPiece:Boolean, 	// True if end piece.
-												 iLeftToRight:Boolean,	// True if cutting left to right.
-												 iIsNewLog:Boolean,		// True if measuring on new log for first time.
-												 iFuelUsed:Number,		// Raw fuel used at the time of piece creation.
-												 iPrevXCut:Number = 0,	// Cut before this cut or game end.
-												 iCutX:Number = 0,		// X cut location on log. 0 if end piece.
-												 iPieceNumber:uint = 0	// Piece number. If not 0, transmit this number instead of mPieceNumber.
-			):void
+			// by setting a visual marker on each log.
+			protected function recordPieceStatus(pieceStatus:PieceStatus, pieceNumberBase:uint=0):void
 			{
-				var currentLog:MovieClip = mLogArray[iLogNumber-1][0] as MovieClip; // The current log
-				var log_length:Number = currentLog['LogLength']; // get the length of the current log
+				var currentLog:MovieClip = mLogArray[pieceStatus.mLogNumber-1][0] as MovieClip; // The current log
 				
 				// Not cutting, so don't specify a cut location.
-				if (iIsEndPiece) iCutX = 0;
+				if (pieceStatus.mIsEndPiece) pieceStatus.mCutX = 0;
 				
 				// Create "X" or "√" for piece to indicate rejected or accepted. "O" for remnants.
-				var statusLabel:Label	= new Label();
-				statusLabel.width		= 14;			// Setting manually, as measureText() fails with Spark Label.
-				statusLabel.height		= 14;
-				statusLabel.setStyle("fontWeight", "bold");
-				statusLabel.setStyle("fontSize", "16");
-				statusLabel.setStyle("antiAliasType", "normal");
-				statusLabel.setStyle("justificationStyle", "auto");
-				
+				var statusLabel:Label = createStatusLabel();
+								
 				// Accept cut piece if it falls within accepted range.
-				var accepted:Boolean = (iLength >= kMinCutLength) && (iLength <= kMaxCutLength);
-				var remnant:Boolean;
-				var acceptString:String;
-				
-				// Check if a piece is a remnant if it is not accepted
-				if(!accepted)
-				{
-					remnant = false; // Initialize to false
-					
-					if(iIsEndPiece)
-					{
-						// if there is not enough room for two cuts at the (but more than one)
-						if(iLeftToRight && (log_length - iPrevXCut) < kReferenceLength*2) //left to right cut
-						{
-							remnant = true;
-						}
-						else if(iPrevXCut < kReferenceLength*2) //right to left cut
-						{
-							remnant = true;
-						}
-					}
-					
-					if(iLength <= kReferenceLength/2) // a piece less than or equal to half the reference length
-					{
-						remnant = true;
-					}
-					if(iLength >= kReferenceLength+(kReferenceLength/2)) // a piece over 1.5 times the reference length
-					{
-						remnant = true;
-					}
-				}
+				var accepted:Boolean = pieceStatus.isAccepted();
+				var remnant:Boolean = pieceStatus.isRemnant();
+				var acceptString:String = pieceStatus.getAcceptString();
 				
 				// Keep track of how many cut pieces are accepted / rejected and set status label text.
 				if (accepted){
-					if (!practice)
-						++mPieceNumber;
+					if (!practice) ++mPieceNumber;
 					++mPiecesAccepted;
 					statusLabel.text	= "√";					// Check mark = OK.
 					statusLabel.setStyle("color", "0x00FF00");	// Green = OK.
-					acceptString = kAcceptString;
 				}else if (remnant){
-					if (!practice)  ++mPieceNumber;	
+					if (!practice) ++mPieceNumber;
 					statusLabel.text = "O";
 					statusLabel.setStyle("color", "0xFFFF00"); // Yellow
-					acceptString = "Remnant";
 					++mPiecesRemnant;
 				}else{
 					if (!practice) ++mPieceNumber;
 					++mPiecesRejected;
 					statusLabel.text = "X";						// X = not OK.
 					statusLabel.setStyle("color", "0xFF0000");	// Red = not OK.
-					if(iLength < kMinCutLength){
-						acceptString = kRejectShortString;
+					if(pieceStatus.mLength < kMinCutLength){
 						++mPiecesShort;
 					}else{
-						acceptString = kRejectLongString;
 						++mPiecesLong;
 					}
 				}
@@ -625,42 +576,49 @@
 				// Set y location of status label for cut piece.
 				statusLabel.y = (currentLog.height / 2) - (statusLabel.height / 2) + currentLog.y;
 				// Set x location of status label for cut piece.
-				if (iLeftToRight>0){
+				if (pieceStatus.mLeftToRight>0){
 					// End piece or cutting along same log as at the last cut.
-					if (iIsEndPiece || (!iIsEndPiece && !iIsNewLog))
-						statusLabel.x = iPrevXCut + (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
+					if (pieceStatus.mIsEndPiece || (!pieceStatus.mIsEndPiece && !pieceStatus.mIsNewLog))
+						statusLabel.x = pieceStatus.mPrevXCut + (pieceStatus.mLength / 2) - (statusLabel.width / 2)+currentLog.x;
 						// Cutting on new log.
-					else statusLabel.x = (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
+					else statusLabel.x = (pieceStatus.mLength / 2) - (statusLabel.width / 2)+currentLog.x;
 				}
-				else statusLabel.x = iCutX + (iLength / 2) - (statusLabel.width / 2)+currentLog.x;
+				else statusLabel.x = pieceStatus.mCutX + (pieceStatus.mLength / 2) - (statusLabel.width / 2)+currentLog.x;
 				
 				//add statusLabel element to holder to be shown later
 				mStatusLabelHolder.addElement(statusLabel);
-				
+			}
+			/*
+			Send a single piece data to DG/TinkerPlots/Fathom.
+			*/
+			protected function transmitPieceStatus(pieceStatus:PieceStatus, pieceNumberBase:uint=0):void
+			{
+				var currentLog:MovieClip = mLogArray[pieceStatus.mLogNumber-1][0] as MovieClip; // The current log
 				if (!practice)
 				{
-					var lengthTwoDecimals:String	= (iLength * kConvertToInches).toFixed(2);
-					var pieceNumber:uint 			= iPieceNumber == 0 ? mPieceNumber : iPieceNumber;
+					var lengthTwoDecimals:String	= (pieceStatus.mLength * kConvertToInches).toFixed(2);
+					var pieceNumber:uint 			= pieceStatus.mCutNumber+pieceNumberBase == 0 ? mPieceNumber : pieceStatus.mCutNumber+pieceNumberBase;
 					var thickness:String = currentLog.getLogWidthLabel();
+					var acceptString:String = pieceStatus.getAcceptString();
 					
 					// Send info on cut pieces to TinkerPlots/Fathom.
 					if( kUseDataGamesInterface ) 
 					{
 						// send data for case in Cut collection to DG
 						var createCaseObj:Object = {
-								action: "createCase",
-								args: {
-									collection: kCutsCollectionName,
-									parent: this.parentCaseID,
+							action: "createCase",
+							args: {
+								collection: kCutsCollectionName,
+								parent: this.parentCaseID,
 									values: [
 										mGameNumber,
 										lengthTwoDecimals,
 										thickness,
 										acceptString,
-										iLogNumber
+										pieceStatus.mLogNumber
 									]
-								}
-							};
+							}
+						};
 						ScriptInterface.doCommand( JSON.encode( createCaseObj ));
 					}
 					else {
@@ -673,11 +631,27 @@
 								lengthTwoDecimals,	// Piece length.
 								thickness,			// log label "thin" or "thick"
 								acceptString,		// Status of cut piece.
-								iLogNumber			// Number of log from which piece was cut.
+								pieceStatus.mLogNumber			// Number of log from which piece was cut.
 							]
 						);
 					}
 				}
+			}
+			
+			/**
+			 * Creates a label to mark the piece on the log at the end of the game.
+			 */
+			private function createStatusLabel():Label
+			{
+				var statusLabel:Label	= new Label();
+				statusLabel.width		= 14;			// Setting manually, as measureText() fails with Spark Label.
+				statusLabel.height		= 14;
+				statusLabel.setStyle("fontWeight", "bold");
+				statusLabel.setStyle("fontSize", "16");
+				statusLabel.setStyle("antiAliasType", "normal");
+				statusLabel.setStyle("justificationStyle", "auto");
+				
+				return statusLabel;
 			}
 			
 			// startGame() is called whenever the start button is pressed.
@@ -799,14 +773,18 @@
 					
 					// Evaluate the piece's acceptance status and record the outcome by setting a 
 					// visual marker on each log and also transmit the info to Fathom/TinkerPlots.
-					recordPieceStatus(	
+					recordPieceStatus(new PieceStatus(
 						woodRemaining, 			// Piece length
 						mCurrentLog, 			// Number of log ( 1 is at top).
 						isEndPiece, 			// True if end piece.
 						mLeftToRight, 			// True if cutting left to right.
 						mCurrentLog != mLastLog,// True if measuring on new log for first time.
 						mFuelUsed,				// Raw fuel used at the time of piece creation.
-						mLastCutX);				// X cut location on log. 0 if end piece.
+						mLastCutX,				// Last cut location
+						0,						// Cut location
+						0,						// Cut number
+						mLogArray)
+					);
 				}
 				
 				var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates);
@@ -955,7 +933,8 @@
 								mLogArray[ii][2][j].mFuelUsed,	// Raw fuel left at the time of piece creation.
 								prevCut,						// Cut before this cut or game end.
 								mLogArray[ii][2][j].mCutX,		// X cut location on log. 0 if end piece.
-								mLogArray[ii][2][j].mCutNumber	// Cut number. 
+								mLogArray[ii][2][j].mCutNumber,	// Cut number.
+								mLogArray
 							);
 						
 						pieceStatusArray.push(pieceStatus);
@@ -978,7 +957,8 @@
 									mLogArray[ii][2][j].mFuelUsed,	// Raw fuel left at the time of piece creation.
 									prevCut,						// Cut before this cut or game end.
 									0,								// X cut location on log. 0 if end piece.
-									mLogArray[ii][2][j].mCutNumber	// Cut number.  
+									mLogArray[ii][2][j].mCutNumber,	// Cut number.
+									mLogArray
 								);
 							pieceStatusArray.push(endPieceStatus);
 						}
@@ -999,21 +979,37 @@
 					if (pieceStatusArray[k].mCutNumber == prevCutNumber)
 						++pieceNumberBase;
 					
-					// Transmit to TinkerPlots/Fathom.
-					recordPieceStatus(	
-						pieceStatusArray[k].mLength,			
-						pieceStatusArray[k].mLogNumber, 		
-						pieceStatusArray[k].mIsEndPiece, 	
-						pieceStatusArray[k].mLeftToRight,	
-						pieceStatusArray[k].mIsNewLog,		
-						pieceStatusArray[k].mFuelUsed,		
-						pieceStatusArray[k].mPrevXCut,	
-						pieceStatusArray[k].mCutX,		
-						pieceStatusArray[k].mCutNumber + pieceNumberBase
-					);
+					// Mark logs with '√', 'X', or 'O'
+					recordPieceStatus(pieceStatusArray[k], pieceNumberBase);
 					
 					prevCutNumber = pieceStatusArray[k].mCutNumber; // Track previous cut number.
 				}
+				
+				/**
+				 * Code to send small chunks of data to dg at a time
+				 */
+				var intID:uint = setInterval(sendChunk, 500); //sends a chunk of data every 500ms
+				const chunkSize:int = 10;
+				var start:int=0, end:int=chunkSize; //send 10 at a time
+				function sendChunk():void
+				{
+					for (var k:Number = start; k<end && k<pieceStatusArray.length; ++k)
+					{
+						if (pieceStatusArray[k].mCutNumber == prevCutNumber)
+							++pieceNumberBase;
+						
+						// Transmit to TinkerPlots/Fathom.
+						transmitPieceStatus(pieceStatusArray[k], pieceNumberBase);
+						
+						prevCutNumber = pieceStatusArray[k].mCutNumber; // Track previous cut number.
+					} //End for()
+					
+					start+=chunkSize;
+					end+=chunkSize;
+					if(end>pieceStatusArray.length) end=pieceStatusArray.length;
+					if(start>=end) clearInterval(intID);
+				} //End sendChunk()
+				
 			}
 			
 			/**
@@ -1063,128 +1059,6 @@
 					// Fuel has been consumed and game is over.
 					endGame();					
 				}				
-			}
-			
-			// cutLogInOrder() performs all cutting operations when the passed in log is cut at 
-			// the x position being passed in. The x position is in the coordinate system of the log being cut.	
-			protected function cutLogInOrderMod(iLog:MovieClip,
-												iLocalX:Number,
-												iNextLog:MovieClip = null,
-												iTopToBottom:Boolean = true):void
-			{
-				// Don't cut if chainsaw is not running and we're not in practice mode.
-				if (!practice && !mFuelTimer.running)return;
-				
-				var newArrowXPosition:Number = iLog.x + iLocalX - (0.75*mArrowSprite.getWidth());
-				
-				//get info from the log we are cutting
-				iNextLog = iLog['getNextLog']();
-				var iLeftToRight:int = iLog['getCutDirection']();
-				
-				// Only cut in specified direction.
-				if ((iLeftToRight>0 && mArrowSprite.x < newArrowXPosition) || 
-					(iLeftToRight<0 && mArrowSprite.x > newArrowXPosition))
-				{					
-					// Calculate distance from end of log in the direction player is cutting.
-					var woodRemaining:Number	= iLeftToRight>0? iLog.width - iLocalX -10 : iLocalX;
-					
-					// If player has wood to cut, the intended cut is not an end piece.
-					var isEndPiece:Boolean		= false; 
-					
-					//Move arrow to cut
-					mArrowSprite.x = newArrowXPosition;	// Move arrow to location just selected.
-					
-					// If there is not enough wood left to do another acceptable cut on this 
-					// log or the end piece is within the acceptable length range AND if there
-					// remains another log to cut, move the arrow cursor to the next log and 
-					// prepare to cut this next log.
-					if	(woodRemaining <= kMaxCutLength)
-					{	
-						isEndPiece			= true;	// Remainder of log counts as an end piece.
-						if(iNextLog){
-							iLog.enabled		= false;// Stop further cuts on this log.
-							iNextLog.enabled	= true;	// Enable cuts on this log.
-							
-							mArrowSprite.y = iNextLog.y - mArrowSprite.getHeight() - 3;	// Start at top edge of next log.
-							mArrowSprite.x = iNextLog.x - mArrowSprite.getWidth() + 3;	// Start with arrow pointing at left edge of next log.
-//							mArrowSprite.visible = false;
-							if (iNextLog['getCutDirection']()<0){
-								mArrowSprite.x = iNextLog.width+iNextLog.x - (mArrowSprite.getWidth()) - 5;	// Move to right end of log if just cut left to right.
-							}
-							
-							mArrowSprite.visible = false;
-							
-							// Move arrows to next log.
-							mCutRightSprite.x	= iNextLog.x - 58;
-							mCutRightSprite.y	= iNextLog.y - 30;
-							mCutLeftSprite.x	= iNextLog.x + iNextLog.width - 20;
-							mCutLeftSprite.y	= iNextLog.y - 30;
-							
-							//make the appropriate cut direction arrow display
-							var b:Boolean = iLeftToRight<0;
-							mCutRightSprite.visible = b ? true : false;
-							mCutLeftSprite.visible = b ? false : true;
-							
-							++mCurrentLog; // Increment the current log counter.
-						}
-					}
-					else
-					{
-						mArrowSprite.visible	= true;
-						mCutRightSprite.visible	= false;
-						mCutLeftSprite.visible	= false;
-					}
-					
-					var pieceLength:Number	= 0; // Length of piece player has just cut (in pixels).
-					if (iLog['getLogNum']() == mLastLog)	// Cutting along same log as at the last cut.
-						pieceLength = Math.abs(iLocalX - mLastCutX);
-					else
-					{
-						if (iLeftToRight>0)
-							pieceLength = iLocalX;				// First cut from left edge of log.
-						else
-							pieceLength = iLog.width - iLocalX - 10;	// First cut from right edge of log.
-					}
-					// Evaluate the piece's acceptance status and record the outcome by setting a 
-					// visual marker on each log and also transmit the info to Fathom/TinkerPlots.
-					var wasEndPiece:Boolean = false;	// This was not an end piece.
-					recordPieceStatus(			
-						pieceLength, 			// Piece length
-						iLog['getLogNum'](), 			// Number of log ( 1 is at top).
-						wasEndPiece, 			// True if end piece.
-						iLeftToRight>0, 			// True if cutting left to right.
-						(iLog['getLogNum']() != mLastLog),// True if measuring on new log for first time.
-						mFuelUsed,				// Raw fuel used at the time of piece creation.
-						mLastCutX, 				// Cut before this cut or game end.
-						iLocalX);				// X cut location on log. 0 if end piece.
-					
-					mLastLog	= iLog['getLogNum']();	// Update cut log counter.
-					mLastCutX	= iLocalX;		// Update X position of most recent cut.
-					
-					if (isEndPiece)
-					{
-						// Evaluate the piece's acceptance status and record the outcome by setting a 
-						// visual marker on each log and also transmit the info to Fathom/TinkerPlots.
-						recordPieceStatus(
-							woodRemaining,	// Piece length
-							iLog['getLogNum'](), 	// Number of log ( 1 is at top).
-							isEndPiece, 	// True if end piece.
-							iLeftToRight>0, 	// True if cutting left to right.
-							false, 			// True if measuring on new log for first time.
-							mFuelUsed,		// Raw fuel used at the time of piece creation.
-							iLocalX);		// Cut before this cut or game end.
-						
-						//mLeftToRight = !mLeftToRight;	// Was end piece, so next log cuts in opposite direciton.
-						
-						if(iNextLog == null){			// If no other log to cut and this is an end piece, end game
-							endGame();
-						}else{
-							mLastCutX = iNextLog.x + iNextLog.width;
-						}
-					}	
-					
-					
-				}
 			}
 			
 			// cutLogFreely() performs all cutting operations when the passed in log is cut at 
@@ -1312,7 +1186,7 @@
 					if(mGameLevel >= kFreeCutLevel){
 						cutLogFreely(e.currentTarget.content, e.currentTarget.content['StartCutPt'].x);
 					}else{
-						cutLogInOrderMod(e.currentTarget.content, e.currentTarget.content['StartCutPt'].x);
+						//Should not happen, left over from directional cut mode which has been removed
 					}
 				}
 			}
