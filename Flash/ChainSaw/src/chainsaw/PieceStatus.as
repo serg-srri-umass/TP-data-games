@@ -86,7 +86,7 @@ package chainsaw
 			}else if (isRemnant()){
 				return ChainSaw.kRemnantString;
 			}else{
-				if(length < ChainSaw.kMinCutLength){
+				if(mLength < ChainSaw.kMinCutLength){
 					return ChainSaw.kRejectShortString;
 				}else{
 					return ChainSaw.kRejectLongString;
