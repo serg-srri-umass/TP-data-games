@@ -39,8 +39,8 @@
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
-			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2012.10.01";
+			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
+			public static const VERSION:String   = "Chainsaw v.2012.10.17";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -285,8 +285,16 @@
 										{ name: "GameNumber" , type: "nominal" , precision: 0, description: "Game number"   } ,
 										{ name: "Length" , type: "numeric" , precision: 2, description: "Length of cut"   } , 
 										{ name: "Thickness" , type: "nominal" , description: "Thickness of log"  } , 
-										{ name: "Accepted" , type: "nominal" , description: "Is piece an acceptable length?"  } , 
-										{ name: "Log" , type: "numeric" , precision: 0, description: "Log number"  }
+										{ name: "IsAccepted" , type: "nominal" , description: "Is piece an acceptable length?",
+											colormap: { 
+												"Yes": 'green', 	// kAcceptString
+												"No-Short": 'red',	// kRejectShortString
+												"No-Long": 'red',	// kRejectLongString
+												"Remnant": 'yellow'	// kRemnantString
+											}},
+										{ name: "Log" , type: "numeric" , precision: 0, description: "Log number",
+											colormap: { 'attribute-color': '#6f4900'  // brown
+											}}
 									],
 									labels: {
 										singleCase: "piece",
@@ -314,7 +322,7 @@
 							"Game",				// Game number starting with 1 since launch of application.
 							"Length",			// Length of cut piece.
 							"Thickness",		// Thin or thick depending on game type
-							"Accepted",			// True if cut piece is within accepted range of cut length.
+							"IsAccepted",			// True if cut piece is within accepted range of cut length.
 							"Log"				// Number of log from which piece was cut.
 						]
 					);
