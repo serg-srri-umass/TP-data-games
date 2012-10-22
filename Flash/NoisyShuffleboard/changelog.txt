@@ -2,7 +2,9 @@ Rock Roll [Flash]
 Change Log
 Newer entries first.
 
-
+===========================
+2012.10.22
+Data is now sent after the roll animation completes.
 
 ===========================
 2012.01.06 CDM
