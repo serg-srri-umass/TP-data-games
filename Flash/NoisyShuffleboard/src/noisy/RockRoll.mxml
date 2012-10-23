@@ -47,7 +47,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "Rock Roll v.2012.08.07";
+			public static const VERSION:String = "Rock Roll v.2012.10.22";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -56,8 +56,6 @@
 			
 			public static const NUMBER_OF_ROCKS:uint	= 16;	// Number of rocks total
 			public static const ROCKS_TO_ROLL:uint		= 4;	// How many rocks to roll at once
-//			public static const MAX_SCORE_POSSIBLE:uint	= 480;	// Maximum score possible if all rocks score optimally.
-//			public static const MIN_SCORE_POSSIBLE:uint	= 0;	// Minimum score if all rocks get the lowest possible score.
 
 			// Color to use when disabling text associated with controls.
 			public static const DISABLED_TEXT_COLOR:uint= 0x4E594E;	
@@ -155,13 +153,6 @@
 				mInstructionsLabel.text 	= "Press 'New Game' Button to Begin";
 				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
 				enableSortRocksList(false);		// Disable sort rocks list and label.
-				
-				/*
-				// Set up and zero out the score bar.
-				mScoreBar.minimum			= MIN_SCORE_POSSIBLE;
-				mScoreBar.maximum			= MAX_SCORE_POSSIBLE;
-				mScoreBar.setProgress(mScoreBar.minimum, mScoreBar.maximum);
-				*/
 				
 				// Event listeners can go here. 
 				// A disadvantage is that placing the listeners here instead of in the MXML at 
@@ -808,16 +799,47 @@
 							}
 						}
 						
+						if( mCurrentGameSinceLaunch != mLastGameOpened ) {
+							sendGameDataOpen(); // if not opened by onNewNewGame(), e.g. during auto-play
+						}
+						sendGameDataUpdate();
 					}
 				}
 				
-				// Update score bar to reflect rock(s) just rolled.
+				for (var gameCount:uint = 1; gameCount <= mNumberGamesStepper.value; ++gameCount)
+				{
+					sendEventData( mRollDataArray, mNextRockToSend, mNextRockToRoll ); // send rocksToRoll events (max is NUMBER_OF_ROCKS)
+					mNextRockToSend = mNextRockToRoll;
+					
+					// Reset "next rock to roll" back to first rock, if we have moved past the end of the rocks.
+					if (mNextRockToRoll >= NUMBER_OF_ROCKS-1)
+					{
+						mRollRocksButton.enabled	= false;	// Can't roll again until new game button is pressed.
+						enableStrengthSliderAAndLabel(false);	// Can't roll again until new game button is pressed.
+						enableStrengthSliderBAndLabel(false);	// Can't roll again until new game button is pressed.
+						
+						// Set strength values used for transmission to TinkerPlots/Fathom when in
+						// autoplay mode.
+						var strengthTop:String		= ""; 
+						var strengthBottom:String	= ""; 
+						
+						if (mPlayAutomatically)
+						{
+							strengthTop		= mStrengthSliderA.value.toString(); 
+							strengthBottom	= mStrengthSliderB.value.toString(); 
+						}
+						
+						// Send data on this game to TinkerPlots/Fathom/DG.
+						sendGameDataClose( strengthTop, strengthBottom, mStrengthArray );
+						
+						mMostRecentGamePlayed	= gameCount;	// Keep track of most recent game played.
+						mCurrentGameSinceLaunch += 1; 			// Game is done and tracked. Increment counter.
+						mPrevLevel 				= mGameLevel;	// Track game level change.
+					}
+				}
+				
+				// Update score to reflect rock(s) just rolled.
 				var score:uint = mPlayAutomatically ? mCurrentAverageScore : mCurrentGameScore;
-//				mScoreBar.maximum = MAX_SCORE_POSSIBLE * ((mMostRecentRockRolled + 1)/NUMBER_OF_ROCKS);
-//				mScoreBar.setProgress(score, mScoreBar.maximum); 
-//				
-//				var percentString:String = Math.floor((score/mScoreBar.maximum) * 100) + "%";
-//				mScoreBar.label = percentString;
 
 				// Update score text.
 				if ((mMostRecentRockRolled + 1) == NUMBER_OF_ROCKS)
@@ -928,7 +950,7 @@
 				var cumulativeBatchScore:uint	= 0;	// Used in autoplay mode to calculate average score.
 				
 				mRollRocksButton.enabled	= false;	// Disable Roll Rocks button until rocks are done rolling.
-				mNewGameButton.enabled		= false;	// Disable 'Cancel' button until roll animation ends.
+//				mNewGameButton.enabled		= false;	// Disable 'Cancel' button until roll animation ends.
 				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
 				enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
 				enableSortRocksList(false);		// Disable sort feature until new game is started.
@@ -957,7 +979,7 @@
 				else
 					rocksToRoll				= ROCKS_TO_ROLL;	// Roll a fixed number of rocks in non-batch mode.
 				
-				try	// 
+				try
 				{
 					for (var gameCount:uint = 1; gameCount <= mNumberGamesStepper.value; ++gameCount)
 					{
@@ -978,12 +1000,6 @@
 						// Data for each roll is saved until the game is complete before transmitting to 
 						// TinkerPlots/Fathom.
 						//var rollDataArray:Array	= new Array(NUMBER_OF_ROCKS);
-						
-						// Send data on this game to TinkerPlots/Fathom/DG.
-						if( mCurrentGameSinceLaunch != mLastGameOpened ) {
-							sendGameDataOpen(); // if not opened by onNewNewGame(), e.g. during auto-play
-						}
-						sendGameDataUpdate();
 						
 						// Roll a number of rocks, being sure to stop before end of total number of rocks.
 						var i:Number = 0;
@@ -1054,7 +1070,7 @@
 								if (mPlayAutomatically)
 								{
 									// Speed up roll duration on batch game play.
-									rockMoveAndRoll.duration	= 5000 * (singleRollDistance / 250);
+									rockMoveAndRoll.duration	= 0;
 								}
 								else
 								{
@@ -1080,9 +1096,16 @@
 								rockMoveAndRoll.addChild(rockMove);
 		//						rockMoveAndRoll.addChild(rockRotate);
 								
-								// Send notification when play has completed. Used to disable/enable buttons.
-								rockMoveAndRoll.addEventListener(EffectEvent.EFFECT_END, onRockRollComplete);
-								rockMoveAndRoll.play();	// Play instantly vs. in sequence, like scattershot.
+								if(mPlayAutomatically)
+								{
+									onRockRollComplete(new EffectEvent(EffectEvent.EFFECT_END));
+								}
+								else
+								{
+									// Send notification when play has completed. Used to disable/enable buttons.
+									rockMoveAndRoll.addEventListener(EffectEvent.EFFECT_END, onRockRollComplete);
+									rockMoveAndRoll.play();	// Play instantly vs. in sequence, like scattershot.
+								}
 							}
 //							trace("Gamecount: " + gameCount);
 							
@@ -1130,36 +1153,12 @@
 							}
 						}
 						
-						
-						// Send data for each individual roll to TinkerPlots/Fathom/DG.
-						var numRocksToSend:int = mNextRockToRoll - mNextRockToSend;
-						//trace( "sending data for roll "+mNextRockToSend+" plus "+numRocksToSend );
-						sendEventData( mRollDataArray, mNextRockToSend, mNextRockToRoll ); // send rocksToRoll events (max is NUMBER_OF_ROCKS)
-						mNextRockToSend = mNextRockToRoll;
-						
 						// Reset "next rock to roll" back to first rock, if we have moved past the end of the rocks.
 						if (mNextRockToRoll >= NUMBER_OF_ROCKS)
 						{
-							mNextRockToRoll				= 0;		// Reset rock back to first rock.
-							mNextRockToSend				= 0;	// Start with first rock.
-							mRollRocksButton.enabled	= false;	// Can't roll again until new game button is pressed.
-							enableStrengthSliderAAndLabel(false);	// Can't roll again until new game button is pressed.
-							enableStrengthSliderBAndLabel(false);	// Can't roll again until new game button is pressed.
+							mNextRockToRoll = 0; // Reset rock back to first rock.
+							mNextRockToSend = 0; // Start with first rock.
 							
-							// Set strength values used for transmission to TinkerPlots/Fathom when in
-							// autoplay mode.
-							var strengthTop:String		= ""; 
-							var strengthBottom:String	= ""; 
-							
-							if (mPlayAutomatically)
-							{
-								strengthTop		= mStrengthSliderA.value.toString(); 
-								strengthBottom	= mStrengthSliderB.value.toString(); 
-							}
-							
-							// Send data on this game to TinkerPlots/Fathom/DG.
-							sendGameDataClose( strengthTop, strengthBottom, mStrengthArray );
-		
 							// Calculate the average game score when in batch mode.
 							if (mPlayAutomatically)
 							{
@@ -1170,13 +1169,11 @@
 								this.graph.addDataPoint([gameCount, mCurrentAverageScore]);
 								trace("adding data point: [",[gameCount, mCurrentAverageScore],"]");
 							}
-							
-							mMostRecentGamePlayed	= gameCount;	// Keep track of most recent game played.
-							mCurrentGameSinceLaunch += 1; 			// Game is done and tracked. Increment counter.
-							mPrevLevel 				= mGameLevel;	// Track game level change.
 						}
+						
 					}	// for game = 0 to n
 					this.graph.displayGraph(); //display graph for this set of games
+					trace("displayGraph()");
 				}
 				catch(e:ScriptTimeoutError)
 				{
@@ -1222,22 +1219,7 @@
 				}
 				else // Handle the setup of a new game
 				{
-					// Move all rocks back to starting point.
-					var startX:Number = 0;
-					var startY:Number = 0;
-					for (var i:uint = 0; i < NUMBER_OF_ROCKS; ++i)
-					{
-						// Do the actual rolling of the rock.
-						var rockMove:Move = new Move(mRockArray[i]);
-						rockMove.duration = 1000; // Roll duration in milliseconds.
-						rockMove.xTo = startX;
-						rockMove.yTo = startY;
-	
-						// Send notification when play has completed. Used to disable/enable buttons.
-						rockMove.addEventListener(EffectEvent.EFFECT_END, onRockReturnComplete);
-						
-						rockMove.play();
-					}
+					resetRocks(); // Move all rocks back to starting point. 
 					
 					mNextRockToRoll				= 0;				// Start with first rock.
 					mMostRecentRockRolled		= 0;				// Reset tracker of most recent rock rolled.
@@ -1246,18 +1228,13 @@
 					enableStrengthSliderAAndLabel(true);			// Enable strength A slider
 					enableStrengthSliderBAndLabel(true);			// Enable strength B slider
 					enableAutoPlayCheckBoxAndLabel(true);			// Enable autoplay checkbox and label.
-					mNewGameButton.enabled		= false;			// Disable 'New Game' button.
+//					mNewGameButton.enabled		= false;			// Disable 'New Game' button.
 					mChangeLevelButton.enabled	= false;			// Disable "Change Level" button.
 					mScoreTextLabel.text		= "Score = 0";		// Reset score to zero.
-//					mScoreBar.label				= "0%"				// Reset score bar text.
 					mRollCounter				= 0;				// Reset roll animation counter.
 
-					
 					if (mPlayAutomatically)
 						enableNumberGamesStepperAndLabel(true);		// Enable the number of games stepper.
-					
-					// Return score bar to zero.
-//					mScoreBar.setProgress(mScoreBar.minimum, mScoreBar.maximum);
 				}
 				
 				// Toggle 'cancel'/'new game' state and button text.
@@ -1278,6 +1255,28 @@
 				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
 				enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
 				enableSortRocksList(false);		// Disable sort feature until new game is started.
+				
+				resetRocks(); // Move all rocks back to starting point.
+			}
+			
+			protected function resetRocks():void
+			{
+				// Move all rocks back to starting point.
+				var startX:Number = 0;
+				var startY:Number = 0;
+				for (var i:uint = 0; i < NUMBER_OF_ROCKS; ++i)
+				{
+					// Do the actual rolling of the rock.
+					var rockMove:Move = new Move(mRockArray[i]);
+					rockMove.duration = 1000; // Roll duration in milliseconds.
+					rockMove.xTo = startX;
+					rockMove.yTo = startY;
+					
+					// Send notification when play has completed. Used to disable/enable buttons.
+					rockMove.addEventListener(EffectEvent.EFFECT_END, onRockReturnComplete);
+					
+					rockMove.play();
+				}
 			}
 
 			// onUpdateNumberOfGames() is called when mNumberGamesStepper is changed and 
