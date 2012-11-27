@@ -3,7 +3,25 @@ Change Log
 Newer entries first
 
 ===========================
-2012.10.01
+2012.11.27 Craig
+Rank attribute now has the 'editable' property to allow editing of values in DG.
+
+===========================
+2012.11.15 Craig
+Added "Score" and "Rank" game attributes for DG.
+Rank is empty and expected to be edited by the user.
+Score is empty and expected to be a user-defined formula attribute.
+End of game display rearranged to show "Score", initially "?", 
+but if the user-defined formula attribute exists, EndGame()
+gets it using the DG 'requestAttributeValues' API.
+
+===========================
+2012.10.17 Craig
+Change 2nd 'Accepted' attribute to 'IsAccepted' for clarity.
+Add color assignments to 'IsAccepted' and 'Log' attributes.
+
+===========================
+2012.10.01 Ryan
 Data is now sent to dg in chunks.
 Removed CutLogInOrderMod()
 Moved acceptance logic to PieceStatus class
