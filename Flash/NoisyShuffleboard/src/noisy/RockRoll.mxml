@@ -46,8 +46,8 @@
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
-			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "Rock Roll v.2012.10.22";
+			private static const kUseDataGamesInterface:Boolean = false; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
+			public static const VERSION:String = "Rock Roll v.2012.11.14";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -745,6 +745,7 @@
 			// and effect that is still playing can have unwanted results.
 			protected function onRockRollComplete(iEvent:EffectEvent):void
 			{
+				mNewGameButton.enabled	= true;
 				mRollCounter += 1;
 				
 				if (mPlayAutomatically)
@@ -782,7 +783,7 @@
 							toggleCancelButton();
 							
 							// Enable 'New Game'/'Cancel" button.
-							mNewGameButton.enabled	= true;
+//							mNewGameButton.enabled	= true;
 							
 							// Enable 'Change Level" button, now that current game is over.
 							mChangeLevelButton.enabled	= true;
@@ -806,13 +807,64 @@
 					}
 				}
 				
+//				/**
+//				 * Code to send small chunks of data to dg at a time
+//				 */
+//				var intID:uint = setInterval(sendChunk, 500); //sends a chunk of data every 500ms
+//				const chunkSize:int = 10;
+//				var start:int=1, end:int=chunkSize; //send 10 at a time
+//				function sendChunk():void
+//				{
+//					for (var gameCount:uint = start; gameCount<=end && gameCount <= mNumberGamesStepper.value; ++gameCount)
+//					{
+//						sendEventData( mRollDataArray, mNextRockToSend, mNextRockToRoll ); // send rocksToRoll events (max is NUMBER_OF_ROCKS)
+//						mNextRockToSend = mNextRockToRoll;
+//						
+//						// Reset "next rock to roll" back to first rock, if we have moved past the end of the rocks.
+//						if (mNextRockToRoll >= NUMBER_OF_ROCKS-1)
+//						{
+//							mRollRocksButton.enabled	= false;	// Can't roll again until new game button is pressed.
+//							enableStrengthSliderAAndLabel(false);	// Can't roll again until new game button is pressed.
+//							enableStrengthSliderBAndLabel(false);	// Can't roll again until new game button is pressed.
+//							
+//							// Set strength values used for transmission to TinkerPlots/Fathom when in
+//							// autoplay mode.
+//							var strengthTop:String		= ""; 
+//							var strengthBottom:String	= ""; 
+//							
+//							if (mPlayAutomatically)
+//							{
+//								strengthTop		= mStrengthSliderA.value.toString(); 
+//								strengthBottom	= mStrengthSliderB.value.toString(); 
+//							}
+//							
+//							// Send data on this game to TinkerPlots/Fathom/DG.
+//							sendGameDataClose( strengthTop, strengthBottom, mStrengthArray );
+//							
+//							mMostRecentGamePlayed	= gameCount;	// Keep track of most recent game played.
+//							mCurrentGameSinceLaunch += 1; 			// Game is done and tracked. Increment counter.
+//							mPrevLevel 				= mGameLevel;	// Track game level change.
+//						}
+//					}
+//					
+//					start+=chunkSize;
+//					end+=chunkSize;
+//					if(end>mNumberGamesStepper.value) end=mNumberGamesStepper.value;
+//					if(start>=end) clearInterval(intID);
+//					if (mNextRockToRoll >= NUMBER_OF_ROCKS)
+//					{
+//						mNextRockToRoll = 0; // Reset rock back to first rock.
+//						mNextRockToSend = 0; // Start with first rock.
+//					}
+//				} //End sendChunk()
+				
 				for (var gameCount:uint = 1; gameCount <= mNumberGamesStepper.value; ++gameCount)
 				{
 					sendEventData( mRollDataArray, mNextRockToSend, mNextRockToRoll ); // send rocksToRoll events (max is NUMBER_OF_ROCKS)
 					mNextRockToSend = mNextRockToRoll;
 					
 					// Reset "next rock to roll" back to first rock, if we have moved past the end of the rocks.
-					if (mNextRockToRoll >= NUMBER_OF_ROCKS-1)
+					if (mNextRockToRoll >= NUMBER_OF_ROCKS)
 					{
 						mRollRocksButton.enabled	= false;	// Can't roll again until new game button is pressed.
 						enableStrengthSliderAAndLabel(false);	// Can't roll again until new game button is pressed.
@@ -838,6 +890,12 @@
 					}
 				}
 				
+				if (mNextRockToRoll >= NUMBER_OF_ROCKS)
+				{
+					mNextRockToRoll = 0; // Reset rock back to first rock.
+					mNextRockToSend = 0; // Start with first rock.
+				}
+				
 				// Update score to reflect rock(s) just rolled.
 				var score:uint = mPlayAutomatically ? mCurrentAverageScore : mCurrentGameScore;
 
@@ -853,10 +911,7 @@
 					mScoreTextLabel.text = "Score = " + score;
 				
 				updateInstructionsText();			// Update instructions text.
-				CursorManager.removeBusyCursor();	// Turn off busy cursor.
-				
-				//TEMP --Ryan
-				this.updateGraph(iEvent);
+				CursorManager.removeBusyCursor();	// Turn off busy cursor.			
 			}
 			
 			// onRockReturnComplete() is used to handle the enabling of buttons only after 
@@ -870,8 +925,9 @@
 				if (mRollReturnCounter == NUMBER_OF_ROCKS)
 				{
 					enableSortRocksList(true);	// Enable sort feature.
-					mRollRocksButton.enabled	= true;	// Enable "Roll Rocks" button.
-					mRollReturnCounter			= 0;	// Reset roll counter.
+					mRollReturnCounter = 0;	// Reset roll counter.
+					if(mCancelButtonOn)
+						mRollRocksButton.enabled = true;	// Enable "Roll Rocks" button if a game is started
 				}
 			}
 			
@@ -938,7 +994,9 @@
 			// associated with rolling rocks on the shuffle court.
 			protected function onRollRocksMouseUp(iEvent:MouseEvent):void	
 			{
-				mRocksAreRolling				= true; // Rock rolling has begun.
+				trace("onRollRocksMouseUp()");
+				if(!mPlayAutomatically)
+					mRocksAreRolling				= true; // Rock rolling has begun.
 				mRollRocksButtonDown			= false;// Button has been released.
 				
 				// Don't show intermediate rock rolls in batch game play mode.
@@ -950,12 +1008,14 @@
 				var cumulativeBatchScore:uint	= 0;	// Used in autoplay mode to calculate average score.
 				
 				mRollRocksButton.enabled	= false;	// Disable Roll Rocks button until rocks are done rolling.
-//				mNewGameButton.enabled		= false;	// Disable 'Cancel' button until roll animation ends.
+				mNewGameButton.enabled		= false;	// Disable 'Cancel' button until roll animation ends.
 				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
 				enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
 				enableSortRocksList(false);		// Disable sort feature until new game is started.
 				enableStrengthSliderAAndLabel(false);	// Disable strength slider
 				enableStrengthSliderBAndLabel(false);	// Disable strength slider
+				
+				if(mPlayAutomatically) mNewGameButton.enabled = true;
 
 				if (mNextRockToRoll == 0) 
 				{
@@ -979,6 +1039,9 @@
 				else
 					rocksToRoll				= ROCKS_TO_ROLL;	// Roll a fixed number of rocks in non-batch mode.
 				
+				var tempA:Array = new Array();
+				var tempB:Array = new Array();
+				
 				try
 				{
 					for (var gameCount:uint = 1; gameCount <= mNumberGamesStepper.value; ++gameCount)
@@ -1000,6 +1063,15 @@
 						// Data for each roll is saved until the game is complete before transmitting to 
 						// TinkerPlots/Fathom.
 						//var rollDataArray:Array	= new Array(NUMBER_OF_ROCKS);
+						
+						if(mPlayAutomatically)
+						{
+							// Send data on this game to TinkerPlots/Fathom/DG.
+							if( mCurrentGameSinceLaunch != mLastGameOpened ) {
+								sendGameDataOpen(); // if not opened by onNewNewGame(), e.g. during auto-play
+							}
+							sendGameDataUpdate();
+						}
 						
 						// Roll a number of rocks, being sure to stop before end of total number of rocks.
 						var i:Number = 0;
@@ -1153,27 +1225,83 @@
 							}
 						}
 						
+						if(mPlayAutomatically)
+						{
+							// Send data for each individual roll to TinkerPlots/Fathom/DG.
+							var numRocksToSend:int = mNextRockToRoll - mNextRockToSend;
+							
+							sendEventData( mRollDataArray, mNextRockToSend, mNextRockToRoll ); // send rocksToRoll events (max is NUMBER_OF_ROCKS)
+//							tempA.push(mNextRockToSend);
+//							tempB.push(mNextRockToRoll);
+							
+							mNextRockToSend = mNextRockToRoll;
+						}
+						
 						// Reset "next rock to roll" back to first rock, if we have moved past the end of the rocks.
 						if (mNextRockToRoll >= NUMBER_OF_ROCKS)
 						{
-							mNextRockToRoll = 0; // Reset rock back to first rock.
-							mNextRockToSend = 0; // Start with first rock.
-							
-							// Calculate the average game score when in batch mode.
-							if (mPlayAutomatically)
+							if(mPlayAutomatically)
 							{
+								mNextRockToRoll				= 0;		// Reset rock back to first rock.
+								mNextRockToSend				= 0;	// Start with first rock.
+								mRollRocksButton.enabled	= false;	// Can't roll again until new game button is pressed.
+								enableStrengthSliderAAndLabel(false);	// Can't roll again until new game button is pressed.
+								enableStrengthSliderBAndLabel(false);	// Can't roll again until new game button is pressed.
+								
+								// Set strength values used for transmission to TinkerPlots/Fathom when in
+								// autoplay mode.
+								var strengthTop:String		= ""; 
+								var strengthBottom:String	= ""; 
+								
+								strengthTop		= mStrengthSliderA.value.toString(); 
+								strengthBottom	= mStrengthSliderB.value.toString(); 
+								
+								// Send data on this game to TinkerPlots/Fathom/DG.
+								sendGameDataClose( strengthTop, strengthBottom, mStrengthArray );
+								
+								// Calculate the average game score when in batch mode.
 								cumulativeBatchScore	+= mCurrentGameScore;
 								mCurrentAverageScore	= Math.floor(cumulativeBatchScore/gameCount);
 								
 								//add current average score to graph
 								this.graph.addDataPoint([gameCount, mCurrentAverageScore]);
 								trace("adding data point: [",[gameCount, mCurrentAverageScore],"]");
+								
+								mMostRecentGamePlayed	= gameCount;	// Keep track of most recent game played.
+								mCurrentGameSinceLaunch += 1; 			// Game is done and tracked. Increment counter.
+								mPrevLevel 				= mGameLevel;	// Track game level change.
 							}
 						}
 						
 					}	// for game = 0 to n
 					this.graph.displayGraph(); //display graph for this set of games
 					trace("displayGraph()");
+					
+//					/**
+//					 * Code to send small chunks of data to dg at a time
+//					 */
+//					var intID:uint = setInterval(sendChunk, 1000);
+//					const chunkSize:int = 16;
+//					var start:int=1, end:int=chunkSize;
+//					function sendChunk():void
+//					{
+//						for(var i:int=start; i<=end && i<=tempA.length; i++)
+//						{
+//							sendEventData(mRollDataArray, tempA[i],tempB[i]);
+//							trace("RockRoll.sendChunk()",i);
+//							
+//						}
+//						start+=chunkSize;
+//						end+=chunkSize;
+//						if(end>mNumberGamesStepper.value) end=mNumberGamesStepper.value;
+//						if(start>=end){
+//							clearInterval(intID);
+//							tempA = new Array();
+//							tempB = new Array();
+//							trace("sendChunk done");
+//							Alert.show("done");
+//						}
+//					} //End sendChunk()					
 				}
 				catch(e:ScriptTimeoutError)
 				{
