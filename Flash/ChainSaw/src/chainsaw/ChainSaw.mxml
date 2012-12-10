@@ -39,8 +39,8 @@
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
-			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2012.10.01";
+			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
+			public static const VERSION:String   = "Chainsaw v.2012.11.27";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -121,6 +121,7 @@
 			
 			private var currentCutStartPoint:Number; // Holds the starting position for each cut.
 			private	var	parentCaseID:int = 0;
+			private var parentCaseScore:String = ''; // Holds the last value of the Score attribute, if created by the user in the parent case (DG interface only)
 			private var practice:Boolean = false; // whether the game is in practice mode or not
 			
 			// These arrays store the details of individual logs for access by all who need to know.
@@ -267,6 +268,8 @@
 									attrs:[
 										{ name: "Player" , type: "nominal" ,  description: "Name of the player"   } ,
 										{ name: "GameNumber" , type: "nominal" , precision: 0, description: "Game number"   } , 
+										{ name: "Score", type: "nominal", precision: 0, description: "Score for this game" },
+										{ name: "Rank", type: "nominal", precision: 0, description: "Rank of this game", editable: true },
 										{ name: "Level" , type: "nominal" ,  description: "Game level"   } ,	
 										{ name: "Strategy" , type: "nominal" ,  description: "Cut strategy used by the player"   } ,	
 										{ name: "Accepted" , type: "numeric" , precision: 0, description: "Number of pieces accepted"   } , 
@@ -285,8 +288,16 @@
 										{ name: "GameNumber" , type: "nominal" , precision: 0, description: "Game number"   } ,
 										{ name: "Length" , type: "numeric" , precision: 2, description: "Length of cut"   } , 
 										{ name: "Thickness" , type: "nominal" , description: "Thickness of log"  } , 
-										{ name: "Accepted" , type: "nominal" , description: "Is piece an acceptable length?"  } , 
-										{ name: "Log" , type: "numeric" , precision: 0, description: "Log number"  }
+										{ name: "IsAccepted" , type: "nominal" , description: "Is piece an acceptable length?",
+											colormap: { 
+												"Yes": 'green', 	// kAcceptString
+												"No-Short": 'red',	// kRejectShortString
+												"No-Long": 'red',	// kRejectLongString
+												"Remnant": 'yellow'	// kRemnantString
+											}},
+										{ name: "Log" , type: "numeric" , precision: 0, description: "Log number",
+											colormap: { 'attribute-color': '#6f4900'  // brown
+											}}
 									],
 									labels: {
 										singleCase: "piece",
@@ -314,7 +325,7 @@
 							"Game",				// Game number starting with 1 since launch of application.
 							"Length",			// Length of cut piece.
 							"Thickness",		// Thin or thick depending on game type
-							"Accepted",			// True if cut piece is within accepted range of cut length.
+							"IsAccepted",			// True if cut piece is within accepted range of cut length.
 							"Log"				// Number of log from which piece was cut.
 						]
 					);
@@ -739,6 +750,8 @@
 									values: [
 										mPlayersName,
 										mGameNumber,
+										'', // Score
+										'', // Rank
 										levelName
 									]
 								} 	
@@ -822,6 +835,8 @@
 									values: [
 										mPlayersName,
 										mGameNumber,
+										'', //score
+										'', //rank
 										levelName,
 										strategy,
 										mPiecesAccepted,
@@ -835,6 +850,23 @@
 								}
 							};
 						ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
+						// extract value of formula attribute 'score', if created by user in DG
+						var	requestAttributeValueObj:Object = {
+								action: "requestAttributeValues",
+								args: { 
+									collection: kGamesCollectionName,
+									caseID: this.parentCaseID,
+									attributeNames: ["Score"]
+								}
+							};
+						var	resultString:String = ScriptInterface.doCommand( JSON.encode( requestAttributeValueObj ));
+						var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+						this.parentCaseScore = "?";
+						if( resultObj && resultObj.success && resultObj.values ) {
+							if( resultObj.values.length >= 1 && resultObj.values[0] != null ) {
+								this.parentCaseScore = resultObj.values[0].toString(); // if numeric or string value for 'Score', use it
+							}
+						}
 					}
 					else {
 						// send data to close a case in Game collection to TinkerPlots/Fathom
@@ -857,11 +889,14 @@
 					}
 				}
 				
-				mResultsOverlay.visible		= true;								// Display the results Overlay
-				mAcceptedPiecesValue.text	= mPiecesAccepted.toString();		// Update the number of accepted pieces.
+				mScoreValue.text			= "Score: " + this.parentCaseScore;
+				mAcceptedPiecesValue.text	= "Number of Accepted Pieces:  " + mPiecesAccepted.toString();		// Update the number of accepted pieces.
 				
 				mFuelLeftValue.text	= fuelLeftAmount.toString() +" ("+ fuelLeftPercent.toFixed();		// Update the percentage of fuel left.
 				mFuelLeftValue.text = mFuelLeftValue.text.replace(/\.\d*/,"") + "%)"; // remove the decimal point and trailing digits, then append '%'
+				mFuelLeftValue.text = "Fuel Left:  " + mFuelLeftValue.text;
+
+				mResultsOverlay.visible		= true;								// Display the results Overlay
 				
 				mPrevLevel 			= mGameLevel;	// Track game level change.
 				mPrevPieceNumber	= mPieceNumber;	// Track piece number at the end of the game.
@@ -1019,23 +1054,24 @@
 			 */
 			private function determineCutStyle():String
 			{
+				mCutStyleValue.text = "Cut Strategy:  "
 				var strategy:int = CutProperties.determineStrategy(mCutsArray);
 				switch(strategy)
 				{
 					case 0:
-						mCutStyleValue.text = "Single, down";
+						mCutStyleValue.text += "Single, down";
 						break;
 					case 1:
-						mCutStyleValue.text = "Single, downup";
+						mCutStyleValue.text += "Single, downup";
 						break;
 					case 2:
-						mCutStyleValue.text = "Multi, down";
+						mCutStyleValue.text += "Multi, down";
 						break;
 					case 3:
-						mCutStyleValue.text = "Multi, downup";
+						mCutStyleValue.text += "Multi, downup";
 						break;
 					default:
-						mCutStyleValue.text = "Other";
+						mCutStyleValue.text += "Other";
 				}
 				
 				//Important - we need to clear out the array each time
@@ -1259,18 +1295,12 @@
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
 	
-	<s:BorderContainer id="mResultsOverlay" x="0" y="0" width="{this.width}" height="{this.height}" alpha=".5" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
-		<s:Label id="continue_msg" x="270" y="35" text="(Click anywhere to continue)"/>
-		<s:Label id="mResults" x="{260+134}" y="50" fontSize="30" fontWeight="bold" text="Results"/>
-		<s:Label id="mAcceptedPiecesLabel" x="102" y="145" width="323" fontSize="16"
-				 fontWeight="bold" text="Number of Accepted Pieces:" textAlign="right"/>
-		<s:Label id="mAcceptedPiecesValue" x="437" y="145" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="50" textAlign="left"/>
-		<s:Label id="mFuelLeftLabel" x="174" y="225" width="251" fontSize="16" fontWeight="bold"
-				 text="Fuel Left:" textAlign="right"/>
-		<s:Label id="mFuelLeftValue" x="437" y="225" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="100" textAlign="left" visible="true"/>
-		<s:Label id="mCutStyleLabel" x="325" y="308" text="Cut Strategy:" fontSize="16" verticalAlign="middle" fontWeight="bold" 
-				 textAlign="right" visible="true"/>
-		<s:Label id="mCutStyleValue" x="437" y="308" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="220" textAlign="left" visible="true"/>
+	<s:BorderContainer id="mResultsOverlay" x="0" y="0" width="{this.width}" height="{this.height}" alpha=".65" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
+		<s:Label id="mAcceptedPiecesValue" x="404" y="60" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left"/>
+		<s:Label id="mFuelLeftValue" x="404" y="145" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
+		<s:Label id="mCutStyleValue" x="404" y="225" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
+		<s:Label id="mScoreValue"    x="404" y="300" fontSize="30" fontWeight="bold" textAlign="left" text="?"/>
+		<s:Label id="continue_msg"   x="404" y="370" text="(Click anywhere to continue)"/>
 	</s:BorderContainer>
 	
 	<s:Label id="mVersionLabel" x="580" y="386" width="160" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
