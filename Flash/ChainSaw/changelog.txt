@@ -1,6 +1,8 @@
 Chainsaw [Flash]
 Change Log
-Newer entries first
+  Each entry starting with YYYY.MM.DD Initials
+  Followed by short and useful change/state description.
+  Newer entries first.
 
 ===========================
 2012.12.18 Craig
