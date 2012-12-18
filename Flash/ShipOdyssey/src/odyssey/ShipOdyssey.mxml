@@ -44,7 +44,7 @@
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
-			private static const kUseDataGamesInterface:Boolean = false; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
+			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
 			public static const VERSION:String = "v.2012.11.30";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG

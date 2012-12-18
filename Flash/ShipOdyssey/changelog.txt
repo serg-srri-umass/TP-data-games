@@ -1,13 +1,30 @@
 Ship Oddyssey [Flash]
 Change Log
-Newer entries first.
+  Each entry starting with YYYY.MM.DD Initials
+  Followed by short and useful change/state description.
+  Newer entries first.
 
 ===========================
-2012.11.30
+2012.11.30 Ryan
 Games are now only one treasure each.
 
 ===========================
-2012.04.30
+2012.07.30 Craig
+fix bug in ShipOdyssey in level 2: now runs with 100 rats (as shown), not 200.
+data interface updates to Chainsaw, ShipOdyssey, RockRoll, CropMonster.
+-- Simplify code for getting game case ID.
+-- update build instructions
+-- update version to v.2012.07.30
+-- finish DG interface for CropMonster
+
+===========================
+2012.06.11 Craig
+Remove redundant attributes (Level) from Events collection, 
+improve readability of version number, 
+new version 2012.06.11.
+
+===========================
+2012.04.30 Tristan
 Changed difficulty level set to 4 levels.
 1 - 200 rats per drop, 2400 rats total, 1 treasure per location, and rats cost nothing
 2 - 50-200 rats per drop, 2400 rats total, 0-2 treasures per location, and rats cost nothing
@@ -19,10 +36,12 @@ Version number now trails the game name in the opening screen (it blends in so l
 Added instructions to an Alert box after the level is chosen.
 Removed values from Log screen that had to do with profits and cost that aren't used anymore.
 
-2012.04.09
+===========================
+2012.04.09 Tristan
 A couple small bugs from 04.06 fixed.
 
-2012.04.06
+===========================
+2012.04.06 Tristan
 Fixed major bugs from 03.29 release. Added Exit button to all finish states so you can exit out. Removed the red X from the log status scroll because some thought it was confusing. Fixed a bug where the Search Panel status wasn't resetting on exit to the main menu. 
 Until we have another game under the Ship Odyssey umbrella, the title bar will just be "Ship Odyssey". Exit button in the log status scroll now says 'Exit Game'
 To Do list:
@@ -30,28 +49,31 @@ To Do list:
 	visually expand top UI controls (Rat & Hook) to fix the broken space issue
 	create direct crane controls on the crane
 
-2012.03.29
+===========================
+2012.03.29 Tristan
 New UI completely in place and working. There are some lingering visual issues that will be decided on and fixed soon.
 Log scroll displays your current status with SailOn and Exit buttons inside the scroll. Treasure status is now shown using a search panel with green checks and red x's for treasures found or skipped. Days remaining and time spent sailing are conveyed through the pocket watch with the number of days left on the front.
 
-2012.03.16
+===========================
+2012.03.16 Tristan
 Fixed bug where the crane and the rope/hook would not be in sync if you entered a new value in the HookDropStepper and then clicked 'Drop Hook'. This was caused by the crane not having time to move before the hook drop started.
 As part of the previous fix, changed the behavior so anytime you move the crane more than one step at a time, it will use a Tween method that takes 1 second (this makes it much faster if you are moving from one end of the number line to the other).
 Changed the boat hull color moving color overlay into a mask so it looks like the water is sitting in the water.
 Changed the water gradient to be mostly the same color since we now zoom in and don't need to simulate the depths of the ocean by going to black.
  
-2012.03.12
+===========================
+2012.03.12 Tristan
 Stashed & reverted to 03.07 build since the SWC idea wasn't panning out fast enough and needed to have a usable build today for Cliff's presentation.
 Stopped anchor drop data being sent to the data collection (TinkerPlots & DG).
 Fixed bug where both ending texts display for 'found all 6 treasures' and 'ran out of days' if you find a treasure with 1 day left.
 
-2012.03.09
+===========================
+2012.03.09 Tristan
 Created test version for Macs to try to get around it not working in TinkerPlots.
 Imported the BoatAnim as a SWC.
 
 ===========================
-YYYY.MM.DD Initials
-Short and useful change/state description here.
-
+2011.10.28 LS
+First commit of ShipOdyssey.
 
 === e n d   o f   l o g ===
