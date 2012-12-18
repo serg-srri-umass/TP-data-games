@@ -40,7 +40,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2012.11.27";
+			public static const VERSION:String   = "Chainsaw v.2012.12.18";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -240,7 +240,7 @@
 				sawdustParticles.xOffset = 10;
 				sawdustParticles.yOffset = 10;
 				sawdustParticles.pColor = 0xD4B077;
-				sawdustParticles.yFloor = 410;
+				sawdustParticles.yFloor = 410-10; // top edge of where sawdust lands is 10 from bottom of game
 				
 				mLevelWindow = new GameLevelWindow();
 				this.sendCollectionData();		// send initGame data to TinkerPlots/DG
@@ -355,6 +355,9 @@
 			// the previous game, if any.
 			private function clearGame(iNewGameLevel:uint):void
 			{
+				// hide results overlay if visible from end of previous game
+				mResultsOverlay.visible		= false; 
+				
 				// Move direction arrow sprites to first log				
 				resetArrowSprites();
 				
@@ -1156,6 +1159,8 @@
 			// onClickChangeLevelButton() allows the user to change the game level.
 			protected function onClickChangeLevelButton(event:MouseEvent):void
 			{
+				clearGame(mGameLevel); // Clear any remnants of last game and reset game.
+				
 				chooseGameLevel();
 			}
 			
@@ -1295,12 +1300,12 @@
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
 	
-	<s:BorderContainer id="mResultsOverlay" x="0" y="0" width="{this.width}" height="{this.height}" alpha=".65" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
-		<s:Label id="mAcceptedPiecesValue" x="404" y="60" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left"/>
-		<s:Label id="mFuelLeftValue" x="404" y="145" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
-		<s:Label id="mCutStyleValue" x="404" y="225" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
-		<s:Label id="mScoreValue"    x="404" y="300" fontSize="30" fontWeight="bold" textAlign="left" text="?"/>
-		<s:Label id="continue_msg"   x="404" y="370" text="(Click anywhere to continue)"/>
+	<s:BorderContainer id="mResultsOverlay" x="134" y="46" width="{745-134}" height="{410-46}" alpha=".50" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
+		<s:Label id="mAcceptedPiecesValue" x="270" y="{60-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left"/>
+		<s:Label id="mFuelLeftValue" x="270" y="{145-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
+		<s:Label id="mCutStyleValue" x="270" y="{225-46}" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
+		<s:Label id="mScoreValue"    x="270" y="{300-46}" fontSize="30" fontWeight="bold" textAlign="left" text="?"/>
+		<!-- <s:Label id="continue_msg"   x="404" y="370" text="(Click anywhere to continue)"/> -->
 	</s:BorderContainer>
 	
 	<s:Label id="mVersionLabel" x="580" y="386" width="160" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>

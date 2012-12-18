@@ -3,6 +3,14 @@ Change Log
 Newer entries first
 
 ===========================
+2012.12.18 Craig
+Sawdust (sawdustParticles) moved up so they are visible in game window (for DG).
+Results overlay (mResultsOverlay) moved inward so player can click directly
+ on the Start or Level button without clicking to clear the Results Overlay first.
+ It is still possible to click to clear the Results Overlay, but Start and Level
+ buttons also clear it to save a mouse click.
+
+===========================
 2012.11.27 Craig
 Rank attribute now has the 'editable' property to allow editing of values in DG.
 
