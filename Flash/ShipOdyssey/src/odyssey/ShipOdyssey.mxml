@@ -44,8 +44,8 @@
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
-			private static const kUseDataGamesInterface:Boolean = false; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.2.04";
+			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
+			public static const VERSION:String = "v.2013.2.07";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -220,11 +220,6 @@
 			// Sidebar Backer Scroll
 			[Embed(source="../odysseyAssets/Scroll-Sidebar.png")]
 			[Bindable] private var mSidebarBacker:Class;
-			
-			// Status Scroll backer
-			[Embed(source="../odysseyAssets/SO-UI2-StatusScroll.png")]
-			[Bindable] private var mScrollImage:Class; 
-			
 			
 			// Embed volume icons -- source: Ryan McCann
 			[Embed(source="../odysseyAssets/Volume.png")]
@@ -1344,7 +1339,7 @@
 
 	<!-- Scroll status items-->
 		<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt" x="123" y="116">
-			<s:Image id="mStatusScroll" includeIn="TreasureHunt" source="{mScrollImage}" />
+			<!--<s:Image id="mStatusScroll" includeIn="TreasureHunt" source="{mScrollImage}" />-->
 			
 			<s:Label id="mDaysSpent" includeIn="TreasureHunt" x="232" y="60" width="71"
 					 color="#433211" fontFamily="Verdana" text="0 of 28" textAlign="left"/>
@@ -1376,6 +1371,8 @@
 		<mx:Canvas id="mScrollContainer_NEW" includeIn="TreasureHunt">
 			<s:Image id="mSidebarScroll" x="5" y="120" source="{mSidebarBacker}" />
 			
+			<s:Label text="Log" includeIn="TreasureHunt" x="10" y="140" width="100" color="#000000" fontFamily="Georgia" fontStyle="italic" fontSize="20" textAlign="center"/>
+			
 			<s:Label text="Profit from Treasure: " includeIn="TreasureHunt" x="15" y="170" width="100" color="#000000" fontFamily="Georgia"/>
 			<s:Label text="Cost of Rats: " includeIn="TreasureHunt" x="15" y="200" width="100" color="#000000" fontFamily="Georgia"/>
 			<s:Label text="Cost of Hook Drops: " includeIn="TreasureHunt" x="15" y="220" width="100" color="#000000" fontFamily="Georgia"/>
@@ -1390,7 +1387,7 @@
 			<s:Label id="mProfitValue" includeIn="TreasureHunt" x="34" y="240" width="70"
 					 color="#433211" fontFamily="Verdana" text="$0" textAlign="right"/>
 			
-			<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="140" width="90" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
+			<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="300" width="90" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
 			<!--<s:Button id="logBtn" includeIn="TreasureHunt" x="16" y="280" click="onClickLog(event)"/>-->
 			<s:Button id="mSailOnButton" includeIn="TreasureHunt" x="15" y="350" width="75" height="18" label="Sail On" chromeColor="#D1B38B" click="Alert.show('Are you sure you would like to skip this treasure and sail on?','Sail On to Next Treasure',3,this,AlertOnSailOn);" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
 			<s:Button id="mExitHuntButton" includeIn="TreasureHunt" x="15" y="370" width="90" height="18" label="End Game" chromeColor="#D1B38B" click="Alert.show('Are you sure you would like to exit the game?','Exit Game',3,this,AlertOnExit);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
@@ -1398,7 +1395,7 @@
 	
 	<!-- Hook controls -->
 		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="273" y="31" width="240" height="76">
-			<s:Image 		id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
+			<s:Image 		id="mHookBacker" x="5" y="0" source="{mHookDropBacker}"/>
 			<s:Label		id="mHookLabel" x="58" y="10" text="Grappling Hook" color="#000000" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
 			<s:Label		id="mRangeLabel" x="29" y="59" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
 			<s:Label 		id="mRangeValueLabel" x="78" y="59" width="80" color="#9B1D79" fontFamily="Georgia" fontWeight="bold"/>

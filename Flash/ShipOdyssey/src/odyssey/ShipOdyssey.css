@@ -7,13 +7,7 @@ global
 {
 	color: #cee7f4;
 }
-
-s|Button#logBtn {
-	skinClass: ClassReference("odyssey.skins.LogButtonSkin");
-}
-s|Button#closeLogBtn {
-	skinClass: ClassReference("odyssey.skins.StatusCloseButtonSkin");
-}	
+	
 s|Button#mLevelOneButton {
 	skinClass: ClassReference("odyssey.skins.DifficultyLevel1ButtonSkin");
 }
