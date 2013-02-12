@@ -14,4 +14,10 @@ s|Button#mLevelOneButton {
 s|Button#mLevelTwoButton {
 	skinClass: ClassReference("odyssey.skins.DifficultyLevel2ButtonSkin");
 }
+s|Button#mLevelThreeButton {
+	skinClass: ClassReference("odyssey.skins.DifficultyLevel3ButtonSkin");
+}
+s|Button#mLevelFourButton {
+	skinClass: ClassReference("odyssey.skins.DifficultyLevel4ButtonSkin");
+}
 	
