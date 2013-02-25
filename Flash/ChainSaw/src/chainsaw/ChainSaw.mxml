@@ -40,7 +40,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2012.12.18";
+			public static const VERSION:String   = "Chainsaw v.2013.02.25";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -268,7 +268,7 @@
 									attrs:[
 										{ name: "Player" , type: "nominal" ,  description: "Name of the player"   } ,
 										{ name: "GameNumber" , type: "nominal" , precision: 0, description: "Game number"   } , 
-										{ name: "Score", type: "nominal", precision: 0, description: "Score for this game" },
+										{ name: "Score", type: "nominal", precision: 0, description: "Score for this game", editable: true },
 										{ name: "Rank", type: "nominal", precision: 0, description: "Rank of this game", editable: true },
 										{ name: "Level" , type: "nominal" ,  description: "Game level"   } ,	
 										{ name: "Strategy" , type: "nominal" ,  description: "Cut strategy used by the player"   } ,	
