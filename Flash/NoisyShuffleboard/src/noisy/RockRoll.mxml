@@ -47,7 +47,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "Rock Roll v.2013.03.13";
+			public static const VERSION:String = "Rock Roll v.2013.03.15";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -82,9 +82,9 @@
 			public static const kStdDeviationB:Number	= 22;
 			
 			// Data state for mLastGameOpenState
-			public static const kGameDataNotYetOpen = 0;
-			public static const kGameDataOpened = 1;
-			public static const kGameDataClosed = 2;
+			public static const kGameDataNotYetOpen:uint = 0;
+			public static const kGameDataOpened:uint = 1;
+			public static const kGameDataClosed:uint = 2;
 			
 			
 			private var mRandomNormal:ParkMiller;			// Class that creates a uniform normal distribution.
