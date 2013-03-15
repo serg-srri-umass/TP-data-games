@@ -7,17 +7,17 @@ global
 {
 	color: #cee7f4;
 }
-
-s|Button#logBtn {
-	skinClass: ClassReference("odyssey.skins.LogButtonSkin");
-}
-s|Button#closeLogBtn {
-	skinClass: ClassReference("odyssey.skins.StatusCloseButtonSkin");
-}	
+	
 s|Button#mLevelOneButton {
 	skinClass: ClassReference("odyssey.skins.DifficultyLevel1ButtonSkin");
 }
 s|Button#mLevelTwoButton {
 	skinClass: ClassReference("odyssey.skins.DifficultyLevel2ButtonSkin");
+}
+s|Button#mLevelThreeButton {
+	skinClass: ClassReference("odyssey.skins.DifficultyLevel3ButtonSkin");
+}
+s|Button#mLevelFourButton {
+	skinClass: ClassReference("odyssey.skins.DifficultyLevel4ButtonSkin");
 }
 	
