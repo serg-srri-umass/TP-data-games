@@ -463,7 +463,7 @@
 			}
 			private function startChosenLevel():void
 			{
-				var levelButtonId = (chosenLevelEvent.target as Button).id;
+				var levelButtonId:String = (chosenLevelEvent.target as Button).id;
 				switch(levelButtonId)
 				{
 					case "mLevelOneButton":

@@ -3,6 +3,14 @@ Change Log
 Newer entries first.
 
 ===========================
+2013.03.13 Craig
+Debug the DG game interface for RockRoll.  
+There are bugs in the order of sending game and event data; 
+I added log statements to make these bugs more clear, but have 
+not yet fixed them, so this is a work in progress.  I think the
+main issue is that event data is sent after a game event is closed.
+
+===========================
 2012.10.22
 Data is now sent after the roll animation completes.
 

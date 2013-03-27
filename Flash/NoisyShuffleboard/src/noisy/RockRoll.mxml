@@ -46,8 +46,8 @@
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
-			private static const kUseDataGamesInterface:Boolean = false; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "Rock Roll v.2012.11.14";
+			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
+			public static const VERSION:String = "Rock Roll v.2013.03.15";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -81,6 +81,12 @@
 			public static const kStdDeviationA:Number	= 6.7;
 			public static const kStdDeviationB:Number	= 22;
 			
+			// Data state for mLastGameOpenState
+			public static const kGameDataNotYetOpen:uint = 0;
+			public static const kGameDataOpened:uint = 1;
+			public static const kGameDataClosed:uint = 2;
+			
+			
 			private var mRandomNormal:ParkMiller;			// Class that creates a uniform normal distribution.
 			private var mLevelWindow:GameLevelWindow;		// The modal window for choosing a game level.
 			private var mRockArray:Array;					// Array holding rocks played in game.
@@ -101,6 +107,7 @@
 			private var mOffsetY:Number				= 16; 	// Y distance between rocks.
 			private var mCurrentGameSinceLaunch:uint= 1;	// Track game number for data tracking. Starts at 1.
 			private var mLastGameOpened:uint		= 0;	// Track game number last used by sendGameDataOpen()
+			private var mLastGameOpenState:uint		= kGameDataClosed;	// Track game state for sendGameDataOpen(), sendGameDataClose(), etc.
 			private var mPlayAutomatically:Boolean	= false;// Flag to specify current play mode.
 			private var mRocksAreRolling:Boolean	= false;// Flag true while rocks are rolling.
 			private var mRollRocksButtonDown:Boolean= false;// Flag true while roll rocks button is down.
@@ -314,40 +321,68 @@
 			// this creates and opens the game case, see also sendGameDataClose()
 			private function sendGameDataOpen():void 
 			{
-				var vals:Array = [
-					mCurrentGameSinceLaunch,
-					0,
-					0,
-					0,
-					mSortRocksList.selectedItem.text
-				];
-				if( kUseDataGamesInterface ) { // if DG
-					var openGameCaseObj:Object = {
-							action: "openCase",
-							args: { 
-								collection: kGamesCollectionName,
-								values: vals
-							} 	
-						}
-					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
-					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
-					this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
-				} else {
-					// else do nothing for TinkerPlots; old game API wants nothing for start of game
+				if( mLastGameOpenState == kGameDataNotYetOpen ) {
+					// open a new game case
+					trace("sendGameDataOpen()__ currentGame="+mCurrentGameSinceLaunch+" mLastGameOpened="+mLastGameOpened); // last should be zero
+
+					var vals:Array = [
+						mCurrentGameSinceLaunch,
+						0,
+						0,
+						0,
+						mSortRocksList.selectedItem.text
+					];
+					
+					if( kUseDataGamesInterface ) { // if DG
+						var openGameCaseObj:Object = {
+								action: "openCase",
+								args: { 
+									collection: kGamesCollectionName,
+									values: vals
+								} 	
+							}
+						var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
+						var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+						this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
+					} else {
+						// else do nothing for TinkerPlots; old game API wants nothing for start of game
+					}
+				
+					// save the game number opened, to help us know when to open a new game with auto-play
+					mLastGameOpened = mCurrentGameSinceLaunch;
+					mLastGameOpenState = kGameDataOpened;
 				}
-				// save the game number opened, to help us know when to open a new game with auto-play
-				mLastGameOpened = mCurrentGameSinceLaunch;
 			}
 			
+			// Update the game-level case data created by sendGameDataOpen(), by sending an update to TinkerPlots or DG
 			private function sendGameDataUpdate():void 
 			{
+				if( mLastGameOpenState == kGameDataOpened ) {		
 				// update the game data (relies on the global values to have changed)
-				sendGameDataClose( "", "", [undefined,undefined,undefined,undefined], false );
+					trace("sendGameDataUpdate() currentGame="+mCurrentGameSinceLaunch+" mLastGameOpened="+mLastGameOpened); // should be equal if game case open
+					sendGameDataPrivUpdate( "", "", [undefined,undefined,undefined,undefined], false /* update only */ );
+				}
 			}
 			
-			// send the Game-level data to TinkerPlots or DG.
-			// this updates and closes the game case created by sendGameDataOpen()
-			private function sendGameDataClose( iStrengthTop:String, iStrengthBottom:String, iStrengthArray:Array, wantCaseClosed:Boolean = true ):void
+			// Close the game-level case data created by sendGameDataOpen(), by sending an update to TinkerPlots or DG
+			// relies on certain global values to have changed: mCurrentGameScore, etc.
+			private function sendGameDataClose( iStrengthTop:String, iStrengthBottom:String, iStrengthArray:Array ):void
+			{
+				if( mLastGameOpenState == kGameDataOpened ) {
+					// close the game data (relies on the global values to have changed)
+					trace("sendGameDataClose()_ currentGame="+mCurrentGameSinceLaunch+" mLastGameOpened="+mLastGameOpened); // should be equal if game case open
+					sendGameDataPrivUpdate( iStrengthTop, iStrengthBottom, iStrengthArray, true /* update and close */ );
+				
+					mLastGameOpened = 0; 					// forget old game case ID
+					mLastGameOpenState = kGameDataClosed;	// don't allow updates until new game case opened again
+					mCurrentGameSinceLaunch += 1; 			// Game is done and tracked. Increment counter.
+				}
+			}
+						
+			// Send the Game-level data to TinkerPlots or DG.
+			// this updates or closes the game case created by sendGameDataOpen() or sendGameDataUpdate()
+			// relies on certain global values to have changed: mCurrentGameScore, etc.
+			private function sendGameDataPrivUpdate( iStrengthTop:String, iStrengthBottom:String, iStrengthArray:Array, wantCaseClosed:Boolean = true ):void
 			{
 				var vals:Array = [
 							mCurrentGameSinceLaunch,
@@ -375,15 +410,22 @@
 					ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
 				} 
 				else { // TinkerPlots 2.0 Research Edition interface
+					if( wantCaseClosed ) { // no update possible in TinkerPlots interface
 					ScriptInterface.AddCaseToCollectionWithValues(
 						kGamesCollectionName, 
 						vals );
 				}
 			}
+			}
 			
 			// send the Event-level data to TinkerPlots or DG.
 			private function sendEventData( iRollsArray:Array, iStartIndex:int, iEndIndex:int ):void 
 			{
+				if( mLastGameOpenState != kGameDataOpened ) {
+					trace("sendEventData() ignored because game data case is not open");
+					return;
+				}
+				trace("sendEventData() "+iStartIndex+" to "+iEndIndex+" for game "+mLastGameOpened);
 				var arrayOfEvents:Array = [];
 				for (var rollIndex:Number = iStartIndex; rollIndex < iEndIndex; ++rollIndex)
 				{
@@ -745,6 +787,7 @@
 			// and effect that is still playing can have unwanted results.
 			protected function onRockRollComplete(iEvent:EffectEvent):void
 			{
+				trace("onRockRollComplete()");
 				mNewGameButton.enabled	= true;
 				mRollCounter += 1;
 				
@@ -800,7 +843,7 @@
 							}
 						}
 						
-						if( mCurrentGameSinceLaunch != mLastGameOpened ) {
+						if( mLastGameOpenState == kGameDataNotYetOpen ) {
 							sendGameDataOpen(); // if not opened by onNewNewGame(), e.g. during auto-play
 						}
 						sendGameDataUpdate();
@@ -882,10 +925,10 @@
 						}
 						
 						// Send data on this game to TinkerPlots/Fathom/DG.
+						trace("onRockRollComplete() "+mNextRockToRoll+" rocks");
 						sendGameDataClose( strengthTop, strengthBottom, mStrengthArray );
-						
 						mMostRecentGamePlayed	= gameCount;	// Keep track of most recent game played.
-						mCurrentGameSinceLaunch += 1; 			// Game is done and tracked. Increment counter.
+						//mCurrentGameSinceLaunch += 1; 			// Game is done and tracked. Increment counter.
 						mPrevLevel 				= mGameLevel;	// Track game level change.
 					}
 				}
@@ -1067,7 +1110,10 @@
 						if(mPlayAutomatically)
 						{
 							// Send data on this game to TinkerPlots/Fathom/DG.
-							if( mCurrentGameSinceLaunch != mLastGameOpened ) {
+							if( mLastGameOpenState == kGameDataClosed ) {
+								mLastGameOpenState = kGameDataNotYetOpen; // during auto-play start a new game automatically
+							}
+							if( mLastGameOpenState == kGameDataNotYetOpen ) {
 								sendGameDataOpen(); // if not opened by onNewNewGame(), e.g. during auto-play
 							}
 							sendGameDataUpdate();
@@ -1250,13 +1296,11 @@
 								
 								// Set strength values used for transmission to TinkerPlots/Fathom when in
 								// autoplay mode.
-								var strengthTop:String		= ""; 
-								var strengthBottom:String	= ""; 
-								
-								strengthTop		= mStrengthSliderA.value.toString(); 
-								strengthBottom	= mStrengthSliderB.value.toString(); 
+								var strengthTop:String		= mStrengthSliderA.value.toString(); 
+								var strengthBottom:String	= mStrengthSliderB.value.toString(); 
 								
 								// Send data on this game to TinkerPlots/Fathom/DG.
+								trace("later in onRollRocksMouseUp()");
 								sendGameDataClose( strengthTop, strengthBottom, mStrengthArray );
 								
 								// Calculate the average game score when in batch mode.
@@ -1268,7 +1312,7 @@
 								trace("adding data point: [",[gameCount, mCurrentAverageScore],"]");
 								
 								mMostRecentGamePlayed	= gameCount;	// Keep track of most recent game played.
-								mCurrentGameSinceLaunch += 1; 			// Game is done and tracked. Increment counter.
+								//mCurrentGameSinceLaunch += 1; 			// Game is done and tracked. Increment counter.
 								mPrevLevel 				= mGameLevel;	// Track game level change.
 							}
 						}
@@ -1363,6 +1407,12 @@
 
 					if (mPlayAutomatically)
 						enableNumberGamesStepperAndLabel(true);		// Enable the number of games stepper.
+					
+					// Send data on this game to TinkerPlots/Fathom/DG.
+					if( mLastGameOpenState == kGameDataClosed ) {
+						mLastGameOpenState = kGameDataNotYetOpen;
+						sendGameDataOpen();
+					}
 				}
 				
 				// Toggle 'cancel'/'new game' state and button text.
@@ -1371,8 +1421,6 @@
 				// Update instructions text.
 				updateInstructionsText();
 				
-				// Send data on this game to TinkerPlots/Fathom/DG.
-				sendGameDataOpen();
 			}
 			
 			protected function cancelPressed():void
@@ -1383,6 +1431,22 @@
 				enableAutoPlayCheckBoxAndLabel(false);	// Disable autoplay checkbox and label.
 				enableNumberGamesStepperAndLabel(false);// Disable games-to-play counter until new game is started.
 				enableSortRocksList(false);		// Disable sort feature until new game is started.
+				
+				// close the open game case (for DG)
+				if( mCurrentGameSinceLaunch == mLastGameOpened ) { 
+					// Set strength values used for transmission to TinkerPlots/Fathom when in
+					// autoplay mode.
+					var strengthTop:String		= mStrengthSliderA.value.toString(); 
+					var strengthBottom:String	= mStrengthSliderB.value.toString(); 
+					
+					// Send data on this game to TinkerPlots/Fathom/DG.
+					trace("cancelPressed()");
+					sendGameDataClose( strengthTop, strengthBottom, mStrengthArray );
+					
+					mCurrentGameScore	= 0; // Zero out score on new game.
+					mTopGameScore		= 0; // Zero out score on new game.
+					mBottomGameScore	= 0; // Zero out score on new game.
+				}
 				
 				resetRocks(); // Move all rocks back to starting point.
 			}
