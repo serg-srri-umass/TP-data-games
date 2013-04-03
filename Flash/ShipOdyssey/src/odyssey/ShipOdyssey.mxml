@@ -45,7 +45,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.03.27";
+			public static const VERSION:String = "v.2013.04.03";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -78,11 +78,6 @@
 			public static const kMaxLocation:Number = 100;	// Rightmost treasure location.
 			public static const kStdDeviationClear:Number = 10;// Standard deviation of rat results in clear water.
 			public static const kStdDeviationMurky:Number = 15;// Standard deviation of rat results in murky water.
-//			public static const kWelcomeText:String = "Ahoy!!! Find ye treasure here. Send down some rats as scouts to see where the treasure lies. Then take yer chances and drop the hook!";
-//			public static const kNoRatsText:String	= "Arrr!!! Ye have lost all yer rats, but fear ye not! Try yer hand at the hook to gather ye some treasure. Bounty awaits ye!";
-//			public static const kMissed:String		= "Arrr!!! Ye have found no treasure here and lost a day fer yer trouble.";
-//			public static const kInSearchOf:String	= "In search of treasure #";
-//			public static const gameTitle1:String	= "Ship Odyssey";
 			public static const kLevel1Instructions:String = "To find a treasure, send rats down 100 at a time. When you think you know the treasure's location, drop the hook. Each hook drop costs $4,500.";
 			public static const kLevel2Instructions:String = "At each location, there may be 0, 1 or 2 treasures. You must decide when you are ready to sail on from each location.";
 			public static const kLevel3Instructions:String = "There is 1 treasure at each location. The rats cost $100 dollars each and each hook drop costs $4,500. To make the most profit, you need to use as few rats as you can to locate the treasure";
@@ -435,17 +430,17 @@
 				mLevelWindow["mLevelFourButton"].toolTip = kLevel4Instructions;
 				
 				//remove any existing event listeners before adding new ones
-				mLevelWindow["mLevelOneButton"].removeEventListener("click", firstHuntLevel);
-				mLevelWindow["mLevelTwoButton"].removeEventListener("click", secondHuntLevel);
-				mLevelWindow["mLevelThreeButton"].removeEventListener("click", thirdHuntLevel);
-				mLevelWindow["mLevelFourButton"].removeEventListener("click", fourthHuntLevel);
+				mLevelWindow["mLevelOneButton"].removeEventListener("click", handleLevelSelectionAndZoomIn);
+				mLevelWindow["mLevelTwoButton"].removeEventListener("click", handleLevelSelectionAndZoomIn);
+				mLevelWindow["mLevelThreeButton"].removeEventListener("click", handleLevelSelectionAndZoomIn);
+				mLevelWindow["mLevelFourButton"].removeEventListener("click", handleLevelSelectionAndZoomIn);
 				
 				if(startImmediately) //when selecting a level at startup
 				{
-					mLevelWindow["mLevelOneButton"].addEventListener("click", firstHuntLevel);   
-					mLevelWindow["mLevelTwoButton"].addEventListener("click", secondHuntLevel);
-					mLevelWindow["mLevelThreeButton"].addEventListener("click", thirdHuntLevel);
-					mLevelWindow["mLevelFourButton"].addEventListener("click", fourthHuntLevel);
+					mLevelWindow["mLevelOneButton"].addEventListener("click", handleLevelSelectionAndZoomIn);   
+					mLevelWindow["mLevelTwoButton"].addEventListener("click", handleLevelSelectionAndZoomIn);
+					mLevelWindow["mLevelThreeButton"].addEventListener("click", handleLevelSelectionAndZoomIn);
+					mLevelWindow["mLevelFourButton"].addEventListener("click", handleLevelSelectionAndZoomIn);
 				}
 				else //when selecting a level with levels button
 				{
@@ -455,28 +450,34 @@
 					mLevelWindow["mLevelFourButton"].addEventListener("click", handleLevelSelection);
 				}
 			}
-			private var chosenLevelEvent:Event;
+			
 			private function handleLevelSelection(event:Event):void
 			{
 				PopUpManager.removePopUp(mLevelWindow);
-				chosenLevelEvent = event;
+				initalizeChosenLevel(event);
 			}
-			private function startChosenLevel():void
+			private function handleLevelSelectionAndZoomIn(event:Event):void
 			{
-				var levelButtonId:String = (chosenLevelEvent.target as Button).id;
+				PopUpManager.removePopUp(mLevelWindow);
+				initalizeChosenLevel(event);
+				sailThenZoomIn();
+			}
+			private function initalizeChosenLevel(event:Event):void
+			{
+				var levelButtonId:String = (event.target as Button).id;
 				switch(levelButtonId)
 				{
 					case "mLevelOneButton":
-						firstHuntLevel(chosenLevelEvent);
+						firstHuntLevel(event);
 						break;
 					case "mLevelTwoButton":
-						secondHuntLevel(chosenLevelEvent);
+						secondHuntLevel(event);
 						break;
 					case "mLevelThreeButton":
-						thirdHuntLevel(chosenLevelEvent);
+						thirdHuntLevel(event);
 						break;
 					case "mLevelFourButton":
-						fourthHuntLevel(chosenLevelEvent);
+						fourthHuntLevel(event);
 						break;
 				}
 			}
@@ -486,14 +487,23 @@
 			{
 				mHuntLevel = iLevel; // Set game level to input value.
 				sendGameDataOpen();  // now that we have all of the game data send to DG
-				PopUpManager.removePopUp(mLevelWindow);	
-				sailThenZoomIn();
+				PopUpManager.removePopUp(mLevelWindow);
+				
+				if(mHuntLevel == 0 || mHuntLevel == 1) //first or second levels
+				{
+					mRatCostLabel.visible = false;
+					mRatCost.visible = false;
+				}
+				else
+				{
+					mRatCostLabel.visible = true;
+					mRatCost.visible = true;
+				}
 			}
 			
 			// firstHuntLevel() sets the current hunt level to the first level.
 			private function firstHuntLevel(iEvent:Event):void 
 			{
-				chosenLevelEvent = iEvent;
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				//Set background image and standard deviation that fit with game level.
 				mStdDeviation = kStdDeviationClear;
@@ -518,7 +528,6 @@
 			// secondHuntLevel() sets the current hunt level to the second level.
 			private function secondHuntLevel(iEvent:Event):void 
 			{
-				chosenLevelEvent = iEvent;
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				// Set background image and standard deviation that fit with game level.
 				mStdDeviation = kStdDeviationClear;
@@ -542,7 +551,6 @@
 			
 			private function thirdHuntLevel(iEvent:Event):void 
 			{
-				chosenLevelEvent = iEvent;
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				// Set background image and standard deviation that fit with game level.
 				mStdDeviation = kStdDeviationClear;
@@ -565,7 +573,6 @@
 			}
 			private function fourthHuntLevel(iEvent:Event):void 
 			{
-				chosenLevelEvent = iEvent;
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				// Set background image and standard deviation that fit with game level.
 				mStdDeviation = kStdDeviationMurky;
@@ -805,6 +812,8 @@
 					TreasureFoundLabel.text = "Ye found the " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + valueInDollars 
 						+ " at location " + mLocationFound.toFixed(1) + "!";
 					TreasureFoundAlert.visible = true;
+					onClickExitTreasureHunt(new MouseEvent("click"));
+//					mExitHuntButton.enabled = true;
 					
 					//change treasure location
 					mTreasureArray[mCurrentTreasureNum][kLocation] = randomLocation();
@@ -851,13 +860,6 @@
 			protected function onClickExitTreasureHunt(iEvent:MouseEvent):void
 			{
 				trace("ShipOdyssey.onClickExitTreasureHunt(iEvent)");
-				
-//				Alert.show('Are you sure you would like to end the game?','End Game',3,this,AlertOnExit);
-//				function AlertOnExit(event:CloseEvent):void{
-//					if(event.detail == Alert.YES){
-//						//onClickExitTreasureHunt(new MouseEvent(MouseEvent.CLICK));
-//					}
-//				}
 								
 				if(mExitHuntButton.label == "End Game") //Clicking on 'End Game'
 				{				
@@ -873,7 +875,10 @@
 	//				mCurrentLevel = "";     // clear out the level number
 	//				currentState='StartPage';	// Return to start screen.
 					
-					GameEndedAlert.visible = true;
+					if(!TreasureFoundAlert.visible){
+						GameEndedAlert.visible = true;
+					}
+					
 					this.mLevelsButton.enabled = true;
 					this.mExitHuntButton.enabled = true;
 					this.mExitHuntButton.label = "New Game";
@@ -881,7 +886,8 @@
 				else //Clicking on 'New Game'
 				{
 					GameEndedAlert.visible = false;
-					this.startChosenLevel();
+					TreasureFoundAlert.visible = false;
+					this.sailThenZoomIn();
 					this.mLevelsButton.enabled = false;
 					this.mExitHuntButton.enabled = true;
 					this.mExitHuntButton.label = "End Game";
@@ -905,9 +911,7 @@
 			
 			private function updateProfitAfterSail():void{
 				//update the cumulative cost of using the ship and crew as well as the profit so far
-				if(mAutoSailOnAfterFoundTreasure){
-					mCurrentTreasureNum = selectRandomTreasure();
-				}
+				mCurrentTreasureNum = selectRandomTreasure();
 				mDropLocationNum++;
 				trace("mDropLocationNum: " + mDropLocationNum);
 				mProfitValue.text = formatDollars(mProfitSoFar);
@@ -1362,10 +1366,10 @@
 			
 			<s:Label text="Log" includeIn="TreasureHunt" x="10" y="140" width="100" color="#000000" fontFamily="Georgia" fontStyle="italic" fontSize="20" textAlign="center"/>
 			
-			<s:Label text="Treasure: " includeIn="TreasureHunt" x="15" y="165" width="100" color="#000000" fontFamily="Georgia"/>
-			<s:Label text="Rat Cost: " includeIn="TreasureHunt" x="15" y="190" width="100" color="#000000" fontFamily="Georgia"/>
-			<s:Label text="Hook Cost: " includeIn="TreasureHunt" x="15" y="215" width="100" color="#000000" fontFamily="Georgia"/>
-			<s:Label text="Profit: " includeIn="TreasureHunt" x="15" y="240" width="100" color="#000000" fontFamily="Georgia"/>
+			<s:Label id="mTreasureLabel" text="Treasure: " includeIn="TreasureHunt" x="15" y="165" width="100" color="#000000" fontFamily="Georgia"/>
+			<s:Label id="mRatCostLabel" text="Rat Cost: " includeIn="TreasureHunt" x="15" y="190" width="100" color="#000000" fontFamily="Georgia"/>
+			<s:Label id="mHookCostLabel" text="Hook Cost: " includeIn="TreasureHunt" x="15" y="215" width="100" color="#000000" fontFamily="Georgia"/>
+			<s:Label id="mProfitLabel" text="Profit: " includeIn="TreasureHunt" x="15" y="240" width="100" color="#000000" fontFamily="Georgia"/>
 			
 			<s:Label id="mTreasureProfit" includeIn="TreasureHunt" x="34" y="175" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right"/>
 			<s:Label id="mRatCost" includeIn="TreasureHunt" x="34" y="200" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right"/>
@@ -1400,8 +1404,8 @@
 		<s:Group id="TreasureFoundAlert" visible="false" depth="6">
 			<s:Image	id="TreasureFoundAlertImage" includeIn="TreasureHunt" x="170" y="119" source="{mParchmentImage}" depth="6"/>
 			<s:Label	id="TreasureFoundLabel" includeIn="TreasureHunt" x="188" y="173" fontFamily="Georgia" fontStyle="italic" height="120" width="249" fontSize="22" textAlign="center" color="#000000" depth="7"/>
-			<s:Button	id="ContinueOn" includeIn="TreasureHunt" x="250" y="300" width="125" height="18" label="Continue" chromeColor="#D1B38B" color="#000000"
-					  click="continueAfterFindingTreasure(event)" depth="7" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
+			<!--<s:Button	id="ContinueOn" includeIn="TreasureHunt" x="250" y="300" width="125" height="18" label="Continue" chromeColor="#D1B38B" color="#000000"
+					  click="continueAfterFindingTreasure(event)" depth="7" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>-->
 		</s:Group>
 		<s:Group id="GameEndedAlert" visible="false" depth="6">
 			<s:Image	id="GameEndedAlertImage" includeIn="TreasureHunt" x="170" y="119" source="{mParchmentImage}" depth="6"/>
