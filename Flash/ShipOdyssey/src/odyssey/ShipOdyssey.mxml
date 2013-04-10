@@ -45,7 +45,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.04.03";
+			public static const VERSION:String = "v.2013.04.10";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -380,7 +380,7 @@
 				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
 					mTreasure3, mTreasure4, mTreasure5);
 				
-				mCurrentTreasureNum 		= 0;	// Player begins looking for first treasure.
+				mCurrentTreasureNum 		= selectRandomTreasure();	// Pick a random Treasure for each game
 				mTreasuresFound				= 0;	// No treasures found yet.
 				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
@@ -813,7 +813,6 @@
 						+ " at location " + mLocationFound.toFixed(1) + "!";
 					TreasureFoundAlert.visible = true;
 					onClickExitTreasureHunt(new MouseEvent("click"));
-//					mExitHuntButton.enabled = true;
 					
 					//change treasure location
 					mTreasureArray[mCurrentTreasureNum][kLocation] = randomLocation();
@@ -908,6 +907,25 @@
 //				
 //				updateProfitAfterSail();
 //			}
+			
+			private function onClickHelpButton():void
+			{
+				var tan:int = 13742987;
+				var red:int = 14579041; //#de7561
+
+				var active:Boolean = (mHelpButton.getStyle("chromeColor")==red);
+				if(active)
+				{
+					mHelpButton.setStyle("chromeColor", tan);
+					levelDescriptionAlert.visible = false;
+				}
+				else
+				{
+					mHelpButton.setStyle("chromeColor", red);
+					levelDescriptionLabel.text = getCurrentLevelDescription();
+					levelDescriptionAlert.visible = true;
+				}
+			}
 			
 			private function updateProfitAfterSail():void{
 				//update the cumulative cost of using the ship and crew as well as the profit so far
@@ -1197,6 +1215,21 @@
 						break;
 				}
 			}
+			private function getCurrentLevelDescription():String
+			{
+				switch(mCurrentLevel)
+				{
+					case "LEVEL 1":
+						return kLevel1Instructions;
+					case "LEVEL 2":
+						return kLevel2Instructions;
+					case "LEVEL 3":
+						return kLevel3Instructions;
+					case "LEVEL 4":
+						return kLevel4Instructions;
+				}
+				return "";
+			}
 			
 			//********new visual items and visual only code **********
 			private var crane:MovieClip;
@@ -1377,7 +1410,7 @@
 			<s:Label id="mProfitValue" includeIn="TreasureHunt" x="34" y="250" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right"/>
 			
 			<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel(false);" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
-			<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="showCurrentLevelHelp();" color="#000000" fontSize="14"/>
+			<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
 			<s:Button id="mExitHuntButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="End Game" chromeColor="#D1B38B" click="onClickExitTreasureHunt(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
 		</mx:Canvas>
 
@@ -1410,6 +1443,11 @@
 		<s:Group id="GameEndedAlert" visible="false" depth="6">
 			<s:Image	id="GameEndedAlertImage" includeIn="TreasureHunt" x="170" y="119" source="{mParchmentImage}" depth="6"/>
 			<s:Label	id="GameEndedLabel" includeIn="TreasureHunt" x="188" y="173" text="Game Over" fontFamily="Georgia" fontStyle="italic" height="120" width="249" fontSize="22" textAlign="center" color="#000000" depth="7"/>
+		</s:Group>
+		<s:Group id="levelDescriptionAlert" visible="false" depth="6">
+			<s:Image includeIn="TreasureHunt" x="170" y="119" source="{mParchmentImage}" depth="6"/>
+			<s:Label includeIn="TreasureHunt" x="188" y="173" text="Instructions" fontFamily="Georgia" fontStyle="italic" height="120" width="249" fontSize="22" textAlign="center" color="#000000" depth="7"/>
+			<s:Label id="levelDescriptionLabel" includeIn="TreasureHunt" x="195" y="220" fontFamily="Georgia" height="120" width="245" fontSize="16" textAlign="center" color="#000000" depth="7"/>
 		</s:Group>
 	
 </s:Application>
