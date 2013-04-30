@@ -47,7 +47,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "Rock Roll v.2013.03.15";
+			public static const VERSION:String = "Rock Roll v.2013.04.30";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -258,7 +258,11 @@
 										{name: "GameNumber", type: "nominal", precision: 0, description: "Game number"   } , 
 										{name: "RollOrder", type: "numeric", precision: 0, description: "Roll order within the game"   } ,	
 										{name: "Court", type: "nominal", description: "Top or bottom court"   } ,	
-										{name: ShuffleRock.COLOR_STRING, type: "nominal", description: "Color of rock"   } , 
+										{name: ShuffleRock.COLOR_STRING, type: "nominal", description: "Color of rock",   
+											colormap: {	
+													"Red" : 'red', 
+													"Blue" : 'blue'
+											}} ,
 										{name: ShuffleRock.PATTERN_STRING, type: "nominal", description: "Pattern on rock"   } ,
 										{name: ShuffleRock.SHAPE_STRING, type: "nominal", description: "Shape of rock"   } ,
 										{name: ShuffleRock.SIZE_STRING, type: "nominal", description: "Size of rock"   } ,
