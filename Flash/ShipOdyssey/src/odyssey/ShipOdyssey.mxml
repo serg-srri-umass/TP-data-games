@@ -34,18 +34,17 @@
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
-			import odyssey.TreasureHuntLevelWindow;
-			
-			import odysseyAssets.*;
-			
 			import spark.filters.GlowFilter;
+			
+			import odyssey.TreasureHuntLevelWindow;
+			import odysseyAssets.*;
 			
 			// BUILD FOR TinkerPlots or DG: 
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.04.30";
+			public static const VERSION:String = "v.2013.05.01";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -256,11 +255,6 @@
 				
 				this.switchToTreasureHunt(new MouseEvent("click"));
 				chooseHuntLevel(true); //show level selection on start up and start the game (true = start game after level selection)				
-				
-//				mLevelWindow = new TreasureHuntLevelWindow();
-//				chooseHuntLevel();
-//				initializeTreasureHunt();
-				//this.firstHuntLevel(new Event(Event.INIT));
 			}
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
@@ -318,15 +312,9 @@
 						kEventsCollectionName,
 						[
 							"Game_Number",		// Treasure hunt game number starting with 1 since launch of application.
-							//"Level",			// Clear or murky, based on hunt level chosen.
 							"Rat_Number",		// Rats sent so far in current game.
 							"Rat_Reading",		// Location estimate provided by rat.
-							//"Drop_Order",		// Hooks dropped so far in current game. 
-							//"Drop_Location",	// Location of hook center at time of event.
-							//"Drop_Result",		// Outcome of dropping hook (None, Miss, Hit, etc.).
-							"Treasure_Sought"//,	// Categorical treasure ID (1-based) at time of event.
-							//"Treasure_Location"// Exact location of treasure found at time of event
-							//** TW:Items commented out have been removed until the data system can better handle multiple level data types
+							"Treasure_Sought"	// Categorical treasure ID (1-based) at time of event.
 						]
 					);
 					// Create game collection.
@@ -334,7 +322,7 @@
 						kGamesCollectionName,
 						[
 							"Game_Number",		// Treasure hunt game number starting with 1 since launch of application.
-							"Level",	// Clear or murky, based on hunt level chosen.
+							"Level",			// Clear or murky, based on hunt level chosen.
 							"Total_Rats_Sent",	// Total number of rats sent during current game.
 							"Total_Drops",		// Number of times hook was dropped during current game.
 							"Treasures_Found",	// Number of treasures found during current game.
@@ -349,11 +337,9 @@
 			protected function switchToTreasureHunt(iEvent:MouseEvent):void
 			{
 				currentState='TreasureHunt';	// Switch to Treasure Hunt screen.
-//				GameLabel.text = gameTitle1;
 				// Create a  game level modal dialog.
 				// Listen for clicks on level buttons in dialog.
 				mLevelWindow = new TreasureHuntLevelWindow();
-//				chooseHuntLevel();
 				initializeTreasureHunt();
 			}
 			
@@ -455,18 +441,20 @@
 				}
 			}
 			
+			// Prepares a new level once a level has been selected by pressing the 'levels' button and shows the instructions for that level.
 			private function handleLevelSelection(event:Event):void
 			{
 				PopUpManager.removePopUp(mLevelWindow);
 				initalizeChosenLevel(event);
 				showCurrentLevelInstructions();
 			}
+			// Prepares a new level and starts the game when a level is selected when the game is first loaded.
 			private function handleLevelSelectionAndZoomIn(event:Event):void
 			{
 				PopUpManager.removePopUp(mLevelWindow);
 				initalizeChosenLevel(event);
 				sailThenZoomIn();
-				showCurrentLevelHelp();
+				showCurrentLevelHelpAlert();
 				sendGameDataOpen();
 			}
 			private function initalizeChosenLevel(event:Event):void
@@ -528,7 +516,6 @@
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 1";
 				mSailOnAlertString = kSailOnNormalLevel;
-//				showCurrentLevelHelp();
 			}
 			
 			// secondHuntLevel() sets the current hunt level to the second level.
@@ -552,7 +539,6 @@
 				mAutoSailOnAfterFoundTreasure = false;
 				mCurrentLevel = "LEVEL 2";
 				mSailOnAlertString = kSailOnMultiTreasureLevel;
-//				showCurrentLevelHelp();
 			}
 			
 			private function thirdHuntLevel(iEvent:Event):void 
@@ -575,8 +561,8 @@
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 3";
 				mSailOnAlertString = kSailOnNormalLevel;
-//				showCurrentLevelHelp();
 			}
+			
 			private function fourthHuntLevel(iEvent:Event):void 
 			{
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
@@ -597,7 +583,6 @@
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 4";
 				mSailOnAlertString = kSailOnNormalLevel;
-//				showCurrentLevelHelp();
 			}
 			
 			// getOceanQuality() returns a string descibing the ocean quality based on the hunt level
@@ -854,13 +839,12 @@
 				return Math.round(Math.random()*5) as uint;
 			}
 			
-			// onClickExitTreasureHunt() sets the current state to the Treasure Hunt game
-			// screen and initializes the game.
+			// onClickExitNewGame() starts a new game and ends a game in progress
 			protected function onClickExitNewGame(iEvent:MouseEvent):void
 			{
-				trace("ShipOdyssey.onClickExitTreasureHunt(iEvent)");
+				trace("ShipOdyssey.onClickExitNewGame(iEvent)");
 				
-				if(mExitHuntButton.label == "End Game") //Clicking on 'End Game'
+				if(mExitNewGameButton.label == "End Game") //Clicking on 'End Game'
 				{
 					sendGameDataClose();
 					
@@ -877,8 +861,8 @@
 					}
 					
 					mLevelsButton.enabled = true;
-					mExitHuntButton.enabled = true;
-					mExitHuntButton.label = "New Game";
+					mExitNewGameButton.enabled = true;
+					mExitNewGameButton.label = "New Game";
 					mSendRatsButton.enabled = false;
 					mDropHookButton.enabled = false;
 				}
@@ -889,8 +873,8 @@
 					hideInstructions();
 					sailThenZoomIn();
 					mLevelsButton.enabled = false;
-					mExitHuntButton.enabled = true;
-					mExitHuntButton.label = "End Game";
+					mExitNewGameButton.enabled = true;
+					mExitNewGameButton.label = "End Game";
 					disableAllButtons(false);
 					switchToTreasureHunt(iEvent); //start a new game
 					
@@ -898,6 +882,7 @@
 				}
 			}
 			
+			// Toggles the Instructions scroll
 			private function onClickHelpButton():void
 			{
 				var tan:int = 13742987; //#d1b38b
@@ -928,7 +913,7 @@
 				levelDescriptionAlert.visible = false;
 			}
 			
-			private function showCurrentLevelHelp():void
+			private function showCurrentLevelHelpAlert():void
 			{
 				switch(mCurrentLevel)
 				{
@@ -1197,8 +1182,8 @@
 				if(debug){
 					var treasure:Array = mTreasureArray[mCurrentTreasureNum];
 					trace("Treasure: " + treasure[kItem] + " worth $" + treasure[kValue] + " at " + treasure[kLocation]);
-					for(var i:int=0; mTreasureLocArr[i]; i++){
-						trace("\tTreasure "+i+": "+mTreasureLocArr[i]);	
+					for(var j:int=0; mTreasureLocArr[j]; j++){
+						trace("\tTreasure "+j+": "+mTreasureLocArr[j]);
 					}
 				}
 				crane.visible = true;
@@ -1215,7 +1200,7 @@
 			//button control methods
 			private function disableAllButtons(incExit:Boolean):void{
 				mLevelsButton.enabled = false;
-				mExitHuntButton.enabled = false;
+				mExitNewGameButton.enabled = false;
 				mDropHookButton.enabled = false;
 				mCenterPositionStepper.enabled = false;
 				mRatStepper.enabled = false;
@@ -1223,8 +1208,7 @@
 				CraneHandle.visible = false;
 			}	
 			private function enableAllButtons():void{
-//				mLevelsButton.enabled = true;
-				mExitHuntButton.enabled = true;
+				mExitNewGameButton.enabled = true;
 				mDropHookButton.enabled = true;
 				mCenterPositionStepper.enabled = true;
 				mRatStepper.enabled = true;
@@ -1394,7 +1378,7 @@
 			
 			<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel(false);" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 			<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
-			<s:Button id="mExitHuntButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="End Game" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
+			<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="End Game" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
 		</mx:Canvas>
 
 	<!-- Animated Ship and Crane area -->
