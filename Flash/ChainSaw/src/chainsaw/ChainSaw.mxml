@@ -40,7 +40,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2013.02.25";
+			public static const VERSION:String   = "Chainsaw v.2013.03.18";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -268,8 +268,8 @@
 									attrs:[
 										{ name: "Player" , type: "nominal" ,  description: "Name of the player"   } ,
 										{ name: "GameNumber" , type: "nominal" , precision: 0, description: "Game number"   } , 
-										{ name: "Score", type: "nominal", precision: 0, description: "Score for this game", editable: true },
-										{ name: "Rank", type: "nominal", precision: 0, description: "Rank of this game", editable: true },
+										{ name: "Score", type: "numeric", precision: 1, description: "Score for this game", editable: true },
+										{ name: "Rank", type: "numeric", precision: 0, description: "Rank of this game", editable: true },
 										{ name: "Level" , type: "nominal" ,  description: "Game level"   } ,	
 										{ name: "Strategy" , type: "nominal" ,  description: "Cut strategy used by the player"   } ,	
 										{ name: "Accepted" , type: "numeric" , precision: 0, description: "Number of pieces accepted"   } , 
@@ -278,7 +278,7 @@
 										{ name: "Short" , type: "numeric" , precision: 0, description: "Number of pieces rejected as short"   } , 
 										{ name: "Long" , type: "numeric" , precision: 0, description: "Number of pieces rejected as long"   } , 
 										{ name: "FuelLeft" , type: "numeric" , precision: 0, description: "Amount of fuel left"   } , 
-										{ name: "FuelLeftPercent" , type: "numeric" , precision: 0, description: "Percent of fuel left"   }			
+										{ name: "FuelLeftPercent" , type: "numeric" , precision: 1, description: "Percent of fuel left"   }			
 									] ,
 									childAttrName: "Cut_Record"
 								},
