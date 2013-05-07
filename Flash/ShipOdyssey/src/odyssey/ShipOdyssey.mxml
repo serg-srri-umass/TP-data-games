@@ -58,11 +58,7 @@
 			public static const kHuntLevelTwo:uint = 1;	// Second treasure hunt game level. New level with 0-2 treasures per location with 6 treasures total.
 			public static const kHuntLevelThree:uint = 2;	// Third treasure hunt game level. Used to be Clear Level.
 			public static const kHuntLevelFour:uint = 3;	// Fourth treasure hunt game level. Used to be Murky Level.
-			//**these former constant are now maleable due to a change to level mechanics**
-[Bindable]	public static var kMaxRats:uint	= 500;	// Number of rats available per Treasure Hunt Game.
-[Bindable]	public static var kMinRats:uint	= 1;	// Default minimum number of rats to send.
-			public static var kRatsToSend:uint= 10;	// Default number of rats to send.
-			public static var kCostPerRat:uint= 100;	// Cost per rat in dollars.
+
 			//** **
 			public static const kCostPerHoodDrop:int = 4500; // Cost each time you drop a hook
 			public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
@@ -93,7 +89,10 @@
 			private var mLevelWindow:TreasureHuntLevelWindow;// The modal window for choosing a treasure hunt level.
 			private var mHuntLevel:uint		= 0;			// Current hunt level.
 			private var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
-			private var mRatsToSend:uint	= kRatsToSend;	// Rats to send at one time.
+			[Bindable]	public static var mMaxRatsToSend:uint	= 500;	// Maximum allowable number of rats to send at a time
+			[Bindable]	public static var mMinRatsToSend:uint	= 1;	// Minimum allowable number of rats to send at a time.
+			private var mRatsToSend:uint	= 10;			// Rats to send at one time: should match current stepper value.
+			private var mCostPerRat:uint	= 100;			// Cost per rat in dollars.
 			private var mRandomNormal:ParkMiller;			// Class that creates a normal distribution.
 			private var mMathUtils:MathUtilities = new MathUtilities();			// Class that uses SRRI math functions.
 			private var mCenterPosition:Number= kInitCenter;	// Center position of grappling hook.
@@ -258,6 +257,22 @@
 				chooseHuntLevel(true); //show level selection on start up and start the game (true = start game after level selection)				
 			}
 			
+			// set the rat stepper values and fix the minimum and maximum values at the same time
+			private function setCurrentMixMaxRats( iCurrentRatsToSend:uint, iMinRatsToSend:uint, iMaxRatsToSend:uint ):void
+			{
+				if( iCurrentRatsToSend > iMaxRatsToSend) trace("LOGIC ERROR: current rats greater than max rats");
+				if( iCurrentRatsToSend < iMinRatsToSend) trace("LOGIC ERROR: current rats less than min rats");
+				
+				// save values
+				mRatsToSend	= iCurrentRatsToSend;
+				mMinRatsToSend	= iMinRatsToSend;
+				mMaxRatsToSend	= iMaxRatsToSend;
+				// sync stepper
+				mRatStepper.value = mRatsToSend;
+				mRatStepper.minimum = mMinRatsToSend;
+				mRatStepper.maximum = mMaxRatsToSend;
+			}
+			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
 			private	function	sendCollectionData( ):void	{
 				var	result:String;
@@ -377,11 +392,8 @@
 				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
 				mDropLocationNum			= 0;	// Same as mCurrentTreasureNum except in Level 2 - used to track where we are
 				
-				mRatStepper.maximum	= kMaxRats;	//Set maximum rats-to-send to the full number of rats.
-				mRatStepper.minimum	= kMinRats;	//Set minimum rats-to-send to default.
-				
-				// Set intial number of rats to send.
-				mRatStepper.value	= mRatsToSend;
+				// sync the rat stepper with the current level if needed
+				setCurrentMixMaxRats( mRatsToSend, mMinRatsToSend, mMaxRatsToSend );
 				mResultsFieldLabel.text	= "";		// Clear rat results.
 				
 				// Move hook to center of treasure area.
@@ -507,12 +519,8 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelOne); // Set game level to first level.
 				
-				kMaxRats	= 2400;	// Number of rats available per Treasure Hunt Game.
-				kMinRats	= 100;	// Default minimum number of rats to send.
-				mRatsToSend	= 100;	// Default number of rats to send.
-				kCostPerRat	= 0;	// Cost per rat in dollars.
-				mRatStepper.value = mRatsToSend;
-				mRatStepper.maximum = 200;
+				setCurrentMixMaxRats( 100, 100, 500 );
+				mCostPerRat	= 0;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 1";
 				mSailOnAlertString = kSailOnNormalLevel;
@@ -530,12 +538,8 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelTwo); // Set game level to second level.
 				
-				kMaxRats	= 2400;	// Number of rats available per Treasure Hunt Game.
-				kMinRats	= 50;	// Default minimum number of rats to send.
-				mRatsToSend	= 100;	// Default number of rats to send.
-				kCostPerRat	= 0;	// Cost per rat in dollars.
-				mRatStepper.value = mRatsToSend;
-				mRatStepper.maximum = 200;
+				setCurrentMixMaxRats( 100, 100, 500 );
+				mCostPerRat	= 0;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = false;
 				mCurrentLevel = "LEVEL 2";
 				mSailOnAlertString = kSailOnMultiTreasureLevel;
@@ -552,12 +556,8 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelThree);
 				
-				kMaxRats	= 500;	// Number of rats available per Treasure Hunt Game.
-				kMinRats	= 1;	// Default minimum number of rats to send.
-				mRatsToSend	= 10;	// Default number of rats to send.
-				kCostPerRat	= 100;	// Cost per rat in dollars.
-				mRatStepper.value = mRatsToSend;
-				mRatStepper.maximum = kMaxRats;
+				setCurrentMixMaxRats( 10, 1, 500 );
+				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 3";
 				mSailOnAlertString = kSailOnNormalLevel;
@@ -574,12 +574,8 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelFour);
 				
-				kMaxRats	= 500;	// Number of rats available per Treasure Hunt Game.
-				kMinRats	= 1;	// Default minimum number of rats to send.
-				mRatsToSend	= 10;	// Default number of rats to send.
-				kCostPerRat	= 100;	// Cost per rat in dollars.
-				mRatStepper.value = mRatsToSend;
-				mRatStepper.maximum = kMaxRats;
+				setCurrentMixMaxRats( 10, 1, 500 );
+				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 4";
 				mSailOnAlertString = kSailOnNormalLevel;
@@ -650,8 +646,8 @@
 				mEventNumber += 1;	// Sending rats counts as an event.	
 				
 				// Update the cumulative cost of rats sent and profit so far.
-				mRatCostSoFar		+= kCostPerRat * mRatsToSend;
-				mProfitSoFar		-= kCostPerRat * mRatsToSend;
+				mRatCostSoFar		+= mCostPerRat * mRatsToSend;
+				mProfitSoFar		-= mCostPerRat * mRatsToSend;
 				mProfitValue.text	= formatDollars(mProfitSoFar);
 				
 //				mRatSound.play(); // Play rat sound.
@@ -688,11 +684,6 @@
 				}
 				mResultsFieldLabel.text = readingsAdded;
 				//trace("rats sent.");
-				
-//				// If there are not enough rats left to send the default minimum, allow 
-//				// mimimum rats-to-send to drop below default minimum.
-//				if (mRatsToSend < mRatStepper.minimum) mRatStepper.minimum = mRatsToSend;				
-//				mRatStepper.value	= mRatsToSend;	// Set the stepper to reflect changes.
 				
 				// send updated [mRatsSent] to DG game case
 				sendGameDataUpdate();
@@ -1364,7 +1355,7 @@
 		<s:Group id="RatControls" includeIn="TreasureHunt" x="3" y="34" width="215" height="85">
 			<s:Image id="mDivingRatBacker" x="0" y="0" source="{mRatBacker}"/>
 			<s:Label 	id="mRatControlLabel" color="#000000" fontFamily="Georgia" fontSize="16" fontStyle="normal" fontWeight="bold" text="Diving Rats" x="58" y="10" includeIn="TreasureHunt"/>
-			<s:NumericStepper id="mRatStepper" width="50" height="23" change="onChangeRatStepper(event)" contentBackgroundColor="#5081B4" maximum="{kMaxRats}" minimum="{kMinRats}" stepSize="1" x="45" y="28" includeIn="TreasureHunt"/>
+			<s:NumericStepper id="mRatStepper" width="50" height="23" change="onChangeRatStepper(event)" contentBackgroundColor="#5081B4" maximum="{mMaxRatsToSend}" minimum="{mMinRatsToSend}" stepSize="1" x="45" y="28" includeIn="TreasureHunt"/>
 			<s:Button id="mSendRatsButton" height="23" label="Send Rats" click="onClickSendRatsButton(event)" x="100" y="28" includeIn="TreasureHunt"/>
 			<s:Label id="mDiveResultsLabel" includeIn="TreasureHunt" x="-2" y="59.5" width="99" height="19" fontFamily="Georgia" text="Rat Readings:" textAlign="center" color="#000000"/>
 			<s:BorderContainer x="88" y="53" width="111" height="25" includeIn="TreasureHunt">
