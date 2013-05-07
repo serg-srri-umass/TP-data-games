@@ -1540,6 +1540,7 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
+	<!-- Top Banner -->
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.width - 10}" height="30" cornerRadius="3">
 		<s:backgroundFill>
 			<s:LinearGradient rotation="90">
@@ -1547,13 +1548,9 @@
 				<s:GradientEntry color="0xd8d8d8"/>
 			</s:LinearGradient>
 		</s:backgroundFill>
-		
 		<s:Label x="6" y="4" text="Level One" id="mLevelLabel" fontSize="16" color="#000000" textAlign="center" height="21" verticalAlign="middle"/>
-		
 		<s:RichText text="ROCK ROLL" id="mGameTitle" fontFamily="Verdana" fontSize="20" color="#4E594E" x="120" y="6" width="559" textAlign="center" verticalAlign="top" height="28" fontStyle="normal" textDecoration="none" fontWeight="normal" backgroundAlpha="1.0"/>
-		
 		<s:Label id="mVersionLabel" x="610" y="8" width="172" color="#4E594E" initialize="mVersionLabel.text=getVersion()" textAlign="right"/>
-		
 		<!-- //TODO: Volume slider from chainsaw: -->
 		<!--
 		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}"/>
@@ -1561,6 +1558,7 @@
 		-->
 	</s:BorderContainer>
 	
+
 	<default:ShuffleCourt x="233" y="58" id="shuffleCourt" fontFamily="Verdana">
 	</default:ShuffleCourt>
 	
@@ -1569,10 +1567,10 @@
 	
 	<!-- <s:SpriteVisualElement id="mSpriteVE" /> -->
 
-	<mx:HSlider x="10" y="103" width="200" id="mStrengthSliderA" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthA(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
-	<s:Label x="10" y="154" text="Strength A" id="mStrengthLabelA" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
-	<mx:HSlider x="10" y="248" width="200" id="mStrengthSliderB" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthB(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
-	<s:Label x="10" y="298" text="Strength B" id="mStrengthLabelB" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
+	<mx:HSlider x="10" y="97" width="200" id="mStrengthSliderA" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthA(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
+	<s:Label x="10" y="148" text="Strength A" id="mStrengthLabelA" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
+	<mx:HSlider x="10" y="260" width="200" id="mStrengthSliderB" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthB(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
+	<s:Label x="10" y="309" text="Strength B" id="mStrengthLabelB" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
 	<s:Button x="9" y="202" label="Roll Rocks" id="mRollRocksButton" enabled="false" width="108" mouseDown="onRollRocksMouseDown(event)" mouseUp="onRollRocksMouseUp(event)" height="22"/>
 	<s:NumericStepper x="126" y="64" minimum="1" maximum="100" stepSize="1" id="mNumberGamesStepper" change="onUpdateNumberOfGames(event)" height="23" width="84" enabled="false"/>
 	<s:Label x="126" y="85" text="Games to Play" verticalAlign="middle" height="23" color="#4E594E" width="84" id="mNumberGamesStepperLabel"/>
