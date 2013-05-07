@@ -44,7 +44,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.05.01";
+			public static const VERSION:String = "v.2013.05.07";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -77,7 +77,7 @@
 			public static const kStdDeviationClear:Number = 10;// Standard deviation of rat results in clear water.
 			public static const kStdDeviationMurky:Number = 15;// Standard deviation of rat results in murky water.
 			public static const kLevel1Instructions:String = "To find a treasure, send rats down 100 at a time. When you think you know the treasure's location, drop the hook. Each hook drop costs $4,500.";
-			public static const kLevel2Instructions:String = "At each location, there may be 0, 1 or 2 treasures. You must decide when you are ready to sail on from each location.";
+			public static const kLevel2Instructions:String = "At each location, there are either 0, 1 or 2 treasures. You don't want to waste a hook drop if there is no treasure.";
 			public static const kLevel3Instructions:String = "There is 1 treasure at each location. The rats cost $100 dollars each and each hook drop costs $4,500. To make the most profit, you need to use as few rats as you can to locate the treasure.";
 			public static const kLevel4Instructions:String = "There is 1 treasure at each location. The rats cost $100 dollars each. The rat readings are less accurate in Level 4, so you'll probably need to use more rats to find the treasure.";
 			public static const kSailOnNormalLevel:String = "Are you sure you would like to skip this treasure and sail on?";
@@ -381,7 +381,6 @@
 				mRatStepper.minimum	= kMinRats;	//Set minimum rats-to-send to default.
 				
 				// Set intial number of rats to send.
-				mRatsToSend			= kRatsToSend;
 				mRatStepper.value	= mRatsToSend;
 				mResultsFieldLabel.text	= "";		// Clear rat results.
 				
@@ -624,15 +623,24 @@
 			
 			// treasuresFoundString() returns a formatted string saying how many treasures were found out
 			// of the total number of treasures available.
-			protected function treasuresFoundString():String {
-				if(mNumTreasures == 0){
-					return "There were no treasures at this location.";
+			protected function treasuresFoundString():String
+			{
+				switch(mNumTreasures)
+				{
+					case 0:
+						return "There was no treasure here.";
+					case 1:
+						if(mTreasuresFound == 1) return "There was 1 treasure here, and you found it.";
+						else return "There was 1 treasure here, but you didn't find it.";
+					case 2:
+						switch(mTreasuresFound)
+						{
+							case 0: return "There were two treasures here, but you found neither of them.";
+							case 1: return "There were two treasures here, and you found 1 of them.";
+							case 2: return "There were two treasures here, and you found them both.";
+						}
+					default: return "You found " + mTreasuresFound + " of the " + mNumTreasures + " treasures!";
 				}
-				if(mNumTreasures == 1){
-					if(mTreasuresFound == 1) return "You found the treasure!";
-					else return "You found no treasures!";
-				}
-				return "You found " + mTreasuresFound + " of the " + mNumTreasures + " treasures!";
 			}
 			
 			// ************MAIN GAME FUNCTIONS************
