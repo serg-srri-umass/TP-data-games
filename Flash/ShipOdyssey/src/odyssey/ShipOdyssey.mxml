@@ -193,13 +193,13 @@
 			// All components created by Tristan Warneke except the Parchment which is the same as above
 			
 			// Backer to Hook/Crane controls
-			[Embed(source="../odysseyAssets/SO-UI2-HookDropBackerExt.png")]
-//			[Embed(source="../odysseyAssets/backer-light.png")]
+//			[Embed(source="../odysseyAssets/SO-UI2-HookDropBackerExt.png")]
+			[Embed(source="../odysseyAssets/backer-wood-light.png")]
 			[Bindable] private var mHookDropBacker:Class;
 			
 			// Backer to Rat controls
-			[Embed(source="../odysseyAssets/SO-UI2-DivingRatsBacker.png")]
-//			[Embed(source="../odysseyAssets/backer-light.png")]
+//			[Embed(source="../odysseyAssets/SO-UI2-DivingRatsBacker.png")]
+			[Embed(source="../odysseyAssets/backer-wood-light.png")]
 			[Bindable] private var mRatBacker:Class;
 			
 			// Sidebar Backer Scroll
@@ -621,6 +621,8 @@
 			// of the total number of treasures available.
 			protected function treasuresFoundString():String
 			{
+				//mNumTreasures: the number of treasures at the current location
+				//mTreasuresFound: the number of treasures the player found
 				switch(mNumTreasures)
 				{
 					case 0:
@@ -1352,24 +1354,24 @@
 	</s:BorderContainer>
 	
 	<!--Rat controls -->
-		<s:Group id="RatControls" includeIn="TreasureHunt" x="3" y="34" width="215" height="85">
+		<s:Group id="RatControls" includeIn="TreasureHunt" x="3" y="35" width="215" height="85">
 			<s:Image id="mDivingRatBacker" x="0" y="0" source="{mRatBacker}"/>
-			<s:Label 	id="mRatControlLabel" color="#000000" fontFamily="Georgia" fontSize="16" fontStyle="normal" fontWeight="bold" text="Diving Rats" x="58" y="10" includeIn="TreasureHunt"/>
-			<s:NumericStepper id="mRatStepper" width="50" height="23" change="onChangeRatStepper(event)" contentBackgroundColor="#5081B4" maximum="{mMaxRatsToSend}" minimum="{mMinRatsToSend}" stepSize="1" x="45" y="28" includeIn="TreasureHunt"/>
-			<s:Button id="mSendRatsButton" height="23" label="Send Rats" click="onClickSendRatsButton(event)" x="100" y="28" includeIn="TreasureHunt"/>
-			<s:Label id="mDiveResultsLabel" includeIn="TreasureHunt" x="-2" y="59.5" width="99" height="19" fontFamily="Georgia" text="Rat Readings:" textAlign="center" color="#000000"/>
-			<s:BorderContainer x="88" y="53" width="111" height="25" includeIn="TreasureHunt">
-				<s:Label 	id="mResultsFieldLabel" x="2" y="2" height="19" width="106" color="#000000" lineBreak="explicit" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" textAlign="right"/>
+			<s:Label id="mRatControlLabel" text="Diving Rats" fontFamily="Georgia" fontSize="16" fontStyle="normal" fontWeight="bold" x="75" y="5" includeIn="TreasureHunt"/>
+			<s:NumericStepper id="mRatStepper" width="50" height="23" x="45" y="28" change="onChangeRatStepper(event)" contentBackgroundColor="#5081B4" maximum="{mMaxRatsToSend}" minimum="{mMinRatsToSend}" stepSize="1" includeIn="TreasureHunt"/>
+			<s:Button id="mSendRatsButton" height="23" width="100" x="100" y="28" label="Send Rats" click="onClickSendRatsButton(event)" includeIn="TreasureHunt"/>
+			<s:Label id="mDiveResultsLabel" text="Rat Readings:" includeIn="TreasureHunt" x="9" y="62" width="100" height="19" fontFamily="Georgia" textAlign="center"/>
+			<s:BorderContainer x="100" y="55" width="100" height="23" includeIn="TreasureHunt">
+				<s:Label 	id="mResultsFieldLabel" x="2" y="2" height="19" width="95" color="#000000" lineBreak="explicit" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" textAlign="right"/>
 			</s:BorderContainer>
 		</s:Group>
 	<!-- Hook controls -->
-		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="273" y="31" width="240" height="76">
-			<s:Image 		id="mHookBacker" x="5" y="0" source="{mHookDropBacker}"/>
-			<s:Label		id="mHookLabel" x="58" y="10" text="Grappling Hook" color="#000000" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
-			<s:Label		id="mRangeLabel" x="29" y="59" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
-			<s:Label 		id="mRangeValueLabel" x="78" y="59" width="80" color="#000000" fontFamily="Georgia" fontWeight="bold"/>
-			<s:Button 		id="mDropHookButton" x="81" y="30" label="Drop Hook" width="80" height="23" fontSize="12" click="onClickDropHookButton(event)"/>
-			<s:NumericStepper id="mCenterPositionStepper" x="18" y="30" width="57" minimum="0" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
+		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="265" y="35" width="240" height="76">
+			<s:Image 		id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
+			<s:Label		id="mHookLabel" x="58" y="5" text="Grappling Hook" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
+			<s:Button 		id="mDropHookButton" x="55" y="28" label="Drop Hook" width="80" height="23" fontSize="12" click="onClickDropHookButton(event)"/>
+			<s:NumericStepper id="mCenterPositionStepper" x="140" y="28" width="57" minimum="0" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
+			<s:Label		id="mRangeLabel" x="55" y="62" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
+			<s:Label 		id="mRangeValueLabel" x="130" y="62" width="80" fontFamily="Georgia" fontWeight="bold"/>
 		</s:Group>
 	
 	<!-- Left Sidebar Log -->		
