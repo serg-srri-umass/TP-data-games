@@ -47,7 +47,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "Rock Roll v.2013.04.30";
+			public static const VERSION:String = "Rock Roll v.2013.05.08";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -1540,6 +1540,8 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
+	<!-- Interface Elements: StatusBar, PlayerControls, ShuffleCourt, Graph, and SortRocksList. -->
+	<!-- StatusBar -->
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.width - 10}" height="30" cornerRadius="3">
 		<s:backgroundFill>
 			<s:LinearGradient rotation="90">
@@ -1547,13 +1549,9 @@
 				<s:GradientEntry color="0xd8d8d8"/>
 			</s:LinearGradient>
 		</s:backgroundFill>
-		
 		<s:Label x="6" y="4" text="Level One" id="mLevelLabel" fontSize="16" color="#000000" textAlign="center" height="21" verticalAlign="middle"/>
-		
 		<s:RichText text="ROCK ROLL" id="mGameTitle" fontFamily="Verdana" fontSize="20" color="#4E594E" x="120" y="6" width="559" textAlign="center" verticalAlign="top" height="28" fontStyle="normal" textDecoration="none" fontWeight="normal" backgroundAlpha="1.0"/>
-		
 		<s:Label id="mVersionLabel" x="610" y="8" width="172" color="#4E594E" initialize="mVersionLabel.text=getVersion()" textAlign="right"/>
-		
 		<!-- //TODO: Volume slider from chainsaw: -->
 		<!--
 		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}"/>
@@ -1561,31 +1559,34 @@
 		-->
 	</s:BorderContainer>
 	
+	<!-- PlayerControls. Holds all interface elements to the left of ShuffleCourt. -->
+	<s:BorderContainer id="PlayerControls" x="5" y="35" width="223" height="355" cornerRadius ="3" borderVisible="true" backgroundColor="#93ae93">
+		<s:Button x="10" y="5" label="New Game" width="87" id="mNewGameButton" enabled="true" click="onNewGame(event)" height="22"/>
+		<s:Button x="116" y="5" label="Change Level" id="mChangeLevelButton" click="onClickChangeLevelButton(event)" height="22"/>
+		<s:CheckBox x="12" y="40" id="mAutoPlayCheckBox" height="18" selected="false" enabled="false" click="onAutoPlay(event)" width="15"/>
+		<s:Label x="27" y="43" text="AutoPlay Entire Game(s)" id="mAutoPlayLabel" width="90" textAlign="center" color="#4E594E"/>
+		<s:NumericStepper x="126" y="40" minimum="1" maximum="100" stepSize="1" id="mNumberGamesStepper" change="onUpdateNumberOfGames(event)" height="23" width="84" enabled="false"/>
+		<s:Label x="126" y="61" text="Games to Play" verticalAlign="middle" height="23" color="#4E594E" width="84" id="mNumberGamesStepperLabel"/>
+		<mx:HSlider x="10" y="80" width="200" id="mStrengthSliderA" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthA(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
+		<s:Label x="36" y="129" text="Strength A" id="mStrengthLabelA" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
+		<s:Button x="9" y="198" label="Roll Rocks" id="mRollRocksButton" enabled="false" width="108" mouseDown="onRollRocksMouseDown(event)" mouseUp="onRollRocksMouseUp(event)" height="22"/>
+		<mx:HSlider x="10" y="250" width="200" id="mStrengthSliderB" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthB(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
+		<s:Label x="28" y="299" text="Strength B" id="mStrengthLabelB" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
+		<s:Label x="10" y="314" text="Score = 0" id="mScoreTextLabel" color="#DEEBDE" fontSize="20" width="200" textAlign="center" fontWeight="bold"/>
+		<s:Label x="8" y="335" text="Press 'New Game' Button to Begin" width="206" height="16" verticalAlign="middle" color="#FFFFFF" textAlign="center" id="mInstructionsLabel"/>
+	</s:BorderContainer>
+	
+	<!-- ShuffleCourt. Seperate MXML file defining the court interface. -->
 	<default:ShuffleCourt x="233" y="58" id="shuffleCourt" fontFamily="Verdana">
 	</default:ShuffleCourt>
 	
+	<!-- Graph. Replaces ShuffleCourt when playing multiple games to view trends in score in each game. --> 
 	<default:Graph x="233" y="58" id="graph" visible="false">
 	</default:Graph>
-	
 	<!-- <s:SpriteVisualElement id="mSpriteVE" /> -->
-
-	<mx:HSlider x="10" y="103" width="200" id="mStrengthSliderA" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthA(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
-	<s:Label x="10" y="154" text="Strength A" id="mStrengthLabelA" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
-	<mx:HSlider x="10" y="248" width="200" id="mStrengthSliderB" minimum="1" maximum="100" enabled="false" liveDragging="true" change="onChangeStrengthB(event)" value="100" tickInterval="10" labels="[1, 50, 100]" snapInterval="1"/>
-	<s:Label x="10" y="298" text="Strength B" id="mStrengthLabelB" width="204" verticalAlign="middle" textAlign="left" fontFamily="Verdana" color="#4E594E" fontSize="10"/>
-	<s:Button x="9" y="202" label="Roll Rocks" id="mRollRocksButton" enabled="false" width="108" mouseDown="onRollRocksMouseDown(event)" mouseUp="onRollRocksMouseUp(event)" height="22"/>
-	<s:NumericStepper x="126" y="64" minimum="1" maximum="100" stepSize="1" id="mNumberGamesStepper" change="onUpdateNumberOfGames(event)" height="23" width="84" enabled="false"/>
-	<s:Label x="126" y="85" text="Games to Play" verticalAlign="middle" height="23" color="#4E594E" width="84" id="mNumberGamesStepperLabel"/>
 	
-	<s:Button x="10" y="34" label="New Game" width="87" id="mNewGameButton" enabled="true" click="onNewGame(event)" height="22"/>
+	<!-- SortRocksList. Dropdown list for sorting rocks by color, shape, pattern, or size. -->
 	<s:DropDownList x="233" y="35" width="90" enabled="false" change="onSortRocks(event)" prompt="Sort Rocks by ..." labelField="text" id="mSortRocksList" selectedIndex="0" dataProvider="{sortList}"></s:DropDownList>
 	
-	<s:Label x="10" y="343" text="Score = 0" id="mScoreTextLabel" color="#DEEBDE" fontSize="20" width="200" textAlign="center" fontWeight="bold"/>
 	<!-- <mx:ProgressBar x="10" y="353" id="mScoreBar" mode="manual" width="200" fontWeight="normal" label="0%" textAlign="center" labelPlacement="center" fontSize="14" color="#FFFFFF"/> -->
-	
-	<s:Label x="10" y="381" text="Press 'New Game' Button to Begin" width="206" height="16" verticalAlign="middle" color="#FFFFFF" textAlign="center" id="mInstructionsLabel"/>
-	<s:CheckBox x="12" y="64" id="mAutoPlayCheckBox" height="18" selected="false" enabled="false" click="onAutoPlay(event)" width="15"/>
-	<s:Label x="27" y="69" text="AutoPlay Entire Game(s)" id="mAutoPlayLabel" width="90" textAlign="center" color="#4E594E"/>
-	
-	<s:Button x="113" y="34" label="Change Level" id="mChangeLevelButton" click="onClickChangeLevelButton(event)" height="22"/>
 </s:Application>
