@@ -258,7 +258,7 @@
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
-			private function setCurrentMixMaxRats( iCurrentRatsToSend:uint, iMinRatsToSend:uint, iMaxRatsToSend:uint ):void
+			private function setCurrentMinMaxRats( iCurrentRatsToSend:uint, iMinRatsToSend:uint, iMaxRatsToSend:uint ):void
 			{
 				if( iCurrentRatsToSend > iMaxRatsToSend) trace("LOGIC ERROR: current rats greater than max rats");
 				if( iCurrentRatsToSend < iMinRatsToSend) trace("LOGIC ERROR: current rats less than min rats");
@@ -393,7 +393,7 @@
 				mDropLocationNum			= 0;	// Same as mCurrentTreasureNum except in Level 2 - used to track where we are
 				
 				// sync the rat stepper with the current level if needed
-				setCurrentMixMaxRats( mRatsToSend, mMinRatsToSend, mMaxRatsToSend );
+				setCurrentMinMaxRats( mRatsToSend, mMinRatsToSend, mMaxRatsToSend );
 				mResultsFieldLabel.text	= "";		// Clear rat results.
 				
 				// Move hook to center of treasure area.
@@ -519,7 +519,7 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelOne); // Set game level to first level.
 				
-				setCurrentMixMaxRats( 100, 100, 500 );
+				setCurrentMinMaxRats( 100, 100, 500 );
 				mCostPerRat	= 0;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 1";
@@ -538,7 +538,7 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelTwo); // Set game level to second level.
 				
-				setCurrentMixMaxRats( 100, 100, 500 );
+				setCurrentMinMaxRats( 100, 100, 500 );
 				mCostPerRat	= 0;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = false;
 				mCurrentLevel = "LEVEL 2";
@@ -556,7 +556,7 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelThree);
 				
-				setCurrentMixMaxRats( 10, 1, 500 );
+				setCurrentMinMaxRats( 10, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 3";
@@ -574,7 +574,7 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelFour);
 				
-				setCurrentMixMaxRats( 10, 1, 500 );
+				setCurrentMinMaxRats( 10, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 4";
