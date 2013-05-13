@@ -44,7 +44,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.05.06";
+			public static const VERSION:String = "v.2013.05.13";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -788,7 +788,7 @@
 					// Send event data to TinkerPlots / Fathom.
 					//sendEventData("Hook", getEventDataValues( "Hit" )); --Disabled
 
-					TreasureFoundLabel.text = "Ye found the " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + valueInDollars 
+					TreasureFoundLabel.text = "You found the " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + valueInDollars 
 						+ " at location " + mLocationFound.toFixed(1) + "!";
 					TreasureFoundAlert.visible = true;
 					
@@ -1401,7 +1401,7 @@
 		<mx:Image	id="mAllTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mAllTreasuresFoundImage}" depth="6"/>
 		<mx:Image	id="mTimeRanOutAlert" includeIn="TreasureHunt" x="170" y="119" source="{mTimeRanOutImage}" depth="6"/>
 		<mx:Image	id="mCongratulationsAlert" includeIn="TreasureHunt" x="170" y="119" source="{mCongratulationsImage}" depth="6"/>
-		<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="Ye found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/>
+		<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="You found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/>
 		<!--<mx:Image	id="mNoTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mNoTreasuresFoundImage}" depth="6"/>-->
 		<!--<s:Button id="mExitFinishButton" visible="false" depth="7" includeIn="TreasureHunt" x="270" y="335" width="90" height="18" label="Exit Game" chromeColor="#D1B38B" click="onClickExitTreasureHunt(event)" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>-->
 		<s:Group id="TreasureFoundAlert" visible="false" depth="6">
