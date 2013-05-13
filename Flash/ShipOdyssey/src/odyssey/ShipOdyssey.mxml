@@ -457,19 +457,19 @@
 			private function handleLevelSelection(event:Event):void
 			{
 				PopUpManager.removePopUp(mLevelWindow);
-				initalizeChosenLevel(event);
+				initializeChosenLevel(event);
 				showCurrentLevelInstructions();
 			}
 			// Prepares a new level and starts the game when a level is selected when the game is first loaded.
 			private function handleLevelSelectionAndZoomIn(event:Event):void
 			{
 				PopUpManager.removePopUp(mLevelWindow);
-				initalizeChosenLevel(event);
+				initializeChosenLevel(event);
 				sailThenZoomIn();
 //				showCurrentLevelHelpAlert();
 				sendGameDataOpen();
 			}
-			private function initalizeChosenLevel(event:Event):void
+			private function initializeChosenLevel(event:Event):void
 			{
 				var levelButtonId:String = (event.target as Button).id;
 				switch(levelButtonId)
