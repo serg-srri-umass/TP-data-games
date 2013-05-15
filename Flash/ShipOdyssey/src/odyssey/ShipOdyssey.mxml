@@ -34,8 +34,6 @@
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
-			import spark.filters.GlowFilter;
-			
 			import odyssey.TreasureHuntLevelWindow;
 			import odysseyAssets.*;
 			
@@ -44,7 +42,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.05.07";
+			public static const VERSION:String = "v.2013.05.13";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -129,6 +127,14 @@
 
 			// Array of treasures (zero-based).
 			private var mTreasureArray:Array;
+			
+			//this array stores coordinates of rats coming up out of the water for use in animation 
+			private var mratAnimArray:Array = new Array();
+		
+			
+			//counter for loops displaying dots
+			private var iter:int = 0;
+
 			
 			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
 			
@@ -258,7 +264,7 @@
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
-			private function setCurrentMixMaxRats( iCurrentRatsToSend:uint, iMinRatsToSend:uint, iMaxRatsToSend:uint ):void
+			private function setCurrentMinMaxRats( iCurrentRatsToSend:uint, iMinRatsToSend:uint, iMaxRatsToSend:uint ):void
 			{
 				if( iCurrentRatsToSend > iMaxRatsToSend) trace("LOGIC ERROR: current rats greater than max rats");
 				if( iCurrentRatsToSend < iMinRatsToSend) trace("LOGIC ERROR: current rats less than min rats");
@@ -393,7 +399,7 @@
 				mDropLocationNum			= 0;	// Same as mCurrentTreasureNum except in Level 2 - used to track where we are
 				
 				// sync the rat stepper with the current level if needed
-				setCurrentMixMaxRats( mRatsToSend, mMinRatsToSend, mMaxRatsToSend );
+				setCurrentMinMaxRats( mRatsToSend, mMinRatsToSend, mMaxRatsToSend );
 				mResultsFieldLabel.text	= "";		// Clear rat results.
 				
 				// Move hook to center of treasure area.
@@ -457,19 +463,19 @@
 			private function handleLevelSelection(event:Event):void
 			{
 				PopUpManager.removePopUp(mLevelWindow);
-				initalizeChosenLevel(event);
+				initializeChosenLevel(event);
 				showCurrentLevelInstructions();
 			}
 			// Prepares a new level and starts the game when a level is selected when the game is first loaded.
 			private function handleLevelSelectionAndZoomIn(event:Event):void
 			{
 				PopUpManager.removePopUp(mLevelWindow);
-				initalizeChosenLevel(event);
+				initializeChosenLevel(event);
 				sailThenZoomIn();
 //				showCurrentLevelHelpAlert();
 				sendGameDataOpen();
 			}
-			private function initalizeChosenLevel(event:Event):void
+			private function initializeChosenLevel(event:Event):void
 			{
 				var levelButtonId:String = (event.target as Button).id;
 				switch(levelButtonId)
@@ -519,7 +525,7 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelOne); // Set game level to first level.
 				
-				setCurrentMixMaxRats( 100, 100, 500 );
+				setCurrentMinMaxRats( 100, 100, 500 );
 				mCostPerRat	= 0;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 1";
@@ -538,7 +544,7 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelTwo); // Set game level to second level.
 				
-				setCurrentMixMaxRats( 100, 100, 500 );
+				setCurrentMinMaxRats( 100, 100, 500 );
 				mCostPerRat	= 0;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = false;
 				mCurrentLevel = "LEVEL 2";
@@ -556,7 +562,7 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelThree);
 				
-				setCurrentMixMaxRats( 10, 1, 500 );
+				setCurrentMinMaxRats( 10, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 3";
@@ -574,7 +580,7 @@
 				cHerder.startClouds();
 				huntLevelChosen(kHuntLevelFour);
 				
-				setCurrentMixMaxRats( 10, 1, 500 );
+				setCurrentMinMaxRats( 10, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 4";
@@ -676,6 +682,9 @@
 						noisyLocation = Math.round((mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[evenOdd]);
 					}
 					readingsAdded += (ratNum==0 ? "" : ", ") + noisyLocation;
+					mratAnimArray[ratNum] = noisyLocation;
+					
+					
 					eventArray.push( getEventDataValues( noisyLocation.toString()));
 					if( (ratNum+1==mRatsToSend) || (eventArray.length >= eventsAtATime )){
 						//trace("sending " + eventArray.length + " rats.");
@@ -683,6 +692,12 @@
 						eventArray = []; // clear values already sent
 					}
 					evenOdd = (evenOdd+1)%2;
+				}
+				
+				initDots();
+				
+				for(var i:int = 0; i < mratAnimArray.length; i++){
+					trace(mratAnimArray[i]);
 				}
 				mResultsFieldLabel.text = readingsAdded;
 				//trace("rats sent.");
@@ -799,7 +814,7 @@
 					// Send event data to TinkerPlots / Fathom.
 					//sendEventData("Hook", getEventDataValues( "Hit" )); --Disabled
 
-					TreasureFoundLabel.text = "Ye found the " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + valueInDollars 
+					TreasureFoundLabel.text = "You found the " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + valueInDollars 
 						+ " at location " + mLocationFound.toFixed(1) + "!";
 					TreasureFoundAlert.visible = true;
 					
@@ -1233,6 +1248,7 @@
 			private var craneMask:Shape;
 			private var transitionTimer:Timer;
 			private var dayTickOffClockTimer:Timer;
+			public var dotArray:Array = new Array();
 			
 			//ties the crane to MXML loader and sets up the mask
 			private function initCrane():void{
@@ -1273,6 +1289,36 @@
 				//start sailing
 				sailingMovie.ToyBoat.startSail();
 			}
+			
+		
+			private function initDots():void{
+				trace("enter initDots")
+				for(var i:int = 0; i < mratAnimArray.length; i++){
+					dotArray.push(new red_dot() as MovieClip);
+				}
+				drawDots(dotArray);
+			}
+			
+			private function drawDots(dotArray:Array):void{
+				for(var i:int = 0; i < dotArray.length; i++){
+					dotArray[i].visible = true; 
+				}
+				for(var i:int = 0; i < dotArray.length; i++){
+					dotArray[i].x =265*(mratAnimArray[i]/100) 
+					dotContainer.addChild(dotArray[i]);
+					var timerObj:Timer = new Timer(150, 1);
+					timerObj.addEventListener(TimerEvent.TIMER, dotTimerHandler);
+					timerObj.start();
+					}
+				}
+			
+			private function dotTimerHandler(eventObject:TimerEvent):void{
+				for(var i:int = 0; i < dotArray.length; i++){
+					dotArray[i].visible = false; 
+				}
+			}
+			
+
 						
 			//********** Title Bar Volume Control*********
 			private function updateVolume(vol:Number):void
@@ -1403,16 +1449,19 @@
 			<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="186" width="395" height="100" depth="3" />
 			<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
 			<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
+			<!--<s:SWFLoader id="DotLoader" x="0" y="200" width="4" height="4" source="/odysseyAssets/Dot.swf" depth="6" includeIn="TreasureHunt"/>-->
 			<s:HSlider id="CraneHandle" includeIn="TreasureHunt" x="149" y="144" width="100" height="20" alpha="0" buttonMode="true" change="mCenterPositionStepper.value=CraneHandle.value;onChangeCenterPosition(event);"
 					   liveDragging="true" depth="6" maximum="100" minimum="0" value="50"/>
 		</s:Group>
 		<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
+			<mx:UIComponent id="dotContainer" x="305" y="438" width="100" height="20"/> <!-- container to hold dots for rat animation demo-->
+	
 	
 	<!-- Popup Alert items -->
 		<mx:Image	id="mAllTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mAllTreasuresFoundImage}" depth="6"/>
 		<mx:Image	id="mTimeRanOutAlert" includeIn="TreasureHunt" x="170" y="119" source="{mTimeRanOutImage}" depth="6"/>
 		<mx:Image	id="mCongratulationsAlert" includeIn="TreasureHunt" x="170" y="119" source="{mCongratulationsImage}" depth="6"/>
-		<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="Ye found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/>
+		<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="You found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/>
 		<!--<mx:Image	id="mNoTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mNoTreasuresFoundImage}" depth="6"/>-->
 		<!--<s:Button id="mExitFinishButton" visible="false" depth="7" includeIn="TreasureHunt" x="270" y="335" width="90" height="18" label="Exit Game" chromeColor="#D1B38B" click="onClickExitTreasureHunt(event)" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>-->
 		<s:Group id="TreasureFoundAlert" visible="false" depth="6">
