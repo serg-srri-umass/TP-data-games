@@ -130,6 +130,14 @@
 			// Array of treasures (zero-based).
 			private var mTreasureArray:Array;
 			
+			//this array stores coordinates of rats coming up out of the water for use in animation 
+			private var mratAnimArray:Array = new Array();
+		
+			
+			//counter for loops displaying dots
+			private var iter:int = 0;
+
+			
 			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
 			
 			// Embed the start screen pirate ship graphic.
@@ -665,6 +673,9 @@
 						noisyLocation = Math.round((mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[evenOdd]);
 					}
 					readingsAdded += (ratNum==0 ? "" : ", ") + noisyLocation;
+					mratAnimArray[ratNum] = noisyLocation;
+					
+					
 					eventArray.push( getEventDataValues( noisyLocation.toString()));
 					if( (ratNum+1==mRatsToSend) || (eventArray.length >= eventsAtATime )){
 						//trace("sending " + eventArray.length + " rats.");
@@ -672,6 +683,12 @@
 						eventArray = []; // clear values already sent
 					}
 					evenOdd = (evenOdd+1)%2;
+				}
+				
+				initDots();
+				
+				for(var i:int = 0; i < mratAnimArray.length; i++){
+					trace(mratAnimArray[i]);
 				}
 				mResultsFieldLabel.text = readingsAdded;
 				//trace("rats sent.");
@@ -1222,6 +1239,7 @@
 			private var craneMask:Shape;
 			private var transitionTimer:Timer;
 			private var dayTickOffClockTimer:Timer;
+			public var dotArray:Array = new Array();
 			
 			//ties the crane to MXML loader and sets up the mask
 			private function initCrane():void{
@@ -1262,6 +1280,36 @@
 				//start sailing
 				sailingMovie.ToyBoat.startSail();
 			}
+			
+		
+			private function initDots():void{
+				trace("enter initDots")
+				for(var i:int = 0; i < mratAnimArray.length; i++){
+					dotArray.push(new red_dot() as MovieClip);
+				}
+				drawDots(dotArray);
+			}
+			
+			private function drawDots(dotArray:Array):void{
+				for(var i:int = 0; i < dotArray.length; i++){
+					dotArray[i].visible = true; 
+				}
+				for(var i:int = 0; i < dotArray.length; i++){
+					dotArray[i].x =265*(mratAnimArray[i]/100) 
+					dotContainer.addChild(dotArray[i]);
+					var timerObj:Timer = new Timer(150, 1);
+					timerObj.addEventListener(TimerEvent.TIMER, dotTimerHandler);
+					timerObj.start();
+					}
+				}
+			
+			private function dotTimerHandler(eventObject:TimerEvent):void{
+				for(var i:int = 0; i < dotArray.length; i++){
+					dotArray[i].visible = false; 
+				}
+			}
+			
+
 						
 			//********** Title Bar Volume Control*********
 			private function updateVolume(vol:Number):void
@@ -1392,10 +1440,13 @@
 			<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="186" width="395" height="100" depth="3" />
 			<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
 			<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
+			<!--<s:SWFLoader id="DotLoader" x="0" y="200" width="4" height="4" source="/odysseyAssets/Dot.swf" depth="6" includeIn="TreasureHunt"/>-->
 			<s:HSlider id="CraneHandle" includeIn="TreasureHunt" x="149" y="144" width="100" height="20" alpha="0" buttonMode="true" change="mCenterPositionStepper.value=CraneHandle.value;onChangeCenterPosition(event);"
 					   liveDragging="true" depth="6" maximum="100" minimum="0" value="50"/>
 		</s:Group>
 		<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
+			<mx:UIComponent id="dotContainer" x="305" y="438" width="100" height="20"/> <!-- container to hold dots for rat animation demo-->
+	
 	
 	<!-- Popup Alert items -->
 		<mx:Image	id="mAllTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mAllTreasuresFoundImage}" depth="6"/>
