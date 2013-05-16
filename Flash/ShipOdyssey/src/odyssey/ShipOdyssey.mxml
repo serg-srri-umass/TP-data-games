@@ -1393,7 +1393,7 @@
 			
 			<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel(false);" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 			<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
-			<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="End Game" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
+			<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="New Game" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
 		</mx:Canvas>
 
 	<!-- Animated Ship and Crane area -->
