@@ -365,7 +365,7 @@
 			// and prepares the game for play.
 			protected function initializeTreasureHunt():void
 			{
-				disableAllButtons(true);
+				disableAllButtons(false);
 				mGameNumber 			+= 1;	// Count current game.
 				mEventNumber			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
 				mRatsSent				= 0;	// Reset number of rats sent.
@@ -465,7 +465,8 @@
 			{
 				PopUpManager.removePopUp(mLevelWindow);
 				initializeChosenLevel(event);
-				sailThenZoomIn();
+				showCurrentLevelInstructions();
+				//sailThenZoomIn();
 //				showCurrentLevelHelpAlert();
 				sendGameDataOpen();
 			}
