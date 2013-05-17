@@ -128,10 +128,6 @@
 			// Array of treasures (zero-based).
 			private var mTreasureArray:Array;
 			
-			//this array stores coordinates of rats coming up out of the water for use in animation 
-			private var mratAnimArray:Array = new Array();
-		
-			
 			//counter for loops displaying dots
 			private var iter:int = 0;
 
@@ -259,8 +255,11 @@
 				this.sendCollectionData();		//		set it up so we can emit data
 				updateVolume(80); // start at 80% volume
 				
-				this.switchToTreasureHunt(new MouseEvent("click"));
-				chooseHuntLevel(true); //show level selection on start up and start the game (true = start game after level selection)				
+				initListeners();	// adds event listeners that exist for the entirety of the game.
+				DivingRatDirector.init( dotContainer);	// pass the DivingRatDirector the container it's going to draw into.
+
+				this.switchToTreasureHunt(new MouseEvent("click"));				
+				chooseHuntLevel(true); // show level selection on start up and start the game (true = start game after level selection)
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
@@ -682,8 +681,8 @@
 						noisyLocation = Math.round((mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[evenOdd]);
 					}
 					readingsAdded += (ratNum==0 ? "" : ", ") + noisyLocation;
-					mratAnimArray[ratNum] = noisyLocation;
 					
+					DivingRatDirector.addRat( noisyLocation);					
 					
 					eventArray.push( getEventDataValues( noisyLocation.toString()));
 					if( (ratNum+1==mRatsToSend) || (eventArray.length >= eventsAtATime )){
@@ -694,11 +693,8 @@
 					evenOdd = (evenOdd+1)%2;
 				}
 				
-				initDots();
+				DivingRatDirector.initDots();
 				
-				for(var i:int = 0; i < mratAnimArray.length; i++){
-					trace(mratAnimArray[i]);
-				}
 				mResultsFieldLabel.text = readingsAdded;
 				//trace("rats sent.");
 				
@@ -1239,6 +1235,14 @@
 				CraneHandle.visible = true;
 			}
 			
+			private function disableRatButton(e:RatEvent = null):void{
+				mSendRatsButton.enabled = false;
+			}
+			
+			private function enableRatButton(e:RatEvent = null):void{
+				mSendRatsButton.enabled = true;
+			}
+			
 			//********new visual items and visual only code **********
 			private var crane:MovieClip;
 			private var sailingMovie:MovieClip;
@@ -1248,7 +1252,6 @@
 			private var craneMask:Shape;
 			private var transitionTimer:Timer;
 			private var dayTickOffClockTimer:Timer;
-			public var dotArray:Array = new Array();
 			
 			//ties the crane to MXML loader and sets up the mask
 			private function initCrane():void{
@@ -1261,6 +1264,7 @@
 				crane.mask = craneMask;
 				//crane.runTo(mCenterPosition);
 			}
+			
 			//loads the swf, sets colors, and starts the clouds
 			private function initClouds():void{
 				cHerder = CloudLoader.content as MovieClip;
@@ -1272,6 +1276,7 @@
 				cHerder.init(5,395,0xDDDDDD);
 				cHerder.startClouds();
 			}
+			
 			//ties boat swf loader to code
 			private function initBoat():void{
 				//load boat
@@ -1290,32 +1295,10 @@
 				sailingMovie.ToyBoat.startSail();
 			}
 			
-		
-			private function initDots():void{
-				trace("enter initDots")
-				for(var i:int = 0; i < mratAnimArray.length; i++){
-					dotArray.push(new red_dot() as MovieClip);
-				}
-				drawDots(dotArray);
-			}
-			
-			private function drawDots(dotArray:Array):void{
-				for(var i:int = 0; i < dotArray.length; i++){
-					dotArray[i].visible = true; 
-				}
-				for(var i:int = 0; i < dotArray.length; i++){
-					dotArray[i].x =265*(mratAnimArray[i]/100) 
-					dotContainer.addChild(dotArray[i]);
-					var timerObj:Timer = new Timer(150, 1);
-					timerObj.addEventListener(TimerEvent.TIMER, dotTimerHandler);
-					timerObj.start();
-					}
-				}
-			
-			private function dotTimerHandler(eventObject:TimerEvent):void{
-				for(var i:int = 0; i < dotArray.length; i++){
-					dotArray[i].visible = false; 
-				}
+			private function initListeners():void{
+				//This function is called when the game starts. These objects will have the following listeners for the entirety of the play session:
+				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
+				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, enableRatButton);
 			}
 			
 
@@ -1454,7 +1437,7 @@
 					   liveDragging="true" depth="6" maximum="100" minimum="0" value="50"/>
 		</s:Group>
 		<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
-			<mx:UIComponent id="dotContainer" x="305" y="438" width="100" height="20"/> <!-- container to hold dots for rat animation demo-->
+		<mx:UIComponent id="dotContainer" x="305" y="438" width="100" height="20"/> <!-- container to hold dots for rat animation demo-->
 	
 	
 	<!-- Popup Alert items -->
