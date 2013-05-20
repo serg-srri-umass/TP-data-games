@@ -1589,4 +1589,9 @@
 	<s:DropDownList x="233" y="35" width="90" enabled="false" change="onSortRocks(event)" prompt="Sort Rocks by ..." labelField="text" id="mSortRocksList" selectedIndex="0" dataProvider="{sortList}"></s:DropDownList>
 	
 	<!-- <mx:ProgressBar x="10" y="353" id="mScoreBar" mode="manual" width="200" fontWeight="normal" label="0%" textAlign="center" labelPlacement="center" fontSize="14" color="#FFFFFF"/> -->
+	<!-- MoveContainer -->
+	<s:BorderContainer id="MovieContainer" x="0" y="0" width="800" height="400" borderVisible="true" backgroundC
+		<s:MovieClipSWFLoader id="introMovie" x="25" y="28" width="750" height="350" source="/insert/source/
+		</s:MovieClipSWFLoader> 
+	</s:BorderContainer>  
 </s:Application>
