@@ -256,7 +256,7 @@
 				updateVolume(80); // start at 80% volume
 				
 				initListeners();	// adds event listeners that exist for the entirety of the game.
-				DivingRatDirector.init( dotContainer);	// pass the DivingRatDirector the container it's going to draw into.
+				DivingRatDirector.init( ratContainer);	// pass the DivingRatDirector the container it's going to draw into.
 
 				this.switchToTreasureHunt(new MouseEvent("click"));				
 				chooseHuntLevel(true); // show level selection on start up and start the game (true = start game after level selection)
@@ -693,7 +693,7 @@
 					evenOdd = (evenOdd+1)%2;
 				}
 				
-				DivingRatDirector.initDots();
+				DivingRatDirector.releaseRats();
 				
 				mResultsFieldLabel.text = readingsAdded;
 				//trace("rats sent.");
@@ -1437,7 +1437,7 @@
 					   liveDragging="true" depth="6" maximum="100" minimum="0" value="50"/>
 		</s:Group>
 		<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
-		<mx:UIComponent id="dotContainer" x="305" y="438" width="100" height="20"/> <!-- container to hold dots for rat animation demo-->
+		<mx:UIComponent id="ratContainer" x="120" y="121" width="395" height="286"/> <!-- container to hold dots for rat animation demo-->
 	
 	
 	<!-- Popup Alert items -->

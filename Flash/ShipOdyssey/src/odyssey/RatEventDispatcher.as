@@ -1,19 +1,20 @@
 package odyssey
 {
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	
 	// dispatches rat related events. 
 	public class RatEventDispatcher extends EventDispatcher
 	{				
-		public function dispatchReleased():void
+		public function dispatchReleased(e:Event= null):void
 		{			
 			// call this method when you've sent out the rats.
-			dispatchEvent(new RatEvent(RatEvent.RELEASED));	
+			dispatchEvent( new RatEvent( RatEvent.RELEASED));	
 		}
 		
-		public function dispatchReturned():void
+		public function dispatchReturned(e:Event= null):void
 		{
-			dispatchEvent(new RatEvent(RatEvent.RETURNED));	
+			dispatchEvent( new RatEvent( RatEvent.RETURNED));	
 		}
 	}
 }
