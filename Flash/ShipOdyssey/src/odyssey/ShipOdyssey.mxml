@@ -44,7 +44,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.05.13";
+			public static const VERSION:String = "v.2013.05.17";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -365,7 +365,7 @@
 			// and prepares the game for play.
 			protected function initializeTreasureHunt():void
 			{
-				//disableAllButtons(true);
+				disableAllButtonsNotNewgame();
 				mGameNumber 			+= 1;	// Count current game.
 				mEventNumber			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
 				mRatsSent				= 0;	// Reset number of rats sent.
@@ -1216,6 +1216,18 @@
 				mSendRatsButton.enabled = false;
 				CraneHandle.visible = false;
 			}	
+			
+			private function disableAllButtonsNotNewgame():void{
+				mLevelsButton.enabled = false;
+				mExitNewGameButton.enabled = true;
+				mDropHookButton.enabled = false;
+				mCenterPositionStepper.enabled = false;
+				mRatStepper.enabled = false;
+				mSendRatsButton.enabled = false;
+				CraneHandle.visible = false;			
+			}
+			
+		
 			private function enableAllButtons():void{
 				mExitNewGameButton.enabled = true;
 				mDropHookButton.enabled = true;
