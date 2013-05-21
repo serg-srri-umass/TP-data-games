@@ -1592,6 +1592,7 @@
 	<!-- MovieContainer -->
 	<s:BorderContainer id="MovieContainer" x="0" y="0" width="{this.width}" height="{this.height}" borderVisible="true" backgroundColor="#93ae93">
 		<s:MovieClipSWFLoader id="introMovie" x="0" y="0" width="{this.width}" height="{this.width}" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/intro-movie.swf"/>
+		<s:SWFLoader id="playButtonLoader" x="340" y="300" width="120" height="43" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/play_btn.swf"/>
 	</s:BorderContainer>  
 	
 </s:Application>
