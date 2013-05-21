@@ -219,8 +219,8 @@
 				
 				// Create display game level modal dialog.
 				// Listen for clicks on level buttons in dialog.
-				mLevelWindow = new GameLevelWindow();
-				chooseGameLevel();
+				//mLevelWindow = new GameLevelWindow();
+				//chooseGameLevel();
 			}
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
@@ -1589,9 +1589,9 @@
 	<s:DropDownList x="233" y="35" width="90" enabled="false" change="onSortRocks(event)" prompt="Sort Rocks by ..." labelField="text" id="mSortRocksList" selectedIndex="0" dataProvider="{sortList}"></s:DropDownList>
 	
 	<!-- <mx:ProgressBar x="10" y="353" id="mScoreBar" mode="manual" width="200" fontWeight="normal" label="0%" textAlign="center" labelPlacement="center" fontSize="14" color="#FFFFFF"/> -->
-	<!-- MoveContainer -->
-	<s:BorderContainer id="MovieContainer" x="0" y="0" width="800" height="400" borderVisible="true" backgroundC
-		<s:MovieClipSWFLoader id="introMovie" x="25" y="28" width="750" height="350" source="/insert/source/
-		</s:MovieClipSWFLoader> 
+	<!-- MovieContainer -->
+	<s:BorderContainer id="MovieContainer" x="0" y="0" width="{this.width}" height="{this.height}" borderVisible="true" backgroundColor="#93ae93">
+		<s:MovieClipSWFLoader id="introMovie" x="0" y="0" width="{this.width}" height="{this.width}" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/intro-movie.swf"/>
 	</s:BorderContainer>  
+	
 </s:Application>
