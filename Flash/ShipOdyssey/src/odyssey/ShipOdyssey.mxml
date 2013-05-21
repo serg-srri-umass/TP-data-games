@@ -1217,6 +1217,7 @@
 				CraneHandle.visible = false;
 			}	
 			
+			//added for game init. When intructions display, all buttons but NewGame disabled. 
 			private function disableAllButtonsNotNewgame():void{
 				mLevelsButton.enabled = false;
 				mExitNewGameButton.enabled = true;
@@ -1227,7 +1228,6 @@
 				CraneHandle.visible = false;			
 			}
 			
-		
 			private function enableAllButtons():void{
 				mExitNewGameButton.enabled = true;
 				mDropHookButton.enabled = true;
