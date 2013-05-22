@@ -874,6 +874,8 @@
 					mExitNewGameButton.label = "New Game";
 					mSendRatsButton.enabled = false;
 					mDropHookButton.enabled = false;
+					
+					DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
 				}
 				else //Clicking on 'New Game'
 				{

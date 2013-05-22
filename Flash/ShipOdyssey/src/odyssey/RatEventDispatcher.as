@@ -16,5 +16,10 @@ package odyssey
 		{
 			dispatchEvent( new RatEvent( RatEvent.RETURNED));	
 		}
+		
+		public function dispatchCancelled( e:Event = null):void
+		{
+			dispatchEvent (new RatEvent ( RatEvent.CANCELLED));
+		}
 	}
 }

@@ -10,6 +10,7 @@ package odyssey
 		public static const SCREEN_HEIGHT:int = 286;
 		
 		// art asset attributes:
+		public static const DISTANCE_TO_SCALE:int = 64;
 		public static const SCALE_WIDTH:int = 265;
 		public static const SHIP_WIDTH:int = 322;
 		public static const UPPER_DECK_WIDTH:int = 126;
