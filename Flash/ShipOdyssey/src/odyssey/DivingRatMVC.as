@@ -34,30 +34,14 @@ package odyssey
 				x = GameScreen.LOWER_DECK_X + GameScreen.LOWER_DECK_WIDTH * Math.random();
 				y = GameScreen.calcLowerDeckY(x) + GameScreen.SCREEN_Y; 
 			}
-		}
-		
-		// Getters & Setters
-		public function get age():int
-		{
-			return _age;
-		}
-		public function get speed():Number
-		{
-			return _speed;
-		}
-		public function set age(arg:int):void{
-			_age = arg;
-		}
-		public function set speed(arg:Number):void{
-			_speed = arg;
-		}
+		}		
 	
 	
 		// Attach a rat to the screen. Called from the director.
 		public function attach():void
 		{
 			addEventListener(Event.ENTER_FRAME, enterFrame);
-			speed = STARTING_DIVE_SPEED;
+			_speed = STARTING_DIVE_SPEED;
 			rat.gotoAndPlay(1);
 		}
 		
@@ -69,34 +53,34 @@ package odyssey
 		// this function is called every frame. It handles the animation
 		private function enterFrame(e:Event):void
 		{
-			age++;
-			if(age >= DECK_TIME && _state == 0)
+			_age++;
+			if(_age >= DECK_TIME && _state == 0)
 			{	// wait X frames before jumping overboard
-				if(speed < MAX_SPEED)
-					speed ++; 
+				if(_speed < MAX_SPEED)
+					_speed ++; 
 					// acceleration. Tops out at MAX_SPEED
-				y += speed;
+				y += _speed;
 				if(y >= GameScreen.WATER_Y)		// the rat has hit the water
 				{
 					_state = 1;	// the rat is now underwater
-					age = 0;
+					_age = 0;
 					y = GameScreen.WATER_Y;
 					rat.gotoAndPlay("splash");
-					DivingRatDirector.splash(x, y);
+					DivingRatDirector.addSplash(x);
 				}
 			}else if(_state == 2)
 			{				
 				//the rats leap out of the water
-				y += speed;
+				y += _speed;
 				x += _horizontalDrift;
 				
 				//deceleration:
 				if(x < GameScreen.SCREEN_X + GameScreen.UPPER_DECK_WIDTH)
-					speed += 2;	//if the rat is landing on the upper deck, decelerate slower
+					_speed += 2;	//if the rat is landing on the upper deck, decelerate slower
 				else
-					speed += 3;
+					_speed += 3;
 				
-				if(speed > 0)
+				if(_speed > 0)
 				{
 					if(!crested)
 					{	// at the height of the rat's jump, change the animation.
@@ -128,27 +112,27 @@ package odyssey
 		// the rat is ready to pop back out of the water.
 		public function rise():void
 		{
-			speed = STARTING_RISE_SPEED;
+			_speed = STARTING_RISE_SPEED;
 			rat.gotoAndPlay("leap");
 			_state = 2; // the rat is re-surfacing
 			// put the rat in a new position based off of the treasure's location
 			x = GameScreen.SCALE_WIDTH*(surfacingPosition/100) + GameScreen.SCREEN_X + GameScreen.DISTANCE_TO_SCALE; 
-			
 			//check to see if the rat is re-surfacing anywhere wierd. If it is, give it a nudge.
 			if(GameScreen.SCREEN_X + GameScreen.UPPER_DECK_WIDTH < x && GameScreen.SCREEN_X + GameScreen.LOWER_DECK_X > x)
 			{
 				//the rat is re-surfacing in the no-man's-land between the two decks. Give it a sideways momentum.
 				var shaker:int = Math.random()*2;		
 				_horizontalDrift = (shaker == 0 ? -1 : 1);
-			}else if(x > GameScreen.SCREEN_X + GameScreen.LOWER_DECK_X + GameScreen.LOWER_DECK_WIDTH)
+			}else if(x > GameScreen.LOWER_DECK_X + GameScreen.LOWER_DECK_WIDTH)
 			{
 				//the rat is re-surfacing past the ship's decks
-				_horizontalDrift = -5;
+				_horizontalDrift = -15;
 			}else if(x < GameScreen.SCREEN_X + 5)
 			{
 				//the rat is re-surfacing at the left-edge of the screen
 				x = GameScreen.SCREEN_X + 5;
 			}
+			DivingRatDirector.addSplash(x);
 		}
 	}
 }

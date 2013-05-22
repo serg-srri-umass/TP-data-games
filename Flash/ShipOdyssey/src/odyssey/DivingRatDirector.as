@@ -11,7 +11,7 @@ package odyssey
 	// Manages the behavior of all rat sprites.
 	public class DivingRatDirector
 	{	
-		private static const MAX_RATS_ONSCREEN:int = 100;	// how many sprites can be on-screen at once.
+		private static const MAX_RATS_ONSCREEN:int = 150;	//  how many sprites can be on-screen at once.
 		private static const MAX_UNDERWATER_TIME:int = 25;		// how many frames pass between when the last rat goes underwater, and the first resurfaces.
 	
 		public static var ratArray:Array = new Array();	// This array holds all rats that currently exist.	
@@ -148,14 +148,21 @@ package odyssey
 			}
 		}
 
-		/*	// SPLASH CODE. Commented out for now
-		public static function splash(x:Number, y:Number):void
+		// Splashing code. The splash clip removes itself when it's done playing.
+		public static function addSplash(x:Number):void
 		{
-			//var s:MovieClip = new splash2();
-			//s.x = x;
-			//s.y = y;
-			//_container.addChild(s);
-		}*/
+			const SPLASH1_CHANCE:Number = 0.2;	// the chance of using the rarer splash animation
+			var s:MovieClip = new splash();
+			if(Math.random() < SPLASH1_CHANCE)
+				s.gotoAndStop(1);	// there are two splash animations; this one is rarer.
+			else
+				s.gotoAndStop(2);
+			const SPLASH_WIDTH:int = 20;
+			const SPLASH_HEIGHT:int = 15;
+			s.x = x - SPLASH_WIDTH;
+			s.y = GameScreen.WATER_Y - SPLASH_HEIGHT + Math.random()*5;	//add some Y-jitter to the splashes
+			_container.addChild(s);
+		}
 		
 		// finish up the dive. Take off any rats who are still on screen. 
 		private static function completeDive( e:TimerEvent = null):void
