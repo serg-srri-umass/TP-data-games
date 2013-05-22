@@ -41,6 +41,7 @@
 			import spark.effects.easing.Linear;
 			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
+			import flash.events.MouseEvent;
 			
 			// BUILD FOR TinkerPlots or DG: 
 			// edit true/false and rebuild to create a new build for each.
@@ -219,8 +220,12 @@
 				
 				// Create display game level modal dialog.
 				// Listen for clicks on level buttons in dialog.
-				//mLevelWindow = new GameLevelWindow();
-				//chooseGameLevel();
+				playButton.addEventListener(MouseEvent.MOUSE_UP, gameLevelHandler);
+				
+				function gameLevelHandler(e:Event):void{
+					mLevelWindow = new GameLevelWindow();
+					chooseGameLevel();
+				}
 			}
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
@@ -1592,7 +1597,7 @@
 	<!-- MovieContainer -->
 	<s:BorderContainer id="MovieContainer" x="0" y="0" width="{this.width}" height="{this.height}" borderVisible="true" backgroundColor="#93ae93">
 		<s:MovieClipSWFLoader id="introMovie" x="0" y="0" width="{this.width}" height="{this.width}" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/intro-movie.swf"/>
-		<s:SWFLoader id="playButtonLoader" x="340" y="300" width="120" height="43" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/play_btn.swf"/>
+		<s:SWFLoader id="playButton" x="340" y="300" width="120" height="43" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/play_btn.swf"/>
 	</s:BorderContainer>  
 	
 </s:Application>
