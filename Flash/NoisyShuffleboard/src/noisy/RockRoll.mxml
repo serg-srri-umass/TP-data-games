@@ -220,12 +220,13 @@
 				
 				// Create display game level modal dialog.
 				// Listen for clicks on level buttons in dialog.
-				playButton.addEventListener(MouseEvent.MOUSE_UP, gameLevelHandler);
-				
-				function gameLevelHandler(e:Event):void{
-					mLevelWindow = new GameLevelWindow();
-					chooseGameLevel();
-				}
+				click_btn.addEventListener(MouseEvent.CLICK, gameLevelHandler);
+			}
+			
+			//handler for play button in intro video. When you hit play, brings up level dailog box. 
+			private function gameLevelHandler(e:MouseEvent):void{
+				mLevelWindow = new GameLevelWindow();
+				chooseGameLevel();
 			}
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
