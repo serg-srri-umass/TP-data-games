@@ -43,6 +43,7 @@
 			import spark.effects.easing.Linear;
 			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
+			import flash.events.MouseEvent;
 			
 			// BUILD FOR TinkerPlots or DG: 
 			// edit true/false and rebuild to create a new build for each.
@@ -247,8 +248,8 @@
 				MovieContainer.removeElement(introMovie);
 				MovieContainer.removeElement(playButton);
 				this.removeElement(MovieContainer);
-			}
-			
+				}
+
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
 			private	function sendCollectionData():void	{
 				var	result:String;
