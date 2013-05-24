@@ -219,24 +219,20 @@
 				mCurrentAverageScore	= 0;	// Zero out average score used in autoplay mode.
 				
 				sendCollectionData();
-				
-				// Create display game level modal dialog.
-				// Listen for clicks on level buttons in dialog.
-				//playButton.myBtn.addEventListener(MouseEvent.CLICK, gameLevelHandler);
-				playBtn.addEventListener(MouseEvent.CLICK, gameLevelHandler);	
-				
 			}
 			
-			//
+			//casts content of SWFLoader as a movieclip when its done loading, and adds listener 
 			private function initPlayButton():void{
 				playBtn = playButton.content as MovieClip;
 				playBtn.addEventListener(MouseEvent.CLICK, gameLevelHandler);
 			}
 			
-			//handler for play button in intro video. When you hit play, brings up level dailog box. 
+			//handler for play button in intro video. gets rid of intro movie and play button, and starts with level 1
 			private function gameLevelHandler(e:MouseEvent):void{
-				mLevelWindow = new GameLevelWindow();
-				chooseGameLevel();
+				setLevelOne(e); //sends fake click to levelOne listener
+				MovieContainer.removeElement(introMovie);
+				MovieContainer.removeElement(playButton);
+				this.removeElement(MovieContainer);
 			}
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
