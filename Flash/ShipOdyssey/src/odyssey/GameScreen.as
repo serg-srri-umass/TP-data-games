@@ -8,6 +8,8 @@ package odyssey
 		public static const SCREEN_Y:int = 50;
 		public static const SCREEN_WIDTH:int = 395;
 		public static const SCREEN_HEIGHT:int = 286;
+		public static const TOTAL_SCREEN_WIDTH:int = 518;
+		public static const TOTAL_SCREEN_HEIGHT:int = 410;
 		
 		// art asset attributes:
 		public static const DISTANCE_TO_SCALE:int = 64;

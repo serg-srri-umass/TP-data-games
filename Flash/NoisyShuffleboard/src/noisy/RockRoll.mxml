@@ -9,7 +9,7 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
 			   xmlns:mx="library://ns.adobe.com/flex/mx" height="400" width="800"
 			   xmlns:default="noisy.*"
-			   creationComplete="startUp( )"
+			   creationComplete="testFlashPlayer( )"
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
 			   backgroundAlpha="1.0"> 
@@ -20,6 +20,7 @@
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
 			import common.ParkMiller;
+			import common.VersionChecker;
 			
 			import flash.display.Sprite;
 			import flash.errors.ScriptTimeoutError;
@@ -46,6 +47,8 @@
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
+			private static const MINIMUM_REQUIREMENTS:Number = 11.7;	//the oldest version of flash player you can play this game on.
+			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
 			public static const VERSION:String = "Rock Roll v.2013.05.08";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
@@ -134,6 +137,17 @@
 					{text:"Size",		choice:SORT_BY_SIZE} 
 				]
 			);
+			
+			// test flash player makes sure the player is meeting the minimum requirements.
+			private function testFlashPlayer():void
+			{
+				if(VersionChecker.isValid( MINIMUM_REQUIREMENTS))
+				{
+					startUp();
+				} else {
+					BrickWall.visible = true;
+				}
+			}
 			
 			// startUp() is called when the creation of this class is complete
 			// and sets up necessary parameters for game initiation.
@@ -1589,4 +1603,25 @@
 	<s:DropDownList x="233" y="35" width="90" enabled="false" change="onSortRocks(event)" prompt="Sort Rocks by ..." labelField="text" id="mSortRocksList" selectedIndex="0" dataProvider="{sortList}"></s:DropDownList>
 	
 	<!-- <mx:ProgressBar x="10" y="353" id="mScoreBar" mode="manual" width="200" fontWeight="normal" label="0%" textAlign="center" labelPlacement="center" fontSize="14" color="#FFFFFF"/> -->
+
+	
+	<!-- Error message for bad version of flash player -->	
+	<s:BorderContainer id="BrickWall"	x="0" y="0" width="800" height="400" visible="false">
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xFF0000"/>
+				<s:GradientEntry color="0xB40404"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		
+		
+		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="80"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="800" color="0xffffff"/>
+		<s:Label id="midLabelError" text="{'RockRoll requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="170"  fontSize="15" fontFamily="Arial" textAlign="center" width="800" color="0xffffff"/>
+		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="800" color="0xffffff"/>
+		<s:Label id="bottomLabel" text="Download the latest version at http://get.adobe.com/flashplayer/" x="0" y="310"  fontSize="15" fontFamily="Arial" textAlign="center" width="800" color="0xffffff"/>
+	</s:BorderContainer>
+	
+	
+
+
 </s:Application>
