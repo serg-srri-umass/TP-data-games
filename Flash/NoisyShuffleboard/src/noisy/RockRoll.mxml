@@ -1535,6 +1535,7 @@
 			// onClickChangeLevelButton() allows the user to change the game level.
 			protected function onClickChangeLevelButton(iEvent:MouseEvent):void
 			{
+				mLevelWindow = new GameLevelWindow();
 				chooseGameLevel();
 			}
 			
