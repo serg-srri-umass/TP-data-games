@@ -9,7 +9,7 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
 			   xmlns:mx="library://ns.adobe.com/flex/mx" height="400" width="800"
 			   xmlns:default="noisy.*"
-			   creationComplete="testFlashPlayer( )"
+			   creationComplete="testFlashPlayer()"
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
 			   backgroundAlpha="1.0"> 
@@ -43,7 +43,6 @@
 			import spark.effects.easing.Linear;
 			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
-			import flash.events.MouseEvent;
 			
 			// BUILD FOR TinkerPlots or DG: 
 			// edit true/false and rebuild to create a new build for each.
