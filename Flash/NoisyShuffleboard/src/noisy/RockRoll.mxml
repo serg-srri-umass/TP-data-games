@@ -23,6 +23,7 @@
 			
 			import flash.display.Sprite;
 			import flash.errors.ScriptTimeoutError;
+			import flash.events.MouseEvent;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
@@ -41,7 +42,6 @@
 			import spark.effects.easing.Linear;
 			import spark.effects.easing.Sine;
 			import spark.events.IndexChangeEvent;
-			import flash.events.MouseEvent;
 			
 			// BUILD FOR TinkerPlots or DG: 
 			// edit true/false and rebuild to create a new build for each.
@@ -125,6 +125,8 @@
 			private var mStdDeviationB:Number	= kStdDeviationB;
 			private var mMeanA:Number			= 45;
 			private var mMeanB:Number			= 25;
+			
+			public var playBtn:MovieClip;
 			
 			[Bindable]
 			public var sortList:ArrayCollection = new ArrayCollection(
@@ -220,7 +222,15 @@
 				
 				// Create display game level modal dialog.
 				// Listen for clicks on level buttons in dialog.
-				click_btn.addEventListener(MouseEvent.CLICK, gameLevelHandler);
+				//playButton.myBtn.addEventListener(MouseEvent.CLICK, gameLevelHandler);
+				playBtn.addEventListener(MouseEvent.CLICK, gameLevelHandler);	
+				
+			}
+			
+			//
+			private function initPlayButton():void{
+				playBtn = playButton.content as MovieClip;
+				playBtn.addEventListener(MouseEvent.CLICK, gameLevelHandler);
 			}
 			
 			//handler for play button in intro video. When you hit play, brings up level dailog box. 
@@ -1598,7 +1608,8 @@
 	<!-- MovieContainer -->
 	<s:BorderContainer id="MovieContainer" x="0" y="0" width="{this.width}" height="{this.height}" borderVisible="true" backgroundColor="#93ae93">
 		<s:MovieClipSWFLoader id="introMovie" x="0" y="0" width="{this.width}" height="{this.width}" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/intro-movie.swf"/>
-		<s:SWFLoader id="playButton" x="340" y="300" width="120" height="43" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/play_btn.swf"/>
+		<s:SWFLoader id="playButton" x="340" y="300" width="120" height="43" complete="initPlayButton()"  source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/play_btn.swf"/>
 	</s:BorderContainer>  
+	
 	
 </s:Application>
