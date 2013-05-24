@@ -42,7 +42,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.05.17";
+			public static const VERSION:String = "v.2013.05.22";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -256,7 +256,7 @@
 				updateVolume(80); // start at 80% volume
 				
 				initListeners();	// adds event listeners that exist for the entirety of the game.
-				DivingRatDirector.init( dotContainer);	// pass the DivingRatDirector the container it's going to draw into.
+				DivingRatDirector.init( ratContainer);	// pass the DivingRatDirector the container it's going to draw into.
 
 				this.switchToTreasureHunt(new MouseEvent("click"));				
 				chooseHuntLevel(true); // show level selection on start up and start the game (true = start game after level selection)
@@ -399,7 +399,6 @@
 				
 				// sync the rat stepper with the current level if needed
 				setCurrentMinMaxRats( mRatsToSend, mMinRatsToSend, mMaxRatsToSend );
-				mResultsFieldLabel.text	= "";		// Clear rat results.
 				
 				// Move hook to center of treasure area.
 				mCenterPosition				= kInitCenter;	
@@ -661,8 +660,7 @@
 //				mRatSound.play(); // Play rat sound.
 				
 				// For every rat sent, update Results text and send Rat data to TinkerPlots/DG
-				var readingsAdded:String = "", //push to here before pushing to mResultsfieldLabel.text after the for loop
-					numTreasuresHere:int = mTreasureLocArr.length,
+				var	numTreasuresHere:int = mTreasureLocArr.length,
 					noisyLocation:Number, 
 					ratNum:int, //init vars that are used in all 3 forks
 					evenOdd:int = 0,
@@ -681,7 +679,6 @@
 						//do swap back and forth for two locations if they have 2 left
 						noisyLocation = Math.round((mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[evenOdd]);
 					}
-					readingsAdded += (ratNum==0 ? "" : ", ") + noisyLocation;
 					
 					DivingRatDirector.addRat( noisyLocation);					
 					
@@ -694,10 +691,7 @@
 					evenOdd = (evenOdd+1)%2;
 				}
 				
-				DivingRatDirector.initDots();
-				
-				mResultsFieldLabel.text = readingsAdded;
-				//trace("rats sent.");
+				DivingRatDirector.releaseRats();
 				
 				// send updated [mRatsSent] to DG game case
 				sendGameDataUpdate();
@@ -875,6 +869,8 @@
 					mExitNewGameButton.label = "New Game";
 					mSendRatsButton.enabled = false;
 					mDropHookButton.enabled = false;
+					
+					DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
 				}
 				else //Clicking on 'New Game'
 				{
@@ -1401,10 +1397,6 @@
 			<s:Label id="mRatControlLabel" text="Diving Rats" fontFamily="Georgia" fontSize="16" fontStyle="normal" fontWeight="bold" x="75" y="5" includeIn="TreasureHunt"/>
 			<s:NumericStepper id="mRatStepper" width="50" height="23" x="45" y="28" change="onChangeRatStepper(event)" contentBackgroundColor="#5081B4" maximum="{mMaxRatsToSend}" minimum="{mMinRatsToSend}" stepSize="1" includeIn="TreasureHunt"/>
 			<s:Button id="mSendRatsButton" height="23" width="100" x="100" y="28" label="Send Rats" click="onClickSendRatsButton(event)" includeIn="TreasureHunt"/>
-			<s:Label id="mDiveResultsLabel" text="Rat Readings:" includeIn="TreasureHunt" x="9" y="62" width="100" height="19" fontFamily="Georgia" textAlign="center"/>
-			<s:BorderContainer x="100" y="55" width="100" height="23" includeIn="TreasureHunt">
-				<s:Label 	id="mResultsFieldLabel" x="2" y="2" height="19" width="95" color="#000000" lineBreak="explicit" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" textAlign="right"/>
-			</s:BorderContainer>
 		</s:Group>
 	<!-- Hook controls -->
 		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="265" y="35" width="240" height="76">
@@ -1450,7 +1442,7 @@
 					   liveDragging="true" depth="6" maximum="100" minimum="0" value="50"/>
 		</s:Group>
 		<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
-		<mx:UIComponent id="dotContainer" x="305" y="438" width="100" height="20"/> <!-- container to hold dots for rat animation demo-->
+		<mx:UIComponent id="ratContainer" x="120" y="121" width="395" height="286"/> <!-- container to hold dots for rat animation demo-->
 	
 	
 	<!-- Popup Alert items -->
