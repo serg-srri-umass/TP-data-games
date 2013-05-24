@@ -126,7 +126,7 @@ package odyssey
 			}else if(x > GameScreen.LOWER_DECK_X + GameScreen.LOWER_DECK_WIDTH)
 			{
 				//the rat is re-surfacing past the ship's decks
-				_horizontalDrift = -15;
+				_horizontalDrift = -5;
 			}else if(x < GameScreen.SCREEN_X + 5)
 			{
 				//the rat is re-surfacing at the left-edge of the screen
