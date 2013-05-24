@@ -6,3 +6,10 @@ Thumbs.db
 
 # Chainsaw sounds are freely available, but -not- for open-source projects. Thus, omitted.
 javascript/Chainsaw/assets/*.mp3
+
+# Cleaning up all .SWZ files that are cluttering git status view
+*.SWZ
+
+# removing bin-debug directories 
+Flash/ChainSaw/bin-debug/*
+Flash/ShipOdyssey/bin-debug/*

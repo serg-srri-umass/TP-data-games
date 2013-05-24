@@ -42,7 +42,7 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.05.13";
+			public static const VERSION:String = "v.2013.05.17";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -370,7 +370,7 @@
 			// and prepares the game for play.
 			protected function initializeTreasureHunt():void
 			{
-				disableAllButtons(true);
+				disableAllButtonsNotNewgame();
 				mGameNumber 			+= 1;	// Count current game.
 				mEventNumber			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
 				mRatsSent				= 0;	// Reset number of rats sent.
@@ -470,7 +470,8 @@
 			{
 				PopUpManager.removePopUp(mLevelWindow);
 				initializeChosenLevel(event);
-				sailThenZoomIn();
+				showCurrentLevelInstructions();
+				//sailThenZoomIn();
 //				showCurrentLevelHelpAlert();
 				sendGameDataOpen();
 			}
@@ -1226,6 +1227,18 @@
 				mSendRatsButton.enabled = false;
 				CraneHandle.visible = false;
 			}	
+			
+			//added for game init. When intructions display, all buttons but NewGame disabled. 
+			private function disableAllButtonsNotNewgame():void{
+				mLevelsButton.enabled = false;
+				mExitNewGameButton.enabled = true;
+				mDropHookButton.enabled = false;
+				mCenterPositionStepper.enabled = false;
+				mRatStepper.enabled = false;
+				mSendRatsButton.enabled = false;
+				CraneHandle.visible = false;			
+			}
+			
 			private function enableAllButtons():void{
 				mExitNewGameButton.enabled = true;
 				mDropHookButton.enabled = true;
@@ -1421,7 +1434,7 @@
 			
 			<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel(false);" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 			<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
-			<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="End Game" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
+			<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="New Game" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
 		</mx:Canvas>
 
 	<!-- Animated Ship and Crane area -->
