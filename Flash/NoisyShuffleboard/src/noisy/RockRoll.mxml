@@ -23,6 +23,7 @@
 			
 			import flash.display.Sprite;
 			import flash.errors.ScriptTimeoutError;
+			import flash.events.MouseEvent;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
@@ -125,6 +126,8 @@
 			private var mMeanA:Number			= 45;
 			private var mMeanB:Number			= 25;
 			
+			public var playBtn:MovieClip;
+			
 			[Bindable]
 			public var sortList:ArrayCollection = new ArrayCollection(
 				[	{text:"Unsorted",	choice:DO_NOT_SORT},
@@ -216,11 +219,20 @@
 				mCurrentAverageScore	= 0;	// Zero out average score used in autoplay mode.
 				
 				sendCollectionData();
-				
-				// Create display game level modal dialog.
-				// Listen for clicks on level buttons in dialog.
-				mLevelWindow = new GameLevelWindow();
-				chooseGameLevel();
+			}
+			
+			//casts content of SWFLoader as a movieclip when its done loading, and adds listener 
+			private function initPlayButton():void{
+				playBtn = playButton.content as MovieClip;
+				playBtn.addEventListener(MouseEvent.CLICK, gameLevelHandler);
+			}
+			
+			//handler for play button in intro video. gets rid of intro movie and play button, and starts with level 1
+			private function gameLevelHandler(e:MouseEvent):void{
+				setLevelOne(e); //sends fake click to levelOne listener
+				MovieContainer.removeElement(introMovie);
+				MovieContainer.removeElement(playButton);
+				this.removeElement(MovieContainer);
 			}
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
@@ -1523,6 +1535,7 @@
 			// onClickChangeLevelButton() allows the user to change the game level.
 			protected function onClickChangeLevelButton(iEvent:MouseEvent):void
 			{
+				mLevelWindow = new GameLevelWindow();
 				chooseGameLevel();
 			}
 			
@@ -1589,4 +1602,11 @@
 	<s:DropDownList x="233" y="35" width="90" enabled="false" change="onSortRocks(event)" prompt="Sort Rocks by ..." labelField="text" id="mSortRocksList" selectedIndex="0" dataProvider="{sortList}"></s:DropDownList>
 	
 	<!-- <mx:ProgressBar x="10" y="353" id="mScoreBar" mode="manual" width="200" fontWeight="normal" label="0%" textAlign="center" labelPlacement="center" fontSize="14" color="#FFFFFF"/> -->
+	<!-- MovieContainer -->
+	<s:BorderContainer id="MovieContainer" x="0" y="0" width="{this.width}" height="{this.height}" borderVisible="true" backgroundColor="#93ae93">
+		<s:MovieClipSWFLoader id="introMovie" x="0" y="0" width="{this.width}" height="{this.width}" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/intro-movie.swf"/>
+		<s:SWFLoader id="playButton" x="340" y="300" width="120" height="43" complete="initPlayButton()"  source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/play_btn.swf"/>
+	</s:BorderContainer>  
+	
+	
 </s:Application>
