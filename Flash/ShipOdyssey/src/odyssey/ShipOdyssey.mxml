@@ -46,7 +46,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.7;	//the oldest version of flash player you can play this game on.
 
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.05.22";
+			public static const VERSION:String = "v.2013.05.28";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -386,7 +386,6 @@
 			protected function initializeTreasureHunt():void
 			{
 				disableAllButtonsNotNewgame();
-				mGameNumber 			+= 1;	// Count current game.
 				mEventNumber			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
 				mRatsSent				= 0;	// Reset number of rats sent.
 				mHooksDropped			= 0;	// Reset number of hooks dropped.
@@ -485,9 +484,6 @@
 				PopUpManager.removePopUp(mLevelWindow);
 				initializeChosenLevel(event);
 				showCurrentLevelInstructions();
-				//sailThenZoomIn();
-//				showCurrentLevelHelpAlert();
-				sendGameDataOpen();
 			}
 			private function initializeChosenLevel(event:Event):void
 			{
@@ -697,7 +693,7 @@
 					
 					DivingRatDirector.addRat( noisyLocation);					
 					
-					eventArray.push( getEventDataValues( noisyLocation.toString()));
+					eventArray.push( getEventDataValues( noisyLocation ));
 					if( (ratNum+1==mRatsToSend) || (eventArray.length >= eventsAtATime )){
 						//trace("sending " + eventArray.length + " rats.");
 						sendEventData("Rat", eventArray ); // Send event data to TinkerPlots / DG
@@ -897,6 +893,7 @@
 					mExitNewGameButton.enabled = true;
 					mExitNewGameButton.label = "End Game";
 					disableAllButtons(false);
+					mGameNumber += 1;
 					switchToTreasureHunt(iEvent); //start a new game
 					
 					sendGameDataOpen();
@@ -1076,7 +1073,7 @@
 			
 			// get the event data to send to Tinkerplots/DG, 
 			// returned as an array for use by sendEventData()
-			private function getEventDataValues( val:String ):Array {
+			private function getEventDataValues( val:Number ):Array {
 				var uniqueTreasureID:String = (mGameNumber+"-"+(mDropLocationNum+1));
 				return [
 						mGameNumber, // Game number (1-n)
