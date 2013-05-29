@@ -13,3 +13,6 @@ javascript/Chainsaw/assets/*.mp3
 # removing bin-debug directories 
 Flash/ChainSaw/bin-debug/*
 Flash/ShipOdyssey/bin-debug/*
+
+# removing project preferences so we can add our own if needed later
+Flash/ShipOdyssey/com.adobe.flexbuilder.project.prefs
