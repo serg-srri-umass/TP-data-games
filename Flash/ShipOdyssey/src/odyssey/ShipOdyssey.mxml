@@ -36,6 +36,7 @@
 			import mx.utils.StringUtil;
 			
 			import odyssey.TreasureHuntLevelWindow;
+			
 			import odysseyAssets.*;
 			
 			// BUILD FOR TinkerPlots or DG: 
@@ -134,6 +135,10 @@
 			
 			//counter for loops displaying dots
 			private var iter:int = 0;
+			
+			//variables for holding movieclips from loaded swf
+			private var loseScreen:MovieClip;
+			private var winScreen:MovieClip;
 
 			
 			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
@@ -260,6 +265,18 @@
 				} else {
 					BrickWall.visible = true;
 				}
+			}
+			
+			//initialization functions
+			//init win and lose screen, and make invisible till we need them
+			private function initLoseScreen():void{
+				winScreen = winAnimation.content as MovieClip;
+				winScreen.visible = false;
+			}
+			
+			private function initWinScreen():void{
+				loseScreen = loseAnimation.content as MovieClip;
+				loseScreen.visible = false;
 			}
 			
 			// startUp() is called when the creation of this class is complete
@@ -1481,6 +1498,11 @@
 			<s:Label id="levelDescriptionLabel" includeIn="TreasureHunt" x="195" y="220" fontFamily="Georgia" height="120" width="245" fontSize="16" textAlign="center" color="#000000" depth="7"/>
 		</s:Group>
 	
+	<!-- SWF loads for winning screen animation and losing screen animation -->
+		<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/ShipOdyssey/src/odysseyAssets/winAnimation.swf"/>
+		<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/ShipOdyssey/src/odysseyAssets/loseAnimation.swf"/>
+	 
+
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall"	x="0" y="0" width="{GameScreen.TOTAL_SCREEN_WIDTH}" height="{GameScreen.TOTAL_SCREEN_HEIGHT}" visible="false" depth="999">
 		<s:backgroundFill>
