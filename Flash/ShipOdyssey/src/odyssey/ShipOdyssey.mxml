@@ -82,7 +82,7 @@
 			public static const kSailOnNormalLevel:String = "Are you sure you would like to skip this treasure and sail on?";
 			public static const kSailOnMultiTreasureLevel:String = "Are you sure there are no treasures here and you'd like to sail on?";
 			public static const kTreasureValue:int = 7000;
-			
+			public static const kTreasureGoal:int = 30000;
 			public static const kEventsCollectionName:String = "Events";
 			public static const kGamesCollectionName:String = "Games";
 			
@@ -418,7 +418,6 @@
 				mTreasure2 = new Array("3rd", randomLocation(), 15000, "Pearl Necklace");
 				mTreasure3 = new Array("4th", randomLocation(), 18000, "Silver Goblet");
 				
-			
 				// Create new treasure array and add treasures to array.
 				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
 					mTreasure3 );
@@ -847,6 +846,11 @@
 					mProfitSoFar		+= mTreasureArray[mCurrentTreasureNum][kValue];
 					mProfitValue.text	= formatDollars(mProfitSoFar);
 					updateLog();
+					
+					//if your profit hits your goal, send you to the winner screen! 
+					if(mProfitSoFar >= kTreasureGoal){
+						winScreen.visible = true;
+					}
 					
 					mCashSound.play(); // Play cash register sound.	
 					// Tell the player which treasure was found and how much it is worth.
@@ -1520,8 +1524,8 @@
 		</s:Group>
 	
 	<!-- SWF loads for winning screen animation and losing screen animation -->
-		<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/ShipOdyssey/src/odysseyAssets/winAnimation.swf"/>
-		<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/ShipOdyssey/src/odysseyAssets/loseAnimation.swf"/>
+		<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" depth = "11" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/ShipOdyssey/src/odysseyAssets/winAnimation.swf"/>
+		<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" depth = "11" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/ShipOdyssey/src/odysseyAssets/loseAnimation.swf"/>
 	 
 
 	<!-- Error message for bad version of flash player -->	
