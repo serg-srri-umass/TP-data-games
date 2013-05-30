@@ -834,6 +834,7 @@
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);
 				transitionTimer.start();
 			}
+			
 			//return from dropHook()::transitionTimer.start()
 			protected function hookDropTimerFinish(e:TimerEvent):void{
 				//does the visual and sound items that occur after the hook drop finishes playing
