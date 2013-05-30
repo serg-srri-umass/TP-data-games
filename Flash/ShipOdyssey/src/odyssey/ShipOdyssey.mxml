@@ -56,14 +56,14 @@
 			
 			public var debug:Boolean = true;
 			
-			// ********** TREASURE HUNT CONSTANTS AND VARIABLES **********
+			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			public static const kHuntLevelOne:uint = 0;	// First treasure hunt game level.
 			public static const kHuntLevelTwo:uint = 1;	// Second treasure hunt game level. New level with 0-2 treasures per location with 6 treasures total.
 			public static const kHuntLevelThree:uint = 2;	// Third treasure hunt game level. Used to be Clear Level.
 			public static const kHuntLevelFour:uint = 3;	// Fourth treasure hunt game level. Used to be Murky Level.
 
 			//** **
-			public static const kCostPerHoodDrop:int = 4500; // Cost each time you drop a hook
+			public static const kCostPerHookDrop:int = 4500; // Cost each time you drop a hook
 			public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
 			public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
 			public static const kHookRadius:uint= 2;	// Radius of grappling hook area.
@@ -270,13 +270,13 @@
 			//initialization functions
 			//init win and lose screen, and make invisible till we need them
 			private function initLoseScreen():void{
-				winScreen = winAnimation.content as MovieClip;
-				winScreen.visible = false;
+				loseScreen = loseAnimation.content as MovieClip;
+				loseScreen.visible = false;
 			}
 			
 			private function initWinScreen():void{
-				loseScreen = loseAnimation.content as MovieClip;
-				loseScreen.visible = false;
+				winScreen = winAnimation.content as MovieClip;
+				winScreen.visible = false;
 			}
 			
 			// startUp() is called when the creation of this class is complete
@@ -292,6 +292,9 @@
 
 				this.switchToTreasureHunt(new MouseEvent("click"));				
 				chooseHuntLevel(true); // show level selection on start up and start the game (true = start game after level selection)
+				
+				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
+				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
@@ -422,10 +425,8 @@
 				
 				mCurrentTreasureNum 		= selectRandomTreasure();	// Pick a random Treasure for each game
 				mTreasuresFound				= 0;	// No treasures found yet.
-				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
 				mShipCostSoFar				= 0;	// No ship / crew costs until trip starts.
-				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
 				mDropLocationNum			= 0;	// Same as mCurrentTreasureNum except in Level 2 - used to track where we are
 				
 				// sync the rat stepper with the current level if needed
@@ -769,7 +770,7 @@
 					mEventNumber 	+= 1; // Dropping a hook counts as an event.
 					mHooksDropped 	+= 1; // Increment counter of hooks dropped.
 					
-					mProfitSoFar -= kCostPerHoodDrop;
+					mProfitSoFar -= kCostPerHookDrop;
 					mProfitValue.text	= formatDollars(mProfitSoFar);
 					updateLog();
 					
@@ -1013,7 +1014,7 @@
 			{
 				mTreasureProfit.text = formatDollars(mTreasureValueSoFar);
 				mRatCost.text = formatDollars(mRatCostSoFar);
-				mHookCost.text = formatDollars(mHooksDropped*kCostPerHoodDrop);
+				mHookCost.text = formatDollars(mHooksDropped*kCostPerHookDrop);
 				mProfitValue.text = formatDollars(mProfitSoFar);
 			}
 			
