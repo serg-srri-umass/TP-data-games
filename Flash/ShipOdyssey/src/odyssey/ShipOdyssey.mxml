@@ -68,7 +68,7 @@
 			public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
 			public static const kHookRadius:uint= 2;	// Radius of grappling hook area.
 //			public static const kTreasureID:uint= 0;	// Array position of categorical treasure ID.
-			public static const kLocation:Number= 1;	// Array position of treasure location.
+			public static const kLocation:uint= 1;	// Array position of treasure location.
 			public static const kValue:uint		= 2;	// Array position of treasure value.
 			public static const kItem:uint		= 3;	// Array position of treasure item.
 			public static const kMinLocation:Number = 0;	// Leftmost treasure location.
@@ -413,18 +413,37 @@
 				mCurrentGameComplete	= false;// Game is in play.
 				
 				// Set up the treasure number, location, value, and item.
-				mTreasure0 = new Array("1st", randomLocation(), kTreasureValue, "Brass Chalice");
-				mTreasure1 = new Array("2nd", randomLocation(), kTreasureValue, "Sword with Ebony Handle");
-				mTreasure2 = new Array("3rd", randomLocation(), kTreasureValue, "Pearl Necklace");
-				mTreasure3 = new Array("4th", randomLocation(), kTreasureValue, "Silver Goblet");
-				mTreasure4 = new Array("5th", randomLocation(), kTreasureValue, "Gold Bar");
-				mTreasure5 = new Array("6th", randomLocation(), kTreasureValue, "Diamond Ring");
+				mTreasure0 = new Array("1st", randomLocation(), 7000, "Brass Chalice");
+				mTreasure1 = new Array("2nd", randomLocation(), 7000, "Sword with Ebony Handle");
+				mTreasure2 = new Array("3rd", randomLocation(), 15000, "Pearl Necklace");
+				mTreasure3 = new Array("4th", randomLocation(), 18000, "Silver Goblet");
 				
+			
 				// Create new treasure array and add treasures to array.
 				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
-					mTreasure3, mTreasure4, mTreasure5);
+					mTreasure3 );
 				
-				mCurrentTreasureNum 		= selectRandomTreasure();	// Pick a random Treasure for each game
+				//instead of choosing treasure randomly, chooses based on which level you are on
+				switch (mHuntLevel){
+					
+					case 0:
+					mCurrentTreasureNum = 0;
+					break;
+					
+					case 1:
+					mCurrentTreasureNum = 1;
+					break;
+					
+					case 2:
+					mCurrentTreasureNum = 2;
+					break;
+					
+					case 3:
+					mCurrentTreasureNum = 3;
+					break;
+					
+				} 
+				
 				mTreasuresFound				= 0;	// No treasures found yet.
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
 				mShipCostSoFar				= 0;	// No ship / crew costs until trip starts.
