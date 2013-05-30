@@ -63,7 +63,7 @@
 			public static const kHuntLevelFour:uint = 3;	// Fourth treasure hunt game level. Used to be Murky Level.
 
 			//** **
-			public static const kCostPerHookDrop:int = 4500; // Cost each time you drop a hook
+			public static const kCostPerHookDrop:int = 5000; // Cost each time you drop a hook
 			public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
 			public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
 			public static const kHookRadius:uint= 2;	// Radius of grappling hook area.
@@ -81,6 +81,7 @@
 			public static const kLevel4Instructions:String = "There is 1 treasure at each location. The rats cost $100 dollars each. The rat readings are less accurate in Level 4, so you'll probably need to use more rats to find the treasure.";
 			public static const kSailOnNormalLevel:String = "Are you sure you would like to skip this treasure and sail on?";
 			public static const kSailOnMultiTreasureLevel:String = "Are you sure there are no treasures here and you'd like to sail on?";
+			public static const kTreasureValue:int = 7000;
 			
 			public static const kEventsCollectionName:String = "Events";
 			public static const kGamesCollectionName:String = "Games";
@@ -412,12 +413,12 @@
 				mCurrentGameComplete	= false;// Game is in play.
 				
 				// Set up the treasure number, location, value, and item.
-				mTreasure0 = new Array("1st", randomLocation(), 10000, "Brass Chalice");
-				mTreasure1 = new Array("2nd", randomLocation(), 20000, "Sword with Ebony Handle");
-				mTreasure2 = new Array("3rd", randomLocation(), 30000, "Pearl Necklace");
-				mTreasure3 = new Array("4th", randomLocation(), 40000, "Silver Goblet");
-				mTreasure4 = new Array("5th", randomLocation(), 50000, "Gold Bar");
-				mTreasure5 = new Array("6th", randomLocation(), 60000, "Diamond Ring");
+				mTreasure0 = new Array("1st", randomLocation(), kTreasureValue, "Brass Chalice");
+				mTreasure1 = new Array("2nd", randomLocation(), kTreasureValue, "Sword with Ebony Handle");
+				mTreasure2 = new Array("3rd", randomLocation(), kTreasureValue, "Pearl Necklace");
+				mTreasure3 = new Array("4th", randomLocation(), kTreasureValue, "Silver Goblet");
+				mTreasure4 = new Array("5th", randomLocation(), kTreasureValue, "Gold Bar");
+				mTreasure5 = new Array("6th", randomLocation(), kTreasureValue, "Diamond Ring");
 				
 				// Create new treasure array and add treasures to array.
 				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
