@@ -10,6 +10,8 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx" height="400" width="800"
 			   xmlns:default="noisy.*"
 			   creationComplete="testFlashPlayer( )"
+			   creationComplete="testFlashPlayer()"
+>>>>>>> refs/remotes/russ-phalen-tp-data-games/master
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
 			   backgroundAlpha="1.0"> 
@@ -24,6 +26,7 @@
 			
 			import flash.display.Sprite;
 			import flash.errors.ScriptTimeoutError;
+			import flash.events.MouseEvent;
 			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
@@ -128,6 +131,8 @@
 			private var mMeanA:Number			= 45;
 			private var mMeanB:Number			= 25;
 			
+			public var playBtn:MovieClip;
+			
 			[Bindable]
 			public var sortList:ArrayCollection = new ArrayCollection(
 				[	{text:"Unsorted",	choice:DO_NOT_SORT},
@@ -230,13 +235,22 @@
 				mCurrentAverageScore	= 0;	// Zero out average score used in autoplay mode.
 				
 				sendCollectionData();
-				
-				// Create display game level modal dialog.
-				// Listen for clicks on level buttons in dialog.
-				mLevelWindow = new GameLevelWindow();
-				chooseGameLevel();
 			}
 			
+			//casts content of SWFLoader as a movieclip when its done loading, and adds listener 
+			private function initPlayButton():void{
+				playBtn = playButton.content as MovieClip;
+				playBtn.addEventListener(MouseEvent.CLICK, gameLevelHandler);
+			}
+			
+			//handler for play button in intro video. gets rid of intro movie and play button, and starts with level 1
+			private function gameLevelHandler(e:MouseEvent):void{
+				setLevelOne(e); //sends fake click to levelOne listener
+				MovieContainer.removeElement(introMovie);
+				MovieContainer.removeElement(playButton);
+				this.removeElement(MovieContainer);
+				}
+
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
 			private	function sendCollectionData():void	{
 				var	result:String;
@@ -1537,6 +1551,7 @@
 			// onClickChangeLevelButton() allows the user to change the game level.
 			protected function onClickChangeLevelButton(iEvent:MouseEvent):void
 			{
+				mLevelWindow = new GameLevelWindow();
 				chooseGameLevel();
 			}
 			
@@ -1605,6 +1620,12 @@
 	<!-- <mx:ProgressBar x="10" y="353" id="mScoreBar" mode="manual" width="200" fontWeight="normal" label="0%" textAlign="center" labelPlacement="center" fontSize="14" color="#FFFFFF"/> -->
 
 	
+	<!-- MovieContainer -->
+	<s:BorderContainer id="MovieContainer" x="0" y="0" width="{this.width}" height="{this.height}" borderVisible="true" backgroundColor="#93ae93">
+		<s:MovieClipSWFLoader id="introMovie" x="0" y="0" width="{this.width}" height="{this.width}" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/intro-movie.swf"/>
+		<s:SWFLoader id="playButton" x="340" y="300" width="120" height="43" complete="initPlayButton()"  source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/play_btn.swf"/>
+	</s:BorderContainer>  
+
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall"	x="0" y="0" width="800" height="400" visible="false">
 		<s:backgroundFill>
@@ -1620,8 +1641,5 @@
 		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="800" color="0xffffff"/>
 		<s:Label id="bottomLabel" text="Download the latest version at http://get.adobe.com/flashplayer/" x="0" y="310"  fontSize="15" fontFamily="Arial" textAlign="center" width="800" color="0xffffff"/>
 	</s:BorderContainer>
-	
-	
-
 
 </s:Application>

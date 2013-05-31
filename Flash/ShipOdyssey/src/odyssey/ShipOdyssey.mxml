@@ -56,19 +56,19 @@
 			
 			public var debug:Boolean = true;
 			
-			// ********** TREASURE HUNT CONSTANTS AND VARIABLES **********
+			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			public static const kHuntLevelOne:uint = 0;	// First treasure hunt game level.
 			public static const kHuntLevelTwo:uint = 1;	// Second treasure hunt game level. New level with 0-2 treasures per location with 6 treasures total.
 			public static const kHuntLevelThree:uint = 2;	// Third treasure hunt game level. Used to be Clear Level.
 			public static const kHuntLevelFour:uint = 3;	// Fourth treasure hunt game level. Used to be Murky Level.
 
 			//** **
-			public static const kCostPerHoodDrop:int = 4500; // Cost each time you drop a hook
+			public static const kCostPerHookDrop:int = 5000; // Cost each time you drop a hook
 			public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
 			public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
 			public static const kHookRadius:uint= 2;	// Radius of grappling hook area.
 //			public static const kTreasureID:uint= 0;	// Array position of categorical treasure ID.
-			public static const kLocation:Number= 1;	// Array position of treasure location.
+			public static const kLocation:uint= 1;	// Array position of treasure location.
 			public static const kValue:uint		= 2;	// Array position of treasure value.
 			public static const kItem:uint		= 3;	// Array position of treasure item.
 			public static const kMinLocation:Number = 0;	// Leftmost treasure location.
@@ -81,7 +81,8 @@
 			public static const kLevel4Instructions:String = "There is 1 treasure at each location. The rats cost $100 dollars each. The rat readings are less accurate in Level 4, so you'll probably need to use more rats to find the treasure.";
 			public static const kSailOnNormalLevel:String = "Are you sure you would like to skip this treasure and sail on?";
 			public static const kSailOnMultiTreasureLevel:String = "Are you sure there are no treasures here and you'd like to sail on?";
-			
+			public static const kTreasureValue:int = 7000;
+			public static const kTreasureGoal:int = 30000;
 			public static const kEventsCollectionName:String = "Events";
 			public static const kGamesCollectionName:String = "Games";
 			
@@ -135,6 +136,11 @@
 			
 			//booty meter
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
+			
+			
+			//variables for holding movieclips from loaded swf
+			private var loseScreen:MovieClip;
+			private var winScreen:MovieClip;
 
 			
 			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
@@ -263,6 +269,18 @@
 				}
 			}
 			
+			//initialization functions
+			//init win and lose screen, and make invisible till we need them
+			private function initLoseScreen():void{
+				loseScreen = loseAnimation.content as MovieClip;
+				loseScreen.visible = false;
+			}
+			
+			private function initWinScreen():void{
+				winScreen = winAnimation.content as MovieClip;
+				winScreen.visible = false;
+			}
+			
 			// startUp() is called when the creation of this class is complete
 			// and sets up necessary parameters for game initiation.			
 			private	function startUp():void	
@@ -277,6 +295,9 @@
 
 				this.switchToTreasureHunt(new MouseEvent("click"));				
 				chooseHuntLevel(true); // show level selection on start up and start the game (true = start game after level selection)
+				
+				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
+				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
@@ -394,23 +415,39 @@
 				mCurrentGameComplete	= false;// Game is in play.
 				
 				// Set up the treasure number, location, value, and item.
-				mTreasure0 = new Array("1st", randomLocation(), 10000, "Brass Chalice");
-				mTreasure1 = new Array("2nd", randomLocation(), 20000, "Sword with Ebony Handle");
-				mTreasure2 = new Array("3rd", randomLocation(), 30000, "Pearl Necklace");
-				mTreasure3 = new Array("4th", randomLocation(), 40000, "Silver Goblet");
-				mTreasure4 = new Array("5th", randomLocation(), 50000, "Gold Bar");
-				mTreasure5 = new Array("6th", randomLocation(), 60000, "Diamond Ring");
+				mTreasure0 = new Array("1st", randomLocation(), 7000, "Brass Chalice");
+				mTreasure1 = new Array("2nd", randomLocation(), 7000, "Sword with Ebony Handle");
+				mTreasure2 = new Array("3rd", randomLocation(), 15000, "Pearl Necklace");
+				mTreasure3 = new Array("4th", randomLocation(), 18000, "Silver Goblet");
 				
 				// Create new treasure array and add treasures to array.
 				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
-					mTreasure3, mTreasure4, mTreasure5);
+					mTreasure3 );
 				
-				mCurrentTreasureNum 		= selectRandomTreasure();	// Pick a random Treasure for each game
+				//instead of choosing treasure randomly, chooses based on which level you are on
+				switch (mHuntLevel){
+					
+					case 0:
+					mCurrentTreasureNum = 0;
+					break;
+					
+					case 1:
+					mCurrentTreasureNum = 1;
+					break;
+					
+					case 2:
+					mCurrentTreasureNum = 2;
+					break;
+					
+					case 3:
+					mCurrentTreasureNum = 3;
+					break;
+					
+				} 
+				
 				mTreasuresFound				= 0;	// No treasures found yet.
-				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
 				mShipCostSoFar				= 0;	// No ship / crew costs until trip starts.
-				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
 				mDropLocationNum			= 0;	// Same as mCurrentTreasureNum except in Level 2 - used to track where we are
 				
 				// sync the rat stepper with the current level if needed
@@ -763,7 +800,7 @@
 					mEventNumber 	+= 1; // Dropping a hook counts as an event.
 					mHooksDropped 	+= 1; // Increment counter of hooks dropped.
 					
-					mProfitSoFar -= kCostPerHoodDrop;
+					mProfitSoFar -= kCostPerHookDrop;
 					mProfitValue.text	= formatDollars(mProfitSoFar);
 					updateLog();
 					
@@ -808,6 +845,7 @@
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);
 				transitionTimer.start();
 			}
+			
 			//return from dropHook()::transitionTimer.start()
 			protected function hookDropTimerFinish(e:TimerEvent):void{
 				//does the visual and sound items that occur after the hook drop finishes playing
@@ -822,6 +860,11 @@
 					updateLog();
 					
 					bootyMeter.account(); 	//proxy, WIP
+
+					//if your profit hits your goal, send you to the winner screen! 
+					if(mProfitSoFar >= kTreasureGoal){
+						winScreen.visible = true;
+					}
 					
 					mCashSound.play(); // Play cash register sound.	
 					// Tell the player which treasure was found and how much it is worth.
@@ -1011,7 +1054,7 @@
 			{
 				mTreasureProfit.text = formatDollars(mTreasureValueSoFar);
 				mRatCost.text = formatDollars(mRatCostSoFar);
-				mHookCost.text = formatDollars(mHooksDropped*kCostPerHoodDrop);
+				mHookCost.text = formatDollars(mHooksDropped*kCostPerHookDrop);
 				mProfitValue.text = formatDollars(mProfitSoFar);
 			}
 			
@@ -1502,6 +1545,12 @@
 			<s:Label id="levelDescriptionLabel" includeIn="TreasureHunt" x="195" y="220" fontFamily="Georgia" height="120" width="245" fontSize="16" textAlign="center" color="#000000" depth="7"/>
 		</s:Group>
 	
+	<!-- SWF loads for winning screen animation and losing screen animation -->
+		<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" depth = "11" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/ShipOdyssey/src/odysseyAssets/winAnimation.swf"/>
+		<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" depth = "11" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/ShipOdyssey/src/odysseyAssets/loseAnimation.swf"/>
+	 
+
+
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall"	x="0" y="0" width="{GameScreen.TOTAL_SCREEN_WIDTH}" height="{GameScreen.TOTAL_SCREEN_HEIGHT}" visible="false" depth="999">
 		<s:backgroundFill>
