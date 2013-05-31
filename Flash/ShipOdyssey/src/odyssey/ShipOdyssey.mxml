@@ -36,6 +36,7 @@
 			import mx.utils.StringUtil;
 			
 			import odyssey.TreasureHuntLevelWindow;
+			
 			import odysseyAssets.*;
 			
 			// BUILD FOR TinkerPlots or DG: 
@@ -132,8 +133,8 @@
 			// Array of treasures (zero-based).
 			private var mTreasureArray:Array;
 			
-			//counter for loops displaying dots
-			private var iter:int = 0;
+			//booty meter
+			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
 
 			
 			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
@@ -271,6 +272,7 @@
 				updateVolume(80); // start at 80% volume
 				
 				initListeners();	// adds event listeners that exist for the entirety of the game.
+				initVisualElements(); // any visual elements of .swc format are init'd here
 				DivingRatDirector.init( ratContainer);	// pass the DivingRatDirector the container it's going to draw into.
 
 				this.switchToTreasureHunt(new MouseEvent("click"));				
@@ -540,6 +542,10 @@
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 1";
 				mSailOnAlertString = kSailOnNormalLevel;
+				
+				//PROXY		$WIP.
+				bootyMeter.initialize(15000, 40000, 18000);
+
 			}
 			
 			// secondHuntLevel() sets the current hunt level to the second level.
@@ -707,6 +713,8 @@
 				// send updated [mRatsSent] to DG game case
 				sendGameDataUpdate();
 				
+				bootyMeter.pay(2700);		//proxy. wip.
+				
 				updateLog();
 			}
 			
@@ -740,6 +748,9 @@
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent):void
 			{
+				if(mDropHookButton.enabled)
+					bootyMeter.pay(5000);		//proxy. wip.
+
 				mDropHookButton.enabled = false;
 				//check to see if the crane needs to move before we can drop the hook
 				//this happens if someone changes the value of the stepper and then clicks the Drop Hook button before the crane finishes moving
@@ -809,6 +820,8 @@
 					mProfitSoFar		+= mTreasureArray[mCurrentTreasureNum][kValue];
 					mProfitValue.text	= formatDollars(mProfitSoFar);
 					updateLog();
+					
+					bootyMeter.account(); 	//proxy, WIP
 					
 					mCashSound.play(); // Play cash register sound.	
 					// Tell the player which treasure was found and how much it is worth.
@@ -880,6 +893,8 @@
 					mExitNewGameButton.label = "New Game";
 					mSendRatsButton.enabled = false;
 					mDropHookButton.enabled = false;
+					mCenterPositionStepper.enabled = false;
+					mRatStepper.enabled = false;
 					
 					DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
 				}
@@ -1258,10 +1273,12 @@
 			
 			private function disableRatButton(e:RatEvent = null):void{
 				mSendRatsButton.enabled = false;
+				mDropHookButton.enabled = false;
 			}
 			
 			private function enableRatButton(e:RatEvent = null):void{
 				mSendRatsButton.enabled = true;
+				mDropHookButton.enabled = true;
 			}
 			
 			//********new visual items and visual only code **********
@@ -1316,10 +1333,15 @@
 				sailingMovie.ToyBoat.startSail();
 			}
 			
+			// This function is called when the game starts. These objects will have the following listeners for the entirety of the play session:
 			private function initListeners():void{
-				//This function is called when the game starts. These objects will have the following listeners for the entirety of the play session:
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
-				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, enableRatButton);
+				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, enableRatButton);	
+			}
+			
+			// attach the booty bar to the screen
+			private function initVisualElements():void{
+				bootyMeterContainer.addChild(bootyMeter);
 			}
 			
 
@@ -1420,26 +1442,26 @@
 			<s:Label 		id="mRangeValueLabel" x="130" y="62" width="80" fontFamily="Georgia" fontWeight="bold"/>
 		</s:Group>
 	
-	<!-- Left Sidebar Log -->		
-		<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">
-			<s:Image id="mSidebarScroll" x="5" y="120" source="{mSidebarBacker}" />
+	<!-- Left Sidebar Log -->
+		<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">		<!-- $WIP -->
+			<s:Image id="mSidebarScroll" x="5" y="120" source="{mSidebarBacker}" />			
+			<s:Label text="Log" includeIn="TreasureHunt" x="10" y="140" width="100" color="#000000" fontFamily="Georgia" fontStyle="italic" fontSize="20" textAlign="center" visible="false"/>
 			
-			<s:Label text="Log" includeIn="TreasureHunt" x="10" y="140" width="100" color="#000000" fontFamily="Georgia" fontStyle="italic" fontSize="20" textAlign="center"/>
+			<s:Label id="mTreasureLabel" text="Treasure: " includeIn="TreasureHunt" x="15" y="165" width="100" color="#000000" fontFamily="Georgia" visible="false"/>
+			<s:Label id="mRatCostLabel" text="Rat Cost: " includeIn="TreasureHunt" x="15" y="190" width="100" color="#000000" fontFamily="Georgia" visible="false"/>
+			<s:Label id="mHookCostLabel" text="Hook Cost: " includeIn="TreasureHunt" x="15" y="215" width="100" color="#000000" fontFamily="Georgia" visible="false"/>
+			<s:Label id="mProfitLabel" text="Profit: " includeIn="TreasureHunt" x="15" y="240" width="100" color="#000000" fontFamily="Georgia" visible="false"/>
 			
-			<s:Label id="mTreasureLabel" text="Treasure: " includeIn="TreasureHunt" x="15" y="165" width="100" color="#000000" fontFamily="Georgia"/>
-			<s:Label id="mRatCostLabel" text="Rat Cost: " includeIn="TreasureHunt" x="15" y="190" width="100" color="#000000" fontFamily="Georgia"/>
-			<s:Label id="mHookCostLabel" text="Hook Cost: " includeIn="TreasureHunt" x="15" y="215" width="100" color="#000000" fontFamily="Georgia"/>
-			<s:Label id="mProfitLabel" text="Profit: " includeIn="TreasureHunt" x="15" y="240" width="100" color="#000000" fontFamily="Georgia"/>
-			
-			<s:Label id="mTreasureProfit" includeIn="TreasureHunt" x="34" y="175" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right"/>
-			<s:Label id="mRatCost" includeIn="TreasureHunt" x="34" y="200" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right"/>
-			<s:Label id="mHookCost" includeIn="TreasureHunt" x="34" y="225" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right"/>
-			<s:Label id="mProfitValue" includeIn="TreasureHunt" x="34" y="250" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right"/>
+			<s:Label id="mTreasureProfit" includeIn="TreasureHunt" x="34" y="175" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right" visible="false"/>
+			<s:Label id="mRatCost" includeIn="TreasureHunt" x="34" y="200" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right" visible="false"/>
+			<s:Label id="mHookCost" includeIn="TreasureHunt" x="34" y="225" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right" visible="false"/>
+			<s:Label id="mProfitValue" includeIn="TreasureHunt" x="34" y="250" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right" visible="false"/>
 			
 			<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel(false);" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 			<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
 			<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="New Game" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
 		</mx:Canvas>
+		<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 
 	<!-- Animated Ship and Crane area -->
 		<s:Group	id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286">
@@ -1449,7 +1471,6 @@
 			<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="186" width="395" height="100" depth="3" />
 			<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
 			<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
-			<!--<s:SWFLoader id="DotLoader" x="0" y="200" width="4" height="4" source="/odysseyAssets/Dot.swf" depth="6" includeIn="TreasureHunt"/>-->
 			<s:HSlider id="CraneHandle" includeIn="TreasureHunt" x="149" y="144" width="100" height="20" alpha="0" buttonMode="true" change="mCenterPositionStepper.value=CraneHandle.value;onChangeCenterPosition(event);"
 					   liveDragging="true" depth="6" maximum="100" minimum="0" value="50"/>
 		</s:Group>
