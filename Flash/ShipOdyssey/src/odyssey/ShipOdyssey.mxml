@@ -460,15 +460,11 @@
 				mMaxHookRange				= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
 				mRangeValueLabel.text		= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
 				
-				// Set profit value to intial amount.
-				mProfitValue.text	= formatDollars(mProfitSoFar);
 				// Hide all parchment announcements until they are needed.
 				mAllTreasuresFoundAlert.visible	= false;
 				mTimeRanOutAlert.visible		= false;
 				mCongratulationsAlert.visible	= false;
 				mTreasuresFoundLabel.visible	= false;
-				
-				updateLog(); //make sure that values that have just been reset are updated on the log
 			}
 			
 			// chooseHuntLevel() listens for clicks on the hunt level dialog's level buttons.
@@ -550,7 +546,7 @@
 				mHuntLevel = iLevel; // Set game level to input value.
 				PopUpManager.removePopUp(mLevelWindow);
 				
-				if(mHuntLevel == 0 || mHuntLevel == 1) //first or second levels
+				/*if(mHuntLevel == 0 || mHuntLevel == 1) //first or second levels				Remove this when the rat cost log is gone
 				{
 					mRatCostLabel.visible = false;
 					mRatCost.visible = false;
@@ -559,7 +555,7 @@
 				{
 					mRatCostLabel.visible = true;
 					mRatCost.visible = true;
-				}
+				}*/
 			}
 			
 			// firstHuntLevel() sets the current hunt level to the first level.
@@ -580,8 +576,7 @@
 				mCurrentLevel = "LEVEL 1";
 				mSailOnAlertString = kSailOnNormalLevel;
 				
-				//PROXY		$WIP.
-				bootyMeter.initialize(15000, 40000, 18000);
+				bootyMeter.initialize(15000, 30000, 7000);
 
 			}
 			
@@ -602,6 +597,8 @@
 				mAutoSailOnAfterFoundTreasure = false;
 				mCurrentLevel = "LEVEL 2";
 				mSailOnAlertString = kSailOnMultiTreasureLevel;
+				
+				bootyMeter.initialize(15000, 40000, 7000);
 			}
 			
 			private function thirdHuntLevel(iEvent:Event):void 
@@ -620,6 +617,8 @@
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 3";
 				mSailOnAlertString = kSailOnNormalLevel;
+				
+				bootyMeter.initialize(10000, 45000, 15000);
 			}
 			
 			private function fourthHuntLevel(iEvent:Event):void 
@@ -638,6 +637,8 @@
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = "LEVEL 4";
 				mSailOnAlertString = kSailOnNormalLevel;
+				
+				bootyMeter.initialize(10000, 45000, 18000);
 			}
 			
 			// getOceanQuality() returns a string descibing the ocean quality based on the hunt level
@@ -701,16 +702,26 @@
 			}
 			
 			// ************MAIN GAME FUNCTIONS************
+			// show how much the currently dropped rats are going to cost on the cost meter.
+			protected function onMouseOverRatsButton(event:MouseEvent):void
+			{
+				mRatStepper.value = mRatStepper.value;
+				if(mCostPerRat > 0)
+					bootyMeter.ghost(mCostPerRat * mRatsToSend);
+			}
+			protected function onMouseOutRatsButton(event:MouseEvent):void
+			{
+				bootyMeter.cancelGhost();
+			}
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent):void{
 				mEventNumber += 1;	// Sending rats counts as an event.	
 				
 				// Update the cumulative cost of rats sent and profit so far.
-				mRatCostSoFar		+= mCostPerRat * mRatsToSend;
-				mProfitSoFar		-= mCostPerRat * mRatsToSend;
-				mProfitValue.text	= formatDollars(mProfitSoFar);
-				
+				if(mCostPerRat > 0)
+					bootyMeter.pay(mCostPerRat * mRatsToSend);
+								
 //				mRatSound.play(); // Play rat sound.
 				
 				// For every rat sent, update Results text and send Rat data to TinkerPlots/DG
@@ -748,11 +759,7 @@
 				DivingRatDirector.releaseRats();
 				
 				// send updated [mRatsSent] to DG game case
-				sendGameDataUpdate();
-				
-				bootyMeter.pay(2700);		//proxy. wip.
-				
-				updateLog();
+				sendGameDataUpdate();				
 			}
 			
 			// onChangeCenterPosition() is called when the value of the hook's
@@ -780,13 +787,24 @@
 				mRatsToSend = mRatStepper.value;
 			}
 			
+			// show how much the hook drop is going to cost
+			protected function onMouseOverDropHookButton(event:MouseEvent):void
+			{
+				bootyMeter.ghost(kCostPerHookDrop);
+			}
+			protected function onMouseOutDropHookButton(event:MouseEvent):void
+			{
+				bootyMeter.cancelGhost();
+			}
 			// onClickDropHookButton() is called when the Drop Hook button is
 			// pressed and handles all actions assiociated with attempting to
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent):void
-			{
-				if(mDropHookButton.enabled)
-					bootyMeter.pay(5000);		//proxy. wip.
+			{		
+				if(mDropHookButton.enabled){		//failsafe to stop double-paying
+					bootyMeter.pay(kCostPerHookDrop);
+					bootyMeter.cancelGhost();
+				}
 
 				mDropHookButton.enabled = false;
 				//check to see if the crane needs to move before we can drop the hook
@@ -799,11 +817,7 @@
 					// Clear hint text next to pirate head.
 					mEventNumber 	+= 1; // Dropping a hook counts as an event.
 					mHooksDropped 	+= 1; // Increment counter of hooks dropped.
-					
-					mProfitSoFar -= kCostPerHookDrop;
-					mProfitValue.text	= formatDollars(mProfitSoFar);
-					updateLog();
-					
+										
 					// Check if we snagged any treasures
 					var numTreasuresHere:int = mTreasureLocArr.length;
 					var loc1:Number, loc2:Number; //use 2 locs since we have a max of 2 treasures at each spot
@@ -854,17 +868,13 @@
 				if (mFoundTreasure)
 				{
 					// Add treasure value to accumulated wealth.
-					mTreasureValueSoFar += mTreasureArray[mCurrentTreasureNum][kValue];
-					mProfitSoFar		+= mTreasureArray[mCurrentTreasureNum][kValue];
-					mProfitValue.text	= formatDollars(mProfitSoFar);
-					updateLog();
 					
-					bootyMeter.account(); 	//proxy, WIP
+					bootyMeter.account(); 
 
 					//if your profit hits your goal, send you to the winner screen! 
-					if(mProfitSoFar >= kTreasureGoal){
+					/*if(mProfitSoFar >= kTreasureGoal){
 						winScreen.visible = true;
-					}
+					}*/
 					
 					mCashSound.play(); // Play cash register sound.	
 					// Tell the player which treasure was found and how much it is worth.
@@ -939,6 +949,9 @@
 					mCenterPositionStepper.enabled = false;
 					mRatStepper.enabled = false;
 					
+					if(bootyMeter.profit < 0)
+						bootyMeter.account();
+					
 					DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
 				}
 				else //Clicking on 'New Game'
@@ -953,8 +966,10 @@
 					disableAllButtons(false);
 					mGameNumber += 1;
 					switchToTreasureHunt(iEvent); //start a new game
-					
 					sendGameDataOpen();
+					
+					trace("readying location!");
+					bootyMeter.readyNewLocation();
 				}
 			}
 			
@@ -1028,7 +1043,6 @@
 				mCurrentTreasureNum = selectRandomTreasure();
 				mDropLocationNum++;
 				trace("mDropLocationNum: " + mDropLocationNum);
-				mProfitValue.text = formatDollars(mProfitSoFar);
 			}
 			
 			private function gameFinish():void{
@@ -1050,13 +1064,6 @@
 			}
 			
 			//call to update the log any time a value changes
-			private function updateLog():void
-			{
-				mTreasureProfit.text = formatDollars(mTreasureValueSoFar);
-				mRatCost.text = formatDollars(mRatCostSoFar);
-				mHookCost.text = formatDollars(mHooksDropped*kCostPerHookDrop);
-				mProfitValue.text = formatDollars(mProfitSoFar);
-			}
 			
 			// send the Game-level data to TinkerPlots or DG.
 			// this creates and opens the game case, see also sendGameDataClose()
@@ -1473,13 +1480,13 @@
 			<s:Image id="mDivingRatBacker" x="0" y="0" source="{mRatBacker}"/>
 			<s:Label id="mRatControlLabel" text="Diving Rats" fontFamily="Georgia" fontSize="16" fontStyle="normal" fontWeight="bold" x="75" y="5" includeIn="TreasureHunt"/>
 			<s:NumericStepper id="mRatStepper" width="50" height="23" x="45" y="28" change="onChangeRatStepper(event)" contentBackgroundColor="#5081B4" maximum="{mMaxRatsToSend}" minimum="{mMinRatsToSend}" stepSize="1" includeIn="TreasureHunt"/>
-			<s:Button id="mSendRatsButton" height="23" width="100" x="100" y="28" label="Send Rats" click="onClickSendRatsButton(event)" includeIn="TreasureHunt"/>
+			<s:Button id="mSendRatsButton" height="23" width="100" x="100" y="28" label="Send Rats" mouseOver="onMouseOverRatsButton(event)" mouseOut="onMouseOutRatsButton(event)" click="onClickSendRatsButton(event)" includeIn="TreasureHunt"/>
 		</s:Group>
 	<!-- Hook controls -->
 		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="265" y="35" width="240" height="76">
 			<s:Image 		id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
 			<s:Label		id="mHookLabel" x="58" y="5" text="Grappling Hook" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
-			<s:Button 		id="mDropHookButton" x="55" y="28" label="Drop Hook" width="80" height="23" fontSize="12" click="onClickDropHookButton(event)"/>
+			<s:Button 		id="mDropHookButton" x="55" y="28" label="Drop Hook" width="80" height="23" fontSize="12" mouseOver="onMouseOverDropHookButton(event)" mouseOut="onMouseOutDropHookButton(event)" click="onClickDropHookButton(event)"/>
 			<s:NumericStepper id="mCenterPositionStepper" x="140" y="28" width="57" minimum="0" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
 			<s:Label		id="mRangeLabel" x="55" y="62" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
 			<s:Label 		id="mRangeValueLabel" x="130" y="62" width="80" fontFamily="Georgia" fontWeight="bold"/>
@@ -1488,17 +1495,6 @@
 	<!-- Left Sidebar Log -->
 		<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">		<!-- $WIP -->
 			<s:Image id="mSidebarScroll" x="5" y="120" source="{mSidebarBacker}" />			
-			<s:Label text="Log" includeIn="TreasureHunt" x="10" y="140" width="100" color="#000000" fontFamily="Georgia" fontStyle="italic" fontSize="20" textAlign="center" visible="false"/>
-			
-			<s:Label id="mTreasureLabel" text="Treasure: " includeIn="TreasureHunt" x="15" y="165" width="100" color="#000000" fontFamily="Georgia" visible="false"/>
-			<s:Label id="mRatCostLabel" text="Rat Cost: " includeIn="TreasureHunt" x="15" y="190" width="100" color="#000000" fontFamily="Georgia" visible="false"/>
-			<s:Label id="mHookCostLabel" text="Hook Cost: " includeIn="TreasureHunt" x="15" y="215" width="100" color="#000000" fontFamily="Georgia" visible="false"/>
-			<s:Label id="mProfitLabel" text="Profit: " includeIn="TreasureHunt" x="15" y="240" width="100" color="#000000" fontFamily="Georgia" visible="false"/>
-			
-			<s:Label id="mTreasureProfit" includeIn="TreasureHunt" x="34" y="175" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right" visible="false"/>
-			<s:Label id="mRatCost" includeIn="TreasureHunt" x="34" y="200" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right" visible="false"/>
-			<s:Label id="mHookCost" includeIn="TreasureHunt" x="34" y="225" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right" visible="false"/>
-			<s:Label id="mProfitValue" includeIn="TreasureHunt" x="34" y="250" width="70" color="#433211" fontFamily="Verdana" text="$0" textAlign="right" visible="false"/>
 			
 			<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel(false);" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 			<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
