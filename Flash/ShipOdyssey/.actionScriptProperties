@@ -13,6 +13,7 @@
       <libraryPathEntry kind="3" linkType="1" path="../SRRICommonLibrary/bin/SRRICommonLibrary.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="src/odysseyAssets/Dot.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="src/odysseyAssets/splash.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="src/odysseyAssets/bootyBar.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>

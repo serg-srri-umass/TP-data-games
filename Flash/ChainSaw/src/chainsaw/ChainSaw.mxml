@@ -4,7 +4,7 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   minWidth="745" minHeight="410" 
 			   backgroundColor="#EAD1AA" 
-			   creationComplete="startUp()"
+			   creationComplete="testFlashPlayer()"
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
 			   pageTitle="Chainsaw">
@@ -21,6 +21,8 @@
 			
 			import com.adobe.serialization.json.JSON;
 			import com.kcpt.scriptInterface.ScriptInterface;
+			
+			import common.VersionChecker;
 			
 			import flash.media.Sound;
 			import flash.media.SoundMixer;
@@ -39,6 +41,9 @@
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
+			
+			private static const MINIMUM_REQUIREMENTS:Number = 11.7;	//the oldest version of flash player you can play this game on.
+			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
 			public static const VERSION:String   = "Chainsaw v.2013.03.18";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
@@ -203,11 +208,21 @@
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 			
+			
+			// test flash player makes sure the player is meeting the minimum requirements.
+			private function testFlashPlayer():void
+			{
+				if( VersionChecker.isValid( MINIMUM_REQUIREMENTS))
+				{
+					startUp();
+				} else {
+					BrickWall.visible = true;
+				}
+			}
 			// startUp() is called when the creation of this class is complete
 			// and sets up necessary parameters for game initiation.
 			private	function startUp():void
 			{
-				
 				// Arrays store individual cuts on each log for use in free cut levels.		
 				mLogDetails1 = new Array(dynamicLog1, null, new Array());
 				mLogDetails2 = new Array(dynamicLog2, null, new Array());
@@ -244,11 +259,11 @@
 				
 				mLevelWindow = new GameLevelWindow();
 				this.sendCollectionData();		// send initGame data to TinkerPlots/DG
-
+				
 				levelSelected(kFreeCutLevel); //Start in free cut mode
 				
 				updateVolume(50); // start with volume at 50% level
-			}
+			} 
 			
 
 			// Send the initial game data to TinkerPlots or DG.  The collections are the tables of cases and attributes.
@@ -1260,7 +1275,6 @@
 			}
 		]]>
 	</fx:Script>
-	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
 		<s:backgroundFill>
 			<s:LinearGradient rotation="90">
@@ -1299,7 +1313,6 @@
 	</s:BorderContainer>
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
-	
 	<s:BorderContainer id="mResultsOverlay" x="134" y="46" width="{745-134}" height="{410-46}" alpha=".50" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
 		<s:Label id="mAcceptedPiecesValue" x="270" y="{60-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left"/>
 		<s:Label id="mFuelLeftValue" x="270" y="{145-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
@@ -1309,4 +1322,20 @@
 	</s:BorderContainer>
 	
 	<s:Label id="mVersionLabel" x="580" y="386" width="160" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
+	
+	<!-- Error message for bad version of flash player -->
+	<s:BorderContainer id="BrickWall"	x="0" y="0" width="{this.minWidth}" height="{this.minHeight}" visible="false" >
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xFF0000"/>
+				<s:GradientEntry color="0xB40404"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="80"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="745" color="0xffffff"/>
+		<s:Label id="midLabelError" text="{'ChainSaw requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="170"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
+		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
+		<s:Label id="bottomLabel" text="Download the latest version at http://get.adobe.com/flashplayer/" x="0" y="310"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
+	</s:BorderContainer>
+	
+	
 </s:Application>
