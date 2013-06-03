@@ -1553,8 +1553,8 @@
 		</s:Group>
 	
 	<!-- SWF loads for winning screen animation and losing screen animation -->
-		<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" depth = "11" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/ShipOdyssey/src/odysseyAssets/winAnimation.swf"/>
-		<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" depth = "11" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/ShipOdyssey/src/odysseyAssets/loseAnimation.swf"/>
+		<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" depth = "11" source="odysseyAssets/winAnimation.swf"/>
+		<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" depth = "11" source="odysseyAssets/loseAnimation.swf"/>
 	 
 
 
