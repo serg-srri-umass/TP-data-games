@@ -31,11 +31,9 @@ package odyssey
 		
 		public function get booty():int
 		{
-			return _booty;
+			return _booty + _treasureValue - _costs;
 		}
-		public function set booty(arg:int):void{
-			_booty = arg;
-		}
+		
 		public function get goal():int{
 			return _goal;
 		}
@@ -47,6 +45,9 @@ package odyssey
 		}
 		public function get profit():int{
 			return _treasureValue - _costs;
+		}
+		public function get costs():int{
+			return _costs;
 		}
 		
 		private function turnOff(e:Event = null):void
@@ -75,19 +76,24 @@ package odyssey
 		public function startTreasureDrop():void{
 			_holdingGhost = true;
 		}
-		public function finishTreasureDrop(sucess:Boolean, cost:int = 0):void{
-			
+		public function finishTreasureDrop(sucess:Boolean, cost:int = 0):Boolean{
 			if(sucess)
 			{
 				_costs -= _ghostCost;
 				_ghostCost = 0;
-				account(true);
+				_booty += treasureValue;
+				account();
+				if(_booty >= _goal)
+					return true;
 			}else
 			{
 				_holdingGhost = false;
 				cancelGhost();
 				pay(cost);
+				if(_booty + _treasureValue - costs <= 0)
+					return true;
 			}
+			return false;
 		}
 		// call this method at the start of each level
 		public function initialize(capital:int, goal:int, treasureValue:int):void
@@ -155,11 +161,7 @@ package odyssey
 		}
 		
 		// merge the costs into the booty meter.
-		public function account(gotTreasure:Boolean = true):void{
-			if(gotTreasure)
-			{
-				_booty += treasureValue;
-			}
+		public function account():void{
 			_booty -= _costs;
 			animateBooty();
 			animateCost(true);
