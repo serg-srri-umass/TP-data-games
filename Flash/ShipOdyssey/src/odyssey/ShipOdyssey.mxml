@@ -705,13 +705,13 @@
 			// show how much the currently dropped rats are going to cost on the cost meter.
 			protected function onMouseOverRatsButton(event:MouseEvent):void
 			{
-				mRatStepper.value = mRatStepper.value;
-				if(mCostPerRat > 0)
-					bootyMeter.ghost(mCostPerRat * mRatsToSend);
+				//mRatStepper.value = mRatStepper.value;
+				//if(mCostPerRat > 0)
+					//bootyMeter.ghost(mCostPerRat * mRatsToSend);
 			}
 			protected function onMouseOutRatsButton(event:MouseEvent):void
 			{
-				bootyMeter.cancelGhost();
+				//bootyMeter.cancelGhost();
 			}
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
@@ -790,21 +790,21 @@
 			// show how much the hook drop is going to cost
 			protected function onMouseOverDropHookButton(event:MouseEvent):void
 			{
-				bootyMeter.ghost(kCostPerHookDrop);
+				//bootyMeter.ghost(kCostPerHookDrop);
 			}
 			protected function onMouseOutDropHookButton(event:MouseEvent):void
 			{
-				bootyMeter.cancelGhost();
+				//bootyMeter.cancelGhost();
 			}
 			// onClickDropHookButton() is called when the Drop Hook button is
 			// pressed and handles all actions assiociated with attempting to
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent):void
 			{		
-				if(mDropHookButton.enabled){		//failsafe to stop double-paying
+				/*if(mDropHookButton.enabled){		//failsafe to stop double-paying
 					bootyMeter.pay(kCostPerHookDrop);
 					bootyMeter.cancelGhost();
-				}
+				}*/
 
 				mDropHookButton.enabled = false;
 				//check to see if the crane needs to move before we can drop the hook
@@ -903,6 +903,7 @@
 				}
 				else // Treasure was not found at drop location.
 				{
+					bootyMeter.pay(kCostPerHookDrop);
 					enableAllButtons();
 					// Send event data to TinkerPlots / Fathom.
 					//sendEventData("Hook", getEventDataValues( "Miss" )); --Disabled
