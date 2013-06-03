@@ -27,6 +27,7 @@
 			import common.MathUtilities;
 			import common.ParkMiller;
 			import common.VersionChecker;
+
 			
 			import mx.controls.Alert;
 			import mx.core.SoundAsset;
@@ -141,7 +142,7 @@
 			private var winScreen:MovieClip;
 			
 			//timer when your money hits zero, waits before showing lose screen
-			private var loseTimer:Timer;
+			private var endTimer:Timer;
 
 			
 			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
@@ -287,8 +288,6 @@
 			
 			//handles presses on win screen by calling initialize hunt again
 			private function endScreenHandler(e:MouseEvent):void{
-				winScreen.removeEventListener(MouseEvent.CLICK, endScreenHandler);
-				loseScreen.removeEventListener(MouseEvent.CLICK, endScreenHandler);
 				startUp();
 			}
 			
@@ -719,13 +718,12 @@
 			// show how much the currently dropped rats are going to cost on the cost meter.
 			protected function onMouseOverRatsButton(event:MouseEvent):void
 			{
-				//mRatStepper.value = mRatStepper.value;
-				//if(mCostPerRat > 0)
-					//bootyMeter.ghost(mCostPerRat * mRatsToSend);
+				if(mCostPerRat > 0)
+					bootyMeter.ghost(mCostPerRat * mRatsToSend);
 			}
 			protected function onMouseOutRatsButton(event:MouseEvent):void
 			{
-				//bootyMeter.cancelGhost();
+				bootyMeter.cancelGhost();
 			}
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
@@ -811,22 +809,19 @@
 			// show how much the hook drop is going to cost
 			protected function onMouseOverDropHookButton(event:MouseEvent):void
 			{
-				//bootyMeter.ghost(kCostPerHookDrop);
+				bootyMeter.ghost(kCostPerHookDrop);
 			}
 			protected function onMouseOutDropHookButton(event:MouseEvent):void
 			{
-				//bootyMeter.cancelGhost();
+				bootyMeter.cancelGhost();
 			}
 			// onClickDropHookButton() is called when the Drop Hook button is
 			// pressed and handles all actions assiociated with attempting to
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent):void
 			{		
-				/*if(mDropHookButton.enabled){		//failsafe to stop double-paying
-					bootyMeter.pay(kCostPerHookDrop);
-					bootyMeter.cancelGhost();
-				}*/
-
+				bootyMeter.startTreasureDrop(); // keep the ghost cost highlighted while hook is dropping.
+				
 				mDropHookButton.enabled = false;
 				//check to see if the crane needs to move before we can drop the hook
 				//this happens if someone changes the value of the stepper and then clicks the Drop Hook button before the crane finishes moving
@@ -866,11 +861,13 @@
 			}
 			
 			//checks to see if game is over
-			private function isGameOver(e:TimerEvent):void{
-				loseTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, isGameOver);
-				if(bootyMeter.booty <= 0){
-					loseScreen.visible = "true";
-				}
+			private function loseGame(e:TimerEvent):void{
+				endTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, loseGame);
+				loseScreen.visible = true;
+			}
+			private function winGame(e:TimerEvent):void{
+				endTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, winGame);
+				winScreen.visible = true;
 			}
 			
 			//wait and check timer routine for when the hook is moving before a drop
@@ -896,17 +893,17 @@
 				//does the visual and sound items that occur after the hook drop finishes playing
 				//or as the item on the hook comes into view
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);				
+				 //take off the ghost cost price when the hook is revealed
 				if (mFoundTreasure)
 				{
 					// Add treasure value to accumulated wealth.
 					
-					bootyMeter.account(); 
-
-					//if your profit hits your goal, send you to the winner screen! 
-					/*if(mProfitSoFar >= kTreasureGoal){
-						winScreen.visible = true;
-					}*/
-					
+					if(bootyMeter.finishTreasureDrop(true) == true){
+						// you found the treasure. check if you also won the game.
+						endTimer = new Timer(1000, 1);
+						endTimer.start();
+						endTimer.addEventListener(TimerEvent.TIMER_COMPLETE, winGame);
+					}
 					mCashSound.play(); // Play cash register sound.	
 					// Tell the player which treasure was found and how much it is worth.
 					var valueInDollars:String = usdFormatter.format(mTreasureArray[mCurrentTreasureNum][kValue]);
@@ -934,15 +931,16 @@
 				}
 				else // Treasure was not found at drop location.
 				{
-					bootyMeter.pay(kCostPerHookDrop);
+					if(bootyMeter.finishTreasureDrop(false, kCostPerHookDrop) == true){
+						// if you miss, pay the cost. if it bankrupts you, game over.
+						endTimer = new Timer(1000, 1);
+						endTimer.start();
+						endTimer.addEventListener(TimerEvent.TIMER_COMPLETE, loseGame);
+						
+					}
+					enableAllButtons();
+
 					
-					//check to see if game is over after 1 second
-					loseTimer = new Timer(1000, 1);
-					loseTimer.addEventListener(TimerEvent.TIMER_COMPLETE, isGameOver);
-					loseTimer.start();
-					bootyMeter.account(false);
-					
-					//enableAllButtons();
 					// Send event data to TinkerPlots / Fathom.
 					//sendEventData("Hook", getEventDataValues( "Miss" )); --Disabled
 				}
