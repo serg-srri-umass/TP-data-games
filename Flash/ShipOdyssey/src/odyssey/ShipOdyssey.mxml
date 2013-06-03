@@ -730,10 +730,15 @@
 			protected function onClickSendRatsButton(event:MouseEvent):void{
 				mEventNumber += 1;	// Sending rats counts as an event.	
 				
+				
+				//trace(bootyMeter.booty);
 				//check to see if we can afford rats
-				if((mCostPerRat * mRatsToSend) > (bootyMeter.booty - bootyMeter.costs)){
+				if((mCostPerRat * mRatsToSend) >= (bootyMeter.booty)){
 					//alert that we can't buy rats
 					trace("You can't buy rats silly!"); //replace this with a rat dialog
+				
+					mRatsToSend = (bootyMeter.booty/mCostPerRat)-1;
+					mRatStepper.value = mRatsToSend;
 					return; 
 				}
 				
