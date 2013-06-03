@@ -279,6 +279,12 @@
 			private function initWinScreen():void{
 				winScreen = winAnimation.content as MovieClip;
 				winScreen.visible = false;
+				winScreen.addEventListener(MouseEvent.CLICK, winButtonHandler);
+			}
+			
+			//handles presses on win screen by calling initialize hunt again
+			private function winButtonHandler(e:MouseEvent):void{
+				startUp();
 			}
 			
 			// startUp() is called when the creation of this class is complete
@@ -298,6 +304,10 @@
 				
 				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
 				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
+				
+				//make sure win and lose screens become invisible again after you click them 
+				loseScreen.visible = false;
+				winScreen.visible = false;
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
