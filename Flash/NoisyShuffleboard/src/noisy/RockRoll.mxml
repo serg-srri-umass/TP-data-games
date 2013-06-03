@@ -9,7 +9,9 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
 			   xmlns:mx="library://ns.adobe.com/flex/mx" height="400" width="800"
 			   xmlns:default="noisy.*"
+			   creationComplete="testFlashPlayer( )"
 			   creationComplete="testFlashPlayer()"
+>>>>>>> refs/remotes/russ-phalen-tp-data-games/master
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
 			   backgroundAlpha="1.0"> 
@@ -1617,6 +1619,7 @@
 	
 	<!-- <mx:ProgressBar x="10" y="353" id="mScoreBar" mode="manual" width="200" fontWeight="normal" label="0%" textAlign="center" labelPlacement="center" fontSize="14" color="#FFFFFF"/> -->
 
+	
 	<!-- MovieContainer -->
 	<s:BorderContainer id="MovieContainer" x="0" y="0" width="{this.width}" height="{this.height}" borderVisible="true" backgroundColor="#93ae93">
 		<s:MovieClipSWFLoader id="introMovie" x="0" y="0" width="{this.width}" height="{this.width}" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/intro-movie.swf"/>
@@ -1638,4 +1641,5 @@
 		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="800" color="0xffffff"/>
 		<s:Label id="bottomLabel" text="Download the latest version at http://get.adobe.com/flashplayer/" x="0" y="310"  fontSize="15" fontFamily="Arial" textAlign="center" width="800" color="0xffffff"/>
 	</s:BorderContainer>
+
 </s:Application>
