@@ -46,6 +46,9 @@ package odyssey
 		public function get profit():int{
 			return _treasureValue - _costs;
 		}
+		public function get costs():int{
+			return _costs;
+		}
 		
 		private function turnOff(e:Event = null):void
 		{
