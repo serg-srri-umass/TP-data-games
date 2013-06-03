@@ -81,6 +81,7 @@
 			public static const kLevel4Instructions:String = "There is 1 treasure at each location. The rats cost $100 dollars each. The rat readings are less accurate in Level 4, so you'll probably need to use more rats to find the treasure.";
 			public static const kSailOnNormalLevel:String = "Are you sure you would like to skip this treasure and sail on?";
 			public static const kSailOnMultiTreasureLevel:String = "Are you sure there are no treasures here and you'd like to sail on?";
+			public static const kTreasureValue:int = 7000;
 			public static const kTreasureGoal:int = 30000;
 			public static const kEventsCollectionName:String = "Events";
 			public static const kGamesCollectionName:String = "Games";
@@ -105,6 +106,7 @@
 			private var mTreasuresFound:uint= 0;			// Treasures found so far in current game.
 			private var mTreasureValueSoFar:uint = 0;		// Cumulative value of treasures found in current game.
 			private var mRatCostSoFar:uint = 0;				// Cumulative value of rat cost in current game.
+			private var mShipCostSoFar:uint = 0;			// Cumulative value of ship/crew cost in current game.
 			private var mProfitSoFar:int	= 0;			// Profit so far in current game.
 			private var mEventNumber:uint	= 0;			// Number of current event in current game (rat(s) sent or hook dropped), begining with 1.
 			private var mGameNumber:uint	= 0;			// Number of current game, begining with 1.
@@ -275,14 +277,12 @@
 			private function initLoseScreen():void{
 				loseScreen = loseAnimation.content as MovieClip;
 				loseScreen.visible = false;
-				loseScreen.addEventListener(MouseEvent.CLICK, endScreenHandler);
-
 			}
 			
 			private function initWinScreen():void{
 				winScreen = winAnimation.content as MovieClip;
 				winScreen.visible = false;
-				winScreen.addEventListener(MouseEvent.CLICK, endScreenHandler);
+				winScreen.addEventListener(MouseEvent.CLICK, winButtonHandler);
 			}
 			
 			//handles presses on win screen by calling initialize hunt again
@@ -460,6 +460,7 @@
 				
 				mTreasuresFound				= 0;	// No treasures found yet.
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
+				mShipCostSoFar				= 0;	// No ship / crew costs until trip starts.
 				mDropLocationNum			= 0;	// Same as mCurrentTreasureNum except in Level 2 - used to track where we are
 				
 				// sync the rat stepper with the current level if needed
@@ -847,7 +848,6 @@
 						mLocationFound = loc2;
 						mTreasureLocArr.splice(-1,1);
 					}
-						
 					dropHook();
 				}
 			}
@@ -875,7 +875,7 @@
 			private function dropHook():void{
 				disableAllButtons(false);
 				crane.dropHook(mFoundTreasure, 1, 5);
-				transitionTimer = new Timer(6000, 1);
+				transitionTimer = new Timer(5000, 1);
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);
 				transitionTimer.start();
 			}
@@ -933,6 +933,7 @@
 					enableAllButtons();
 
 					
+					enableAllButtons();
 					// Send event data to TinkerPlots / Fathom.
 					//sendEventData("Hook", getEventDataValues( "Miss" )); --Disabled
 				}
