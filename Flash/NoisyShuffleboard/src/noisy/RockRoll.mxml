@@ -11,7 +11,6 @@
 			   xmlns:default="noisy.*"
 			   creationComplete="testFlashPlayer( )"
 			   creationComplete="testFlashPlayer()"
->>>>>>> refs/remotes/russ-phalen-tp-data-games/master
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
 			   backgroundAlpha="1.0"> 
