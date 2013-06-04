@@ -353,10 +353,10 @@
 								{
 									name: kGamesCollectionName,
 									attrs:[
-										{name: "GameNumber", type: "nominal", precision: 0, description: "Game number"   } , 
+										{name: "Site", type: "nominal", precision: 0, description: "Site number"   } , 
 										{name: "Level", type: "nominal", description: "Game level"   } ,	
-										{name: "Total_Rats_Sent", type: "numeric", precision: 0, description: "Total number of rats sent during game"   } ,	
-										{name: "Total_Drops", type: "numeric", precision: 0, description: "Number of times hook was dropped during game"   } , 
+										{name: "Rats_Sent", type: "numeric", precision: 0, description: "Total number of rats sent during game"   } ,	
+										{name: "Drops", type: "numeric", precision: 0, description: "Number of times hook was dropped during game"   } , 
 										{name: "Treasures_Found", type: "numeric", precision: 0, description: "Number of treasures found during game"   } , 
 										{name: "Profit", type: "numeric", precision: 0, description: "Value of (treasures found) minus (crew/ship costs and rat costs)"   } 			
 									] ,
@@ -365,7 +365,7 @@
 								{
 									name: kEventsCollectionName,
 									attrs:	[
-										{ name: "GameNumber", type: "nominal", description: "Game number"   } ,
+										{ name: "Site", type: "nominal", description: "Site number"   } ,
 										{ name: "Rat_Number", type: "numeric", precision: 0, description: "Rats sent so far in game"   } , 
 										{ name: "Rat_Reading", type: "numeric", precision: 0, description: "Location estimate provided by rat"  } , 
 										{ name: "Treasure_Sought", type: "nominal", description: "Treasure ID at time of event"  }
@@ -392,7 +392,7 @@
 					ScriptInterface.NewCollectionWithAttributes(
 						kEventsCollectionName,
 						[
-							"Game_Number",		// Treasure hunt game number starting with 1 since launch of application.
+							"Site",		// Treasure hunt game number starting with 1 since launch of application.
 							"Rat_Number",		// Rats sent so far in current game.
 							"Rat_Reading",		// Location estimate provided by rat.
 							"Treasure_Sought"	// Categorical treasure ID (1-based) at time of event.
@@ -402,7 +402,7 @@
 					ScriptInterface.NewCollectionWithAttributes(
 						kGamesCollectionName,
 						[
-							"Game_Number",		// Treasure hunt game number starting with 1 since launch of application.
+							"Site",		// Treasure hunt game number starting with 1 since launch of application.
 							"Level",			// Clear or murky, based on hunt level chosen.
 							"Total_Rats_Sent",	// Total number of rats sent during current game.
 							"Total_Drops",		// Number of times hook was dropped during current game.
@@ -972,7 +972,7 @@
 			{
 				trace("ShipOdyssey.onClickExitNewGame(iEvent)");
 				
-				if(mExitNewGameButton.label == "End Game") //Clicking on 'End Game'
+				if(mExitNewGameButton.label == "Pull Anchor") //Clicking on 'End Game'
 				{
 					sendGameDataClose();
 					
@@ -991,7 +991,7 @@
 					
 					mLevelsButton.enabled = true;
 					mExitNewGameButton.enabled = true;
-					mExitNewGameButton.label = "New Game";
+					mExitNewGameButton.label = "New Site";
 					mSendRatsButton.enabled = false;
 					mDropHookButton.enabled = false;
 					mCenterPositionStepper.enabled = false;
@@ -1010,7 +1010,7 @@
 					sailThenZoomIn();
 					mLevelsButton.enabled = false;
 					mExitNewGameButton.enabled = true;
-					mExitNewGameButton.label = "End Game";
+					mExitNewGameButton.label = "Pull Anchor";
 					disableAllButtons(false);
 					mGameNumber += 1;
 					switchToTreasureHunt(iEvent); //start a new game
@@ -1546,7 +1546,7 @@
 			
 			<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel(false);" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 			<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
-			<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="New Game" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
+			<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="Set Sail" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
 		</mx:Canvas>
 		<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 
