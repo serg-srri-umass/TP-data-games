@@ -27,7 +27,6 @@
 			import common.MathUtilities;
 			import common.ParkMiller;
 			import common.VersionChecker;
-
 			
 			import mx.controls.Alert;
 			import mx.core.SoundAsset;
@@ -85,6 +84,8 @@
 			public static const kTreasureGoal:int = 30000;
 			public static const kEventsCollectionName:String = "Events";
 			public static const kGamesCollectionName:String = "Games";
+			public static const kTimeBeforeWin:int = 3000;
+			public static const kTimeBeforeLose:int = 3000;
 			
 			public var mNumTreasures:uint = 1;	// Number of treasures to find.
 			
@@ -140,6 +141,7 @@
 			//variables for holding movieclips from loaded swf
 			private var loseScreen:MovieClip;
 			private var winScreen:MovieClip;
+			private var playAgainButton:MovieClip
 			
 			//timer when your money hits zero, waits before showing lose screen
 			private var endTimer:Timer;
@@ -276,21 +278,26 @@
 			private function initLoseScreen():void{
 				loseScreen = loseAnimation.content as MovieClip;
 				loseScreen.visible = false;
-				loseScreen.addEventListener(MouseEvent.CLICK, endScreenHandler);
-
 			}
 			
 			private function initWinScreen():void{
 				winScreen = winAnimation.content as MovieClip;
 				winScreen.visible = false;
-				winScreen.addEventListener(MouseEvent.CLICK, endScreenHandler);
 			}
 			
-			//handles presses on win screen by calling initialize hunt again
-			private function endScreenHandler(e:MouseEvent):void{
+			private function initPlayAgainButton():void{
+				playAgainButton = playAgainButtonLoader.content as MovieClip;
+				playAgainButton.visible = false;
+				playAgainButton.addEventListener(MouseEvent.CLICK, playAgainButtonHandler);
+			}
+			
+			//handler for end-game case interactions
+			//handles presses on 'Play Again' by starting the game over again
+			private function playAgainButtonHandler(e:MouseEvent):void{
 				startUp();
 			}
 			
+		
 			// startUp() is called when the creation of this class is complete
 			// and sets up necessary parameters for game initiation.			
 			private	function startUp():void	
@@ -309,9 +316,10 @@
 				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
 				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
 				
-				//make sure win and lose screens become invisible again after you click them 
+				//make sure win/lose screens and 'Play Again' button become invisible again after you click them 
 				loseScreen.visible = false;
 				winScreen.visible = false;
+				playAgainButton.visible = false;
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
@@ -345,10 +353,10 @@
 								{
 									name: kGamesCollectionName,
 									attrs:[
-										{name: "GameNumber", type: "nominal", precision: 0, description: "Game number"   } , 
+										{name: "Site", type: "nominal", precision: 0, description: "Site number"   } , 
 										{name: "Level", type: "nominal", description: "Game level"   } ,	
-										{name: "Total_Rats_Sent", type: "numeric", precision: 0, description: "Total number of rats sent during game"   } ,	
-										{name: "Total_Drops", type: "numeric", precision: 0, description: "Number of times hook was dropped during game"   } , 
+										{name: "Rats_Sent", type: "numeric", precision: 0, description: "Total number of rats sent during game"   } ,	
+										{name: "Drops", type: "numeric", precision: 0, description: "Number of times hook was dropped during game"   } , 
 										{name: "Treasures_Found", type: "numeric", precision: 0, description: "Number of treasures found during game"   } , 
 										{name: "Profit", type: "numeric", precision: 0, description: "Value of (treasures found) minus (crew/ship costs and rat costs)"   } 			
 									] ,
@@ -357,7 +365,7 @@
 								{
 									name: kEventsCollectionName,
 									attrs:	[
-										{ name: "GameNumber", type: "nominal", description: "Game number"   } ,
+										{ name: "Site", type: "nominal", description: "Site number"   } ,
 										{ name: "Rat_Number", type: "numeric", precision: 0, description: "Rats sent so far in game"   } , 
 										{ name: "Rat_Reading", type: "numeric", precision: 0, description: "Location estimate provided by rat"  } , 
 										{ name: "Treasure_Sought", type: "nominal", description: "Treasure ID at time of event"  }
@@ -384,7 +392,7 @@
 					ScriptInterface.NewCollectionWithAttributes(
 						kEventsCollectionName,
 						[
-							"Game_Number",		// Treasure hunt game number starting with 1 since launch of application.
+							"Site",		// Treasure hunt game number starting with 1 since launch of application.
 							"Rat_Number",		// Rats sent so far in current game.
 							"Rat_Reading",		// Location estimate provided by rat.
 							"Treasure_Sought"	// Categorical treasure ID (1-based) at time of event.
@@ -394,7 +402,7 @@
 					ScriptInterface.NewCollectionWithAttributes(
 						kGamesCollectionName,
 						[
-							"Game_Number",		// Treasure hunt game number starting with 1 since launch of application.
+							"Site",		// Treasure hunt game number starting with 1 since launch of application.
 							"Level",			// Clear or murky, based on hunt level chosen.
 							"Total_Rats_Sent",	// Total number of rats sent during current game.
 							"Total_Drops",		// Number of times hook was dropped during current game.
@@ -734,9 +742,7 @@
 				//trace(bootyMeter.booty);
 				//check to see if we can afford rats
 				if((mCostPerRat * mRatsToSend) >= (bootyMeter.booty)){
-					//alert that we can't buy rats
-					trace("You can't buy rats silly!"); //replace this with a rat dialog
-				
+					//trace("You can't buy rats silly!"); //replace this with a rat dialog
 					mRatsToSend = (bootyMeter.booty/mCostPerRat)-1;
 					mRatStepper.value = mRatsToSend;
 					return; 
@@ -860,19 +866,19 @@
 						mLocationFound = loc2;
 						mTreasureLocArr.splice(-1,1);
 					}
-						
 					dropHook();
 				}
 			}
 			
-			//checks to see if game is over
+			//functions to show win and lose screens
 			private function loseGame(e:TimerEvent):void{
-				endTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, loseGame);
 				loseScreen.visible = true;
+				playAgainButton.visible = true;
 			}
+			
 			private function winGame(e:TimerEvent):void{
-				endTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, winGame);
 				winScreen.visible = true;
+				playAgainButton.visible = true;
 			}
 			
 			//wait and check timer routine for when the hook is moving before a drop
@@ -905,7 +911,7 @@
 					
 					if(bootyMeter.finishTreasureDrop(true) == true){
 						// you found the treasure. check if you also won the game.
-						endTimer = new Timer(1000, 1);
+						endTimer = new Timer(kTimeBeforeWin, 1);
 						endTimer.start();
 						endTimer.addEventListener(TimerEvent.TIMER_COMPLETE, winGame);
 					}
@@ -938,7 +944,7 @@
 				{
 					if(bootyMeter.finishTreasureDrop(false, kCostPerHookDrop) == true){
 						// if you miss, pay the cost. if it bankrupts you, game over.
-						endTimer = new Timer(1000, 1);
+						endTimer = new Timer(kTimeBeforeLose, 1);
 						endTimer.start();
 						endTimer.addEventListener(TimerEvent.TIMER_COMPLETE, loseGame);
 						
@@ -966,7 +972,7 @@
 			{
 				trace("ShipOdyssey.onClickExitNewGame(iEvent)");
 				
-				if(mExitNewGameButton.label == "End Game") //Clicking on 'End Game'
+				if(mExitNewGameButton.label == "Pull Anchor") //Clicking on 'End Game'
 				{
 					sendGameDataClose();
 					
@@ -985,7 +991,7 @@
 					
 					mLevelsButton.enabled = true;
 					mExitNewGameButton.enabled = true;
-					mExitNewGameButton.label = "New Game";
+					mExitNewGameButton.label = "New Site";
 					mSendRatsButton.enabled = false;
 					mDropHookButton.enabled = false;
 					mCenterPositionStepper.enabled = false;
@@ -1004,7 +1010,7 @@
 					sailThenZoomIn();
 					mLevelsButton.enabled = false;
 					mExitNewGameButton.enabled = true;
-					mExitNewGameButton.label = "End Game";
+					mExitNewGameButton.label = "Pull Anchor";
 					disableAllButtons(false);
 					mGameNumber += 1;
 					switchToTreasureHunt(iEvent); //start a new game
@@ -1540,7 +1546,7 @@
 			
 			<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel(false);" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 			<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
-			<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="New Game" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
+			<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="Set Sail" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
 		</mx:Canvas>
 		<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 
@@ -1584,9 +1590,9 @@
 		</s:Group>
 	
 	<!-- SWF loads for winning screen animation and losing screen animation -->
-		<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" depth = "11" source="odysseyAssets/winAnimation.swf"/>
-		<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" depth = "11" source="odysseyAssets/loseAnimation.swf"/>
-	 
+		<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" depth ="11" source="odysseyAssets/winAnimation.swf"/>
+		<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" depth ="11" source="odysseyAssets/loseAnimation.swf"/>
+	 	<s:MovieClipSWFLoader id="playAgainButtonLoader" x="199" y="255" complete="initPlayAgainButton()" depth="12" source="odysseyAssets/playagain_btn.swf"/>
 
 
 	<!-- Error message for bad version of flash player -->	
