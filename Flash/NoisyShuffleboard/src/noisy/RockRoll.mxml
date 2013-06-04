@@ -9,7 +9,6 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
 			   xmlns:mx="library://ns.adobe.com/flex/mx" height="400" width="800"
 			   xmlns:default="noisy.*"
-			   creationComplete="testFlashPlayer( )"
 			   creationComplete="testFlashPlayer()"
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
@@ -49,10 +48,10 @@
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
-			private static const MINIMUM_REQUIREMENTS:Number = 11.7;	//the oldest version of flash player you can play this game on.
+			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "Rock Roll v.2013.05.08";
+			public static const VERSION:String = "Rock Roll v.2013.06.04";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
