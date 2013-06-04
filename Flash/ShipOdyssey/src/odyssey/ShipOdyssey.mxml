@@ -84,6 +84,8 @@
 			public static const kTreasureGoal:int = 30000;
 			public static const kEventsCollectionName:String = "Events";
 			public static const kGamesCollectionName:String = "Games";
+			public static const kTimeBeforeWin:int = 3000;
+			public static const kTimeBeforeLose:int = 3000;
 			
 			public var mNumTreasures:uint = 1;	// Number of treasures to find.
 			
@@ -740,9 +742,7 @@
 				//trace(bootyMeter.booty);
 				//check to see if we can afford rats
 				if((mCostPerRat * mRatsToSend) >= (bootyMeter.booty)){
-					//alert that we can't buy rats
-					trace("You can't buy rats silly!"); //replace this with a rat dialog
-				
+					//trace("You can't buy rats silly!"); //replace this with a rat dialog
 					mRatsToSend = (bootyMeter.booty/mCostPerRat)-1;
 					mRatStepper.value = mRatsToSend;
 					return; 
@@ -866,16 +866,16 @@
 						mLocationFound = loc2;
 						mTreasureLocArr.splice(-1,1);
 					}
-						
 					dropHook();
 				}
 			}
 			
-			//checks to see if game is over
+			//functions to show win and lose screens
 			private function loseGame(e:TimerEvent):void{
 				loseScreen.visible = true;
 				playAgainButton.visible = true;
 			}
+			
 			private function winGame(e:TimerEvent):void{
 				winScreen.visible = true;
 				playAgainButton.visible = true;
@@ -911,7 +911,7 @@
 					
 					if(bootyMeter.finishTreasureDrop(true) == true){
 						// you found the treasure. check if you also won the game.
-						endTimer = new Timer(1000, 1);
+						endTimer = new Timer(kTimeBeforeWin, 1);
 						endTimer.start();
 						endTimer.addEventListener(TimerEvent.TIMER_COMPLETE, winGame);
 					}
@@ -944,7 +944,7 @@
 				{
 					if(bootyMeter.finishTreasureDrop(false, kCostPerHookDrop) == true){
 						// if you miss, pay the cost. if it bankrupts you, game over.
-						endTimer = new Timer(1000, 1);
+						endTimer = new Timer(kTimeBeforeLose, 1);
 						endTimer.start();
 						endTimer.addEventListener(TimerEvent.TIMER_COMPLETE, loseGame);
 						
