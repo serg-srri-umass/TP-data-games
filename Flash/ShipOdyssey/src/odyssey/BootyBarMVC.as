@@ -31,7 +31,7 @@ package odyssey
 		
 		public function get booty():int
 		{
-			return _booty + _treasureValue - _costs;
+			return _booty + _treasureValue - _costs + _ghostCost;
 		}
 		
 		public function get goal():int{
