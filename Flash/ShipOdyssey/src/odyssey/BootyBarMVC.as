@@ -4,9 +4,16 @@ package odyssey
 	
 	import flash.events.Event;
 	
+	import odyssey.events.BootyEventDispatcher;
+	
 	public class BootyBarMVC extends BootyMeter
 	{
+		public static const WIN:int = 1;	//used for win/lose/game isn't over
+		public static const LOSE:int = 2;
+		public static const NO:int = 0;
+		
 		private var BAR_HEIGHT:Number; 
+		private var _dispatcher:BootyEventDispatcher = new BootyEventDispatcher(); // object that dispatches booty events		
 		
 		private var _booty:int;				// how much booty the player currently has
 		private var _startingBooty:int;		// how much booty the player had at the start of a location
@@ -22,18 +29,32 @@ package odyssey
 		private var _ghostCost:int;	//used for displaying prices when the mouse is hovering over a button
 		private var _holdingGhost:Boolean = false; //used to show that you could lose X amount of money if your hook drop misses
 		
+		private var _isGameOver:int = NO;	//an int based on whether or not the game is over.
+		
 		public function BootyBarMVC()
 		{
 			addEventListener(Event.ADDED_TO_STAGE, turnOff); 
 			addEventListener(Event.ENTER_FRAME, handleEnterFrame);
-			BAR_HEIGHT = barBacking.height
+			BAR_HEIGHT = barBacking.height;
+		}
+		
+		public function get dispatcher():BootyEventDispatcher
+		{
+			return _dispatcher;
+		}
+		public function get won():Boolean
+		{
+			return _isGameOver == WIN;	
+		}
+		public function get lost():Boolean
+		{
+			return _isGameOver == LOSE;
 		}
 		
 		public function get booty():int
 		{
 			return _booty + _treasureValue - _costs + _ghostCost;
 		}
-		
 		public function get goal():int{
 			return _goal;
 		}
@@ -76,29 +97,40 @@ package odyssey
 		public function startTreasureDrop():void{
 			_holdingGhost = true;
 		}
-		public function finishTreasureDrop(sucess:Boolean, cost:int = 0):Boolean{
-			if(sucess)
+
+		// when a hook drop finishes, this method runs. 
+		public function finishTreasureDrop(success:Boolean, cost:int = 0):void{
+			animateCost(success);
+			if(success)
 			{
 				_costs -= _ghostCost;
 				_ghostCost = 0;
 				_booty += treasureValue;
 				account();
 				if(_booty >= _goal)
-					return true;
-			}else
+					_isGameOver = WIN;
+				else
+					_isGameOver = NO;
+			} else
 			{
 				_holdingGhost = false;
 				cancelGhost();
 				pay(cost);
 				if(_booty + _treasureValue - costs <= 0)
-					return true;
+				{
+					_isGameOver = LOSE;
+					account(true);
+				}else
+				{
+					_isGameOver = NO;
+				}
 			}
-			return false;
 		}
 		// call this method at the start of each level
 		public function initialize(capital:int, goal:int, treasureValue:int):void
 		{
 			// first, set all the numbers:
+			_isGameOver = NO;
 			_capital = capital;
 			_goal = goal;
 			_treasureValue = treasureValue;
@@ -152,6 +184,7 @@ package odyssey
 		// call this method at the start of each location
 		public function readyNewLocation():void
 		{
+			_isGameOver = NO;
 			_startingBooty = _booty;
 			animateBooty(true);
 			prepCostBar();
@@ -161,10 +194,10 @@ package odyssey
 		}
 		
 		// merge the costs into the booty meter.
-		public function account():void{
-			_booty -= _costs;
+		public function account(bankrupt:Boolean = false):void{
+			_booty -= (bankrupt ? _booty : _costs);	
+			_dispatcher.dispatchAccounting();
 			animateBooty();
-			animateCost(true);
 			_costs = 0;
 			cancelGhost();
 		}
@@ -210,6 +243,8 @@ package odyssey
 			var dist:Number = (targetFrame - currentFrame)/10;
 			if(targetFrame > totalFrames)
 				targetFrame = totalFrames;
+			else if(targetFrame < 1)
+				targetFrame = 1;
 			
 			dist = (targetFrame > currentFrame ? Math.ceil(dist) : Math.floor(dist));
 			// rounding is based on whether the graph is moving up or down
@@ -231,10 +266,16 @@ package odyssey
 				_settingStartValue = false;
 				myCash.booty.text = parseToCash(_booty);
 				_animateBooty = false;
+				
+				// check for winning or losing at the end of animation:
+				if(won)
+					_dispatcher.dispatchWin();
+				else if(lost)
+					_dispatcher.dispatchLose();
 			}
 		}
 		
-		private function animateCost(goingUp:Boolean):void
+		private function animateCost(goingUp:Boolean = false):void
 		{
 			if(goingUp)
 				_animateCost = 1;
