@@ -21,6 +21,8 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import odyssey.events.*;
+			
 			import com.adobe.serialization.json.JSON;
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
@@ -868,8 +870,8 @@
 					}
 					evenOdd = (evenOdd+1)%2;
 				}
-				
-				DivingRatDirector.releaseRats();
+				if(mRatsToSend > 0)
+					DivingRatDirector.releaseRats();
 				
 				// send updated [mRatsSent] to DG game case
 				sendGameDataUpdate();				
@@ -952,19 +954,19 @@
 					dropHook();
 				}
 			}
-			
-			//functions to show win and lose screens
-			private function loseGame(e:TimerEvent):void{
+
+			//checks to see if game is over
+			private function loseGame(e:BootyEvent):void{
 				loseScreen.visible = true;
 				replayLevelButton.visible = true;
 				chooseLevelButton.visible = true;
 			}
 			
-			private function winGame(e:TimerEvent):void{
+			
+			private function winGame(e:BootyEvent):void{
 				winScreen.visible = true;
 				nextLevelButton.visible = true;
 				chooseLevelButton.visible = true;
-
 			}
 			
 			//wait and check timer routine for when the hook is moving before a drop
@@ -994,13 +996,8 @@
 				if (mFoundTreasure)
 				{
 					// Add treasure value to accumulated wealth.
-					
-					if(bootyMeter.finishTreasureDrop(true) == true){
-						// you found the treasure. check if you also won the game.
-						endTimer = new Timer(kTimeBeforeWin, 1);
-						endTimer.start();
-						endTimer.addEventListener(TimerEvent.TIMER_COMPLETE, winGame);
-					}
+					bootyMeter.finishTreasureDrop(true);
+
 					mCashSound.play(); // Play cash register sound.	
 					// Tell the player which treasure was found and how much it is worth.
 					var valueInDollars:String = usdFormatter.format(mTreasureArray[mCurrentTreasureNum][kValue]);
@@ -1028,13 +1025,9 @@
 				}
 				else // Treasure was not found at drop location.
 				{
-					if(bootyMeter.finishTreasureDrop(false, kCostPerHookDrop) == true){
-						// if you miss, pay the cost. if it bankrupts you, game over.
-						endTimer = new Timer(kTimeBeforeLose, 1);
-						endTimer.start();
-						endTimer.addEventListener(TimerEvent.TIMER_COMPLETE, loseGame);
-						
-					}
+
+					bootyMeter.finishTreasureDrop(false, kCostPerHookDrop)
+					
 					enableAllButtons();
 					
 					
@@ -1521,14 +1514,14 @@
 			private function initListeners():void{
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, enableRatButton);	
+				bootyMeter.dispatcher.addEventListener(BootyEvent.WIN, winGame);				
+				bootyMeter.dispatcher.addEventListener(BootyEvent.LOSE, loseGame);
 			}
 			
 			// attach the booty bar to the screen
 			private function initVisualElements():void{
 				bootyMeterContainer.addChild(bootyMeter);
-			}
-			
-			
+			}	
 			
 			//********** Title Bar Volume Control*********
 			private function updateVolume(vol:Number):void
@@ -1617,14 +1610,14 @@
 		<s:Button id="mSendRatsButton" height="23" width="100" x="100" y="28" label="Send Rats" mouseOver="onMouseOverRatsButton(event)" mouseOut="onMouseOutRatsButton(event)" click="onClickSendRatsButton(event)" includeIn="TreasureHunt"/>
 	</s:Group>
 	<!-- Hook controls -->
-	<s:Group id="mControlContainer" includeIn="TreasureHunt" x="265" y="35" width="240" height="76">
-		<s:Image 		id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
-		<s:Label		id="mHookLabel" x="58" y="5" text="Grappling Hook" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
-		<s:Button 		id="mDropHookButton" x="55" y="28" label="Drop Hook" width="80" height="23" fontSize="12" mouseOver="onMouseOverDropHookButton(event)" mouseOut="onMouseOutDropHookButton(event)" click="onClickDropHookButton(event)"/>
-		<s:NumericStepper id="mCenterPositionStepper" x="140" y="28" width="57" minimum="0" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
-		<s:Label		id="mRangeLabel" x="55" y="62" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
-		<s:Label 		id="mRangeValueLabel" x="130" y="62" width="80" fontFamily="Georgia" fontWeight="bold"/>
-	</s:Group>
+		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="265" y="35" width="240" height="76">
+			<s:Image 		id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
+			<s:Label		id="mHookLabel" x="58" y="5" text="Grappling Hook" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
+			<s:Button 		id="mDropHookButton" x="55" y="28" label="Drop Hook" width="80" height="23" fontSize="12" mouseOver="onMouseOverDropHookButton(event)" mouseOut="onMouseOutDropHookButton(event)" click="onClickDropHookButton(event)"/>
+			<s:NumericStepper id="mCenterPositionStepper" x="140" y="28" width="57" minimum="1" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
+			<s:Label		id="mRangeLabel" x="55" y="62" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
+			<s:Label 		id="mRangeValueLabel" x="130" y="62" width="80" fontFamily="Georgia" fontWeight="bold"/>
+		</s:Group>
 	
 	<!-- Left Sidebar Log -->
 	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">		<!-- $WIP -->
