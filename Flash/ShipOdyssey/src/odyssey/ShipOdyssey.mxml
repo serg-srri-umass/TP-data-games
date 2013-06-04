@@ -27,7 +27,6 @@
 			import common.MathUtilities;
 			import common.ParkMiller;
 			import common.VersionChecker;
-
 			
 			import mx.controls.Alert;
 			import mx.core.SoundAsset;
@@ -140,6 +139,7 @@
 			//variables for holding movieclips from loaded swf
 			private var loseScreen:MovieClip;
 			private var winScreen:MovieClip;
+			private var playAgainButton:MovieClip
 			
 			//timer when your money hits zero, waits before showing lose screen
 			private var endTimer:Timer;
@@ -276,21 +276,26 @@
 			private function initLoseScreen():void{
 				loseScreen = loseAnimation.content as MovieClip;
 				loseScreen.visible = false;
-				loseScreen.addEventListener(MouseEvent.CLICK, endScreenHandler);
-
 			}
 			
 			private function initWinScreen():void{
 				winScreen = winAnimation.content as MovieClip;
 				winScreen.visible = false;
-				winScreen.addEventListener(MouseEvent.CLICK, endScreenHandler);
 			}
 			
-			//handles presses on win screen by calling initialize hunt again
-			private function endScreenHandler(e:MouseEvent):void{
+			private function initPlayAgainButton():void{
+				playAgainButton = playAgainButtonLoader.content as MovieClip;
+				playAgainButton.visible = false;
+				playAgainButton.addEventListener(MouseEvent.CLICK, playAgainButtonHandler);
+			}
+			
+			//handler for end-game case interactions
+			//handles presses on 'Play Again' by starting the game over again
+			private function playAgainButtonHandler(e:MouseEvent):void{
 				startUp();
 			}
 			
+		
 			// startUp() is called when the creation of this class is complete
 			// and sets up necessary parameters for game initiation.			
 			private	function startUp():void	
@@ -309,9 +314,10 @@
 				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
 				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
 				
-				//make sure win and lose screens become invisible again after you click them 
+				//make sure win/lose screens and 'Play Again' button become invisible again after you click them 
 				loseScreen.visible = false;
 				winScreen.visible = false;
+				playAgainButton.visible = false;
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
@@ -867,12 +873,12 @@
 			
 			//checks to see if game is over
 			private function loseGame(e:TimerEvent):void{
-				endTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, loseGame);
 				loseScreen.visible = true;
+				playAgainButton.visible = true;
 			}
 			private function winGame(e:TimerEvent):void{
-				endTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, winGame);
 				winScreen.visible = true;
+				playAgainButton.visible = true;
 			}
 			
 			//wait and check timer routine for when the hook is moving before a drop
@@ -1584,9 +1590,9 @@
 		</s:Group>
 	
 	<!-- SWF loads for winning screen animation and losing screen animation -->
-		<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" depth = "11" source="odysseyAssets/winAnimation.swf"/>
-		<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" depth = "11" source="odysseyAssets/loseAnimation.swf"/>
-	 
+		<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" depth ="11" source="odysseyAssets/winAnimation.swf"/>
+		<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" depth ="11" source="odysseyAssets/loseAnimation.swf"/>
+	 	<s:MovieClipSWFLoader id="playAgainButtonLoader" x="199" y="255" complete="initPlayAgainButton()" depth="12" source="odysseyAssets/playagain_btn.swf"/>
 
 
 	<!-- Error message for bad version of flash player -->	
