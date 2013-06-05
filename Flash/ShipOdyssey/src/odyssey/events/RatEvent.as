@@ -1,4 +1,4 @@
-package odyssey
+package odyssey.events
 {
 	import flash.events.Event;
 	

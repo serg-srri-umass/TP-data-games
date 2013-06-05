@@ -7,6 +7,7 @@ package odyssey
 	import flash.utils.Timer;
 	
 	import mx.core.UIComponent;
+	import odyssey.events.RatEventDispatcher;
 	
 	// Manages the behavior of all rat sprites.
 	public class DivingRatDirector
