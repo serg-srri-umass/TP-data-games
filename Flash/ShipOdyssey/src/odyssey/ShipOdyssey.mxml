@@ -142,6 +142,7 @@
 			
 			//variables for holding loaded MovieClips
 			private var endScreen:MovieClip;
+			private var endScreenInit:Boolean = false;
 			
 			//timer when your money hits zero, waits before showing lose screen
 			private var endTimer:Timer;
@@ -275,6 +276,7 @@
 			// init win and lose screen, and make invisible till we need them
 			private function initEndScreen():void
 			{
+				endScreenInit = true;
 				endScreen = endAnimation.content as MovieClip;
 				endScreen.visible = false;
 				endScreen.chooseLevelBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
@@ -311,7 +313,9 @@
 			private function chooseLevelButtonHandler(e:MouseEvent):void{
 				mLevelWindow = new TreasureHuntLevelWindow();
 				chooseHuntLevel(true);
-				endScreen.visible = false;				
+				
+				if(endScreenInit)				
+					endScreen.visible = false;	// failsafe to prevent endscreen from being turned off before it loads.			
 			}
 				
 			private function replayLevelButtonHandler(e:MouseEvent):void{
@@ -847,10 +851,15 @@
 				mMinHookRange			= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
 				mMaxHookRange			= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
 				mRangeValueLabel.text	= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
-				if(Math.abs(prevCP - mCenterPosition)>2)
-					crane.tweenTo(mCenterPosition, 1); //goto frame = mCenterPosition, tween length = 1 second
-				else
-					crane.runTo(mCenterPosition);
+				
+				if(event.type == "dragging"){	// this is sloppy. We need CraneEvents.
+					crane.toFrame(mCenterPosition);
+				}else{
+					if(Math.abs(prevCP - mCenterPosition)>2)
+						crane.tweenTo(mCenterPosition, 1); //goto frame = mCenterPosition, tween length = 1 second
+					else
+						crane.runTo(mCenterPosition);
+				}
 			}
 			
 			// onChangeRatStepper() is called when the number of rats to be sent
@@ -1013,7 +1022,6 @@
 					
 					//clean up everything so it is back in initial state for start of next game
 					crane.visible = false;
-					CraneHandle.visible = false;
 					
 					sailingMovie.visible = true;
 					sailingMovie.reset();
@@ -1381,7 +1389,9 @@
 				mCenterPositionStepper.enabled = false;
 				mRatStepper.enabled = false;
 				mSendRatsButton.enabled = false;
-				CraneHandle.visible = false;
+				
+				if(craneInit)	// failsafe to prevent the crane from being turned off before it loads.
+					crane.canDrag = false;
 			}	
 			
 			//added for game init. When intructions display, all buttons but NewGame disabled. 
@@ -1392,7 +1402,9 @@
 				mCenterPositionStepper.enabled = false;
 				mRatStepper.enabled = false;
 				mSendRatsButton.enabled = false;
-				CraneHandle.visible = false;			
+				
+				if(craneInit)
+					crane.canDrag = false;
 			}
 			
 			private function enableAllButtons():void{
@@ -1401,7 +1413,9 @@
 				mCenterPositionStepper.enabled = true;
 				mRatStepper.enabled = true;
 				mSendRatsButton.enabled = true;
-				CraneHandle.visible = true;
+				
+				if(craneInit)
+					crane.canDrag = true;
 			}
 			
 			private function disableRatButton(e:RatEvent = null):void{
@@ -1416,6 +1430,8 @@
 			
 			//********new visual items and visual only code **********
 			private var crane:MovieClip;
+			private var craneInit:Boolean = false;
+			
 			private var sailingMovie:MovieClip;
 			private var cHerder:MovieClip;
 			private var skyAreaMask:Shape;
@@ -1426,6 +1442,7 @@
 			
 			//ties the crane to MXML loader and sets up the mask
 			private function initCrane():void{
+				craneInit = true; 
 				crane = CraneLoader.content as MovieClip;
 				crane.visible = false;
 				craneMask = new Shape();
@@ -1433,7 +1450,12 @@
 				craneMask.graphics.drawRect(0,0,395,286);
 				uic.addChild(craneMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
 				crane.mask = craneMask;
-				//crane.runTo(mCenterPosition);
+				crane.addEventListener("dragging", updateCraneStepper);	// sloppy. Will use CraneEvents in the future. 
+			}
+			
+			private function updateCraneStepper(e:Event):void{
+				mCenterPositionStepper.value = crane.position;
+				onChangeCenterPosition(e);
 			}
 			
 			//loads the swf, sets colors, and starts the clouds
@@ -1599,8 +1621,6 @@
 		<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="186" width="395" height="100" depth="3" />
 		<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
 		<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
-		<s:HSlider id="CraneHandle" includeIn="TreasureHunt" x="149" y="144" width="100" height="20" alpha="0" buttonMode="true" change="mCenterPositionStepper.value=CraneHandle.value;onChangeCenterPosition(event);"
-				   liveDragging="true" depth="6" maximum="100" minimum="0" value="50"/>
 	</s:Group>
 	<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
 	<mx:UIComponent id="ratContainer" x="120" y="121" width="395" height="286"/> <!-- container to hold dots for rat animation demo-->
