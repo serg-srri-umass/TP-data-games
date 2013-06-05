@@ -21,8 +21,6 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import odyssey.events.*;
-			
 			import com.adobe.serialization.json.JSON;
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
@@ -38,6 +36,7 @@
 			import mx.utils.StringUtil;
 			
 			import odyssey.TreasureHuntLevelWindow;
+			import odyssey.events.*;
 			
 			import odysseyAssets.*;
 			
@@ -49,7 +48,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.06.04";
+			public static const VERSION:String = "v.2013.06.05";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -142,11 +141,7 @@
 			
 			
 			//variables for holding loaded MovieClips
-			private var loseScreen:MovieClip;
-			private var winScreen:MovieClip;
-			private var nextLevelButton:MovieClip;
-			private var chooseLevelButton:MovieClip;
-			private var replayLevelButton:MovieClip;
+			private var endScreen:MovieClip;
 			
 			//timer when your money hits zero, waits before showing lose screen
 			private var endTimer:Timer;
@@ -268,53 +263,31 @@
 			// ********** END TREASURE HUNT SOUNDS **********
 			
 			// test flash player makes sure the player is meeting the minimum requirements.
-			private function testFlashPlayer():void
-			{
-				if( VersionChecker.isValid(MINIMUM_REQUIREMENTS))
-				{
+			private function testFlashPlayer():void {
+				if( VersionChecker.isValid(MINIMUM_REQUIREMENTS)) {
 					startUp();
 				} else {
 					BrickWall.visible = true;
 				}
 			}
 			
-			//initialization functions
-			//init win and lose screen, and make invisible till we need them
-			private function initLoseScreen():void{
-				loseScreen = loseAnimation.content as MovieClip;
-				loseScreen.visible = false;
+			// initialization functions
+			// init win and lose screen, and make invisible till we need them
+			private function initEndScreen():void
+			{
+				endScreen = endAnimation.content as MovieClip;
+				endScreen.visible = false;
+				endScreen.chooseLevelBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
 			}
 			
-			private function initWinScreen():void{
-				winScreen = winAnimation.content as MovieClip;
-				winScreen.visible = false;
-			}
-			
-			private function initNextLevelButton():void{
-				nextLevelButton = nextLevelButtonLoader.content as MovieClip;
-				nextLevelButton.visible = false;
-				nextLevelButton.addEventListener(MouseEvent.CLICK, nextLevelButtonHandler);
-			}
-			
-			private function initChooseLevelButton():void{
-				chooseLevelButton = chooseLevelButtonLoader.content as MovieClip;
-				chooseLevelButton.visible = false;
-				chooseLevelButton.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
-			}
-			
-			private function initReplayLevelButton():void{
-				replayLevelButton = replayLevelButtonLoader.content as MovieClip;
-				replayLevelButton.visible = false;
-				replayLevelButton.addEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
-			}
-			
-			//handlers for end-game case interactions 
+			// handlers for end-game case interactions 
 			private function nextLevelButtonHandler(e:MouseEvent):void{
-								
+				endScreen.mainBtn.removeEventListener(MouseEvent.CLICK, nextLevelButtonHandler);
+				endScreen.visible = false;
+				
 				PopUpManager.addPopUp(mLevelWindow, this); 
 				mLevelWindow.visible = false;
 				
-				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
 				//mLevelWindow.closeButton.visible = false;	// Hide the close button.
 				mLevelWindow["mLevelOneButton"].addEventListener("click", handleLevelSelectionNoPopup);
 				mLevelWindow["mLevelTwoButton"].addEventListener("click", handleLevelSelectionNoPopup);
@@ -332,25 +305,19 @@
 				else if(mNextHuntLevel == 4)
 					return;
 				
-				initNextLevelButton();
-				winScreen.visible = false;
-				chooseLevelButton.visible = false;
 				initializeTreasureHunt();
 			}
 			
 			private function chooseLevelButtonHandler(e:MouseEvent):void{
 				mLevelWindow = new TreasureHuntLevelWindow();
 				chooseHuntLevel(true);
-				initChooseLevelButton();
-				winScreen.visible = false;
-				loseScreen.visible = false;
-				nextLevelButton.visible = false;
-				replayLevelButton.visible = false;
-				
-
+				endScreen.visible = false;				
 			}
 				
 			private function replayLevelButtonHandler(e:MouseEvent):void{
+				endScreen.mainBtn.removeEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
+				endScreen.visible = false;
+
 				PopUpManager.addPopUp(mLevelWindow, this); 
 				mLevelWindow.visible = false;
 				
@@ -368,10 +335,6 @@
 				else if(mHuntLevel == 4)
 					return;
 				
-				initReplayLevelButton();
-				loseScreen.visible = false;
-				replayLevelButton.visible = false;
-				chooseLevelButton.visible = false;
 				initializeTreasureHunt();
 			}
 			
@@ -379,6 +342,8 @@
 			// and sets up necessary parameters for game initiation.			
 			private	function startUp():void	
 			{
+				BrickWall.visible = false;
+				
 				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
 				this.sendCollectionData();		//		set it up so we can emit data
 				updateVolume(80); // start at 80% volume
@@ -394,11 +359,7 @@
 				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
 				
 				//make sure win/lose screens and 'Play Again' button become invisible again after you click them 
-				loseScreen.visible = false;
-				winScreen.visible = false;
-				chooseLevelButton.visible = false;
-				nextLevelButton.visible = false;
-				replayLevelButton.visible = false;
+				endScreen.visible = false;
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
@@ -904,9 +865,11 @@
 			protected function onMouseOverDropHookButton(event:MouseEvent):void
 			{
 			}
+			
 			protected function onMouseOutDropHookButton(event:MouseEvent):void
 			{
 			}
+			
 			// onClickDropHookButton() is called when the Drop Hook button is
 			// pressed and handles all actions assiociated with attempting to
 			// retrieve treasure at the specified location.
@@ -951,16 +914,15 @@
 
 			//checks to see if game is over
 			private function loseGame(e:BootyEvent):void{
-				loseScreen.visible = true;
-				replayLevelButton.visible = true;
-				chooseLevelButton.visible = true;
+				endScreen.visible = true;
+				endScreen.gotoAndStop("lose");
+				endScreen.mainBtn.addEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
 			}
 			
-			
 			private function winGame(e:BootyEvent):void{
-				winScreen.visible = true;
-				nextLevelButton.visible = true;
-				chooseLevelButton.visible = true;
+				endScreen.visible = true;
+				endScreen.gotoAndStop("win");
+				endScreen.mainBtn.addEventListener(MouseEvent.CLICK, nextLevelButtonHandler);
 			}
 			
 			//wait and check timer routine for when the hook is moving before a drop
@@ -1510,12 +1472,18 @@
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, enableRatButton);	
 				bootyMeter.dispatcher.addEventListener(BootyEvent.WIN, winGame);				
 				bootyMeter.dispatcher.addEventListener(BootyEvent.LOSE, loseGame);
+				bootyMeter.dispatcher.addEventListener(BootyEvent.ACCOUNTING, disableAllButtons);
 			}
 			
 			// attach the booty bar to the screen
 			private function initVisualElements():void{
 				bootyMeterContainer.addChild(bootyMeter);
 			}	
+			
+			private function openAdobeWebsite():void{
+				var url:URLRequest = new URLRequest("http://get.adobe.com/flashplayer/");
+				navigateToURL(url, "_blank");
+			}
 			
 			//********** Title Bar Volume Control*********
 			private function updateVolume(vol:Number):void
@@ -1668,27 +1636,25 @@
 	<s:Button id="mLevelFourButton" x="82" y="229" skinClass="odyssey.skins.DifficultyLevel4ButtonSkin" depth="2" enabled="true" visible="false"/>
 	
 	<!-- SWF loads for winning screen animation and losing screen animation -->
-	<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" depth ="11" source="odysseyAssets/winAnimation.swf"/>
-	<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" depth ="11" source="odysseyAssets/loseAnimation.swf"/>
-	<s:MovieClipSWFLoader id="nextLevelButtonLoader" x="129.5" y="305" complete="initNextLevelButton()" depth="12" source="odysseyAssets/nextlevel_btn.swf"/>
-	<s:MovieClipSWFLoader id="chooseLevelButtonLoader" x="268.5" y="305" complete="initChooseLevelButton()" depth="12" source="odysseyAssets/chooselevel_btn.swf"/>
-	<s:MovieClipSWFLoader id="replayLevelButtonLoader" x="129.5" y="305" complete="initReplayLevelButton()" depth="12" source="odysseyAssets/replaylevel_btn.swf"/>
+	<s:MovieClipSWFLoader id="endAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initEndScreen()" depth ="11" source="odysseyAssets/endAnimation.swf"/>
 	
 	
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall"	x="0" y="0" width="{GameScreen.TOTAL_SCREEN_WIDTH}" height="{GameScreen.TOTAL_SCREEN_HEIGHT}" visible="false" depth="999">
 		<s:backgroundFill>
 			<s:LinearGradient rotation="90">
-				<s:GradientEntry color="0xFF0000"/>
-				<s:GradientEntry color="0xB40404"/>
+				<s:GradientEntry color="0x13B3C2"/>
+				<s:GradientEntry color="0x1E5B77"/>
 			</s:LinearGradient>
 		</s:backgroundFill>
 		
+		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="70"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
+		<s:Label id="midLabelError" text="{'Ship Odyssey requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="160"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
+		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="180"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
 		
-		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="80"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
-		<s:Label id="midLabelError" text="{'Ship Odyssey requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="170"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
-		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
-		<s:Label id="bottomLabel" text="Download the latest version at http://get.adobe.com/flashplayer/" x="0" y="310"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
+		<s:Button id = "upgradeButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}" y="250"  click="openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
+		<s:Button id = "ignoreButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}"  y="310"  click="startUp()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
+	
 	</s:BorderContainer>
 	
 </s:Application>
