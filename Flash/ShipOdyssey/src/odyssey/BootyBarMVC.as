@@ -25,9 +25,7 @@ package odyssey
 		private var targetFrame:int; //used for animation logic
 		private var displayBooty:int; //used for animation logic. Animated $
 		private var _settingStartValue:Boolean; // animation logic. when it's true, the starting value will move along with the $.
-		
-		private var _ghostCost:int;	//used for displaying prices when the mouse is hovering over a button
-		private var _holdingGhost:Boolean = false; //used to show that you could lose X amount of money if your hook drop misses
+		private var _animateBooty:Boolean = false;
 		
 		private var _isGameOver:int = NO;	//an int based on whether or not the game is over.
 		
@@ -53,7 +51,7 @@ package odyssey
 		
 		public function get booty():int
 		{
-			return _booty + _treasureValue - _costs + _ghostCost;
+			return _booty + _treasureValue - _costs;
 		}
 		public function get goal():int{
 			return _goal;
@@ -80,31 +78,10 @@ package odyssey
 			costBar.visible = false;
 		}
 		
-		public function ghost(cost:int):void
-		{
-			pay(cost, true);
-			_ghostCost = cost;
-		}
-		public function cancelGhost():void
-		{
-			if(!_holdingGhost)		// cancel ghost has no effect while holding ghost.
-			{
-				if(_ghostCost > 0)
-					pay(-_ghostCost);
-				_ghostCost = 0;
-			}
-		}
-		public function startTreasureDrop():void{
-			_holdingGhost = true;
-		}
-
 		// when a hook drop finishes, this method runs. 
 		public function finishTreasureDrop(success:Boolean, cost:int = 0):void{
-			animateCost(success);
 			if(success)
 			{
-				_costs -= _ghostCost;
-				_ghostCost = 0;
 				_booty += treasureValue;
 				account();
 				if(_booty >= _goal)
@@ -113,8 +90,6 @@ package odyssey
 					_isGameOver = NO;
 			} else
 			{
-				_holdingGhost = false;
-				cancelGhost();
 				pay(cost);
 				if(_booty + _treasureValue - costs <= 0)
 				{
@@ -144,40 +119,19 @@ package odyssey
 		}
 		
 		// call this method whenever you spend money
-		public function pay(cost:int, ghost:Boolean = false):void
+		public function pay(cost:int):void
 		{
 			_costs += cost;	
 			var percentCosts:Number = (_treasureValue - _costs)/_treasureValue;
-			if(!ghost)
+			if(percentCosts >= 0) // positive profits
 			{
-				costBar.ghostBar1.visible = false;
-				costBar.ghostBar2.visible = false;
-				if(percentCosts >= 0) // positive profits
-				{
-					costBar.redBar.visible = false;
-					costBar.profitBar.visible = true;
-					
-					costBar.profitBar.height = costBar.backingBar.height * percentCosts;
-					costBar.ghostBar1.height = costBar.profitBar.height;
-				} else { // going into the red
-					costBar.profitBar.visible = false;
-					costBar.redBar.visible = true;
-					costBar.redBar.height = costBar.backingBar.height * -1 * percentCosts;
-				}
-			} else
-			{
-				// if the payment is a ghost, move the regular bars, but keep the white ghost bars in place
-				if(percentCosts >= 0) // positive profits
-				{
-					costBar.ghostBar1.visible = true;
-					costBar.ghostBar2.visible = false;
-					costBar.profitBar.height = costBar.backingBar.height * percentCosts;
-				} else { // going into the red
-					costBar.ghostBar1.visible = costBar.profitBar.visible;
-					costBar.profitBar.visible = false;
-					costBar.ghostBar2.visible = true;
-					costBar.ghostBar2.height = costBar.backingBar.height * -1 * percentCosts;
-				}
+				costBar.redBar.visible = false;
+				costBar.profitBar.visible = true;
+				costBar.profitBar.height = costBar.backingBar.height * percentCosts;
+			} else { // going into the red
+				costBar.profitBar.visible = false;
+				costBar.redBar.visible = true;
+				costBar.redBar.height = costBar.backingBar.height * -1 * percentCosts;
 			}
 		}
 		
@@ -189,8 +143,6 @@ package odyssey
 			animateBooty(true);
 			prepCostBar();
 			_costs = 0;
-			_holdingGhost = false;
-			cancelGhost();
 		}
 		
 		// merge the costs into the booty meter.
@@ -199,7 +151,6 @@ package odyssey
 			_dispatcher.dispatchAccounting();
 			animateBooty();
 			_costs = 0;
-			cancelGhost();
 		}
 		
 		// set up the cost bar for a new location
@@ -211,26 +162,15 @@ package odyssey
 			costBar.profitBar.gotoAndStop(1);
 			costBar.redBar.visible = false;
 			costBar.redBar.height = 1;
-			costBar.profitBar.visible = true;
-			costBar.ghostBar1.visible = false;
-			costBar.ghostBar2.visible = false;
-			costBar.ghostBar1.height = costBar.profitBar.height;
-			
+			costBar.profitBar.visible = true;			
 		}
-		
-		private var _animateBooty:Boolean = false;
-		private var _animateCost:int = 0;
-		
+				
 		// this method is called every frame. It handles the animation logic
 		private function handleEnterFrame(e:Event):void{
 			if(_animateBooty)
 				subAnimateBooty();
-			
-			if(_animateCost == 1)			// 0 = off. 1 = going up. 2 = going down
-				subAnimateCost(true);
-			else if(_animateCost == 2)
-				subAnimateCost(false);
 		}
+		
 		private function animateBooty(setStartingValue:Boolean = false):void
 		{
 			var arg:int = getPercent(_booty)*10;	// convert percent to per thousand
@@ -272,56 +212,6 @@ package odyssey
 					_dispatcher.dispatchWin();
 				else if(lost)
 					_dispatcher.dispatchLose();
-			}
-		}
-		
-		private function animateCost(goingUp:Boolean = false):void
-		{
-			if(goingUp)
-				_animateCost = 1;
-			else
-				_animateCost = 2;
-		}
-		private function subAnimateCost(goingUp:Boolean):void
-		{
-			if(goingUp)  // you found the treasure! Bring the profit bar back up to the ghost bar slowly.
-			{ 
-				// differant logic is required for the negative bar & the positive bar
-				// the red bar & ghost bar 2:
-				if(costBar.ghostBar2.visible)
-				{
-					if(costBar.redBar.visible){
-						if(costBar.ghostBar2.height > costBar.redBar.height){
-							costBar.ghostBar2.height -= 1;
-						}else{
-							_animateCost = 0;
-							_holdingGhost = false;
-							costBar.ghostBar2.height = costBar.redBar.height;
-						}
-					}else{
-						if(costBar.ghostBar2.height > 1){
-							costBar.ghostBar2.height -= 1;
-						} else
-						{
-							costBar.ghostBar2.visible = false;
-						}
-					}
-				} else	// the profit bar & ghost bar 1:
-				{
-					costBar.profitBar.visible = true;
-					if(costBar.profitBar.height < costBar.ghostBar1.height)
-					{
-						costBar.profitBar.height += 1;
-					}else
-					{
-						_animateCost = 0;
-						_holdingGhost = false;
-						costBar.profitBar.height = costBar.ghostBar1.height;
-					}
-				}
-			} else{
-				//work in progress. Won't be ready for wednesday.
-				// the cost bar will slowly tick down, when you miss.
 			}
 		}
 		
