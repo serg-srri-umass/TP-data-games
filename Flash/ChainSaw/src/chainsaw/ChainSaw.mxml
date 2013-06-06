@@ -197,17 +197,22 @@
 			
 			/*
 			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
-			*/
-			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
-//			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			*/ //:sounds:
+			[Embed("../src/chainsaw_assets/longBogDown.mp3")]
+			//[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
-//			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			[Embed("../src/chainsaw_assets/engineStop.mp3")]
+			//[Embed("../src/chainsaw_assets/dummy.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 			
+			[Embed("../src/chainsaw_assets/startUp.mp3")]
+			private var EngineStartSoundMP3:Class;
+			private var mEngineStartSound:Sound = new EngineStartSoundMP3() as Sound;
+			
+			private var mEngineStartSoundChannel:SoundChannel;
 			
 			// test flash player makes sure the player is meeting the minimum requirements.
 			private function testFlashPlayer():void
@@ -697,8 +702,9 @@
 				mLeftToRight		= true;	// Begin cutting left to right.
 				mCutNumber			= 0;	// Reset cut number.
 				
-				mChainsawSound.play(0,int.MAX_VALUE); // start the chainsaw sound
-				
+				mEngineStartSoundChannel = mEngineStartSound.play(0);
+				mEngineStartSoundChannel.addEventListener(Event.SOUND_COMPLETE, bogDownPlayerHandler);
+
 				// Randomize log array, but not for first game, as it's already random.
 				if (!mFirstGame)
 				{
@@ -783,6 +789,10 @@
 						// (Nothing to do)
 					}
 				}
+			}
+			
+			private function bogDownPlayerHandler(e:Event):void{
+				mChainsawSound.play(0, int.MAX_VALUE);
 			}
 			
 			// endGame() performs all operations necessary when game is complete.
