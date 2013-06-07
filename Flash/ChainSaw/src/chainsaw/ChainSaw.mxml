@@ -228,6 +228,8 @@
 			// and sets up necessary parameters for game initiation.
 			private	function startUp():void
 			{
+				BrickWall.visible = false;
+				
 				// Arrays store individual cuts on each log for use in free cut levels.		
 				mLogDetails1 = new Array(dynamicLog1, null, new Array());
 				mLogDetails2 = new Array(dynamicLog2, null, new Array());
@@ -1344,7 +1346,9 @@
 		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="80"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="745" color="0xffffff"/>
 		<s:Label id="midLabelError" text="{'ChainSaw requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="170"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
 		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
-		<s:Label id="bottomLabel" text="Download the latest version at http://get.adobe.com/flashplayer/" x="0" y="310"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
+		<s:Button id = "upgradeButton" x="{(745-350)/2}" y="250"  click="VersionChecker.openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
+		<s:Button id = "ignoreButton" x="{(745-350)/2}"  y="310"  click="startUp()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
+		
 	</s:BorderContainer>
 	
 	

@@ -1502,11 +1502,6 @@
 				bootyMeterContainer.addChild(bootyMeter);
 			}	
 			
-			private function openAdobeWebsite():void{
-				var url:URLRequest = new URLRequest("http://get.adobe.com/flashplayer/");
-				navigateToURL(url, "_blank");
-			}
-			
 			//********** Title Bar Volume Control*********
 			private function updateVolume(vol:Number):void
 			{
@@ -1671,8 +1666,7 @@
 		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="70"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
 		<s:Label id="midLabelError" text="{'Ship Odyssey requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="160"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
 		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="180"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
-		
-		<s:Button id = "upgradeButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}" y="250"  click="openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
+		<s:Button id = "upgradeButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}" y="250"  click="VersionChecker.openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
 		<s:Button id = "ignoreButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}"  y="310"  click="startUp()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
 	
 	</s:BorderContainer>
