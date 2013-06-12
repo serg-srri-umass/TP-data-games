@@ -48,7 +48,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.06.10";
+			public static const VERSION:String = "v.2013.06.12";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -146,7 +146,7 @@
 			
 			
 			//variables for holding loaded MovieClips
-			private var popUpScreen:MovieClip = new popUpMVC();
+			private var popUpScreen:MovieClip = new PopUpMVC();
 			
 			//timer when your money hits zero, waits before showing lose screen
 			private var endTimer:Timer;
@@ -311,7 +311,7 @@
 
 				mLevelWindow = new TreasureHuntLevelWindow();
 				chooseHuntLevel(true);
-				popUpScreen.visible = false;	// failsafe to prevent popUpScreen from being turned off before it loads.			
+				popUpScreen.visible = false;		
 			}
 				
 			private function replayLevelButtonHandler(e:MouseEvent):void{
@@ -446,7 +446,7 @@
 							"Total_Rats_Sent",	// Total number of rats sent during current game.
 							"Total_Drops",		// Number of times hook was dropped during current game.
 							"Treasures_Found",	// Number of treasures found during current game.
-							"Profit"			// Value of (treasures found) minus (crew/ship costs and rat costs).
+							//"Profit"			// Value of (treasures found) minus (crew/ship costs and rat costs).
 						]
 					);
 				}
@@ -817,21 +817,41 @@
 						noisyLocation = Math.round((mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[evenOdd]);
 					}
 					
-					DivingRatDirector.addRat( noisyLocation);					
 					
 					eventArray.push( getEventDataValues( noisyLocation ));
 					if( (ratNum+1==mRatsToSend) || (eventArray.length >= eventsAtATime )){
-						//trace("sending " + eventArray.length + " rats.");
-						sendEventData("Rat", eventArray ); // Send event data to TinkerPlots / DG
+						DivingRatDirector.addRat( noisyLocation, eventArray);
 						eventArray = []; // clear values already sent
+					}else{
+						DivingRatDirector.addRat( noisyLocation);					
 					}
 					evenOdd = (evenOdd+1)%2;
 				}
 				if(mRatsToSend > 0)
 					DivingRatDirector.releaseRats();
 				
-				// send updated [mRatsSent] to DG game case
-				sendGameDataUpdate();				
+			}
+			
+			// when a rat animation finishes, put the data on DG.
+			private function finishRatDive(e:RatEvent):void {
+				enableRatButton(e);
+				pushRatDataToDG(e);
+			}
+			
+			// put the rat data on DG, when the animation finishes
+			private function pushRatDataToDG(e:RatEvent):void{
+				for(var i:int = 0; i < DivingRatDirector.dataArray.length; i++){
+					//trace(DivingRatDirector.dataArray[i]);
+					sendEventData("Rat",  DivingRatDirector.dataArray[i]);	
+				}
+				DivingRatDirector.clearDataArray();
+				sendGameDataUpdate();
+				
+				/*var a:Array = e.dataArray;
+				for(var i:int = 0; i < a.length; i++){
+					sendEventData("Rat",  a[i].data);	
+				}
+				sendGameDataUpdate();	*/
 			}
 			
 			// onChangeCenterPosition() is called when the value of the hook's
@@ -1132,6 +1152,7 @@
 				return "";
 			}
 			
+			// should we change this, or make it work? It's not being called at all right now. 
 			private function updateProfitAfterSail():void{
 				//update the cumulative cost of using the ship and crew as well as the profit so far
 				mCurrentTreasureNum = selectRandomTreasure();
@@ -1171,8 +1192,8 @@
 								mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
 								getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
 								"",
+								"",
 								""
-								//""
 							]
 						} 	
 					}
@@ -1494,15 +1515,16 @@
 			}
 			
 			
+			
 			// This function is called when the game starts. These objects will have the following listeners for the entirety of the play session:
 			private function initListeners():void{
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
-				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, enableRatButton);	
+				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, finishRatDive);
 				bootyMeter.dispatcher.addEventListener(BootyEvent.WIN, winGame);				
 				bootyMeter.dispatcher.addEventListener(BootyEvent.LOSE, loseGame);
 				bootyMeter.dispatcher.addEventListener(BootyEvent.ACCOUNTING, disableAllButtons);
 			}
-			
+		
 			// attach the booty bar to the screen. And popups
 			private function initVisualElements():void{
 				bootyMeterContainer.addChild(bootyMeter);

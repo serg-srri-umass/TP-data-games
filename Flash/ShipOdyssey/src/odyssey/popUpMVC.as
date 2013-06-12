@@ -1,8 +1,9 @@
 package odyssey
 {
-	public class popUpMVC extends popUps
+	//this class was renamed with proper capitalization.
+	public class PopUpMVC extends popUps
 	{
-		public function popUpMVC()
+		public function PopUpMVC()
 		{
 		}
 	}
