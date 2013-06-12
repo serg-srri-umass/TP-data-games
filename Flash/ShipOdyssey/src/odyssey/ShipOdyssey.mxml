@@ -80,10 +80,12 @@
 			public static const kLevel2Instructions:String = "Each treasure is still worth $7,000, but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals!";
 			public static const kLevel3Instructions:String = "Each treasure is now worth $15,000. Rats will cost you $100 each. Check the loot meter for your new goals!";
 			public static const kLevel4Instructions:String = "Each treasure is worth $18,000. The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals!";
-			public static const kLevel1Title:String = "The Daisy Shore";
-			public static const kLevel2Title:String = "Mystery Cove";
-			public static const kLevel3Title:String = "The Open Ocean";
-			public static const kLevel4Title:String = "Deep Water";
+
+			//public static const kLevel1Title:String = "The Daisy Shore";
+			//public static const kLevel2Title:String = "Mystery Cove";
+			//public static const kLevel3Title:String = "The Open Ocean";
+			//public static const kLevel4Title:String = "Deep Water";
+
 			public static const kSailOnNormalLevel:String = "Are you sure you would like to skip this treasure and sail on?";
 			public static const kSailOnMultiTreasureLevel:String = "Are you sure there are no treasures here and you'd like to sail on?";
 			public static const kTreasureGoal:int = 30000;
@@ -113,7 +115,6 @@
 			private var mTreasuresFound:uint= 0;			// Treasures found so far in current game.
 			private var mTreasureValueSoFar:uint = 0;		// Cumulative value of treasures found in current game.
 			private var mRatCostSoFar:uint = 0;				// Cumulative value of rat cost in current game.
-			private var mProfitSoFar:int	= 0;			// Profit so far in current game.
 			private var mEventNumber:uint	= 0;			// Number of current event in current game (rat(s) sent or hook dropped), begining with 1.
 			private var mGameNumber:uint	= 0;			// Number of current game, begining with 1.
 			private var mRatsSent:uint		= 0;			// Number of rats already sent in current game.
@@ -286,10 +287,10 @@
 				mLevelWindow.visible = false;
 				
 				//mLevelWindow.closeButton.visible = false;	// Hide the close button.
-				mLevelWindow["mLevelOneButton"].addEventListener("click", handleLevelSelection);
-				mLevelWindow["mLevelTwoButton"].addEventListener("click", handleLevelSelection);
-				mLevelWindow["mLevelThreeButton"].addEventListener("click", handleLevelSelection);
-				mLevelWindow["mLevelFourButton"].addEventListener("click", handleLevelSelection);
+				mLevelWindow["mLevelOneButton"].addEventListener("click", handleLevelSelectionNoPopup);
+				mLevelWindow["mLevelTwoButton"].addEventListener("click", handleLevelSelectionNoPopup);
+				mLevelWindow["mLevelThreeButton"].addEventListener("click", handleLevelSelectionNoPopup);
+				mLevelWindow["mLevelFourButton"].addEventListener("click", handleLevelSelectionNoPopup);
 				
 				mNextHuntLevel = mHuntLevel + 1;
 				
@@ -320,10 +321,10 @@
 				PopUpManager.addPopUp(mLevelWindow, this); 
 				mLevelWindow.visible = false;
 				
-				mLevelWindow["mLevelOneButton"].addEventListener("click", handleLevelSelection);
-				mLevelWindow["mLevelTwoButton"].addEventListener("click", handleLevelSelection);
-				mLevelWindow["mLevelThreeButton"].addEventListener("click", handleLevelSelection);
-				mLevelWindow["mLevelFourButton"].addEventListener("click", handleLevelSelection);
+				mLevelWindow["mLevelOneButton"].addEventListener("click", handleLevelSelectionNoPopup);
+				mLevelWindow["mLevelTwoButton"].addEventListener("click", handleLevelSelectionNoPopup);
+				mLevelWindow["mLevelThreeButton"].addEventListener("click", handleLevelSelectionNoPopup);
+				mLevelWindow["mLevelFourButton"].addEventListener("click", handleLevelSelectionNoPopup);
 				
 				if(mHuntLevel == 1)
 					mLevelWindow["mLevelTwoButton"].dispatchEvent(new MouseEvent(MouseEvent.CLICK));				
@@ -355,7 +356,6 @@
 				chooseHuntLevel(true); // show level selection on start up and start the game (true = start game after level selection)
 				
 				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
-				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
 				
 				//make sure win/lose screens and 'Play Again' button become invisible again after you click them 
 				//popUpScreen.visible = false;
@@ -446,7 +446,7 @@
 							"Total_Rats_Sent",	// Total number of rats sent during current game.
 							"Total_Drops",		// Number of times hook was dropped during current game.
 							"Treasures_Found",	// Number of treasures found during current game.
-							//"Profit"			// Value of (treasures found) minus (crew/ship costs and rat costs).
+							"Profit"			// Value of (treasures found) minus (crew/ship costs and rat costs).
 						]
 					);
 				}
@@ -1084,43 +1084,19 @@
 				}
 			}
 			
-			private function showCurrentLevelInstructions(e:Event = null, initializeLevel:Boolean = false):void
-			{				
-				popUpScreen.visible = true;
-				popUpScreen.gotoAndStop("help");
-				popUpScreen.mainBtn.addEventListener(MouseEvent.CLICK, hideInstructions);
-				
-				switch(mCurrentLevel)
-				{
-					case "LEVEL 1":
-						popUpScreen.body.text = kLevel1Instructions;
-						popUpScreen.title.text = kLevel1Title;
-						popUpScreen.titleBar.gotoAndStop(1);
-						break;
-					case "LEVEL 2":
-						popUpScreen.body.text = kLevel2Instructions;
-						popUpScreen.title.text = kLevel2Title;
-						popUpScreen.titleBar.gotoAndStop(2);
-						break;
-					case "LEVEL 3":
-						popUpScreen.body.text = kLevel3Instructions;
-						popUpScreen.title.text = kLevel3Title;
-						popUpScreen.titleBar.gotoAndStop(3);
-						break;
-					case "LEVEL 4":
-						popUpScreen.body.text = kLevel4Instructions;
-						popUpScreen.title.text = kLevel4Title;
-						popUpScreen.titleBar.gotoAndStop(4);
-						break;
-				}					
-			}
-			
-			private function hideInstructions(e:Event = null):void
+			private function showCurrentLevelInstructions():void
 			{
-				popUpScreen.visible = false;
-				popUpScreen.mainBtn.removeEventListener(MouseEvent.CLICK, hideInstructions);
+				var red:int = 14579041; //#de7561
+				mHelpButton.setStyle("chromeColor", red);
+				levelDescriptionLabel.text = getCurrentLevelDescription();
+				levelDescriptionAlert.visible = true;				
 			}
-
+			private function hideInstructions():void
+			{
+				var tan:int = 13742987; //#d1b38b
+				mHelpButton.setStyle("chromeColor", tan);
+				levelDescriptionAlert.visible = false;
+			}
 			
 			private function showCurrentLevelHelpAlert():void
 			{
@@ -1139,6 +1115,21 @@
 						Alert.show(kLevel4Instructions,"Instructions - Level 4", Alert.OK);
 						break;
 				}
+			}
+			private function getCurrentLevelDescription():String
+			{
+				switch(mCurrentLevel)
+				{
+					case "LEVEL 1":
+						return kLevel1Instructions;
+					case "LEVEL 2":
+						return kLevel2Instructions;
+					case "LEVEL 3":
+						return kLevel3Instructions;
+					case "LEVEL 4":
+						return kLevel4Instructions;
+				}
+				return "";
 			}
 			
 			private function updateProfitAfterSail():void{
@@ -1179,7 +1170,6 @@
 							values: [
 								mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
 								getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
-								"",
 								"",
 								""
 								//""
