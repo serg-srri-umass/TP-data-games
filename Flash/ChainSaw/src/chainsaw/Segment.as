@@ -1,6 +1,7 @@
 ﻿package
 {
 	import flash.geom.Point;
+	import loaded_assets.Segment;
 	
 	/**
 	 * Line/curve geometry and helpers

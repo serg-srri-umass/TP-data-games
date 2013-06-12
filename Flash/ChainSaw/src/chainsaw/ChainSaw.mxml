@@ -17,8 +17,6 @@
 		<![CDATA[
 			import chainsaw.GameLevelWindow;
 			
-			import chainsaw_assets.*;
-			
 			import com.adobe.serialization.json.JSON;
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
@@ -155,56 +153,56 @@
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
 			// Converted from .ani format to .png.
-			[Embed(source="../chainsaw_assets/Chainsaw Cursor 2.png")]
+			[Embed(source="../embedded_assets/Chainsaw Cursor 2.png")]
 			private var mChainsawCursor:Class;
 			
 			// Embed the reference length image file.
-			[Embed(source="../chainsaw_assets/Reference Length 75 Pixels.png")]
+			[Embed(source="../embedded_assets/Reference Length 75 Pixels.png")]
 			[Bindable]
 			private var mLengthImage:Class;
 			
 			// Embed tape measure image
-			[Embed(source="../chainsaw_assets/tape_measure.png")]
+			[Embed(source="../embedded_assets/tape_measure.png")]
 			[Bindable]
 			private var mTapeMeasureImage:Class;
 			
 			// Embed the down arrow image file.
-			[Embed(source="../chainsaw_assets/Down Arrow Small.png")]
+			[Embed(source="../embedded_assets/Down Arrow Small.png")]
 			[Bindable]
 			private var mDownArrowImage:Class;
 			
-			[Embed(source="../chainsaw_assets/Cut From Here Right.png")]
+			[Embed(source="../embedded_assets/Cut From Here Right.png")]
 			[Bindable]
 			private var mCutRightArrow:Class;
 			
-			[Embed(source="../chainsaw_assets/Cut From Here Left.png")]
+			[Embed(source="../embedded_assets/Cut From Here Left.png")]
 			[Bindable]
 			private var mCutLeftArrow:Class;
 
 			
 			// Embed volume icon
-			[Embed(source="../chainsaw_assets/Volume.png")]
+			[Embed(source="../embedded_assets/Volume.png")]
 			[Bindable]
 			private var mVolumeIcon:Class;
 			
-			[Embed(source="../chainsaw_assets/Volume_half.png")]
+			[Embed(source="../embedded_assets/Volume_half.png")]
 			[Bindable]
 			private var mHalfVolumeIcon:Class;
 			
-			[Embed(source="../chainsaw_assets/Volume_off.png")]
+			[Embed(source="../embedded_assets/Volume_off.png")]
 			[Bindable]
 			private var mLowVolumeIcon:Class;
 			
 			/*
 			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
 			*/
-			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
-//			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			[Embed("../src/embedded_assets/Chainsaw Sound Longer.mp3")]
+//			[Embed("../src/embedded_assets/dummy.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
-//			[Embed("../src/chainsaw_assets/dummy.mp3")]
+			[Embed("../src/embedded_assets/Chainsaw Engine Stops no Fade In.mp3")]
+//			[Embed("../src/embedded_assets/dummy.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 			
