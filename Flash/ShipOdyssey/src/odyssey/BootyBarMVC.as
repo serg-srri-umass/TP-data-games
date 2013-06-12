@@ -145,6 +145,13 @@ package odyssey
 			_costs = 0;
 		}
 		
+		
+		public function payThenAccount():void {
+			_booty = _booty - _costs + _treasureValue;
+			animateBooty();
+			_costs = 0;
+		}
+		
 		// merge the costs into the booty meter.
 		public function account(bankrupt:Boolean = false):void{
 			_booty -= (bankrupt ? _booty : _costs);	

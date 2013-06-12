@@ -1065,7 +1065,7 @@
 				mRatStepper.enabled = false;
 				
 				if(bootyMeter.profit < 0)
-					bootyMeter.account();
+					bootyMeter.payThenAccount();
 				
 				DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
 			}
