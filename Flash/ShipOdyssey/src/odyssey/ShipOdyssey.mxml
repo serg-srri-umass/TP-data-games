@@ -35,9 +35,7 @@
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
-			import odyssey.TreasureHuntLevelWindow;
 			import odyssey.events.*;
-			
 			import odysseyAssets.*;
 			
 			// BUILD FOR TinkerPlots or DG: 
@@ -64,7 +62,7 @@
 			public static const kHuntLevelFour:uint = 3;	// Fourth treasure hunt game level. Used to be Murky Level.
 			
 			//** **
-			public static const kCostPerHookDrop:int = 5000; // Cost each time you drop a hook
+			public static const kCostPerHookDrop:int = 5000 // Cost each time you drop a hook		
 			public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
 			public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
 			public static const kHookRadius:uint= 2;	// Radius of grappling hook area.
@@ -76,15 +74,17 @@
 			public static const kMaxLocation:Number = 100;	// Rightmost treasure location.
 			public static const kStdDeviationClear:Number = 10;// Standard deviation of rat results in clear water.
 			public static const kStdDeviationMurky:Number = 15;// Standard deviation of rat results in murky water.
+			
+			public static const kBlankLevelDescription:String = "Mouse over a mission to view its description.";
 			public static const kLevel1Instructions:String = "At this location, each treasure is worth $7,000. You start with $15,000. To complete it, earn $25,000. Rats are free, but be careful; a missed hook will cost you $5,000!";
 			public static const kLevel2Instructions:String = "Each treasure is still worth $7,000, but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals!";
 			public static const kLevel3Instructions:String = "Each treasure is now worth $15,000. Rats will cost you $100 each. Check the loot meter for your new goals!";
 			public static const kLevel4Instructions:String = "Each treasure is worth $18,000. The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals!";
 
-			//public static const kLevel1Title:String = "The Daisy Shore";
-			//public static const kLevel2Title:String = "Mystery Cove";
-			//public static const kLevel3Title:String = "The Open Ocean";
-			//public static const kLevel4Title:String = "Deep Water";
+			public static const kLevel1Title:String = "Hundreds o' Rats";
+			public static const kLevel2Title:String = "Uncertain Treasure";
+			public static const kLevel3Title:String = "Rat Shortage";
+			public static const kLevel4Title:String = "Deep Water";
 
 			public static const kSailOnNormalLevel:String = "Are you sure you would like to skip this treasure and sail on?";
 			public static const kSailOnMultiTreasureLevel:String = "Are you sure there are no treasures here and you'd like to sail on?";
@@ -98,7 +98,6 @@
 			
 			private var mSailOnAlertString:String = kSailOnNormalLevel; //Set to standard sail on question for levels 1, 3, & 4
 			private var mStdDeviation:Number= kStdDeviationClear;	// Standard deviation of rat results.
-			private var mLevelWindow:TreasureHuntLevelWindow;// The modal window for choosing a treasure hunt level.
 			private var mHuntLevel:uint		= 0;			// Current hunt level.
 			private var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
 			private var mNextHuntLevel:uint = 0;
@@ -121,6 +120,7 @@
 			private var mHooksDropped:uint	= 0;			// Number of hooks already dropped in current game.
 			private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet?
 			private var mFoundTreasure:Boolean = false; 	// Has the current hook drop found this treasure?
+			[Bindable] private var boundLevelText:String = "";
 			[Bindable]	private var mCurrentLevel:String = "";
 			private	var	parentCaseID:int = 0;
 			
@@ -276,69 +276,7 @@
 				}
 			}
 			
-			
-			
-			// handlers for end-game case interactions 
-			private function nextLevelButtonHandler(e:MouseEvent):void{
-				popUpScreen.mainBtn.removeEventListener(MouseEvent.CLICK, nextLevelButtonHandler);
-				popUpScreen.visible = false;
-				
-				PopUpManager.addPopUp(mLevelWindow, this); 
-				mLevelWindow.visible = false;
-				
-				//mLevelWindow.closeButton.visible = false;	// Hide the close button.
-				mLevelWindow["mLevelOneButton"].addEventListener("click", handleLevelSelectionNoPopup);
-				mLevelWindow["mLevelTwoButton"].addEventListener("click", handleLevelSelectionNoPopup);
-				mLevelWindow["mLevelThreeButton"].addEventListener("click", handleLevelSelectionNoPopup);
-				mLevelWindow["mLevelFourButton"].addEventListener("click", handleLevelSelectionNoPopup);
-				
-				mNextHuntLevel = mHuntLevel + 1;
-				
-				if(mNextHuntLevel == 1)
-					mLevelWindow["mLevelTwoButton"].dispatchEvent(new MouseEvent(MouseEvent.CLICK));				
-				else if(mNextHuntLevel == 2)
-					mLevelWindow["mLevelThreeButton"].dispatchEvent(new MouseEvent(MouseEvent.CLICK));				
-				else if(mNextHuntLevel == 3)
-					mLevelWindow["mLevelFourButton"].dispatchEvent(new MouseEvent(MouseEvent.CLICK));				
-				else if(mNextHuntLevel == 4)
-					return;
-				
-				initializeTreasureHunt();
-			}
-			
-			private function chooseLevelButtonHandler(e:MouseEvent):void{
-				popUpScreen.chooseLevelBtn.removeEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
-
-				mLevelWindow = new TreasureHuntLevelWindow();
-				chooseHuntLevel(true);
-				popUpScreen.visible = false;		
-			}
-				
-			private function replayLevelButtonHandler(e:MouseEvent):void{
-				popUpScreen.mainBtn.removeEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
-				popUpScreen.visible = false;
-
-				PopUpManager.addPopUp(mLevelWindow, this); 
-				mLevelWindow.visible = false;
-				
-				mLevelWindow["mLevelOneButton"].addEventListener("click", handleLevelSelectionNoPopup);
-				mLevelWindow["mLevelTwoButton"].addEventListener("click", handleLevelSelectionNoPopup);
-				mLevelWindow["mLevelThreeButton"].addEventListener("click", handleLevelSelectionNoPopup);
-				mLevelWindow["mLevelFourButton"].addEventListener("click", handleLevelSelectionNoPopup);
-				
-				if(mHuntLevel == 1)
-					mLevelWindow["mLevelTwoButton"].dispatchEvent(new MouseEvent(MouseEvent.CLICK));				
-				else if(mHuntLevel == 2)
-					mLevelWindow["mLevelThreeButton"].dispatchEvent(new MouseEvent(MouseEvent.CLICK));				
-				else if(mHuntLevel == 3)
-					mLevelWindow["mLevelFourButton"].dispatchEvent(new MouseEvent(MouseEvent.CLICK));				
-				else if(mHuntLevel == 4)
-					return;
-				
-				initializeTreasureHunt();
-			}
-			
-						// startUp() is called when the creation of this class is complete
+			// startUp() is called when the creation of this class is complete
 			// and sets up necessary parameters for game initiation.			
 			private	function startUp():void	
 			{
@@ -353,7 +291,7 @@
 				DivingRatDirector.init( ratContainer);	// pass the DivingRatDirector the container it's going to draw into.
 				
 				this.switchToTreasureHunt(new MouseEvent("click"));				
-				chooseHuntLevel(true); // show level selection on start up and start the game (true = start game after level selection)
+				chooseHuntLevel(); // show level selection on start up and start the game (true = start game after level selection)
 				
 				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
 				
@@ -459,7 +397,6 @@
 				currentState='TreasureHunt';	// Switch to Treasure Hunt screen.
 				// Create a  game level modal dialog.
 				// Listen for clicks on level buttons in dialog.
-				mLevelWindow = new TreasureHuntLevelWindow();
 				initializeTreasureHunt();
 			}
 			
@@ -528,105 +465,71 @@
 			}
 			
 			// chooseHuntLevel() listens for clicks on the hunt level dialog's level buttons.
-			private function chooseHuntLevel(startImmediately:Boolean=false):void 
+			private function chooseHuntLevel():void 
 			{
-				GameEndedAlert.visible = false;
+				boundLevelText = "";
+				popUpScreen.visible = true;
+				popUpScreen.gotoAndStop("level");
 				
-				var isModal:Boolean = true;
-				PopUpManager.addPopUp(mLevelWindow, this, isModal); 
+				//NOTE: Mission tiles are saved within the .swc. You need to open it up in Flash if you want to change them.
+				popUpScreen.mission1.addEventListener(MouseEvent.MOUSE_OVER, displayMission1);
+				popUpScreen.mission2.addEventListener(MouseEvent.MOUSE_OVER, displayMission2);
+				popUpScreen.mission3.addEventListener(MouseEvent.MOUSE_OVER, displayMission3);
+				popUpScreen.mission4.addEventListener(MouseEvent.MOUSE_OVER, displayMission4);
+				popUpScreen.mission1.addEventListener(MouseEvent.MOUSE_OUT, displayMissionInstructions);
+				popUpScreen.mission2.addEventListener(MouseEvent.MOUSE_OUT, displayMissionInstructions);
+				popUpScreen.mission3.addEventListener(MouseEvent.MOUSE_OUT, displayMissionInstructions);
+				popUpScreen.mission4.addEventListener(MouseEvent.MOUSE_OUT, displayMissionInstructions);
 				
-				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
-				//mLevelWindow.closeButton.visible = false;	// Hide the close button.
+				popUpScreen.body.text = kBlankLevelDescription;
 				
-				// add instructions tooltips to the level buttons
-				mLevelWindow["mLevelOneButton"].toolTip = kLevel1Instructions;
-				mLevelWindow["mLevelTwoButton"].toolTip = kLevel2Instructions;
-				mLevelWindow["mLevelThreeButton"].toolTip = kLevel3Instructions;
-				mLevelWindow["mLevelFourButton"].toolTip = kLevel4Instructions;
-				
-				//remove any existing event listeners before adding new ones
-				mLevelWindow["mLevelOneButton"].removeEventListener("click", handleLevelSelectionAndZoomIn);
-				mLevelWindow["mLevelTwoButton"].removeEventListener("click", handleLevelSelectionAndZoomIn);
-				mLevelWindow["mLevelThreeButton"].removeEventListener("click", handleLevelSelectionAndZoomIn);
-				mLevelWindow["mLevelFourButton"].removeEventListener("click", handleLevelSelectionAndZoomIn);
-				
-				if(startImmediately) //when selecting a level at startup
-				{
-					mLevelWindow["mLevelOneButton"].addEventListener("click", handleLevelSelectionAndZoomIn);   
-					mLevelWindow["mLevelTwoButton"].addEventListener("click", handleLevelSelectionAndZoomIn);
-					mLevelWindow["mLevelThreeButton"].addEventListener("click", handleLevelSelectionAndZoomIn);
-					mLevelWindow["mLevelFourButton"].addEventListener("click", handleLevelSelectionAndZoomIn);
-				}
-				else //when selecting a level with levels button
-				{
-					mLevelWindow["mLevelOneButton"].addEventListener("click", handleLevelSelection);   
-					mLevelWindow["mLevelTwoButton"].addEventListener("click", handleLevelSelection);
-					mLevelWindow["mLevelThreeButton"].addEventListener("click", handleLevelSelection);
-					mLevelWindow["mLevelFourButton"].addEventListener("click", handleLevelSelection);
-				}
+				popUpScreen.mission1.addEventListener(MouseEvent.CLICK, firstHuntLevel);   
+				popUpScreen.mission2.addEventListener(MouseEvent.CLICK, secondHuntLevel);
+				popUpScreen.mission3.addEventListener(MouseEvent.CLICK, thirdHuntLevel);
+				popUpScreen.mission4.addEventListener(MouseEvent.CLICK, fourthHuntLevel);
+			}
+			private function displayMissionInstructions(e:MouseEvent):void{
+				popUpScreen.body.text = kBlankLevelDescription;
+			}
+			private function displayMission1(e:MouseEvent):void{
+				popUpScreen.body.text = kLevel1Instructions;
+			}
+			private function displayMission2(e:MouseEvent):void{
+				popUpScreen.body.text = kLevel2Instructions;
+			}
+			private function displayMission3(e:MouseEvent):void{
+				popUpScreen.body.text = kLevel3Instructions;
+			}
+			private function displayMission4(e:MouseEvent):void{
+				popUpScreen.body.text = kLevel4Instructions;
 			}
 			
-			// Prepares a new level once a level has been selected by pressing the 'levels' button and shows the instructions for that level.
-			private function handleLevelSelection(event:Event):void
-			{
-				PopUpManager.removePopUp(mLevelWindow);
-				initializeChosenLevel(event);
-				showCurrentLevelInstructions();
-			}
-			// Prepares a new level and starts the game when a level is selected when the game is first loaded.
-			private function handleLevelSelectionAndZoomIn(event:Event):void
-			{
-				PopUpManager.removePopUp(mLevelWindow);
-				initializeChosenLevel(event);
-				showCurrentLevelInstructions();
-			}
-			
-			private function handleLevelSelectionNoPopup(event:Event):void{
-				initializeChosenLevel(event);
-				showCurrentLevelInstructions();
+			//remove all listeners from the level chooser window & close it.
+			private function stripMissionButtonListeners():void{
+				popUpScreen.visible = false;
+				popUpScreen.mission1.removeEventListener(MouseEvent.MOUSE_OVER, displayMission1);
+				popUpScreen.mission2.removeEventListener(MouseEvent.MOUSE_OVER, displayMission2);
+				popUpScreen.mission3.removeEventListener(MouseEvent.MOUSE_OVER, displayMission3);
+				popUpScreen.mission4.removeEventListener(MouseEvent.MOUSE_OVER, displayMission4);
+				popUpScreen.mission1.removeEventListener(MouseEvent.MOUSE_OUT, displayMissionInstructions);
+				popUpScreen.mission2.removeEventListener(MouseEvent.MOUSE_OUT, displayMissionInstructions);
+				popUpScreen.mission3.removeEventListener(MouseEvent.MOUSE_OUT, displayMissionInstructions);
+				popUpScreen.mission4.removeEventListener(MouseEvent.MOUSE_OUT, displayMissionInstructions);
+				popUpScreen.mission1.removeEventListener(MouseEvent.CLICK, firstHuntLevel);   
+				popUpScreen.mission2.removeEventListener(MouseEvent.CLICK, secondHuntLevel);
+				popUpScreen.mission3.removeEventListener(MouseEvent.CLICK, thirdHuntLevel);
+				popUpScreen.mission4.removeEventListener(MouseEvent.CLICK, fourthHuntLevel);
 			}
 			
-			private function initializeChosenLevel(event:Event):void
-			{
-				var levelButtonId:String = (event.target as Button).id;
-				switch(levelButtonId)
-				{
-					case "mLevelOneButton":
-						firstHuntLevel(event);
-						break;
-					case "mLevelTwoButton":
-						secondHuntLevel(event);
-						break;
-					case "mLevelThreeButton":
-						thirdHuntLevel(event);
-						break;
-					case "mLevelFourButton":
-						fourthHuntLevel(event);
-						break;
-				}
-			}
-			
-			// gameLevelChosen() sets the current game level to the value passed in and closes the modal dialog.
-			private function huntLevelChosen(iLevel:uint):void 
-			{
-				mHuntLevel = iLevel; // Set game level to input value.
-				PopUpManager.removePopUp(mLevelWindow);
-				
-				/*if(mHuntLevel == 0 || mHuntLevel == 1) //first or second levels				Remove this when the rat cost log is gone
-				{
-				mRatCostLabel.visible = false;
-				mRatCost.visible = false;
-				}
-				else
-				{
-				mRatCostLabel.visible = true;
-				mRatCost.visible = true;
-				}*/
-			}
 			
 			// firstHuntLevel() sets the current hunt level to the first level.
-			private function firstHuntLevel(iEvent:Event):void 
+			private function firstHuntLevel(iEvent:Event = null):void 
 			{
+				boundLevelText = kLevel1Title;
+				
+				if(iEvent)
+					stripMissionButtonListeners();
+				
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				//Set background image and standard deviation that fit with game level.
 				mStdDeviation = kStdDeviationClear;
@@ -634,7 +537,7 @@
 				Sky.backgroundFill = daylight;
 				cHerder.init(5,395,0xDDDDDD);
 				cHerder.startClouds();
-				huntLevelChosen(kHuntLevelOne); // Set game level to first level.
+				mHuntLevel = kHuntLevelOne; // Set game level to first level.
 				
 				setCurrentMinMaxRats( 100, 100, 500 );
 				mCostPerRat	= 0;	// Cost per rat in dollars.
@@ -643,12 +546,17 @@
 				mSailOnAlertString = kSailOnNormalLevel;
 				
 				bootyMeter.initialize(15000, 30000, 7000);
-				
+				showCurrentLevelInstructions();
 			}
 			
 			// secondHuntLevel() sets the current hunt level to the second level.
-			private function secondHuntLevel(iEvent:Event):void 
+			private function secondHuntLevel(iEvent:Event = null):void 
 			{
+				boundLevelText = kLevel2Title;
+				
+				if(iEvent)
+					stripMissionButtonListeners();
+				
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				// Set background image and standard deviation that fit with game level.
 				mStdDeviation = kStdDeviationClear;
@@ -656,7 +564,7 @@
 				Sky.backgroundFill = daylight;
 				cHerder.init(5,395,0x999999);
 				cHerder.startClouds();
-				huntLevelChosen(kHuntLevelTwo); // Set game level to second level.
+				mHuntLevel = kHuntLevelTwo; // Set game level to second level.
 				
 				setCurrentMinMaxRats( 100, 100, 500 );
 				mCostPerRat	= 0;	// Cost per rat in dollars.
@@ -665,10 +573,16 @@
 				mSailOnAlertString = kSailOnMultiTreasureLevel;
 				
 				bootyMeter.initialize(15000, 40000, 7000);
+				showCurrentLevelInstructions();
 			}
 			
-			private function thirdHuntLevel(iEvent:Event):void 
+			private function thirdHuntLevel(iEvent:Event = null):void 
 			{
+				boundLevelText = kLevel3Title;
+				
+				if(iEvent)
+					stripMissionButtonListeners();
+				
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				// Set background image and standard deviation that fit with game level.
 				mStdDeviation = kStdDeviationClear;
@@ -676,7 +590,7 @@
 				Sky.backgroundFill = daylight;
 				cHerder.init(5,395,0x999999);
 				cHerder.startClouds();
-				huntLevelChosen(kHuntLevelThree);
+				mHuntLevel = kHuntLevelThree;
 				
 				setCurrentMinMaxRats( 10, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
@@ -685,10 +599,16 @@
 				mSailOnAlertString = kSailOnNormalLevel;
 				
 				bootyMeter.initialize(10000, 45000, 15000);
+				showCurrentLevelInstructions();
 			}
 			
-			private function fourthHuntLevel(iEvent:Event):void 
+			private function fourthHuntLevel(iEvent:Event = null):void 
 			{
+				boundLevelText = kLevel4Title;
+				
+				if(iEvent)
+					stripMissionButtonListeners();
+				
 				mPrevHuntLevel = mHuntLevel;		// Track game level change.
 				// Set background image and standard deviation that fit with game level.
 				mStdDeviation = kStdDeviationMurky;
@@ -696,7 +616,7 @@
 				Sky.backgroundFill = darkDay;
 				cHerder.init(5,395,0x999999);
 				cHerder.startClouds();
-				huntLevelChosen(kHuntLevelFour);
+				mHuntLevel = kHuntLevelFour;
 				
 				setCurrentMinMaxRats( 10, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
@@ -705,6 +625,7 @@
 				mSailOnAlertString = kSailOnNormalLevel;
 				
 				bootyMeter.initialize(10000, 45000, 18000);
+				showCurrentLevelInstructions();
 			}
 			
 			// getOceanQuality() returns a string descibing the ocean quality based on the hunt level
@@ -846,12 +767,6 @@
 				}
 				DivingRatDirector.clearDataArray();
 				sendGameDataUpdate();
-				
-				/*var a:Array = e.dataArray;
-				for(var i:int = 0; i < a.length; i++){
-					sendEventData("Rat",  a[i].data);	
-				}
-				sendGameDataUpdate();	*/
 			}
 			
 			// onChangeCenterPosition() is called when the value of the hook's
@@ -899,6 +814,7 @@
 			protected function onClickDropHookButton(event:MouseEvent):void
 			{		
 				mDropHookButton.enabled = false;
+				crane.canDrag = false;
 				//check to see if the crane needs to move before we can drop the hook
 				//this happens if someone changes the value of the stepper and then clicks the Drop Hook button before the crane finishes moving
 				if(mCenterPosition != mCenterPositionStepper.value || Math.abs(crane.getFrame()- mCenterPosition)>1){
@@ -951,6 +867,46 @@
 				popUpScreen.chooseLevelBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
 			}
 			
+			// handlers for end-game case interactions 
+			// click the 'continue' button (when you win a mission)
+			private function nextLevelButtonHandler(e:MouseEvent):void{
+				popUpScreen.mainBtn.removeEventListener(MouseEvent.CLICK, nextLevelButtonHandler);
+				
+				mNextHuntLevel = mHuntLevel + 1;
+				if(mNextHuntLevel == 1)
+					secondHuntLevel();			
+				else if(mNextHuntLevel == 2)
+					thirdHuntLevel();				
+				else if(mNextHuntLevel == 3)
+					fourthHuntLevel();								
+				initializeTreasureHunt();
+				showCurrentLevelInstructions();
+			}
+			
+			// click the 'choose level' button
+			private function chooseLevelButtonHandler(e:MouseEvent):void{
+				popUpScreen.chooseLevelBtn.removeEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
+				chooseHuntLevel();
+			}
+			
+			// click the 'retry' button
+			private function replayLevelButtonHandler(e:MouseEvent):void{
+				popUpScreen.mainBtn.removeEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
+				mNextHuntLevel = mHuntLevel + 1;
+				if(mHuntLevel == 1)
+					secondHuntLevel();			
+				else if(mHuntLevel == 2)
+					thirdHuntLevel();				
+				else if(mHuntLevel == 3)
+					fourthHuntLevel();				
+				else if(mHuntLevel == 0)
+					firstHuntLevel();
+				
+				exitGame();
+				initializeTreasureHunt();
+				showCurrentLevelInstructions();
+			}
+			
 			//wait and check timer routine for when the hook is moving before a drop
 			private function waitOnCraneMove(e:TimerEvent):void{
 				if(mCenterPosition == mCenterPositionStepper.value && Math.abs(crane.getFrame()- mCenterPosition)<1){
@@ -986,13 +942,16 @@
 					// Send event data to TinkerPlots / Fathom.
 					//sendEventData("Hook", getEventDataValues( "Hit" )); --Disabled
 					
-					TreasureFoundLabel.text = "You found the " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + valueInDollars 
+					popUpScreen.visible = true;
+					popUpScreen.gotoAndStop("treasure");
+					popUpScreen.title.text = "Treasure!";
+					popUpScreen.body.text = "You found the " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + valueInDollars 
 						+ " at location " + mLocationFound.toFixed(1) + "!";
-					TreasureFoundAlert.visible = true;
 					
 					if(mHuntLevel == kHuntLevelTwo) // if on level 2
 					{
-						fadeOutScroll.play();
+						if(!bootyMeter.won)
+							fadeOutScroll.play();
 						enableAllButtons();
 					}
 					else // on levels 1,3,4
@@ -1051,9 +1010,11 @@
 				sailingMovie.reset();
 				mCurrentGameComplete = true;// Game is now complete.	
 				
-				if(!TreasureFoundAlert.visible){
-					treasuresFoundLabel.text = treasuresFoundString();
-					GameEndedAlert.visible = true;
+				if(!popUpScreen.visible){
+					popUpScreen.visible = true;
+					popUpScreen.gotoAndStop("recap");
+					popUpScreen.title.text = "Anchor Pulled!";		
+					popUpScreen.body.text = treasuresFoundString();
 				}
 				
 				mLevelsButton.enabled = true;
@@ -1071,8 +1032,9 @@
 			}
 			
 			private function newMission(iEvent:MouseEvent = null):void{
-				GameEndedAlert.visible = false;
-				TreasureFoundAlert.visible = false;
+				popUpScreen.visible = false;
+				//GameEndedAlert.visible = false;
+				popUpScreen.visible = false;
 				hideInstructions();
 				sailThenZoomIn();
 				mLevelsButton.enabled = false;
@@ -1108,14 +1070,19 @@
 			{
 				var red:int = 14579041; //#de7561
 				mHelpButton.setStyle("chromeColor", red);
-				levelDescriptionLabel.text = getCurrentLevelDescription();
-				levelDescriptionAlert.visible = true;				
+				
+				popUpScreen.visible = true;
+				popUpScreen.gotoAndStop("help");
+				popUpScreen.title.text = getCurrentLevelTitle();
+				popUpScreen.body.text = getCurrentLevelDescription();
+				
 			}
+			
 			private function hideInstructions():void
 			{
 				var tan:int = 13742987; //#d1b38b
 				mHelpButton.setStyle("chromeColor", tan);
-				levelDescriptionAlert.visible = false;
+				popUpScreen.visible = false;
 			}
 			
 			private function showCurrentLevelHelpAlert():void
@@ -1136,6 +1103,23 @@
 						break;
 				}
 			}
+			
+			private function getCurrentLevelTitle():String
+			{
+				switch(mCurrentLevel)
+				{
+					case "LEVEL 1":
+						return kLevel1Title;
+					case "LEVEL 2":
+						return kLevel2Title;
+					case "LEVEL 3":
+						return kLevel3Title;
+					case "LEVEL 4":
+						return kLevel4Title;
+				}
+				return "";
+			}
+			
 			private function getCurrentLevelDescription():String
 			{
 				switch(mCurrentLevel)
@@ -1591,7 +1575,7 @@
 		
 		<!-- Fade out effect that hides the treasure found scroll (used for automatically hiding it in level 2) -->
 		<s:Sequence id="fadeOutScroll" duration="1000" startDelay="1500"
-					target="{TreasureFoundAlert}" effectEnd="TreasureFoundAlert.visible=false; TreasureFoundAlert.alpha=1">
+					target="{popUpScreen}" effectEnd="popUpScreen.visible=false; popUpScreen.alpha=1">
 			<s:Fade alphaFrom="1" alphaTo="0" />
 		</s:Sequence>
 	</fx:Declarations>
@@ -1604,8 +1588,7 @@
 				<s:GradientEntry color="0xd8d8d8"/>
 			</s:LinearGradient>
 		</s:backgroundFill>
-		<s:Label id="GameLabel" x="163" y="7" width="163" chromeColor="#294867" color="#294867" fontFamily="Impact" fontSize="18" fontStyle="normal" text="Ship Odyssey" textAlign="center" verticalAlign="top"/>
-		<s:Label id="currentLevel" includeIn="TreasureHunt" x="12" y="7" width="99" chromeColor="#294867" color="#294867" fontFamily="Impact" fontSize="18" fontStyle="normal" text="{mCurrentLevel}" depth="1"/>
+		<s:Label id="currentLevel" includeIn="TreasureHunt" x="12" y="7" width="399" chromeColor="#294867" color="#294867" text="{boundLevelText}" fontFamily="Impact" fontSize="18" fontStyle="normal" depth="1"/>
 		<s:Label id="GameVersionLabel" includeIn="TreasureHunt" x="295" y="12" width="150" color="#16203a" fontFamily="Georgia" fontSize="10" fontStyle="normal" initialize="GameVersionLabel.text=getVersion()" />
 		<s:Image id="mVolumeImage" x="390" y="6" source="{mVolumeIcon}"/>
 		<s:HSlider id="mVolumeSlider" x="415" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="80"/>
@@ -1629,10 +1612,10 @@
 		</s:Group>
 	
 	<!-- Left Sidebar Log -->
-	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">		<!-- $WIP -->
+	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">	
 		<s:Image id="mSidebarScroll" x="5" y="120" source="{mSidebarBacker}" />			
 		
-		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel(false);" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
+		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="chooseHuntLevel();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 		<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
 		<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="Set Sail" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
 	</mx:Canvas>
@@ -1657,24 +1640,7 @@
 	<mx:Image	id="mTimeRanOutAlert" includeIn="TreasureHunt" x="170" y="119" source="{mTimeRanOutImage}" depth="6"/>
 	<mx:Image	id="mCongratulationsAlert" includeIn="TreasureHunt" x="170" y="119" source="{mCongratulationsImage}" depth="6"/>
 	<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="You found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/>
-	<!--<mx:Image	id="mNoTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mNoTreasuresFoundImage}" depth="6"/>-->
-	<!--<s:Button id="mExitFinishButton" visible="false" depth="7" includeIn="TreasureHunt" x="270" y="335" width="90" height="18" label="Exit Game" chromeColor="#D1B38B" click="onClickExitTreasureHunt(event)" color="#000000" enabled="true" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>-->
-	<s:Group id="TreasureFoundAlert" visible="false" depth="6">
-		<s:Image	id="TreasureFoundAlertImage" includeIn="TreasureHunt" x="170" y="119" source="{mParchmentImage}" depth="6"/>
-		<s:Label	id="TreasureFoundLabel" includeIn="TreasureHunt" x="188" y="173" fontFamily="Georgia" fontStyle="italic" height="120" width="249" fontSize="22" textAlign="center" color="#000000" depth="7"/>
-		<!--<s:Button	id="ContinueOn" includeIn="TreasureHunt" x="250" y="300" width="125" height="18" label="Continue" chromeColor="#D1B38B" color="#000000"
-		click="continueAfterFindingTreasure(event)" depth="7" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>-->
-	</s:Group>
-	<s:Group id="GameEndedAlert" visible="false" depth="6">
-		<s:Image	id="GameEndedAlertImage" includeIn="TreasureHunt" x="170" y="119" source="{mParchmentImage}" depth="6"/>
-		<s:Label	id="GameEndedLabel" includeIn="TreasureHunt" x="188" y="173" text="Game Ended" fontFamily="Georgia" fontStyle="italic" height="120" width="249" fontSize="22" textAlign="center" color="#000000" depth="7"/>
-		<s:Label	id="treasuresFoundLabel" includeIn="TreasureHunt" x="195" y="220" fontFamily="Georgia" height="120" width="245" fontSize="16" textAlign="center" color="#000000" depth="7"/>
-	</s:Group>
-	<s:Group id="levelDescriptionAlert" visible="false" depth="6">
-		<s:Image includeIn="TreasureHunt" x="170" y="119" source="{mParchmentImage}" depth="6"/>
-		<s:Label includeIn="TreasureHunt" x="188" y="173" text="Instructions" fontFamily="Georgia" fontStyle="italic" height="120" width="249" fontSize="22" textAlign="center" color="#000000" depth="7"/>
-		<s:Label id="levelDescriptionLabel" includeIn="TreasureHunt" x="195" y="220" fontFamily="Georgia" height="120" width="245" fontSize="16" textAlign="center" color="#000000" depth="7"/>
-	</s:Group>
+	
 	<!-- Modal level window buttons -->
 	<s:Button id="mLevelOneButton" x="82" y="157" skinClass="odyssey.skins.DifficultyLevel1ButtonSkin" depth="2" enabled="true" visible="false"/>
 	<s:Button id="mLevelTwoButton" x="82" y="181" skinClass="odyssey.skins.DifficultyLevel2ButtonSkin" depth="2" enabled="true" visible="false"/>
