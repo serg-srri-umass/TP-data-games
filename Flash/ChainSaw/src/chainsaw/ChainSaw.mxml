@@ -193,20 +193,15 @@
 			[Bindable]
 			private var mLowVolumeIcon:Class;
 			
-			/*
-			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
-			*/
-			[Embed("../src/embedded_assets/Chainsaw Sound Longer.mp3")]
-//			[Embed("../src/embedded_assets/dummy.mp3")]
+			[Embed("../src/embedded_assets/longBogDown.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-			[Embed("../src/embedded_assets/Chainsaw Engine Stops no Fade In.mp3")]
-//			[Embed("../src/embedded_assets/dummy.mp3")]
+			[Embed("../src/embedded_assets/engineStop.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 			
-			[Embed("../src/chainsaw_assets/startUp.mp3")]
+			[Embed("../src/embedded_assets/startUp.mp3")]
 			private var EngineStartSoundMP3:Class;
 			private var mEngineStartSound:Sound = new EngineStartSoundMP3() as Sound;
 			
