@@ -193,7 +193,7 @@
 			[Bindable]
 			private var mLowVolumeIcon:Class;
 			
-			[Embed("../src/embedded_assets/longBogDown.mp3")
+			[Embed("../src/embedded_assets/longBogDown.mp3")]
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
