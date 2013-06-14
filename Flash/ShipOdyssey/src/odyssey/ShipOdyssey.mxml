@@ -19,7 +19,6 @@
 			   backgroundColor.TreasureHunt="#294867">
 	<fx:Style source="ShipOdyssey.css"/>
 	
-	
 	<fx:Script>
 		<![CDATA[
 			import com.adobe.serialization.json.JSON;
@@ -77,8 +76,6 @@
 			public static const kStdDeviationClear:Number = 10;// Standard deviation of rat results in clear water.
 			public static const kStdDeviationMurky:Number = 15;// Standard deviation of rat results in murky water.
 			
-			
-
 			public static const kSailOnNormalLevel:String = "Are you sure you would like to skip this treasure and sail on?";
 			public static const kSailOnMultiTreasureLevel:String = "Are you sure there are no treasures here and you'd like to sail on?";
 			public static const kTreasureGoal:int = 30000;
@@ -91,8 +88,8 @@
 			
 			private var mSailOnAlertString:String = kSailOnNormalLevel; //Set to standard sail on question for levels 1, 3, & 4
 			private var mStdDeviation:Number= kStdDeviationClear;	// Standard deviation of rat results.
-			public var mHuntLevel:uint		= 0;			// Current hunt level.
-			public var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
+			private var mHuntLevel:uint		= 0;			// Current hunt level.
+			private var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
 			public var mNextHuntLevel:uint = 0;
 			[Bindable]	public static var mMaxRatsToSend:uint	= 500;	// Maximum allowable number of rats to send at a time
 			[Bindable]	public static var mMinRatsToSend:uint	= 1;	// Minimum allowable number of rats to send at a time.
@@ -114,7 +111,7 @@
 			private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet?
 			private var mFoundTreasure:Boolean = false; 	// Has the current hook drop found this treasure?
 			[Bindable] public var boundLevelText:String = "";
-			public var mCurrentLevel:String = "";
+			private var mCurrentLevel:String = "";
 			private	var	parentCaseID:int = 0;
 			
 			private var mTreasuresAtLocArr:Array;			//Used for new multi-treasure aspect - tells how many treasures are at the current loc
@@ -137,13 +134,15 @@
 			//booty meter
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
 			
-			
 			//variables for holding loaded MovieClips
-			private var popUpScreen:MovieClip = new PopUpMVC(this as ShipOdyssey);
+			
+			private function getCurrentMission():String{ return mCurrentLevel; }
+			private function getHuntMission():uint{ return mHuntLevel; }
+			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI(firstHuntLevel, secondHuntLevel, thirdHuntLevel, fourthHuntLevel, restartMission, getCurrentMission, getHuntMission);	
+			private var popUpScreen:PopUpMVC = new PopUpMVC(popUpAPI);
 			
 			//timer when your money hits zero, waits before showing lose screen
 			private var endTimer:Timer;
-			
 			
 			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
 			
@@ -433,7 +432,7 @@
 				
 				mTreasuresFound				= 0;	// No treasures found yet.
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
-				mDropLocationNum			= 0;	// Same as mCurrentTreasureNum except in Level 2 - used to track where we are
+				//mDropLocationNum			= 0;	// Same as mCurrentTreasureNum except in Level 2 - used to track where we are
 				
 				// sync the rat stepper with the current level if needed
 				setCurrentMinMaxRats( mRatsToSend, mMinRatsToSend, mMaxRatsToSend );
@@ -456,7 +455,7 @@
 			
 			
 			// firstHuntLevel() sets the current hunt level to the first level.
-			public function firstHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
+			private function firstHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
 				boundLevelText = PopUpMVC.kLevel1Title;
 				
@@ -487,7 +486,7 @@
 			}
 			
 			// secondHuntLevel() sets the current hunt level to the second level.
-			public function secondHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
+			private function secondHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
 				boundLevelText = PopUpMVC.kLevel2Title;
 				
@@ -516,7 +515,7 @@
 					newMission();
 			}
 			
-			public function thirdHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
+			private function thirdHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
 				boundLevelText = PopUpMVC.kLevel3Title;
 				
@@ -545,7 +544,7 @@
 					newMission();
 			}
 			
-			public function fourthHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
+			private function fourthHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
 				boundLevelText = PopUpMVC.kLevel4Title;
 				
@@ -799,7 +798,7 @@
 			}
 			
 			//called from the PopUpMVC when the game needs to be restarted.mHuntLevel
-			public function restartMission():void{
+			private function restartMission():void{
 				exitGame();
 				initializeTreasureHunt();
 				showCurrentLevelInstructions();
@@ -841,7 +840,7 @@
 					
 					
 					var valueInDollars:String = usdFormatter.format(mTreasureArray[mCurrentTreasureNum][kValue]);
-					popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1));
+					//popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1));		$WIP
 					
 					if(mHuntLevel == kHuntLevelTwo) // if on level 2
 					{
@@ -1339,7 +1338,7 @@
 			}
 		
 			// attach the booty bar to the screen. And popups
-			private function initVisualElements():void{
+			private function initVisualElements():void{	
 				bootyMeterContainer.addChild(bootyMeter);
 				popUpContainer.addChild(popUpScreen);
 				popUpScreen.visible = false;
