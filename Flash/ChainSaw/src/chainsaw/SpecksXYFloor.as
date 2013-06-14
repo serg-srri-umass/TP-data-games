@@ -1,4 +1,4 @@
-﻿package chainsaw_assets {
+﻿package chainsaw{
 	import flash.display.*;
 	import flash.events.Event;
 	
