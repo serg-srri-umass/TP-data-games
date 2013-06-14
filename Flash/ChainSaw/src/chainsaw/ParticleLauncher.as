@@ -2,6 +2,7 @@
 	import flash.events.*;
 	import flash.events.Event;
 	import flash.display.MovieClip;
+	import loaded_assets.Specks;
 	
 	public class ParticleLauncher extends MovieClip {
 		
