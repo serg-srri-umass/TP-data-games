@@ -506,7 +506,6 @@
 				
 				mTreasuresFound				= 0;	// No treasures found yet.
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
-				mDropLocationNum			= 0;	// Same as mCurrentTreasureNum except in Level 2 - used to track where we are
 				
 				// sync the rat stepper with the current level if needed
 				setCurrentMinMaxRats( mRatsToSend, mMinRatsToSend, mMaxRatsToSend );
@@ -1249,7 +1248,6 @@
 			// get the event data to send to Tinkerplots/DG, 
 			// returned as an array for use by sendEventData()
 			private function getEventDataValues( val:Number ):Array {
-				//var uniqueTreasureID:String = (mGameNumber+"-"+(mDropLocationNum+1));
 				return [
 					mGameNumber, // Game number (1-n)
 					mRatsSent, // Rat number (1-n)
