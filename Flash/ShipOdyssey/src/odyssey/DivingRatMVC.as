@@ -11,6 +11,11 @@ package odyssey
 		private static const STARTING_RISE_SPEED:int = -30; // how fast rats rise when they come out of the water
 		private static const DECK_TIME:int = 3;	// how many frames a rat spends on deck before it dives
 		
+		private static const DIVING:int = 0;
+		private static const UNDERWATER:int = 1;
+		private static const RETURNING:int = 2;
+		private static const FINISHED:int = -1;
+		
 		private var surfacingPosition:Number;
 		private var _age:int = 0;
 		private var _speed:Number;	// how many pixels/frame the rat moves when onscreen
@@ -35,8 +40,7 @@ package odyssey
 				y = GameScreen.calcLowerDeckY(x) + GameScreen.SCREEN_Y; 
 			}
 		}		
-	
-	
+
 		// Attach a rat to the screen. Called from the director.
 		public function attach():void
 		{
@@ -54,7 +58,7 @@ package odyssey
 		private function enterFrame(e:Event):void
 		{
 			_age++;
-			if(_age >= DECK_TIME && _state == 0)
+			if(_age >= DECK_TIME && _state == DIVING)
 			{	// wait X frames before jumping overboard
 				if(_speed < MAX_SPEED)
 					_speed ++; 
@@ -62,13 +66,13 @@ package odyssey
 				y += _speed;
 				if(y >= GameScreen.WATER_Y)		// the rat has hit the water
 				{
-					_state = 1;	// the rat is now underwater
+					_state = UNDERWATER;	// the rat is now underwater
 					_age = 0;
 					y = GameScreen.WATER_Y;
 					rat.gotoAndPlay("splash");
-					DivingRatDirector.addSplash(x);
+					DivingRatDirector.addSplash(x, true);
 				}
-			} else if( _state == 2 )
+			} else if( _state == RETURNING )
 			{				
 				// the rats leap out of the water
 				y += _speed;
@@ -90,19 +94,19 @@ package odyssey
 					
 					if( x > GameScreen.SCREEN_X + GameScreen.UPPER_DECK_WIDTH){
 						if(GameScreen.calcLowerDeckY(x) + GameScreen.SCREEN_Y < y + 5){
-							_state = 4;
+							_state = FINISHED;
 							y = GameScreen.SCREEN_Y + GameScreen.calcLowerDeckY(x) - 10;
 							rat.gotoAndPlay( "disappear");
-							DivingRatDirector.countRat();
+							DivingRatDirector.countRat(this);
 						}
 					} else
 					{
 						if( GameScreen.calcUpperDeckY(x) + GameScreen.SCREEN_Y < y + 5)
 						{
-							_state = 4;
+							_state = FINISHED;
 							y = GameScreen.SCREEN_Y + GameScreen.calcUpperDeckY(x) - 10;
 							rat.gotoAndPlay( "disappear");
-							DivingRatDirector.countRat();
+							DivingRatDirector.countRat(this);
 						}
 					}
 				}
@@ -135,7 +139,7 @@ package odyssey
 				x = GameScreen.SCREEN_X + 5;
 			}
 			
-			DivingRatDirector.addSplash(x);
+			DivingRatDirector.addSplash(x, false);
 		}
 	}
 }

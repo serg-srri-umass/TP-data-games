@@ -29,9 +29,22 @@ package odyssey
 		private static var _timeUnderwater:int;	//how many frames have elapsed since the last rat to dive went underwater
 		private static var _ratCounter:int = 1; 	//counts how many rats have returned to the ship
 		
-		public static function get dispatcher():RatEventDispatcher
-		{						
+		private static var ratDataArray:Array = new Array();
+		private static var _ratsDoveThisFrame:int = 0;		//used for event dispatching & animating
+		private static var _ratsSubmergedThisFrame:int = 0;
+		private static var _ratsEmergedThisFrame:int = 0;
+		private static var _ratsReturnedThisFrame:int = 0;
+		
+		public static function get dispatcher():RatEventDispatcher {						
 			return _dispatcher;		
+		}
+		
+		public static function get dataArray():Array {
+			return ratDataArray;
+		}
+		
+		public static function clearDataArray():void {
+			ratDataArray = new Array();
 		}
 	
 		// This method tells the DivingRatManager where to draw its rats to. It has to be called from ShipOdyssey.mxml when everything else is init'd.
@@ -43,8 +56,11 @@ package odyssey
 		}
 		
 		// pass this method a point on the scale, and it will create a rat at that point
-		public static function addRat( in_x:Number):Boolean
+		public static function addRat( in_x:Number, data:Array = null):Boolean
 		{
+			if(data)
+				ratDataArray.push(data);
+			
 			if( ratArray.length < MAX_RATS_ONSCREEN)
 			{
 				ratArray.push( new DivingRatMVC( in_x));
@@ -90,6 +106,11 @@ package odyssey
 			}else if( _ratsAttached < ratArray.length){
 				manageBellCurve( false);
 			}
+			
+			_ratsDoveThisFrame = 0;
+			_ratsSubmergedThisFrame = 0;
+			_ratsEmergedThisFrame = 0;
+			_ratsReturnedThisFrame = 0;
 		}
 		
 		// Activates rats in a bell curve. This function is used both to tell rats to dive, and to rise back out of the water.
@@ -132,6 +153,7 @@ package odyssey
 		// attaches X rats to the screen
 		private static function attachRats(arg:int):void
 		{
+			_ratsDoveThisFrame = arg; 
 			for( var i:int = 0; i < arg; i++){
 				var thisRat:DivingRatMVC = ratArray[i + _ratsAttached];
 				_container.addChild(thisRat);
@@ -143,6 +165,7 @@ package odyssey
 		// tells X rats to return from under water
 		private static function riseRats( arg:int):void
 		{
+			_ratsEmergedThisFrame = arg;
 			for(var i:int = 0; i < arg; i++){
 				var thisRat:DivingRatMVC = ratArray[i + _ratsAttached];
 				thisRat.rise();
@@ -150,8 +173,11 @@ package odyssey
 		}
 
 		// Splashing code. The splash clip removes itself when it's done playing.
-		public static function addSplash( x:Number):void
+		public static function addSplash( x:Number, goingDown:Boolean):void
 		{
+			if(goingDown)
+				_ratsSubmergedThisFrame++;
+				
 			const SPLASH1_CHANCE:Number = 0.2;	// the chance of using the rarer splash animation
 			var s:MovieClip = new splash();
 			if( Math.random() < SPLASH1_CHANCE)
@@ -181,10 +207,11 @@ package odyssey
 			_endSwitch.stop();
 			
 			//if the "complete dive" was called because the animation was aborted, dispatch the appropriate event.
-			if(e.type == "abortDive")
+			if(e.type == "abortDive"){
 				_dispatcher.dispatchCancelled();
-			else
+			} else {
 				_dispatcher.dispatchReturned();	// dispatch a RatEvent, that says the rats are gone.
+			}
 		}
 		
 		// cancel an ongoing animation:
@@ -196,9 +223,11 @@ package odyssey
 		
 		// when a ratMVC finishes up its animation, it calls this function.
 		// tallies up if all the rats have returned. If they have, it prepares to end the dive
-		public static function countRat():void
+		public static function countRat(r:DivingRatMVC):void
 		{
+			_ratsReturnedThisFrame++;
 			_ratCounter++;
+
 			if(_ratCounter >= ratArray.length)
 				_endSwitch.start();	
 				// the end switch creates a buffer between when the last rat returns to the ship, and the dive is called over. 

@@ -21,8 +21,6 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import odyssey.events.*;
-			
 			import com.adobe.serialization.json.JSON;
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
@@ -38,6 +36,7 @@
 			import mx.utils.StringUtil;
 			
 			import odyssey.TreasureHuntLevelWindow;
+			import odyssey.events.*;
 			
 			import odysseyAssets.*;
 			
@@ -49,7 +48,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.06.04";
+			public static const VERSION:String = "v.2013.06.12";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -77,10 +76,16 @@
 			public static const kMaxLocation:Number = 100;	// Rightmost treasure location.
 			public static const kStdDeviationClear:Number = 10;// Standard deviation of rat results in clear water.
 			public static const kStdDeviationMurky:Number = 15;// Standard deviation of rat results in murky water.
-			public static const kLevel1Instructions:String = "At this location, each treasure is worth $7,000. You start this mission with $15,000. To complete it, earn $25,000. Rats are free, but be careful; a missed hook will cost you $5,000!";
+			public static const kLevel1Instructions:String = "At this location, each treasure is worth $7,000. You start with $15,000. To complete it, earn $25,000. Rats are free, but be careful; a missed hook will cost you $5,000!";
 			public static const kLevel2Instructions:String = "Each treasure is still worth $7,000, but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals!";
 			public static const kLevel3Instructions:String = "Each treasure is now worth $15,000. Rats will cost you $100 each. Check the loot meter for your new goals!";
 			public static const kLevel4Instructions:String = "Each treasure is worth $18,000. The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals!";
+
+			//public static const kLevel1Title:String = "The Daisy Shore";
+			//public static const kLevel2Title:String = "Mystery Cove";
+			//public static const kLevel3Title:String = "The Open Ocean";
+			//public static const kLevel4Title:String = "Deep Water";
+
 			public static const kSailOnNormalLevel:String = "Are you sure you would like to skip this treasure and sail on?";
 			public static const kSailOnMultiTreasureLevel:String = "Are you sure there are no treasures here and you'd like to sail on?";
 			public static const kTreasureGoal:int = 30000;
@@ -110,7 +115,6 @@
 			private var mTreasuresFound:uint= 0;			// Treasures found so far in current game.
 			private var mTreasureValueSoFar:uint = 0;		// Cumulative value of treasures found in current game.
 			private var mRatCostSoFar:uint = 0;				// Cumulative value of rat cost in current game.
-			private var mProfitSoFar:int	= 0;			// Profit so far in current game.
 			private var mEventNumber:uint	= 0;			// Number of current event in current game (rat(s) sent or hook dropped), begining with 1.
 			private var mGameNumber:uint	= 0;			// Number of current game, begining with 1.
 			private var mRatsSent:uint		= 0;			// Number of rats already sent in current game.
@@ -142,11 +146,7 @@
 			
 			
 			//variables for holding loaded MovieClips
-			private var loseScreen:MovieClip;
-			private var winScreen:MovieClip;
-			private var nextLevelButton:MovieClip;
-			private var chooseLevelButton:MovieClip;
-			private var replayLevelButton:MovieClip;
+			private var popUpScreen:MovieClip = new PopUpMVC();
 			
 			//timer when your money hits zero, waits before showing lose screen
 			private var endTimer:Timer;
@@ -268,53 +268,24 @@
 			// ********** END TREASURE HUNT SOUNDS **********
 			
 			// test flash player makes sure the player is meeting the minimum requirements.
-			private function testFlashPlayer():void
-			{
-				if( VersionChecker.isValid(MINIMUM_REQUIREMENTS))
-				{
+			private function testFlashPlayer():void {
+				if( VersionChecker.isValid(MINIMUM_REQUIREMENTS)) {
 					startUp();
 				} else {
 					BrickWall.visible = true;
 				}
 			}
 			
-			//initialization functions
-			//init win and lose screen, and make invisible till we need them
-			private function initLoseScreen():void{
-				loseScreen = loseAnimation.content as MovieClip;
-				loseScreen.visible = false;
-			}
 			
-			private function initWinScreen():void{
-				winScreen = winAnimation.content as MovieClip;
-				winScreen.visible = false;
-			}
 			
-			private function initNextLevelButton():void{
-				nextLevelButton = nextLevelButtonLoader.content as MovieClip;
-				nextLevelButton.visible = false;
-				nextLevelButton.addEventListener(MouseEvent.CLICK, nextLevelButtonHandler);
-			}
-			
-			private function initChooseLevelButton():void{
-				chooseLevelButton = chooseLevelButtonLoader.content as MovieClip;
-				chooseLevelButton.visible = false;
-				chooseLevelButton.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
-			}
-			
-			private function initReplayLevelButton():void{
-				replayLevelButton = replayLevelButtonLoader.content as MovieClip;
-				replayLevelButton.visible = false;
-				replayLevelButton.addEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
-			}
-			
-			//handlers for end-game case interactions 
+			// handlers for end-game case interactions 
 			private function nextLevelButtonHandler(e:MouseEvent):void{
-								
+				popUpScreen.mainBtn.removeEventListener(MouseEvent.CLICK, nextLevelButtonHandler);
+				popUpScreen.visible = false;
+				
 				PopUpManager.addPopUp(mLevelWindow, this); 
 				mLevelWindow.visible = false;
 				
-				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
 				//mLevelWindow.closeButton.visible = false;	// Hide the close button.
 				mLevelWindow["mLevelOneButton"].addEventListener("click", handleLevelSelectionNoPopup);
 				mLevelWindow["mLevelTwoButton"].addEventListener("click", handleLevelSelectionNoPopup);
@@ -332,25 +303,21 @@
 				else if(mNextHuntLevel == 4)
 					return;
 				
-				initNextLevelButton();
-				winScreen.visible = false;
-				chooseLevelButton.visible = false;
 				initializeTreasureHunt();
 			}
 			
 			private function chooseLevelButtonHandler(e:MouseEvent):void{
+				popUpScreen.chooseLevelBtn.removeEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
+
 				mLevelWindow = new TreasureHuntLevelWindow();
 				chooseHuntLevel(true);
-				initChooseLevelButton();
-				winScreen.visible = false;
-				loseScreen.visible = false;
-				nextLevelButton.visible = false;
-				replayLevelButton.visible = false;
-				
-
+				popUpScreen.visible = false;		
 			}
 				
 			private function replayLevelButtonHandler(e:MouseEvent):void{
+				popUpScreen.mainBtn.removeEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
+				popUpScreen.visible = false;
+
 				PopUpManager.addPopUp(mLevelWindow, this); 
 				mLevelWindow.visible = false;
 				
@@ -368,10 +335,6 @@
 				else if(mHuntLevel == 4)
 					return;
 				
-				initReplayLevelButton();
-				loseScreen.visible = false;
-				replayLevelButton.visible = false;
-				chooseLevelButton.visible = false;
 				initializeTreasureHunt();
 			}
 			
@@ -379,6 +342,8 @@
 			// and sets up necessary parameters for game initiation.			
 			private	function startUp():void	
 			{
+				BrickWall.visible = false;
+				
 				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
 				this.sendCollectionData();		//		set it up so we can emit data
 				updateVolume(80); // start at 80% volume
@@ -391,14 +356,9 @@
 				chooseHuntLevel(true); // show level selection on start up and start the game (true = start game after level selection)
 				
 				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
-				mProfitSoFar				= 0;	// No profit until costs & treasures accrue.
 				
 				//make sure win/lose screens and 'Play Again' button become invisible again after you click them 
-				loseScreen.visible = false;
-				winScreen.visible = false;
-				chooseLevelButton.visible = false;
-				nextLevelButton.visible = false;
-				replayLevelButton.visible = false;
+				//popUpScreen.visible = false;
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
@@ -437,7 +397,7 @@
 										{name: "Rats_Sent", type: "numeric", precision: 0, description: "Total number of rats sent during game"   } ,	
 										{name: "Drops", type: "numeric", precision: 0, description: "Number of times hook was dropped during game"   } , 
 										{name: "Treasures_Found", type: "numeric", precision: 0, description: "Number of treasures found during game"   } , 
-										{name: "Profit", type: "numeric", precision: 0, description: "Value of (treasures found) minus (crew/ship costs and rat costs)"   } 			
+										//{name: "Profit", type: "numeric", precision: 0, description: "Value of (treasures found) minus (crew/ship costs and rat costs)"   } 			
 									] ,
 									childAttrName: "Events_Record"
 								},
@@ -486,7 +446,7 @@
 							"Total_Rats_Sent",	// Total number of rats sent during current game.
 							"Total_Drops",		// Number of times hook was dropped during current game.
 							"Treasures_Found",	// Number of treasures found during current game.
-							"Profit"			// Value of (treasures found) minus (crew/ship costs and rat costs).
+							//"Profit"			// Value of (treasures found) minus (crew/ship costs and rat costs).
 						]
 					);
 				}
@@ -811,20 +771,17 @@
 			// show how much the currently dropped rats are going to cost on the cost meter.
 			protected function onMouseOverRatsButton(event:MouseEvent):void
 			{
-				if(mCostPerRat > 0)
-					bootyMeter.ghost(mCostPerRat * mRatsToSend);
 			}
 			protected function onMouseOutRatsButton(event:MouseEvent):void
 			{
-				bootyMeter.cancelGhost();
 			}
+			
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent):void{
 				mEventNumber += 1;	// Sending rats counts as an event.	
 				
 				
-				//trace(bootyMeter.booty);
 				//check to see if we can afford rats
 				if((mCostPerRat * mRatsToSend) >= (bootyMeter.booty)){
 					//trace("You can't buy rats silly!"); //replace this with a rat dialog
@@ -860,21 +817,41 @@
 						noisyLocation = Math.round((mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[evenOdd]);
 					}
 					
-					DivingRatDirector.addRat( noisyLocation);					
 					
 					eventArray.push( getEventDataValues( noisyLocation ));
 					if( (ratNum+1==mRatsToSend) || (eventArray.length >= eventsAtATime )){
-						//trace("sending " + eventArray.length + " rats.");
-						sendEventData("Rat", eventArray ); // Send event data to TinkerPlots / DG
+						DivingRatDirector.addRat( noisyLocation, eventArray);
 						eventArray = []; // clear values already sent
+					}else{
+						DivingRatDirector.addRat( noisyLocation);					
 					}
 					evenOdd = (evenOdd+1)%2;
 				}
 				if(mRatsToSend > 0)
 					DivingRatDirector.releaseRats();
 				
-				// send updated [mRatsSent] to DG game case
-				sendGameDataUpdate();				
+			}
+			
+			// when a rat animation finishes, put the data on DG.
+			private function finishRatDive(e:RatEvent):void {
+				enableRatButton(e);
+				pushRatDataToDG(e);
+			}
+			
+			// put the rat data on DG, when the animation finishes
+			private function pushRatDataToDG(e:RatEvent):void{
+				for(var i:int = 0; i < DivingRatDirector.dataArray.length; i++){
+					//trace(DivingRatDirector.dataArray[i]);
+					sendEventData("Rat",  DivingRatDirector.dataArray[i]);	
+				}
+				DivingRatDirector.clearDataArray();
+				sendGameDataUpdate();
+				
+				/*var a:Array = e.dataArray;
+				for(var i:int = 0; i < a.length; i++){
+					sendEventData("Rat",  a[i].data);	
+				}
+				sendGameDataUpdate();	*/
 			}
 			
 			// onChangeCenterPosition() is called when the value of the hook's
@@ -888,10 +865,15 @@
 				mMinHookRange			= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
 				mMaxHookRange			= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
 				mRangeValueLabel.text	= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
-				if(Math.abs(prevCP - mCenterPosition)>2)
-					crane.tweenTo(mCenterPosition, 1); //goto frame = mCenterPosition, tween length = 1 second
-				else
-					crane.runTo(mCenterPosition);
+				
+				if(event.type == "dragging"){	// this is sloppy. We need CraneEvents.
+					crane.toFrame(mCenterPosition);
+				}else{
+					if(Math.abs(prevCP - mCenterPosition)>2)
+						crane.tweenTo(mCenterPosition, 1); //goto frame = mCenterPosition, tween length = 1 second
+					else
+						crane.runTo(mCenterPosition);
+				}
 			}
 			
 			// onChangeRatStepper() is called when the number of rats to be sent
@@ -905,19 +887,17 @@
 			// show how much the hook drop is going to cost
 			protected function onMouseOverDropHookButton(event:MouseEvent):void
 			{
-				bootyMeter.ghost(kCostPerHookDrop);
 			}
+			
 			protected function onMouseOutDropHookButton(event:MouseEvent):void
 			{
-				bootyMeter.cancelGhost();
 			}
+			
 			// onClickDropHookButton() is called when the Drop Hook button is
 			// pressed and handles all actions assiociated with attempting to
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent):void
 			{		
-				bootyMeter.startTreasureDrop(); // keep the ghost cost highlighted while hook is dropping.
-				
 				mDropHookButton.enabled = false;
 				//check to see if the crane needs to move before we can drop the hook
 				//this happens if someone changes the value of the stepper and then clicks the Drop Hook button before the crane finishes moving
@@ -957,16 +937,18 @@
 
 			//checks to see if game is over
 			private function loseGame(e:BootyEvent):void{
-				loseScreen.visible = true;
-				replayLevelButton.visible = true;
-				chooseLevelButton.visible = true;
+				popUpScreen.visible = true;
+				popUpScreen.gotoAndStop("lose");
+				popUpScreen.mainBtn.addEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
+				popUpScreen.chooseLevelBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
+
 			}
 			
-			
 			private function winGame(e:BootyEvent):void{
-				winScreen.visible = true;
-				nextLevelButton.visible = true;
-				chooseLevelButton.visible = true;
+				popUpScreen.visible = true;
+				popUpScreen.gotoAndStop("win");
+				popUpScreen.mainBtn.addEventListener(MouseEvent.CLICK, nextLevelButtonHandler);
+				popUpScreen.chooseLevelBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
 			}
 			
 			//wait and check timer routine for when the hook is moving before a drop
@@ -1051,53 +1033,58 @@
 			{
 				trace("ShipOdyssey.onClickExitNewGame(iEvent)");
 				
-				if(mExitNewGameButton.label == "Pull Anchor") //Clicking on 'End Game'
-				{
-					sendGameDataClose();
-					
-					//clean up everything so it is back in initial state for start of next game
-					crane.visible = false;
-					CraneHandle.visible = false;
-					
-					sailingMovie.visible = true;
-					sailingMovie.reset();
-					mCurrentGameComplete = true;// Game is now complete.	
-					
-					if(!TreasureFoundAlert.visible){
-						treasuresFoundLabel.text = treasuresFoundString();
-						GameEndedAlert.visible = true;
-					}
-					
-					mLevelsButton.enabled = true;
-					mExitNewGameButton.enabled = true;
-					mExitNewGameButton.label = "New Site";
-					mSendRatsButton.enabled = false;
-					mDropHookButton.enabled = false;
-					mCenterPositionStepper.enabled = false;
-					mRatStepper.enabled = false;
-					
-					if(bootyMeter.profit < 0)
-						bootyMeter.account();
-					
-					DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
+				if( mExitNewGameButton.label == "Pull Anchor"){
+					exitGame(iEvent);
+				} else { 
+					// Clicking on 'New Game'
+					newMission(iEvent);
 				}
-				else //Clicking on 'New Game'
-				{
-					GameEndedAlert.visible = false;
-					TreasureFoundAlert.visible = false;
-					hideInstructions();
-					sailThenZoomIn();
-					mLevelsButton.enabled = false;
-					mExitNewGameButton.enabled = true;
-					mExitNewGameButton.label = "Pull Anchor";
-					disableAllButtons(false);
-					mGameNumber += 1;
-					switchToTreasureHunt(iEvent); //start a new game
-					sendGameDataOpen();
-					
-					trace("readying location!");
-					bootyMeter.readyNewLocation();
+			}
+			
+			private function exitGame(iEvent:MouseEvent = null):void{
+				sendGameDataClose();
+				
+				//clean up everything so it is back in initial state for start of next game
+				crane.visible = false;
+				
+				sailingMovie.visible = true;
+				sailingMovie.reset();
+				mCurrentGameComplete = true;// Game is now complete.	
+				
+				if(!TreasureFoundAlert.visible){
+					treasuresFoundLabel.text = treasuresFoundString();
+					GameEndedAlert.visible = true;
 				}
+				
+				mLevelsButton.enabled = true;
+				mExitNewGameButton.enabled = true;
+				mExitNewGameButton.label = "New Site";
+				mSendRatsButton.enabled = false;
+				mDropHookButton.enabled = false;
+				mCenterPositionStepper.enabled = false;
+				mRatStepper.enabled = false;
+				
+				if(bootyMeter.profit < 0)
+					bootyMeter.payThenAccount();
+				
+				DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
+			}
+			
+			private function newMission(iEvent:MouseEvent = null):void{
+				GameEndedAlert.visible = false;
+				TreasureFoundAlert.visible = false;
+				hideInstructions();
+				sailThenZoomIn();
+				mLevelsButton.enabled = false;
+				mExitNewGameButton.enabled = true;
+				mExitNewGameButton.label = "Pull Anchor";
+				disableAllButtons(false);
+				mGameNumber += 1;
+				switchToTreasureHunt(iEvent); //start a new game
+				sendGameDataOpen();
+				
+				trace("readying location!");
+				bootyMeter.readyNewLocation();
 			}
 			
 			// Toggles the Instructions scroll
@@ -1165,6 +1152,7 @@
 				return "";
 			}
 			
+			// should we change this, or make it work? It's not being called at all right now. 
 			private function updateProfitAfterSail():void{
 				//update the cumulative cost of using the ship and crew as well as the profit so far
 				mCurrentTreasureNum = selectRandomTreasure();
@@ -1205,7 +1193,6 @@
 								getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
 								"",
 								"",
-								"",
 								""
 							]
 						} 	
@@ -1240,7 +1227,7 @@
 									mRatsSent,			 // Total number of rats sent during current game.
 									mHooksDropped,		 // Number of times hook was dropped during current game.
 									mTreasuresFound, 	 // Number of treasures found during current game.
-									mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+									//mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
 								]
 						}
 					};
@@ -1256,7 +1243,7 @@
 							mRatsSent,			 // Total number of rats sent during current game.
 							mHooksDropped,		 // Number of times hook was dropped during current game.
 							mTreasuresFound, 	 // Number of treasures found during current game.
-							mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+							//mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
 						]
 					);
 				}
@@ -1425,7 +1412,10 @@
 				mCenterPositionStepper.enabled = false;
 				mRatStepper.enabled = false;
 				mSendRatsButton.enabled = false;
-				CraneHandle.visible = false;
+				mHelpButton.enabled = false;
+				
+				if(craneInit)	// failsafe to prevent the crane from being turned off before it loads.
+					crane.canDrag = false;
 			}	
 			
 			//added for game init. When intructions display, all buttons but NewGame disabled. 
@@ -1436,7 +1426,10 @@
 				mCenterPositionStepper.enabled = false;
 				mRatStepper.enabled = false;
 				mSendRatsButton.enabled = false;
-				CraneHandle.visible = false;			
+				mHelpButton.enabled = false;
+				
+				if(craneInit)
+					crane.canDrag = false;
 			}
 			
 			private function enableAllButtons():void{
@@ -1444,8 +1437,11 @@
 				mDropHookButton.enabled = true;
 				mCenterPositionStepper.enabled = true;
 				mRatStepper.enabled = true;
+				mHelpButton.enabled = true;
 				mSendRatsButton.enabled = true;
-				CraneHandle.visible = true;
+				
+				if(craneInit)
+					crane.canDrag = true;
 			}
 			
 			private function disableRatButton(e:RatEvent = null):void{
@@ -1460,6 +1456,8 @@
 			
 			//********new visual items and visual only code **********
 			private var crane:MovieClip;
+			private var craneInit:Boolean = false;
+			
 			private var sailingMovie:MovieClip;
 			private var cHerder:MovieClip;
 			private var skyAreaMask:Shape;
@@ -1470,6 +1468,7 @@
 			
 			//ties the crane to MXML loader and sets up the mask
 			private function initCrane():void{
+				craneInit = true; 
 				crane = CraneLoader.content as MovieClip;
 				crane.visible = false;
 				craneMask = new Shape();
@@ -1477,7 +1476,12 @@
 				craneMask.graphics.drawRect(0,0,395,286);
 				uic.addChild(craneMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
 				crane.mask = craneMask;
-				//crane.runTo(mCenterPosition);
+				crane.addEventListener("dragging", updateCraneStepper);	// sloppy. Will use CraneEvents in the future. 
+			}
+			
+			private function updateCraneStepper(e:Event):void{
+				mCenterPositionStepper.value = crane.position;
+				onChangeCenterPosition(e);
 			}
 			
 			//loads the swf, sets colors, and starts the clouds
@@ -1510,17 +1514,22 @@
 				sailingMovie.ToyBoat.startSail();
 			}
 			
+			
+			
 			// This function is called when the game starts. These objects will have the following listeners for the entirety of the play session:
 			private function initListeners():void{
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
-				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, enableRatButton);	
+				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, finishRatDive);
 				bootyMeter.dispatcher.addEventListener(BootyEvent.WIN, winGame);				
 				bootyMeter.dispatcher.addEventListener(BootyEvent.LOSE, loseGame);
+				bootyMeter.dispatcher.addEventListener(BootyEvent.ACCOUNTING, disableAllButtons);
 			}
-			
-			// attach the booty bar to the screen
+		
+			// attach the booty bar to the screen. And popups
 			private function initVisualElements():void{
 				bootyMeterContainer.addChild(bootyMeter);
+				popUpContainer.addChild(popUpScreen);
+				popUpScreen.visible = false;
 			}	
 			
 			//********** Title Bar Volume Control*********
@@ -1637,11 +1646,10 @@
 		<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="186" width="395" height="100" depth="3" />
 		<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
 		<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
-		<s:HSlider id="CraneHandle" includeIn="TreasureHunt" x="149" y="144" width="100" height="20" alpha="0" buttonMode="true" change="mCenterPositionStepper.value=CraneHandle.value;onChangeCenterPosition(event);"
-				   liveDragging="true" depth="6" maximum="100" minimum="0" value="50"/>
 	</s:Group>
 	<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
 	<mx:UIComponent id="ratContainer" x="120" y="121" width="395" height="286"/> <!-- container to hold dots for rat animation demo-->
+	<mx:UIComponent id="popUpContainer" x="0" y="0"/>
 	
 	
 	<!-- Popup Alert items -->
@@ -1673,28 +1681,21 @@
 	<s:Button id="mLevelThreeButton" x="82" y="205" skinClass="odyssey.skins.DifficultyLevel3ButtonSkin" depth="2" enabled="true" visible="false"/>
 	<s:Button id="mLevelFourButton" x="82" y="229" skinClass="odyssey.skins.DifficultyLevel4ButtonSkin" depth="2" enabled="true" visible="false"/>
 	
-	<!-- SWF loads for winning screen animation and losing screen animation -->
-	<s:MovieClipSWFLoader id="winAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initWinScreen()" depth ="11" source="odysseyAssets/winAnimation.swf"/>
-	<s:MovieClipSWFLoader id="loseAnimation" x="0" y="0" width="{this.width}" height="{this.width}" complete="initLoseScreen()" depth ="11" source="odysseyAssets/loseAnimation.swf"/>
-	<s:MovieClipSWFLoader id="nextLevelButtonLoader" x="129.5" y="305" complete="initNextLevelButton()" depth="12" source="odysseyAssets/nextlevel_btn.swf"/>
-	<s:MovieClipSWFLoader id="chooseLevelButtonLoader" x="268.5" y="305" complete="initChooseLevelButton()" depth="12" source="odysseyAssets/chooselevel_btn.swf"/>
-	<s:MovieClipSWFLoader id="replayLevelButtonLoader" x="129.5" y="305" complete="initReplayLevelButton()" depth="12" source="odysseyAssets/replaylevel_btn.swf"/>
-	
-	
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall"	x="0" y="0" width="{GameScreen.TOTAL_SCREEN_WIDTH}" height="{GameScreen.TOTAL_SCREEN_HEIGHT}" visible="false" depth="999">
 		<s:backgroundFill>
 			<s:LinearGradient rotation="90">
-				<s:GradientEntry color="0xFF0000"/>
-				<s:GradientEntry color="0xB40404"/>
+				<s:GradientEntry color="0x13B3C2"/>
+				<s:GradientEntry color="0x1E5B77"/>
 			</s:LinearGradient>
 		</s:backgroundFill>
 		
-		
-		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="80"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
-		<s:Label id="midLabelError" text="{'Ship Odyssey requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="170"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
-		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
-		<s:Label id="bottomLabel" text="Download the latest version at http://get.adobe.com/flashplayer/" x="0" y="310"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
+		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="70"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
+		<s:Label id="midLabelError" text="{'Ship Odyssey requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="160"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
+		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="180"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
+		<s:Button id = "upgradeButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}" y="250"  click="VersionChecker.openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
+		<s:Button id = "ignoreButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}"  y="310"  click="startUp()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
+	
 	</s:BorderContainer>
 	
 </s:Application>

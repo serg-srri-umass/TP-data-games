@@ -40,10 +40,10 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			
-			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
+			private static const MINIMUM_REQUIREMENTS:Number = 11.4;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2013.06.04";
+			public static const VERSION:String   = "Chainsaw v.2013.06.05";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -193,19 +193,19 @@
 			[Bindable]
 			private var mLowVolumeIcon:Class;
 			
-			/*
-			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
-			*/
-			[Embed("../src/embedded_assets/Chainsaw Sound Longer.mp3")]
-//			[Embed("../src/embedded_assets/dummy.mp3")]
+			[Embed("../src/embedded_assets/longBogDown.mp3")
 			private var ChainsawSoundMP3:Class;
 			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
 			
-			[Embed("../src/embedded_assets/Chainsaw Engine Stops no Fade In.mp3")]
-//			[Embed("../src/embedded_assets/dummy.mp3")]
+			[Embed("../src/embedded_assets/engineStop.mp3")]
 			private var EngineStopSoundMP3:Class;
 			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
 			
+			[Embed("../src/embedded_assets/startUp.mp3")]
+			private var EngineStartSoundMP3:Class;
+			private var mEngineStartSound:Sound = new EngineStartSoundMP3() as Sound;
+			
+			private var mEngineStartSoundChannel:SoundChannel;
 			
 			// test flash player makes sure the player is meeting the minimum requirements.
 			private function testFlashPlayer():void
@@ -221,6 +221,8 @@
 			// and sets up necessary parameters for game initiation.
 			private	function startUp():void
 			{
+				BrickWall.visible = false;
+				
 				// Arrays store individual cuts on each log for use in free cut levels.		
 				mLogDetails1 = new Array(dynamicLog1, null, new Array());
 				mLogDetails2 = new Array(dynamicLog2, null, new Array());
@@ -695,8 +697,9 @@
 				mLeftToRight		= true;	// Begin cutting left to right.
 				mCutNumber			= 0;	// Reset cut number.
 				
-				mChainsawSound.play(0,int.MAX_VALUE); // start the chainsaw sound
-				
+				mEngineStartSoundChannel = mEngineStartSound.play(0);
+				mEngineStartSoundChannel.addEventListener(Event.SOUND_COMPLETE, bogDownPlayerHandler);
+
 				// Randomize log array, but not for first game, as it's already random.
 				if (!mFirstGame)
 				{
@@ -781,6 +784,10 @@
 						// (Nothing to do)
 					}
 				}
+			}
+			
+			private function bogDownPlayerHandler(e:Event):void{
+				mChainsawSound.play(0, int.MAX_VALUE);
 			}
 			
 			// endGame() performs all operations necessary when game is complete.
@@ -1332,7 +1339,9 @@
 		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="80"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="745" color="0xffffff"/>
 		<s:Label id="midLabelError" text="{'ChainSaw requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="170"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
 		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
-		<s:Label id="bottomLabel" text="Download the latest version at http://get.adobe.com/flashplayer/" x="0" y="310"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
+		<s:Button id = "upgradeButton" x="{(745-350)/2}" y="250"  click="VersionChecker.openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
+		<s:Button id = "ignoreButton" x="{(745-350)/2}"  y="310"  click="startUp()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
+		
 	</s:BorderContainer>
 	
 	

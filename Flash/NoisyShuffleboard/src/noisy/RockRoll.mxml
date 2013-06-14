@@ -156,6 +156,8 @@
 			// and sets up necessary parameters for game initiation.
 			private	function startUp():void	
 			{
+				BrickWall.visible = false;
+				
 				mRandomNormal = new ParkMiller();	// Create class that generates a uniform normal distribution.
 				var sliderStartValue:Number	= 50;	// Start value of strength sliders.
 				var stepperStartValue:Number= 1;	// Start value if number of games to play.
@@ -1620,8 +1622,8 @@
 	
 	<!-- MovieContainer -->
 	<s:BorderContainer id="MovieContainer" x="0" y="0" width="{this.width}" height="{this.height}" borderVisible="true" backgroundColor="#93ae93">
-		<s:MovieClipSWFLoader id="introMovie" x="0" y="0" width="{this.width}" height="{this.width}" source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/intro-movie.swf"/>
-		<s:SWFLoader id="playButton" x="340" y="300" width="120" height="43" complete="initPlayButton()"  source="/Users/russphelan/Documents/SRRI/TP-data-games.git/Flash/NoisyShuffleboard/src/noisy/rockroll_assets/play_btn.swf"/>
+		<s:MovieClipSWFLoader id="introMovie" x="0" y="0" width="{this.width}" height="{this.width}" source="../src/noisy/rockroll_assets/intro-movie.swf"/>
+		<s:SWFLoader id="playButton" x="340" y="300" width="120" height="43" complete="initPlayButton()"  source="../src/noisy/rockroll_assets/play_btn.swf"/>
 	</s:BorderContainer>  
 
 	<!-- Error message for bad version of flash player -->	
@@ -1637,7 +1639,8 @@
 		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="80"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="800" color="0xffffff"/>
 		<s:Label id="midLabelError" text="{'RockRoll requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="170"  fontSize="15" fontFamily="Arial" textAlign="center" width="800" color="0xffffff"/>
 		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="800" color="0xffffff"/>
-		<s:Label id="bottomLabel" text="Download the latest version at http://get.adobe.com/flashplayer/" x="0" y="310"  fontSize="15" fontFamily="Arial" textAlign="center" width="800" color="0xffffff"/>
+		<s:Button id = "upgradeButton" x="{(800-350)/2}" y="250"  click="VersionChecker.openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
+		<s:Button id = "ignoreButton" x="{(800-350)/2}"  y="310"  click="startUp()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
 	</s:BorderContainer>
 
 </s:Application>
