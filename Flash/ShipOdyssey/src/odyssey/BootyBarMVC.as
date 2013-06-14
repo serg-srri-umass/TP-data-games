@@ -15,12 +15,12 @@ package odyssey
 		private var BAR_HEIGHT:Number; 
 		private var _dispatcher:BootyEventDispatcher = new BootyEventDispatcher(); // object that dispatches booty events		
 		
-		private var _booty:int;				// how much booty the player currently has
-		private var _startingBooty:int;		// how much booty the player had at the start of a location
-		private var _capital:int;			// how much booty the player started the level with
-		private var _goal:int;				// how much booty the player needs to win
-		private var _treasureValue:int;		// how much booty the treasure is worth on this level
-		private var _costs:int;				// how many costs have racked up this location
+		private var _booty:int = 0;			// how much booty the player currently has
+		private var _startingBooty:int = 0;	// how much booty the player had at the start of a location
+		private var _capital:int = 0;		// how much booty the player started the level with
+		private var _goal:int = 0;			// how much booty the player needs to win
+		private var _treasureValue:int = 0;	// how much booty the treasure is worth on this level
+		private var _costs:int = 0;			// how many costs have racked up this location
 		
 		private var targetFrame:int; //used for animation logic
 		private var displayBooty:int; //used for animation logic. Animated $
@@ -52,6 +52,10 @@ package odyssey
 		public function get booty():int
 		{
 			return _booty + _treasureValue - _costs;
+		}
+		public function get profitSoFar():int
+		{
+			return _booty;
 		}
 		public function get goal():int{
 			return _goal;

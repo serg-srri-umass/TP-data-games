@@ -48,7 +48,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.06.12";
+			public static const VERSION:String = "v.2013.06.14";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -126,7 +126,7 @@
 			
 			private var mTreasuresAtLocArr:Array;			//Used for new multi-treasure aspect - tells how many treasures are at the current loc
 			private var mTreasureLocArr:Array;				//location of each treasure at current loc, treasures are removed as found
-			private var mDropLocationNum:int;				//Treasure num != Drop Location in lvl 2 so need this to access the 2 arrays above this
+			//OBSOLETE private var mDropLocationNum:int;				//Treasure num != Drop Location in lvl 2 so need this to access the 2 arrays above this
 			private var mAutoSailOnAfterFoundTreasure:Boolean; //Added for lvl 2 where the user must choose when to sail on because there can be 0, 1, or 2 treasures
 			private var mLocationFound:Number;					// for storing the location of a found treasure across timer steps
 			
@@ -393,11 +393,11 @@
 									name: kGamesCollectionName,
 									attrs:[
 										{name: "Site", type: "nominal", precision: 0, description: "Site number"   } , 
-										{name: "Level", type: "nominal", description: "Game level"   } ,	
-										{name: "Rats_Sent", type: "numeric", precision: 0, description: "Total number of rats sent during game"   } ,	
+										{name: "Mission", type: "nominal", description: "Game level"   } ,	
+										{name: "RatsSent", type: "numeric", precision: 0, description: "Total number of rats sent during game"   } ,	
 										{name: "Drops", type: "numeric", precision: 0, description: "Number of times hook was dropped during game"   } , 
-										{name: "Treasures_Found", type: "numeric", precision: 0, description: "Number of treasures found during game"   } , 
-										//{name: "Profit", type: "numeric", precision: 0, description: "Value of (treasures found) minus (crew/ship costs and rat costs)"   } 			
+										{name: "TreasuresFound", type: "numeric", precision: 0, description: "Number of treasures found during game"   } , 
+										{name: "Loot", type: "numeric", precision: 0, description: "dollar balance including tresures found minus costs"   }	
 									] ,
 									childAttrName: "Events_Record"
 								},
@@ -405,9 +405,8 @@
 									name: kEventsCollectionName,
 									attrs:	[
 										{ name: "Site", type: "nominal", description: "Site number"   } ,
-										{ name: "Rat_Number", type: "numeric", precision: 0, description: "Rats sent so far in game"   } , 
-										{ name: "Rat_Reading", type: "numeric", precision: 0, description: "Location estimate provided by rat"  } , 
-										{ name: "Treasure_Sought", type: "nominal", description: "Treasure ID at time of event"  }
+										{ name: "RatNumber", type: "numeric", precision: 0, description: "Rats sent so far in game"   } , 
+										{ name: "RatReading", type: "numeric", precision: 0, description: "Location estimate provided by rat"  }
 									],
 									labels: {
 										singleCase: "rat sent",
@@ -416,7 +415,7 @@
 										setOfCases: "events",
 										setOfCasesWithArticle: "events"
 									},
-									defaults: { xAttr: "Rat_Reading", yAttr: "Treasure_Sought" }
+									defaults: { xAttr: "RatReading", yAttr: "Site" }
 								}
 							] // collections
 						} // args
@@ -432,9 +431,8 @@
 						kEventsCollectionName,
 						[
 							"Site",		// Treasure hunt game number starting with 1 since launch of application.
-							"Rat_Number",		// Rats sent so far in current game.
-							"Rat_Reading",		// Location estimate provided by rat.
-							"Treasure_Sought"	// Categorical treasure ID (1-based) at time of event.
+							"RatNumber",		// Rats sent so far in current game.
+							"RatReading"		// Location estimate provided by rat.
 						]
 					);
 					// Create game collection.
@@ -442,11 +440,11 @@
 						kGamesCollectionName,
 						[
 							"Site",		// Treasure hunt game number starting with 1 since launch of application.
-							"Level",			// Clear or murky, based on hunt level chosen.
-							"Total_Rats_Sent",	// Total number of rats sent during current game.
-							"Total_Drops",		// Number of times hook was dropped during current game.
-							"Treasures_Found",	// Number of treasures found during current game.
-							//"Profit"			// Value of (treasures found) minus (crew/ship costs and rat costs).
+							"Mission",			// Clear or murky, based on hunt level chosen.
+							"RatsSent",			// Total number of rats sent during current game.
+							"Drops",			// Number of times hook was dropped during current game.
+							"TreasuresFound",	// Number of treasures found during current game.
+							"Loot"				// Value of (treasures found) minus (crew/ship costs and rat costs).
 						]
 					);
 				}
@@ -1017,7 +1015,7 @@
 					//sendEventData("Hook", getEventDataValues( "Miss" )); --Disabled
 				}
 				
-				// send updated [mHooksDropped, mTreasuresFound, mProfitSoFar] to DG game case
+				// send updated [mHooksDropped, mTreasuresFound, profitSoFar] to DG game case
 				sendGameDataUpdate();
 			}
 			
@@ -1156,8 +1154,6 @@
 			private function updateProfitAfterSail():void{
 				//update the cumulative cost of using the ship and crew as well as the profit so far
 				mCurrentTreasureNum = selectRandomTreasure();
-				mDropLocationNum++;
-				trace("mDropLocationNum: " + mDropLocationNum);
 			}
 			
 			private function gameFinish():void{
@@ -1227,7 +1223,7 @@
 									mRatsSent,			 // Total number of rats sent during current game.
 									mHooksDropped,		 // Number of times hook was dropped during current game.
 									mTreasuresFound, 	 // Number of treasures found during current game.
-									//mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+									bootyMeter.profitSoFar  // Value of (treasures found) minus (crew/ship costs and rat costs).
 								]
 						}
 					};
@@ -1243,7 +1239,7 @@
 							mRatsSent,			 // Total number of rats sent during current game.
 							mHooksDropped,		 // Number of times hook was dropped during current game.
 							mTreasuresFound, 	 // Number of treasures found during current game.
-							//mProfitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+							bootyMeter.profitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
 						]
 					);
 				}
@@ -1253,12 +1249,11 @@
 			// get the event data to send to Tinkerplots/DG, 
 			// returned as an array for use by sendEventData()
 			private function getEventDataValues( val:Number ):Array {
-				var uniqueTreasureID:String = (mGameNumber+"-"+(mDropLocationNum+1));
+				//var uniqueTreasureID:String = (mGameNumber+"-"+(mDropLocationNum+1));
 				return [
 					mGameNumber, // Game number (1-n)
 					mRatsSent, // Rat number (1-n)
-					val, // Location estimate provided by rat.
-					uniqueTreasureID // Categorical treasure ID (1-based) at time of event.
+					val // Location estimate provided by rat.
 				];
 			}
 			
