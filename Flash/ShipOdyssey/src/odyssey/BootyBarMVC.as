@@ -145,15 +145,16 @@ package odyssey
 			_costs = 0;
 		}
 		
-		
+		// accounting moves costs from the cost bar over to the booty bar.
+		// call this account method if you drop an anchor, and game is not over (no winning or losing)
 		public function payThenAccount():void {
 			_booty = _booty - _costs + _treasureValue;
 			animateBooty();
 			_costs = 0;
 		}
 		
-		// merge the costs into the booty meter.
-		public function account(bankrupt:Boolean = false):void{
+		// call this account method if the game IS over. It will turn off the player's controls.
+		private function account(bankrupt:Boolean = false):void{
 			_booty -= (bankrupt ? _booty : _costs);	
 			_dispatcher.dispatchAccounting();
 			animateBooty();
