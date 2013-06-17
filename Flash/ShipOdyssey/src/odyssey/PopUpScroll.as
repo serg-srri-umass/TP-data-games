@@ -5,8 +5,7 @@ package odyssey
 	import flash.events.TimerEvent;
 	import flash.utils.Timer;
 	
-	//this class was renamed with proper capitalization.
-	public class PopUpMVC extends popUps
+	public class PopUpScroll extends popUps
 	{
 		private var game:ShipMissionAPI;	//reference to the main. Allows this class to directly interact with the application.
 		
@@ -23,9 +22,14 @@ package odyssey
 		
 		private var selectedLevel:String = "LEVEL 1";
 		private var delayTimer:Timer = new Timer(1500, 0); //used to animate 'fade out'. The dely before the screen disappears.
-
-		public function PopUpMVC(api:ShipMissionAPI) {
+		
+		public function PopUpScroll(api:* = null) {
 			game = api;
+		}
+		
+		public function showLoading():void{
+			visible = true;
+			gotoAndStop("load");
 		}
 		
 		public function loseGame(e:Event):void {
@@ -52,22 +56,6 @@ package odyssey
 			mainBtn.removeEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
 			chooseHuntLevel(true);
 		}
-		
-		/*// handlers for end-game case interactions 
-		// click the 'continue' button (when you win a mission)
-		public function nextLevelButtonHandler(e:MouseEvent):void{
-		popUpScreen.mainBtn.removeEventListener(MouseEvent.CLICK, nextLevelButtonHandler);
-		
-		mNextHuntLevel = mHuntLevel + 1;
-		if(mNextHuntLevel == 1)
-		secondHuntLevel();			
-		else if(mNextHuntLevel == 2)
-		thirdHuntLevel();				
-		else if(mNextHuntLevel == 3)
-		fourthHuntLevel();								
-		initializeTreasureHunt();
-		showCurrentLevelInstructions();
-		}*/
 		
 		// click the 'retry' button
 		private function replayLevelButtonHandler(e:MouseEvent):void{
@@ -100,7 +88,7 @@ package odyssey
 		private function displayMissionInstructions(e:MouseEvent = null):void {
 			body.text = getCurrentLevelDescription(selectedLevel);
 			title.text = getCurrentLevelTitle(selectedLevel);
-			missions.selectMission(selectedLevel);
+			//missions.selectMission(selectedLevel);
 		}
 		private function displayMission1(e:MouseEvent):void {
 			body.text = kLevel1Instructions;
@@ -182,13 +170,13 @@ package odyssey
 			switch(switcher)
 			{
 				case "LEVEL 1":
-					return PopUpMVC.kLevel1Instructions;
+					return PopUpScroll.kLevel1Instructions;
 				case "LEVEL 2":
-					return PopUpMVC.kLevel2Instructions;
+					return PopUpScroll.kLevel2Instructions;
 				case "LEVEL 3":
-					return PopUpMVC.kLevel3Instructions;
+					return PopUpScroll.kLevel3Instructions;
 				case "LEVEL 4":
-					return PopUpMVC.kLevel4Instructions;
+					return PopUpScroll.kLevel4Instructions;
 			}
 			return "";
 		}
