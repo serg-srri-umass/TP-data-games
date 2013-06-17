@@ -134,7 +134,7 @@ package odyssey
 		}
 		
 		// display the prompt that comes up when you find a treasure
-		public function displayTreasure(item:String, value:String, location:String):void { 
+		public function displayTreasure(item:String, value:String, location:Number):void { 
 			visible = true;
 			gotoAndStop("treasure");
 			title.text = "Treasure!";
