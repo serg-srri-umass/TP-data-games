@@ -212,7 +212,8 @@
 			{
 				if( VersionChecker.isValid( MINIMUM_REQUIREMENTS))
 				{
-					startUp();
+					recheckTimer.addEventListener(TimerEvent.TIMER, checkSWFLoaders);
+					checkSWFLoaders();
 				} else {
 					BrickWall.visible = true;
 				}
@@ -221,50 +222,57 @@
 			// and sets up necessary parameters for game initiation.
 			private	function startUp():void
 			{
+
 				BrickWall.visible = false;
 				
-				// Arrays store individual cuts on each log for use in free cut levels.		
-				mLogDetails1 = new Array(dynamicLog1, null, new Array());
-				mLogDetails2 = new Array(dynamicLog2, null, new Array());
-				mLogDetails3 = new Array(dynamicLog3, null, new Array());
-				mLogDetails4 = new Array(dynamicLog4, null, new Array());
-				// Stores array of logs/logtops used in game.
-				// Create new log array and add log/logtop to array.
-				mLogArray = new Array(mLogDetails1, mLogDetails2, mLogDetails3, mLogDetails4);
-				
-				// Load and draw the cut location arrow.
-				mArrowSprite.loadImage(mDownArrowImage);
-				mArrowSprite.visible = false;
-				mLogYardContainer.addElement(mArrowSprite);
-				
-				mCutRightSprite.loadImage(mCutRightArrow);
-				mCutRightSprite.visible = false;
-				mLogYardContainer.addElement(mCutRightSprite);
-				
-				mCutLeftSprite.loadImage(mCutLeftArrow);
-				mCutLeftSprite.visible = false;
-				mLogYardContainer.addElement(mCutLeftSprite);
-				
-				// Randomize log array.
-				randomizeLogSizePosition();
-				
-				// add particle emitter to display
-				uic.addChild(sawdustParticles);
-				uic.mouseEnabled = false; //not quashing the mouse events from UIC was causing mouse events when its children particles were thrown in front of the mouse
-				uic.mouseChildren = false;
-				sawdustParticles.xOffset = 10;
-				sawdustParticles.yOffset = 10;
-				sawdustParticles.pColor = 0xD4B077;
-				sawdustParticles.yFloor = 410-10; // top edge of where sawdust lands is 10 from bottom of game
-				
-				mLevelWindow = new GameLevelWindow();
-				this.sendCollectionData();		// send initGame data to TinkerPlots/DG
-				
-				levelSelected(kFreeCutLevel); //Start in free cut mode
-				
-				updateVolume(50); // start with volume at 50% level
+				if(allAssetsLoaded) {
+					LoadWall.visible = false;
+					recheckTimer.removeEventListener(TimerEvent.TIMER, checkSWFLoaders);
+					
+					// Arrays store individual cuts on each log for use in free cut levels.		
+					mLogDetails1 = new Array(dynamicLog1, null, new Array());
+					mLogDetails2 = new Array(dynamicLog2, null, new Array());
+					mLogDetails3 = new Array(dynamicLog3, null, new Array());
+					mLogDetails4 = new Array(dynamicLog4, null, new Array());
+					// Stores array of logs/logtops used in game.
+					// Create new log array and add log/logtop to array.
+					mLogArray = new Array(mLogDetails1, mLogDetails2, mLogDetails3, mLogDetails4);
+					
+					// Load and draw the cut location arrow.
+					mArrowSprite.loadImage(mDownArrowImage);
+					mArrowSprite.visible = false;
+					mLogYardContainer.addElement(mArrowSprite);
+					
+					mCutRightSprite.loadImage(mCutRightArrow);
+					mCutRightSprite.visible = false;
+					mLogYardContainer.addElement(mCutRightSprite);
+					
+					mCutLeftSprite.loadImage(mCutLeftArrow);
+					mCutLeftSprite.visible = false;
+					mLogYardContainer.addElement(mCutLeftSprite);
+					
+					// Randomize log array.
+					randomizeLogSizePosition();
+					
+					// add particle emitter to display
+					uic.addChild(sawdustParticles);
+					uic.mouseEnabled = false; //not quashing the mouse events from UIC was causing mouse events when its children particles were thrown in front of the mouse
+					uic.mouseChildren = false;
+					sawdustParticles.xOffset = 10;
+					sawdustParticles.yOffset = 10;
+					sawdustParticles.pColor = 0xD4B077;
+					sawdustParticles.yFloor = 410-10; // top edge of where sawdust lands is 10 from bottom of game
+					
+					mLevelWindow = new GameLevelWindow();
+					this.sendCollectionData();		// send initGame data to TinkerPlots/DG
+					
+					levelSelected(kFreeCutLevel); //Start in free cut mode
+					
+					updateVolume(50); // start with volume at 50% level
+				} else {
+					recheckTimer.start();
+				}
 			} 
-			
 
 			// Send the initial game data to TinkerPlots or DG.  The collections are the tables of cases and attributes.
 			private	function	sendCollectionData( ):void	{
@@ -1184,6 +1192,17 @@
 				chooseGameLevel();
 			}
 			
+			protected var allAssetsLoaded:Boolean = false;
+			protected var recheckTimer:Timer = new Timer(1000, 0);
+			
+			protected function checkSWFLoaders(e:Event = null):void{
+				if(flashGasTank && dynamicLog1 && dynamicLog2 && dynamicLog3 && dynamicLog4){
+					allAssetsLoaded = true;
+				}
+				startUp();
+			}
+			
+			
 			//initialize Tristan's gas tank SWF
 			protected function initGasTank():void{
 				flashGasTank = mFuelIcon.content as MovieClip;
@@ -1302,16 +1321,16 @@
 	<s:Button id="mChangeLevelButton" x="20" y="86" width="100" height="30" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
 	
 	<s:BorderContainer id="mLogYardContainer" x="134" y="46" width="600" height="364" backgroundColor="#EAD1AA" borderVisible="false">
-		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)" mouseChildren="false"/>
-		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog4" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog4()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="loaded_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)" mouseChildren="false"/>
+		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="loaded_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="loaded_assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog4" x="-5" y="0" source="loaded_assets/DynamicLog.swf" complete="initLog4()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:Group			id="mStatusLabelHolder" x="0" y="0" width="597" height="324" visible="false"/>
 	</s:BorderContainer>
 	
 	<s:BorderContainer id="UI_Elements" x="0" y="156" width="134" height="274" backgroundColor="#EAD1AA" borderVisible="false">
 		<s:Label id="mFuelLabel" x="15" y="-15" fontSize="16" fontWeight="bold" text="Fuel:"/>
-		<s:SWFLoader id="mFuelIcon" x="15" y="5" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
+		<s:SWFLoader id="mFuelIcon" x="15" y="5" width="106" height="118" complete="initGasTank()" source="loaded_assets/GasTank.swf" />
 		<s:Label id="mReferenceLengthLabel" x="13" y="156" fontSize="16" fontWeight="bold" text="Target Length:"/>
 		<mx:Image id="mTapeMeasure" x="15" y="182" source="{mTapeMeasureImage}"/>
 		<mx:Image id="mReferenceLengthImage" x="15" y="216" source="{mLengthImage}"/>
@@ -1328,6 +1347,17 @@
 	
 	<s:Label id="mVersionLabel" x="580" y="386" width="160" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
 	
+	<!-- Loading Screen of Safety -->
+	<s:BorderContainer id="LoadWall"	x="0" y="0" width="{this.minWidth}" height="{this.minHeight}" visible="true" >
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xEAD1A9"/>
+				<s:GradientEntry color="0xBBA178"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		<s:Label id="topLabel" text="Loading..." x="0" y="200"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="745" color="0x000000"/>
+	</s:BorderContainer>
+	
 	<!-- Error message for bad version of flash player -->
 	<s:BorderContainer id="BrickWall"	x="0" y="0" width="{this.minWidth}" height="{this.minHeight}" visible="false" >
 		<s:backgroundFill>
@@ -1340,9 +1370,11 @@
 		<s:Label id="midLabelError" text="{'ChainSaw requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="170"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
 		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
 		<s:Button id = "upgradeButton" x="{(745-350)/2}" y="250"  click="VersionChecker.openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
-		<s:Button id = "ignoreButton" x="{(745-350)/2}"  y="310"  click="startUp()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
+		<s:Button id = "ignoreButton" x="{(745-350)/2}"  y="310"  click="checkSWFLoaders()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
 		
 	</s:BorderContainer>
+	
+	
 	
 	
 </s:Application>
