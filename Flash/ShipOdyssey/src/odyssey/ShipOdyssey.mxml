@@ -840,7 +840,7 @@
 					
 					
 					var valueInDollars:String = usdFormatter.format(mTreasureArray[mCurrentTreasureNum][kValue]);
-					//popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1));		$WIP
+					popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1));	
 					
 					if(mHuntLevel == kHuntLevelTwo) // if on level 2
 					{
@@ -855,14 +855,11 @@
 					
 					//change treasure location
 					mTreasureArray[mCurrentTreasureNum][kLocation] = randomLocation();
-					
 					mTreasuresFound++;
 				}
 				else // Treasure was not found at drop location.
 				{
-
 					bootyMeter.finishTreasureDrop(false, kCostPerHookDrop)
-					
 					enableAllButtons();
 					
 					
