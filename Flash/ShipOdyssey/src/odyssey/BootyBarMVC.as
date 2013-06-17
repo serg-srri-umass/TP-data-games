@@ -1,6 +1,14 @@
 package odyssey
 {
-	//this class is pretty messy at the moment. After wednesday's demo, we can clean it up for easier readability.
+	//The costArrow is an object within the .swc. It has the following methods:
+	// 	establish( treasureValue:int, goal:int): void;
+	//			call this method to set up the cost arrow.
+	// 	pay( cost:int): void;
+	//			pay $. Give it a value, and it will animate it for you.
+	// 	ghost( cost:int): void;
+	//			Will show a white bar with this cost spent. Used to demo costs.
+	// 	hideGhost():void;
+	//			Removes the current ghost bar.
 	
 	import flash.events.Event;
 	
@@ -26,6 +34,7 @@ package odyssey
 		private var displayBooty:int; //used for animation logic. Animated $
 		private var _settingStartValue:Boolean; // animation logic. when it's true, the starting value will move along with the $.
 		private var _animateBooty:Boolean = false;
+		private var _lockedGhost:Boolean = false; // when this is true, the ghost can't be removed.
 		
 		private var _isGameOver:int = NO;	//an int based on whether or not the game is over.
 		
@@ -72,6 +81,12 @@ package odyssey
 		public function get costs():int{
 			return _costs;
 		}
+		public function lockGhost():void {
+			_lockedGhost = true;
+		}
+		public function unlockGhost():void {
+			_lockedGhost = false;
+		}
 		
 		private function turnOff(e:Event = null):void
 		{
@@ -79,13 +94,25 @@ package odyssey
 			gotoAndStop(1);
 			goalMVC.text = "$0";
 			myCash.booty.text = "";
-			costBar.visible = false;
+			costArrow.visible = false;
+		}
+		
+		public function ghost(arg:int):void{
+			if(!_lockedGhost)
+				costArrow.ghost(arg);
+		}
+		
+		public function hideGhost():void {
+			if(!_lockedGhost)
+				costArrow.hideGhost();	
 		}
 		
 		// when a hook drop finishes, this method runs. 
 		public function finishTreasureDrop(success:Boolean, cost:int = 0):void{
+			unlockGhost();
 			if(success)
 			{
+				hideGhost();
 				_booty += treasureValue;
 				account();
 				if(_booty >= _goal)
@@ -104,6 +131,7 @@ package odyssey
 					_isGameOver = NO;
 				}
 			}
+			
 		}
 		// call this method at the start of each level
 		public function initialize(capital:int, goal:int, treasureValue:int):void
@@ -119,25 +147,17 @@ package odyssey
 			
 			goalMVC.text = parseToCash(_goal);	// write the goal at the top
 			animateBooty(true);
-			prepCostBar();
+			costArrow.visible = true;
+			costArrow.establish(_treasureValue, _goal);
 		}
 		
 		// call this method whenever you spend money
 		public function pay(cost:int):void
 		{
 			_costs += cost;	
-			var percentCosts:Number = (_treasureValue - _costs)/_treasureValue;
-			if(percentCosts >= 0) // positive profits
-			{
-				costBar.redBar.visible = false;
-				costBar.profitBar.visible = true;
-				costBar.profitBar.height = costBar.backingBar.height * percentCosts;
-			} else { // going into the red
-				costBar.profitBar.visible = false;
-				costBar.redBar.visible = true;
-				costBar.redBar.height = costBar.backingBar.height * -1 * percentCosts;
-			}
+			costArrow.pay(cost);
 		}
+		
 		
 		// call this method at the start of each location
 		public function readyNewLocation():void
@@ -145,7 +165,8 @@ package odyssey
 			_isGameOver = NO;
 			_startingBooty = _booty;
 			animateBooty(true);
-			prepCostBar();
+			costArrow.visible = true;
+			costArrow.establish(_treasureValue, _goal);
 			_costs = 0;
 		}
 		
@@ -165,18 +186,7 @@ package odyssey
 			_costs = 0;
 		}
 		
-		// set up the cost bar for a new location
-		private function prepCostBar():void
-		{
-			costBar.visible = true;
-			costBar.backingBar.height = BAR_HEIGHT*(getPercent(treasureValue)/100);
-			costBar.profitBar.height = costBar.backingBar.height;
-			costBar.profitBar.gotoAndStop(1);
-			costBar.redBar.visible = false;
-			costBar.redBar.height = 1;
-			costBar.profitBar.visible = true;			
-		}
-				
+		
 		// this method is called every frame. It handles the animation logic
 		private function handleEnterFrame(e:Event):void{
 			if(_animateBooty)
@@ -211,7 +221,7 @@ package odyssey
 			}
 			
 			if(_settingStartValue)
-				costBar.y = barPosition.y;
+				costArrow.y = barPosition.y;
 			
 			if(currentFrame == targetFrame)
 			{
