@@ -11,7 +11,7 @@ package odyssey
 		private static const STARTING_RISE_SPEED:int = -30; // how fast rats rise when they come out of the water
 		private static const DECK_TIME:int = 3;	// how many frames a rat spends on deck before it dives
 		
-		private static const DIVING:int = 0;
+		private static const DIVING:int = 0;		// these are values of _state
 		private static const UNDERWATER:int = 1;
 		private static const RETURNING:int = 2;
 		private static const FINISHED:int = -1;
