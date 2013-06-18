@@ -344,7 +344,7 @@
 									attrs:	[
 										{ name: "Site", type: "nominal", description: "Site number"   } ,
 										{ name: "RatNumber", type: "numeric", precision: 0, description: "Rats sent so far in game"   } , 
-										{ name: "RatReading", type: "numeric", precision: 0, description: "Location estimate provided by rat"  }
+										{ name: "RatReading", type: "numeric", precision: 1, description: "Location estimate provided by rat"  }
 									],
 									labels: {
 										singleCase: "rat sent",
@@ -691,7 +691,7 @@
 				var outString:String = "";
 				for(var j:int=0; mTreasureLocArr[j]; j++){
 					var treasure:Array = mTreasureArray[mCurrentTreasureNum+j];
-					outString = outString + int(treasure[kLocation] * 100)/100 + ((mTreasureLocArr[j + 1]) ? " and " : "");
+					outString = outString + int(treasure[kLocation] * 10)/10 + ((mTreasureLocArr[j + 1]) ? " and " : "");
 				}
 				return outString;
 			}
