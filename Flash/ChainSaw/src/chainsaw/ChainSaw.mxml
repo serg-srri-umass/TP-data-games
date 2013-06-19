@@ -226,8 +226,10 @@
 				BrickWall.visible = false;
 				
 				if(allAssetsLoaded) {
+					//preloader code:
 					LoadWall.visible = false;
-					recheckTimer.removeEventListener(TimerEvent.TIMER, checkSWFLoaders);
+					recheckTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, checkSWFLoaders);
+					recheckTimer.stop();
 					
 					// Arrays store individual cuts on each log for use in free cut levels.		
 					mLogDetails1 = new Array(dynamicLog1, null, new Array());
@@ -270,6 +272,7 @@
 					
 					updateVolume(50); // start with volume at 50% level
 				} else {
+					recheckTimer.reset();
 					recheckTimer.start();
 				}
 			} 
@@ -1188,12 +1191,11 @@
 			protected function onClickChangeLevelButton(event:MouseEvent):void
 			{
 				clearGame(mGameLevel); // Clear any remnants of last game and reset game.
-				
 				chooseGameLevel();
 			}
 			
 			protected var allAssetsLoaded:Boolean = false;
-			protected var recheckTimer:Timer = new Timer(1000, 0);
+			protected var recheckTimer:Timer = new Timer(1000, 1);
 			
 			protected function checkSWFLoaders(e:Event = null):void{
 				if(flashGasTank && dynamicLog1 && dynamicLog2 && dynamicLog3 && dynamicLog4){
