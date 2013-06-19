@@ -111,7 +111,7 @@
 			private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet?
 			private var mFoundTreasure:Boolean = false; 	// Has the current hook drop found this treasure?
 			[Bindable] public var boundLevelText:String = "";
-			private var mCurrentLevel:String = "";
+			private var mCurrentLevel:int = 0;
 			private	var	parentCaseID:int = 0;
 			
 			private var mTreasuresAtLocArr:Array;			//Used for new multi-treasure aspect - tells how many treasures are at the current loc
@@ -136,9 +136,9 @@
 			
 			//variables for holding loaded MovieClips
 			
-			private function getCurrentMission():String{ return mCurrentLevel; }
+			private function getCurrentMission():int{ return mCurrentLevel; }
 			private function getHuntMission():uint{ return mHuntLevel; }
-			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI(firstHuntLevel, secondHuntLevel, thirdHuntLevel, fourthHuntLevel, restartMission, getCurrentMission, getHuntMission);	
+			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI(firstHuntLevel, secondHuntLevel, thirdHuntLevel, fourthHuntLevel, restartMission, getCurrentMission, getHuntMission, setGameTitle);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
 			
 			//timer when your money hits zero, waits before showing lose screen
@@ -215,10 +215,6 @@
 			//			[Embed(source="../odysseyAssets/SO-UI2-DivingRatsBacker.png")]
 			[Embed(source="../odysseyAssets/backer-wood-light.png")]
 			[Bindable] private var mRatBacker:Class;
-			
-			// Sidebar Backer Scroll
-			[Embed(source="../odysseyAssets/Scroll-Sidebar.png")]
-			[Bindable] private var mSidebarBacker:Class;
 			
 			// Embed volume icons -- source: Ryan McCann
 			[Embed(source="../odysseyAssets/Volume.png")]
@@ -395,7 +391,7 @@
 			// and prepares the game for play.
 			protected function initializeTreasureHunt():void
 			{
-				disableAllButtonsNotNewgame();
+				disableAllButtons();
 				mEventNumber			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
 				mRatsSent				= 0;	// Reset number of rats sent.
 				mHooksDropped			= 0;	// Reset number of hooks dropped.
@@ -458,7 +454,7 @@
 			// firstHuntLevel() sets the current hunt level to the first level.
 			private function firstHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				boundLevelText = PopUpScroll.kLevel1Title;
+				setGameTitle(PopUpScroll.kLevel1Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -475,7 +471,7 @@
 				setCurrentMinMaxRats( 100, 100, 500 );
 				mCostPerRat	= 0;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
-				mCurrentLevel = "LEVEL 1";
+				mCurrentLevel = 1;
 				mSailOnAlertString = kSailOnNormalLevel;
 				
 				bootyMeter.initialize(15000, 30000, 7000);
@@ -489,7 +485,7 @@
 			// secondHuntLevel() sets the current hunt level to the second level.
 			private function secondHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				boundLevelText = PopUpScroll.kLevel2Title;
+				setGameTitle(PopUpScroll.kLevel2Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -506,7 +502,7 @@
 				setCurrentMinMaxRats( 100, 100, 500 );
 				mCostPerRat	= 0;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = false;
-				mCurrentLevel = "LEVEL 2";
+				mCurrentLevel = 2;
 				mSailOnAlertString = kSailOnMultiTreasureLevel;
 				
 				bootyMeter.initialize(15000, 40000, 7000);
@@ -518,7 +514,7 @@
 			
 			private function thirdHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				boundLevelText = PopUpScroll.kLevel3Title;
+				setGameTitle(PopUpScroll.kLevel3Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -535,7 +531,7 @@
 				setCurrentMinMaxRats( 10, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
-				mCurrentLevel = "LEVEL 3";
+				mCurrentLevel = 3;
 				mSailOnAlertString = kSailOnNormalLevel;
 				
 				bootyMeter.initialize(10000, 45000, 15000);
@@ -547,7 +543,7 @@
 			
 			private function fourthHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				boundLevelText = PopUpScroll.kLevel4Title;
+				setGameTitle(PopUpScroll.kLevel4Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -564,7 +560,7 @@
 				setCurrentMinMaxRats( 10, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
-				mCurrentLevel = "LEVEL 4";
+				mCurrentLevel = 4;
 				mSailOnAlertString = kSailOnNormalLevel;
 				
 				bootyMeter.initialize(10000, 45000, 18000);
@@ -660,6 +656,7 @@
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent):void{
+				hideInstructions();
 				mEventNumber += 1;	// Sending rats counts as an event.	
 				
 				
@@ -775,6 +772,7 @@
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent):void
 			{		
+				hideInstructions();
 				bootyMeter.lockGhost();
 				mDropHookButton.enabled = false;
 				crane.canDrag = false;
@@ -832,7 +830,7 @@
 			
 			//call the animation, disable all buttons during animation, and start a timer
 			private function dropHook():void{
-				disableAllButtons(false);
+				disableAllButtons();
 				crane.dropHook(mFoundTreasure, 1, 5);
 				transitionTimer = new Timer(6000, 1);
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);
@@ -903,7 +901,7 @@
 			protected function onClickExitNewGame(iEvent:MouseEvent):void
 			{
 				trace("ShipOdyssey.onClickExitNewGame(iEvent)");
-				
+				hideInstructions();
 				if( mExitNewGameButton.label == "Pull Anchor"){
 					exitGame(iEvent);
 				} else { 
@@ -947,7 +945,7 @@
 				mLevelsButton.enabled = false;
 				mExitNewGameButton.enabled = true;
 				mExitNewGameButton.label = "Pull Anchor";
-				disableAllButtons(false);
+				disableAllButtons();
 				mGameNumber += 1;
 				switchToTreasureHunt(iEvent); //start a new game
 				sendGameDataOpen();
@@ -980,9 +978,11 @@
 			
 			private function hideInstructions():void
 			{
-				var tan:int = 13742987; //#d1b38b
-				mHelpButton.setStyle("chromeColor", tan);
-				popUpScreen.visible = false;
+				if(popUpScreen.isShowingHelp()){
+					var tan:int = 13742987; //#d1b38b
+					mHelpButton.setStyle("chromeColor", tan);
+					popUpScreen.visible = false;
+				}
 			}
 			
 			// should we change this, or make it work? It's not being called at all right now. $WIP
@@ -1122,7 +1122,7 @@
 			//group function calls for state changes for different events
 			private function runSailOnAnim():void{
 				trace("ShipOdyssey.runSailOnAnim()");
-				disableAllButtons(false);
+				disableAllButtons();
 				transitionTimer = new Timer(2000, 1); //timer is in milliseconds
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, zoomOutAndSail);
 				crane.tweenTo(100, 2);//turn to frame 100 in 2 secs
@@ -1183,7 +1183,7 @@
 				
 				mTreasureLocArr = new Array();
 				
-				if(mCurrentLevel == "LEVEL 2") //level 2 can have 0, 1, or 2 treasures
+				if(mCurrentLevel == 2) //level 2 can have 0, 1, or 2 treasures
 				{
 					mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
 					
@@ -1235,7 +1235,7 @@
 			}
 			
 			//button control methods
-			private function disableAllButtons(incExit:Boolean):void{
+			private function disableAllButtons(e:Event = null):void{
 				mLevelsButton.enabled = false;
 				mExitNewGameButton.enabled = false;
 				mDropHookButton.enabled = false;
@@ -1247,20 +1247,6 @@
 				if(crane)	// failsafe to prevent the crane from being turned off before it loads.
 					crane.canDrag = false;
 			}	
-			
-			//added for game init. When intructions display, all buttons but NewGame disabled. 
-			private function disableAllButtonsNotNewgame():void{
-				mLevelsButton.enabled = false;
-				mExitNewGameButton.enabled = true;
-				mDropHookButton.enabled = false;
-				mCenterPositionStepper.enabled = false;
-				mRatStepper.enabled = false;
-				mSendRatsButton.enabled = false;
-				mHelpButton.enabled = false;
-				
-				if(crane)
-					crane.canDrag = false;
-			}
 			
 			private function enableAllButtons():void{
 				mExitNewGameButton.enabled = true;
@@ -1306,12 +1292,18 @@
 				uic.addChild(craneMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
 				crane.mask = craneMask;
 				crane.addEventListener("dragging", updateCraneStepper);	// sloppy. Will use CraneEvents in the future. 
+				crane.addEventListener("scaleClicked", updateCraneStepperSnapped);
 				checkSWFLoaders();
 			}
 			
 			private function updateCraneStepper(e:Event):void{
-				mCenterPositionStepper.value = crane.position;
+				mCenterPositionStepper.value = crane.getFrame();
 				onChangeCenterPosition(e);
+			}
+			private function updateCraneStepperSnapped(e:Event):void{
+				mCenterPositionStepper.value = crane.snappingPoint;
+				onChangeCenterPosition(e);
+				hideInstructions();
 			}
 			
 			//loads the swf, sets colors, and starts the clouds
@@ -1353,6 +1345,9 @@
 				}
 			}
 			
+			private function setGameTitle(arg:String):void {
+				boundLevelText = arg;
+			}
 			
 			// This function is called when the game starts. These objects will have the following listeners for the entirety of the play session:
 			private function initListeners():void{
@@ -1450,6 +1445,7 @@
 	
 	<!--Rat controls -->
 	<s:Group id="RatControls" includeIn="TreasureHunt" x="3" y="35" width="215" height="85">
+		
 		<s:Image id="mDivingRatBacker" x="0" y="0" source="{mRatBacker}"/>
 		<s:Label id="mRatControlLabel" text="Diving Rats" fontFamily="Georgia" fontSize="16" fontStyle="normal" fontWeight="bold" x="75" y="5" includeIn="TreasureHunt"/>
 		<s:NumericStepper id="mRatStepper" width="50" height="23" x="45" y="28" change="onChangeRatStepper(event)" contentBackgroundColor="#5081B4" maximum="{mMaxRatsToSend}" minimum="{mMinRatsToSend}" stepSize="1" includeIn="TreasureHunt"/>
@@ -1466,14 +1462,13 @@
 		</s:Group>
 	
 	<!-- Left Sidebar Log -->
+	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">	
-		<s:Image id="mSidebarScroll" x="5" y="120" source="{mSidebarBacker}" />			
 		
-		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="popUpScreen.chooseHuntLevel();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
+		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Map" chromeColor="#D1B38B" click="popUpScreen.chooseHuntLevel();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 		<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
 		<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="Set Sail" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
 	</mx:Canvas>
-	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 	
 	<!-- Animated Ship and Crane area -->
 	<s:Group	id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286">

@@ -8,13 +8,14 @@ package odyssey
 		public var getHuntMission:Function;
 		public var getCurrentMission:Function;
 		public var restartMission:Function;
+		public var setGameTitle:Function;
 
 		private var startFirstHunt:Function;
 		private var startSecondHunt:Function;
 		private var startThirdHunt:Function;
 		private var startFourthHunt:Function;
 		
-		public function ShipMissionAPI (first:Function, second:Function, third:Function, fourth:Function, restart:Function, cm:Function, hm:Function) {
+		public function ShipMissionAPI (first:Function, second:Function, third:Function, fourth:Function, restart:Function, cm:Function, hm:Function, setGTitle:Function) {
 			startFirstHunt = first;
 			startSecondHunt = second;
 			startThirdHunt = third;
@@ -22,28 +23,18 @@ package odyssey
 			restartMission = restart;
 			getCurrentMission = cm;
 			getHuntMission = hm;
+			setGameTitle = setGTitle;
 		}
 		
-		public function startHunt(num:*, e:Event = null, autoStart:Boolean = false):void {
-			if(num is String) {
-				if(num == "LEVEL 1")
-					startFirstHunt(e, autoStart);
-				else if(num == "LEVEL 2")
-					startSecondHunt(e, autoStart);
-				else if(num == "LEVEL 3")
-					startThirdHunt(e, autoStart);
-				else if(num == "LEVEL 4")
-					startFourthHunt(e, autoStart);
-			} else {
-				if(num == 1)
-					startFirstHunt(e, autoStart);
-				else if(num == 2)
-					startSecondHunt(e, autoStart);
-				else if(num == 3)
-					startThirdHunt(e, autoStart);
-				else if(num == 4)
-					startFourthHunt(e, autoStart);
-			} 
+		public function startHunt(num:int, e:Event = null, autoStart:Boolean = false):void {
+			if(num == 1)
+				startFirstHunt(e, autoStart);
+			else if(num == 2)
+				startSecondHunt(e, autoStart);
+			else if(num == 3)
+				startThirdHunt(e, autoStart);
+			else if(num == 4)
+				startFourthHunt(e, autoStart);
 		}
 	}
 }
