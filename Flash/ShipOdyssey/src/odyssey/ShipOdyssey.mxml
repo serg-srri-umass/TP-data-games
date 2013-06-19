@@ -37,10 +37,7 @@
 			
 			import odyssey.events.*;
 			
-			import odysseyAssets.*;
-			
 			// BUILD FOR TinkerPlots or DG: 
-			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			
@@ -208,28 +205,28 @@
 			
 			// Backer to Hook/Crane controls
 			//			[Embed(source="../odysseyAssets/SO-UI2-HookDropBackerExt.png")]
-			[Embed(source="../odysseyAssets/backer-wood-light.png")]
+			[Embed(source="../embedded_assets/backer-wood-light.png")]
 			[Bindable] private var mHookDropBacker:Class;
 			
 			// Backer to Rat controls
 			//			[Embed(source="../odysseyAssets/SO-UI2-DivingRatsBacker.png")]
-			[Embed(source="../odysseyAssets/backer-wood-light.png")]
+			[Embed(source="../embedded_assets/backer-wood-light.png")]
 			[Bindable] private var mRatBacker:Class;
 			
 			// Sidebar Backer Scroll
-			[Embed(source="../odysseyAssets/Scroll-Sidebar.png")]
+			[Embed(source="../embedded_assets/Scroll-Sidebar.png")]
 			[Bindable] private var mSidebarBacker:Class;
 			
 			// Embed volume icons -- source: Ryan McCann
-			[Embed(source="../odysseyAssets/Volume.png")]
+			[Embed(source="../embedded_assets/Volume.png")]
 			[Bindable]
 			private var mVolumeIcon:Class;
 			
-			[Embed(source="../odysseyAssets/Volume_half.png")]
+			[Embed(source="../embedded_assets/Volume_half.png")]
 			[Bindable]
 			private var mHalfVolumeIcon:Class;
 			
-			[Embed(source="../odysseyAssets/Volume_off.png")]
+			[Embed(source="../embedded_assets/Volume_off.png")]
 			[Bindable]
 			private var mLowVolumeIcon:Class;
 			
@@ -243,7 +240,7 @@
 			// New Cash register sound by Benboncan (only modification is converted to MP3)
 			// Downloaded from http://www.freesound.org/people/Benboncan/sounds/91924/ on Feb 7, 2012
 			// Licensed under the attribution license (http://creativecommons.org/licenses/by/3.0/)
-			[Embed(source="../odysseyAssets/91924-benboncan-till-with-bell.mp3")]
+			[Embed(source="../embedded_assets/91924-benboncan-till-with-bell.mp3")]
 			private var CashMP3:Class;
 			private var mCashSound:SoundAsset = new CashMP3() as SoundAsset;
 			
@@ -1478,11 +1475,11 @@
 	<!-- Animated Ship and Crane area -->
 	<s:Group	id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286">
 		<s:BorderContainer id="Sky" width="395" height="186" depth="1" backgroundFill="{daylight}" borderVisible="false">
-			<s:SWFLoader id="CloudLoader" source="odysseyAssets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
+			<s:SWFLoader id="CloudLoader" source="odyssey_assets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
 		</s:BorderContainer>	
 		<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="186" width="395" height="100" depth="3" />
-		<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
-		<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
+		<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odyssey_assets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
+		<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odyssey_assets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
 	</s:Group>
 	<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
 	<mx:UIComponent id="ratContainer" x="120" y="121" width="395" height="286"/> <!-- container to hold dots for rat animation demo-->
