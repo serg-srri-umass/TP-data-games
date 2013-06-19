@@ -150,6 +150,10 @@ package odyssey
 			title.text = getCurrentLevelTitle();
 			body.text = getCurrentLevelDescription();
 		}
+		public function isShowingHelp():Boolean{
+			return currentFrameLabel == "help";
+		}
+
 		
 		// returns the name of the current level
 		public function getCurrentLevelTitle(arg:int = -1):String

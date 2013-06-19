@@ -216,10 +216,6 @@
 			[Embed(source="../odysseyAssets/backer-wood-light.png")]
 			[Bindable] private var mRatBacker:Class;
 			
-			// Sidebar Backer Scroll
-			[Embed(source="../odysseyAssets/Scroll-Sidebar.png")]
-			[Bindable] private var mSidebarBacker:Class;
-			
 			// Embed volume icons -- source: Ryan McCann
 			[Embed(source="../odysseyAssets/Volume.png")]
 			[Bindable]
@@ -660,6 +656,7 @@
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent):void{
+				hideInstructions();
 				mEventNumber += 1;	// Sending rats counts as an event.	
 				
 				
@@ -775,6 +772,7 @@
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent):void
 			{		
+				hideInstructions();
 				bootyMeter.lockGhost();
 				mDropHookButton.enabled = false;
 				crane.canDrag = false;
@@ -903,7 +901,7 @@
 			protected function onClickExitNewGame(iEvent:MouseEvent):void
 			{
 				trace("ShipOdyssey.onClickExitNewGame(iEvent)");
-				
+				hideInstructions();
 				if( mExitNewGameButton.label == "Pull Anchor"){
 					exitGame(iEvent);
 				} else { 
@@ -980,9 +978,11 @@
 			
 			private function hideInstructions():void
 			{
-				var tan:int = 13742987; //#d1b38b
-				mHelpButton.setStyle("chromeColor", tan);
-				popUpScreen.visible = false;
+				if(popUpScreen.isShowingHelp()){
+					var tan:int = 13742987; //#d1b38b
+					mHelpButton.setStyle("chromeColor", tan);
+					popUpScreen.visible = false;
+				}
 			}
 			
 			// should we change this, or make it work? It's not being called at all right now. $WIP
@@ -1235,7 +1235,7 @@
 			}
 			
 			//button control methods
-			private function disableAllButtons():void{
+			private function disableAllButtons(e:Event = null):void{
 				mLevelsButton.enabled = false;
 				mExitNewGameButton.enabled = false;
 				mDropHookButton.enabled = false;
@@ -1247,20 +1247,6 @@
 				if(crane)	// failsafe to prevent the crane from being turned off before it loads.
 					crane.canDrag = false;
 			}	
-			
-			//added for game init. When intructions display, all buttons but NewGame disabled. 
-			private function disableAllButtonsNotNewgame():void{
-				mLevelsButton.enabled = false;
-				mExitNewGameButton.enabled = true;
-				mDropHookButton.enabled = false;
-				mCenterPositionStepper.enabled = false;
-				mRatStepper.enabled = false;
-				mSendRatsButton.enabled = false;
-				mHelpButton.enabled = false;
-				
-				if(crane)
-					crane.canDrag = false;
-			}
 			
 			private function enableAllButtons():void{
 				mExitNewGameButton.enabled = true;
@@ -1317,6 +1303,7 @@
 			private function updateCraneStepperSnapped(e:Event):void{
 				mCenterPositionStepper.value = crane.snappingPoint;
 				onChangeCenterPosition(e);
+				hideInstructions();
 			}
 			
 			//loads the swf, sets colors, and starts the clouds
@@ -1458,6 +1445,7 @@
 	
 	<!--Rat controls -->
 	<s:Group id="RatControls" includeIn="TreasureHunt" x="3" y="35" width="215" height="85">
+		
 		<s:Image id="mDivingRatBacker" x="0" y="0" source="{mRatBacker}"/>
 		<s:Label id="mRatControlLabel" text="Diving Rats" fontFamily="Georgia" fontSize="16" fontStyle="normal" fontWeight="bold" x="75" y="5" includeIn="TreasureHunt"/>
 		<s:NumericStepper id="mRatStepper" width="50" height="23" x="45" y="28" change="onChangeRatStepper(event)" contentBackgroundColor="#5081B4" maximum="{mMaxRatsToSend}" minimum="{mMinRatsToSend}" stepSize="1" includeIn="TreasureHunt"/>
@@ -1474,14 +1462,13 @@
 		</s:Group>
 	
 	<!-- Left Sidebar Log -->
+	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">	
-		<s:Image id="mSidebarScroll" x="5" y="120" source="{mSidebarBacker}" />			
 		
 		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Map" chromeColor="#D1B38B" click="popUpScreen.chooseHuntLevel();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 		<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
 		<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="Set Sail" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
 	</mx:Canvas>
-	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 	
 	<!-- Animated Ship and Crane area -->
 	<s:Group	id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286">
