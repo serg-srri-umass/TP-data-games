@@ -395,7 +395,7 @@
 			// and prepares the game for play.
 			protected function initializeTreasureHunt():void
 			{
-				disableAllButtonsNotNewgame();
+				disableAllButtons();
 				mEventNumber			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
 				mRatsSent				= 0;	// Reset number of rats sent.
 				mHooksDropped			= 0;	// Reset number of hooks dropped.
@@ -832,7 +832,7 @@
 			
 			//call the animation, disable all buttons during animation, and start a timer
 			private function dropHook():void{
-				disableAllButtons(false);
+				disableAllButtons();
 				crane.dropHook(mFoundTreasure, 1, 5);
 				transitionTimer = new Timer(6000, 1);
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);
@@ -947,7 +947,7 @@
 				mLevelsButton.enabled = false;
 				mExitNewGameButton.enabled = true;
 				mExitNewGameButton.label = "Pull Anchor";
-				disableAllButtons(false);
+				disableAllButtons();
 				mGameNumber += 1;
 				switchToTreasureHunt(iEvent); //start a new game
 				sendGameDataOpen();
@@ -1122,7 +1122,7 @@
 			//group function calls for state changes for different events
 			private function runSailOnAnim():void{
 				trace("ShipOdyssey.runSailOnAnim()");
-				disableAllButtons(false);
+				disableAllButtons();
 				transitionTimer = new Timer(2000, 1); //timer is in milliseconds
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, zoomOutAndSail);
 				crane.tweenTo(100, 2);//turn to frame 100 in 2 secs
@@ -1235,7 +1235,7 @@
 			}
 			
 			//button control methods
-			private function disableAllButtons(incExit:Boolean):void{
+			private function disableAllButtons():void{
 				mLevelsButton.enabled = false;
 				mExitNewGameButton.enabled = false;
 				mDropHookButton.enabled = false;
@@ -1306,11 +1306,16 @@
 				uic.addChild(craneMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
 				crane.mask = craneMask;
 				crane.addEventListener("dragging", updateCraneStepper);	// sloppy. Will use CraneEvents in the future. 
+				crane.addEventListener("scaleClicked", updateCraneStepperSnapped);
 				checkSWFLoaders();
 			}
 			
 			private function updateCraneStepper(e:Event):void{
-				mCenterPositionStepper.value = crane.position;
+				mCenterPositionStepper.value = crane.getFrame();
+				onChangeCenterPosition(e);
+			}
+			private function updateCraneStepperSnapped(e:Event):void{
+				mCenterPositionStepper.value = crane.snappingPoint;
 				onChangeCenterPosition(e);
 			}
 			
@@ -1472,7 +1477,7 @@
 	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">	
 		<s:Image id="mSidebarScroll" x="5" y="120" source="{mSidebarBacker}" />			
 		
-		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="popUpScreen.chooseHuntLevel();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
+		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Map" chromeColor="#D1B38B" click="popUpScreen.chooseHuntLevel();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 		<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
 		<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="Set Sail" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
 	</mx:Canvas>
