@@ -153,9 +153,9 @@
 			//   "Released under the Attribution Required (CC by) license."
 			//   "Creative Commons - Attribution" see http://www.rw-designer.com/licenses
 			// Converted from .eps format to .jpg.
-			[Embed(source="../odysseyAssets/Pirate Ship 515 x 410.png")]
-			[Bindable]
-			private var mPirateShipImage:Class;
+			//[Embed(source="../odysseyAssets/Pirate Ship 515 x 410.png")]
+			//[Bindable]
+			//private var mPirateShipImage:Class;
 			
 			// ********** TREASURE HUNT IMAGES **********
 			
@@ -167,33 +167,33 @@
 			//   "Clker.com is an online sharing service where users share free public domain" 
 			//   "vector cliparts, or share public domain photos and derive vector cliparts"
 			//   "from those photos using clker's online tracer."
-			[Embed(source="../odysseyAssets/Parchment.png")]
-			[Bindable]
-			private var mParchmentImage:Class;
+			//[Embed(source="../odysseyAssets/Parchment.png")]
+			//[Bindable]
+			//private var mParchmentImage:Class;
 			
 			// Embed the All Treasures Found image in the Treasure Hunt game.
 			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
 			// See Disclaimer above
 			// Modified by adding text in Photoshop CS5.
-			[Embed(source="../odysseyAssets/All Treasures Found.png")]
-			[Bindable]
-			private var mAllTreasuresFoundImage:Class;
+			//[Embed(source="../odysseyAssets/All Treasures Found.png")]
+			//[Bindable]
+			//private var mAllTreasuresFoundImage:Class;
 			
 			// Embed the Time Up and Treasures Found image in the Treasure Hunt game.
 			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
 			// See Disclaimer above
 			// Modified by adding text in Seashore on Mac.
-			[Embed(source="../odysseyAssets/Time Up and Treasures Found.png")]
-			[Bindable]
-			private var mTimeRanOutImage:Class;
+			//[Embed(source="../odysseyAssets/Time Up and Treasures Found.png")]
+			//[Bindable]
+			//private var mTimeRanOutImage:Class;
 			
 			// Embed the Congratulations image in the Treasure Hunt game.
 			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
 			// See Disclaimer above
 			// Modified by adding text in Seashore on Mac.
-			[Embed(source="../odysseyAssets/Congratulations.png")]
-			[Bindable]
-			private var mCongratulationsImage:Class;
+			//[Embed(source="../odysseyAssets/Congratulations.png")]
+			//[Bindable]
+			//private var mCongratulationsImage:Class;
 			
 			// Embed the NoTreasuresFound image in the Treasure Hunt game.
 			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
@@ -445,11 +445,11 @@
 				mMaxHookRange				= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
 				mRangeValueLabel.text		= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
 				
-				// Hide all parchment announcements until they are needed.
-				mAllTreasuresFoundAlert.visible	= false;
-				mTimeRanOutAlert.visible		= false;
-				mCongratulationsAlert.visible	= false;
-				mTreasuresFoundLabel.visible	= false;
+				// Hide all parchment announcements until they are needed.OLD STUFF 6/19/13
+				//mAllTreasuresFoundAlert.visible	= false;
+				//mTimeRanOutAlert.visible		= false;
+				//mCongratulationsAlert.visible	= false;
+				//mTreasuresFoundLabel.visible	= false;
 			}
 			
 			
@@ -991,23 +991,24 @@
 				mCurrentTreasureNum = selectRandomTreasure();
 			}
 			
-			private function gameFinish():void{
-				// Tell the player the game is over.
-				if (mTreasuresFound) // At least one treasure was found.
-				{
-					mCongratulationsAlert.visible	= true;
-					mTreasuresFoundLabel.text		= treasuresFoundString();
-					mTreasuresFoundLabel.visible	= true;
-				}else{ // No treasures were found.
-					//					mNoTreasuresFoundAlert.visible	= true;
-				}
-				// display exit button
-				//				mExitFinishButton.visible = true;
-				// If game didn't already end when hook dropped, send game data to TinkerPlots / Fathom.
-				if (mCurrentGameComplete == false)
-					sendGameDataClose();
-				mCurrentGameComplete = true;// Game is complete.
-			}
+			//old function, called nowhere
+//			private function gameFinish():void{
+//				// Tell the player the game is over.
+//				if (mTreasuresFound) // At least one treasure was found.
+//				{
+//					mCongratulationsAlert.visible	= true;
+//					mTreasuresFoundLabel.text		= treasuresFoundString();
+//					mTreasuresFoundLabel.visible	= true;
+//				}else{ // No treasures were found.
+//					//					mNoTreasuresFoundAlert.visible	= true;
+//				}
+//				// display exit button
+//				//				mExitFinishButton.visible = true;
+//				// If game didn't already end when hook dropped, send game data to TinkerPlots / Fathom.
+//				if (mCurrentGameComplete == false)
+//					sendGameDataClose();
+//				mCurrentGameComplete = true;// Game is complete.
+//			}
 			
 			//call to update the log any time a value changes
 			
@@ -1467,9 +1468,8 @@
 	
 	<!-- Left Sidebar Log -->
 	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">	
-		<s:Image id="mSidebarScroll" x="5" y="120" source="{mSidebarBacker}" />			
-		
-		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="popUpScreen.chooseHuntLevel();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
+		<s:Image id="mSidebarScroll" x="5" y="120" source="{mSidebarBacker}" /> 
+				<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Levels" chromeColor="#D1B38B" click="popUpScreen.chooseHuntLevel();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 		<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
 		<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="Set Sail" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
 	</mx:Canvas>
@@ -1489,11 +1489,11 @@
 	<mx:UIComponent id="popUpContainer" x="0" y="0"/>
 	
 	
-	<!-- Popup Alert items -->
+	<!-- Popup Alert items 
 	<mx:Image	id="mAllTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mAllTreasuresFoundImage}" depth="6"/>
 	<mx:Image	id="mTimeRanOutAlert" includeIn="TreasureHunt" x="170" y="119" source="{mTimeRanOutImage}" depth="6"/>
 	<mx:Image	id="mCongratulationsAlert" includeIn="TreasureHunt" x="170" y="119" source="{mCongratulationsImage}" depth="6"/>
-	<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="You found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/>
+	<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="You found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/> -->
 	
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall"	x="0" y="0" width="{GameScreen.TOTAL_SCREEN_WIDTH}" height="{GameScreen.TOTAL_SCREEN_HEIGHT}" visible="false" depth="999">
