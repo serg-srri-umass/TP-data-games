@@ -111,7 +111,7 @@
 			private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet?
 			private var mFoundTreasure:Boolean = false; 	// Has the current hook drop found this treasure?
 			[Bindable] public var boundLevelText:String = "";
-			private var mCurrentLevel:String = "";
+			private var mCurrentLevel:int = 0;
 			private	var	parentCaseID:int = 0;
 			
 			private var mTreasuresAtLocArr:Array;			//Used for new multi-treasure aspect - tells how many treasures are at the current loc
@@ -136,9 +136,9 @@
 			
 			//variables for holding loaded MovieClips
 			
-			private function getCurrentMission():String{ return mCurrentLevel; }
+			private function getCurrentMission():int{ return mCurrentLevel; }
 			private function getHuntMission():uint{ return mHuntLevel; }
-			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI(firstHuntLevel, secondHuntLevel, thirdHuntLevel, fourthHuntLevel, restartMission, getCurrentMission, getHuntMission);	
+			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI(firstHuntLevel, secondHuntLevel, thirdHuntLevel, fourthHuntLevel, restartMission, getCurrentMission, getHuntMission, setGameTitle);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
 			
 			//timer when your money hits zero, waits before showing lose screen
@@ -458,7 +458,7 @@
 			// firstHuntLevel() sets the current hunt level to the first level.
 			private function firstHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				boundLevelText = PopUpScroll.kLevel1Title;
+				setGameTitle(PopUpScroll.kLevel1Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -475,7 +475,7 @@
 				setCurrentMinMaxRats( 100, 100, 500 );
 				mCostPerRat	= 0;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
-				mCurrentLevel = "LEVEL 1";
+				mCurrentLevel = 1;
 				mSailOnAlertString = kSailOnNormalLevel;
 				
 				bootyMeter.initialize(15000, 30000, 7000);
@@ -489,7 +489,7 @@
 			// secondHuntLevel() sets the current hunt level to the second level.
 			private function secondHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				boundLevelText = PopUpScroll.kLevel2Title;
+				setGameTitle(PopUpScroll.kLevel2Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -506,7 +506,7 @@
 				setCurrentMinMaxRats( 100, 100, 500 );
 				mCostPerRat	= 0;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = false;
-				mCurrentLevel = "LEVEL 2";
+				mCurrentLevel = 2;
 				mSailOnAlertString = kSailOnMultiTreasureLevel;
 				
 				bootyMeter.initialize(15000, 40000, 7000);
@@ -518,7 +518,7 @@
 			
 			private function thirdHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				boundLevelText = PopUpScroll.kLevel3Title;
+				setGameTitle(PopUpScroll.kLevel3Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -535,7 +535,7 @@
 				setCurrentMinMaxRats( 10, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
-				mCurrentLevel = "LEVEL 3";
+				mCurrentLevel = 3;
 				mSailOnAlertString = kSailOnNormalLevel;
 				
 				bootyMeter.initialize(10000, 45000, 15000);
@@ -547,7 +547,7 @@
 			
 			private function fourthHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				boundLevelText = PopUpScroll.kLevel4Title;
+				setGameTitle(PopUpScroll.kLevel4Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -564,7 +564,7 @@
 				setCurrentMinMaxRats( 10, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
-				mCurrentLevel = "LEVEL 4";
+				mCurrentLevel = 4;
 				mSailOnAlertString = kSailOnNormalLevel;
 				
 				bootyMeter.initialize(10000, 45000, 18000);
@@ -1173,7 +1173,7 @@
 				
 				mTreasureLocArr = new Array();
 				
-				if(mCurrentLevel == "LEVEL 2") //level 2 can have 0, 1, or 2 treasures
+				if(mCurrentLevel == 2) //level 2 can have 0, 1, or 2 treasures
 				{
 					mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
 					
@@ -1343,6 +1343,9 @@
 				}
 			}
 			
+			private function setGameTitle(arg:String):void {
+				boundLevelText = arg;
+			}
 			
 			// This function is called when the game starts. These objects will have the following listeners for the entirety of the play session:
 			private function initListeners():void{
