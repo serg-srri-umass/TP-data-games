@@ -43,7 +43,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2013.06.05";
+			public static const VERSION:String   = "Chainsaw v.2013.06.17";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -1323,16 +1323,16 @@
 	<s:Button id="mChangeLevelButton" x="20" y="86" width="100" height="30" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
 	
 	<s:BorderContainer id="mLogYardContainer" x="134" y="46" width="600" height="364" backgroundColor="#EAD1AA" borderVisible="false">
-		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="loaded_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)" mouseChildren="false"/>
-		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="loaded_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="loaded_assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
-		<s:SWFLoader		id="mDynamicLog4" x="-5" y="0" source="loaded_assets/DynamicLog.swf" complete="initLog4()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)" mouseChildren="false"/>
+		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
+		<s:SWFLoader		id="mDynamicLog4" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog4()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:Group			id="mStatusLabelHolder" x="0" y="0" width="597" height="324" visible="false"/>
 	</s:BorderContainer>
 	
 	<s:BorderContainer id="UI_Elements" x="0" y="156" width="134" height="274" backgroundColor="#EAD1AA" borderVisible="false">
 		<s:Label id="mFuelLabel" x="15" y="-15" fontSize="16" fontWeight="bold" text="Fuel:"/>
-		<s:SWFLoader id="mFuelIcon" x="15" y="5" width="106" height="118" complete="initGasTank()" source="loaded_assets/GasTank.swf" />
+		<s:SWFLoader id="mFuelIcon" x="15" y="5" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
 		<s:Label id="mReferenceLengthLabel" x="13" y="156" fontSize="16" fontWeight="bold" text="Target Length:"/>
 		<mx:Image id="mTapeMeasure" x="15" y="182" source="{mTapeMeasureImage}"/>
 		<mx:Image id="mReferenceLengthImage" x="15" y="216" source="{mLengthImage}"/>

@@ -335,7 +335,7 @@
 									attrs:	[
 										{ name: "Site", type: "nominal", description: "Site number"   } ,
 										{ name: "RatNumber", type: "numeric", precision: 0, description: "Rats sent so far in game"   } , 
-										{ name: "RatReading", type: "numeric", precision: 0, description: "Location estimate provided by rat"  }
+										{ name: "RatReading", type: "numeric", precision: 1, description: "Location estimate provided by rat"  }
 									],
 									labels: {
 										singleCase: "rat sent",
@@ -623,16 +623,26 @@
 						return "There was no treasure here.";
 					case 1:
 						if(mTreasuresFound == 1) return "There was 1 treasure here, and you found it.";
-						else return "There was 1 treasure here, but you didn't find it.";
+						else return "There was 1 treasure here at " + printLocations() + ", but you didn't find it.";
 					case 2:
 						switch(mTreasuresFound)
 						{
-							case 0: return "There were two treasures here, but you found neither of them.";
-							case 1: return "There were two treasures here, and you found 1 of them.";
-							case 2: return "There were two treasures here, and you found them both.";
+							case 0: return "There were two treasures here at " + printLocations() + ", but you found neither of them.";
+							case 1: return "There were two treasures here at " + printLocations() + ", and you found 1 of them.";
+							case 2: return "There were two treasures here at " + printLocations() + ", and you found them both.";
 						}
 					default: return "You found " + mTreasuresFound + " of the " + mNumTreasures + " treasures!";
 				}
+			}
+			
+			//prints any number of treasure locations based on how many treasures are in the water
+			private function printLocations():String{
+				var outString:String = "";
+				for(var j:int=0; mTreasureLocArr[j]; j++){
+					var treasure:Array = mTreasureArray[mCurrentTreasureNum+j];
+					outString = outString + int(treasure[kLocation] * 10)/10 + ((mTreasureLocArr[j + 1]) ? " and " : "");
+				}
+				return outString;
 			}
 			
 			// ************MAIN GAME FUNCTIONS************
@@ -1453,7 +1463,7 @@
 			<s:Image 		id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
 			<s:Label		id="mHookLabel" x="58" y="5" text="Grappling Hook" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
 			<s:Button 		id="mDropHookButton" x="55" y="28" label="Drop Hook" width="80" height="23" fontSize="12" mouseOver="onMouseOverDropHookButton(event)" mouseOut="onMouseOutDropHookButton(event)" click="onClickDropHookButton(event)"/>
-			<s:NumericStepper id="mCenterPositionStepper" x="140" y="28" width="57" minimum="1" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
+			<s:NumericStepper id="mCenterPositionStepper" x="140" y="28" width="57" minimum="0" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
 			<s:Label		id="mRangeLabel" x="55" y="62" text="Range:" fontFamily="Georgia" fontWeight="bold"/>
 			<s:Label 		id="mRangeValueLabel" x="130" y="62" width="80" fontFamily="Georgia" fontWeight="bold"/>
 		</s:Group>
