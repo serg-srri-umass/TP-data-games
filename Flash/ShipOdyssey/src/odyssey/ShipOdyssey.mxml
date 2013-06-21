@@ -813,6 +813,7 @@
 				exitGame();
 				initializeTreasureHunt();
 				showCurrentLevelInstructions();
+				enableNewGame();
 			}
 			
 			//wait and check timer routine for when the hook is moving before a drop
@@ -1257,6 +1258,11 @@
 					crane.canDrag = true;
 			}
 			
+			private function enableNewGame():void{
+				mExitNewGameButton.enabled = true;
+				mExitNewGameButton.label = "Play";
+			}
+			
 			private function disableRatButton(e:RatEvent = null):void{
 				mSendRatsButton.enabled = false;
 				mDropHookButton.enabled = false;
@@ -1281,8 +1287,7 @@
 			
 			//ties the crane to MXML loader and sets up the mask
 			private function initCrane():void{
-				var crane_outer:MovieClip = CraneLoader.content as MovieClip;
-				crane = crane_outer.craneOuter;
+				crane = CraneLoader.content as MovieClip;
 				
 				crane.visible = false;
 				craneMask = new Shape();
