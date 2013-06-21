@@ -1,4 +1,4 @@
-﻿package assets {
+﻿package odyssey.events {
 	
 	import flash.events.Event;
 	

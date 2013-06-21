@@ -36,18 +36,14 @@
 			import mx.utils.StringUtil;
 			
 			import odyssey.events.*;
-			
-			import odysseyAssets.*;
-			
+
 			// BUILD FOR TinkerPlots or DG: 
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
-			
-			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
-			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			public static const VERSION:String = "v.2013.06.14";
+			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
+			public static const VERSION:String = "v.2013.06.21";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -153,9 +149,9 @@
 			//   "Released under the Attribution Required (CC by) license."
 			//   "Creative Commons - Attribution" see http://www.rw-designer.com/licenses
 			// Converted from .eps format to .jpg.
-			[Embed(source="../odysseyAssets/Pirate Ship 515 x 410.png")]
-			[Bindable]
-			private var mPirateShipImage:Class;
+			//[Embed(source="../odysseyAssets/Pirate Ship 515 x 410.png")]
+			//[Bindable]
+			//private var mPirateShipImage:Class;
 			
 			// ********** TREASURE HUNT IMAGES **********
 			
@@ -167,33 +163,33 @@
 			//   "Clker.com is an online sharing service where users share free public domain" 
 			//   "vector cliparts, or share public domain photos and derive vector cliparts"
 			//   "from those photos using clker's online tracer."
-			[Embed(source="../odysseyAssets/Parchment.png")]
-			[Bindable]
-			private var mParchmentImage:Class;
+			//[Embed(source="../odysseyAssets/Parchment.png")]
+			//[Bindable]
+			//private var mParchmentImage:Class;
 			
 			// Embed the All Treasures Found image in the Treasure Hunt game.
 			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
 			// See Disclaimer above
 			// Modified by adding text in Photoshop CS5.
-			[Embed(source="../odysseyAssets/All Treasures Found.png")]
-			[Bindable]
-			private var mAllTreasuresFoundImage:Class;
+			//[Embed(source="../odysseyAssets/All Treasures Found.png")]
+			//[Bindable]
+			//private var mAllTreasuresFoundImage:Class;
 			
 			// Embed the Time Up and Treasures Found image in the Treasure Hunt game.
 			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
 			// See Disclaimer above
 			// Modified by adding text in Seashore on Mac.
-			[Embed(source="../odysseyAssets/Time Up and Treasures Found.png")]
-			[Bindable]
-			private var mTimeRanOutImage:Class;
+			//[Embed(source="../odysseyAssets/Time Up and Treasures Found.png")]
+			//[Bindable]
+			//private var mTimeRanOutImage:Class;
 			
 			// Embed the Congratulations image in the Treasure Hunt game.
 			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
 			// See Disclaimer above
 			// Modified by adding text in Seashore on Mac.
-			[Embed(source="../odysseyAssets/Congratulations.png")]
-			[Bindable]
-			private var mCongratulationsImage:Class;
+			//[Embed(source="../odysseyAssets/Congratulations.png")]
+			//[Bindable]
+			//private var mCongratulationsImage:Class;
 			
 			// Embed the NoTreasuresFound image in the Treasure Hunt game.
 			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
@@ -208,24 +204,24 @@
 			
 			// Backer to Hook/Crane controls
 			//			[Embed(source="../odysseyAssets/SO-UI2-HookDropBackerExt.png")]
-			[Embed(source="../odysseyAssets/backer-wood-light.png")]
+			[Embed(source="../embedded_assets/backer-wood-light.png")]
 			[Bindable] private var mHookDropBacker:Class;
 			
 			// Backer to Rat controls
 			//			[Embed(source="../odysseyAssets/SO-UI2-DivingRatsBacker.png")]
-			[Embed(source="../odysseyAssets/backer-wood-light.png")]
+			[Embed(source="../embedded_assets/backer-wood-light.png")]
 			[Bindable] private var mRatBacker:Class;
 			
 			// Embed volume icons -- source: Ryan McCann
-			[Embed(source="../odysseyAssets/Volume.png")]
+			[Embed(source="../embedded_assets/Volume.png")]
 			[Bindable]
 			private var mVolumeIcon:Class;
 			
-			[Embed(source="../odysseyAssets/Volume_half.png")]
+			[Embed(source="../embedded_assets/Volume_half.png")]
 			[Bindable]
 			private var mHalfVolumeIcon:Class;
 			
-			[Embed(source="../odysseyAssets/Volume_off.png")]
+			[Embed(source="../embedded_assets/Volume_off.png")]
 			[Bindable]
 			private var mLowVolumeIcon:Class;
 			
@@ -239,7 +235,7 @@
 			// New Cash register sound by Benboncan (only modification is converted to MP3)
 			// Downloaded from http://www.freesound.org/people/Benboncan/sounds/91924/ on Feb 7, 2012
 			// Licensed under the attribution license (http://creativecommons.org/licenses/by/3.0/)
-			[Embed(source="../odysseyAssets/91924-benboncan-till-with-bell.mp3")]
+			[Embed(source="../embedded_assets/91924-benboncan-till-with-bell.mp3")]
 			private var CashMP3:Class;
 			private var mCashSound:SoundAsset = new CashMP3() as SoundAsset;
 			
@@ -441,11 +437,11 @@
 				mMaxHookRange				= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
 				mRangeValueLabel.text		= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
 				
-				// Hide all parchment announcements until they are needed.
-				mAllTreasuresFoundAlert.visible	= false;
-				mTimeRanOutAlert.visible		= false;
-				mCongratulationsAlert.visible	= false;
-				mTreasuresFoundLabel.visible	= false;
+				// Hide all parchment announcements until they are needed.OLD STUFF 6/19/13
+				//mAllTreasuresFoundAlert.visible	= false;
+				//mTimeRanOutAlert.visible		= false;
+				//mCongratulationsAlert.visible	= false;
+				//mTreasuresFoundLabel.visible	= false;
 			}
 			
 			
@@ -991,23 +987,24 @@
 				mCurrentTreasureNum = selectRandomTreasure();
 			}
 			
-			private function gameFinish():void{
-				// Tell the player the game is over.
-				if (mTreasuresFound) // At least one treasure was found.
-				{
-					mCongratulationsAlert.visible	= true;
-					mTreasuresFoundLabel.text		= treasuresFoundString();
-					mTreasuresFoundLabel.visible	= true;
-				}else{ // No treasures were found.
-					//					mNoTreasuresFoundAlert.visible	= true;
-				}
-				// display exit button
-				//				mExitFinishButton.visible = true;
-				// If game didn't already end when hook dropped, send game data to TinkerPlots / Fathom.
-				if (mCurrentGameComplete == false)
-					sendGameDataClose();
-				mCurrentGameComplete = true;// Game is complete.
-			}
+			//old function, called nowhere
+//			private function gameFinish():void{
+//				// Tell the player the game is over.
+//				if (mTreasuresFound) // At least one treasure was found.
+//				{
+//					mCongratulationsAlert.visible	= true;
+//					mTreasuresFoundLabel.text		= treasuresFoundString();
+//					mTreasuresFoundLabel.visible	= true;
+//				}else{ // No treasures were found.
+//					//					mNoTreasuresFoundAlert.visible	= true;
+//				}
+//				// display exit button
+//				//				mExitFinishButton.visible = true;
+//				// If game didn't already end when hook dropped, send game data to TinkerPlots / Fathom.
+//				if (mCurrentGameComplete == false)
+//					sendGameDataClose();
+//				mCurrentGameComplete = true;// Game is complete.
+//			}
 			
 			//call to update the log any time a value changes
 			
@@ -1473,22 +1470,22 @@
 	<!-- Animated Ship and Crane area -->
 	<s:Group	id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286">
 		<s:BorderContainer id="Sky" width="395" height="186" depth="1" backgroundFill="{daylight}" borderVisible="false">
-			<s:SWFLoader id="CloudLoader" source="odysseyAssets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
+			<s:SWFLoader id="CloudLoader" source="odyssey_assets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
 		</s:BorderContainer>	
 		<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="186" width="395" height="100" depth="3" />
-		<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
-		<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odysseyAssets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
+		<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odyssey_assets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
+		<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odyssey_assets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
 	</s:Group>
 	<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
 	<mx:UIComponent id="ratContainer" x="120" y="121" width="395" height="286"/> <!-- container to hold dots for rat animation demo-->
 	<mx:UIComponent id="popUpContainer" x="0" y="0"/>
 	
 	
-	<!-- Popup Alert items -->
+	<!-- Popup Alert items 
 	<mx:Image	id="mAllTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mAllTreasuresFoundImage}" depth="6"/>
 	<mx:Image	id="mTimeRanOutAlert" includeIn="TreasureHunt" x="170" y="119" source="{mTimeRanOutImage}" depth="6"/>
 	<mx:Image	id="mCongratulationsAlert" includeIn="TreasureHunt" x="170" y="119" source="{mCongratulationsImage}" depth="6"/>
-	<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="You found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/>
+	<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="You found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/> -->
 	
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall"	x="0" y="0" width="{GameScreen.TOTAL_SCREEN_WIDTH}" height="{GameScreen.TOTAL_SCREEN_HEIGHT}" visible="false" depth="999">
