@@ -93,8 +93,8 @@
 			mRope.visible = false;
 			DropHook.visible = true; 
 			DropRope.visible = true;
-			hookDropTween = new Tween(DropHook,"y", Strong.easeIn, 98, 400, hookDropTime, true);
-			ropeDropTween = new Tween(DropRope,"height", Strong.easeIn, 24, 350, hookDropTime, true);
+			hookDropTween = new Tween(DropHook,"y", Strong.easeIn, 111, 400, hookDropTime, true);
+			ropeDropTween = new Tween(DropRope,"height", Strong.easeIn, 30, 350, hookDropTime, true);
 			hookDropTween.addEventListener(TweenEvent.MOTION_FINISH, pullUpHook);
 		}
 		
@@ -102,8 +102,8 @@
 			//trace("Treasure found = " + treasureFound);
 			if(treasureFound) DropHook.showTreasure();
 			else DropHook.showRandom();
-			hookLiftTween = new Tween(DropHook,"y", Regular.easeInOut, 400, 98, hookRaiseTime, true);
-			ropeLiftTween = new Tween(DropRope,"height", Regular.easeInOut, 350, 24, hookRaiseTime, true);
+			hookLiftTween = new Tween(DropHook,"y", Regular.easeInOut, 400, 111, hookRaiseTime, true);
+			ropeLiftTween = new Tween(DropRope,"height", Regular.easeInOut, 350, 30, hookRaiseTime, true);
 			hookLiftTween.addEventListener(TweenEvent.MOTION_FINISH, clearTweens);
 		}
 		
