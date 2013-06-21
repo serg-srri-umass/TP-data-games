@@ -9,18 +9,22 @@ package odyssey
 	{
 		private var game:ShipMissionAPI;	//reference to the main. Allows this class to directly interact with the application.
 		
-		public static const kBlankLevelDescription:String = "Mouse over a mission to view its description.";
 		public static const kLevel1Instructions:String = "At this location, each treasure is worth $7,000. You start with $15,000. To complete it, earn $25,000. Rats are free, but be careful; a missed hook will cost you $5,000!";
 		public static const kLevel2Instructions:String = "Each treasure is still worth $7,000, but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals!";
 		public static const kLevel3Instructions:String = "Each treasure is now worth $15,000. Rats will cost you $100 each. Check the loot meter for your new goals!";
 		public static const kLevel4Instructions:String = "Each treasure is worth $18,000. The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals!";
+		public static const kLevel5Instructions:String = "";
+		private static const kLevelInstructionsArray:Array = new Array(kLevel1Instructions, kLevel2Instructions, kLevel3Instructions, kLevel4Instructions, kLevel5Instructions);
 		
+		//NOTE: ON THE MAP, Titles are set in the .swc. If they're changed, the .swc has to be updated as well.
 		public static const kLevel1Title:String = "Hundreds o' Rats";
 		public static const kLevel2Title:String = "Uncertain Treasure";
 		public static const kLevel3Title:String = "Rat Shortage";
 		public static const kLevel4Title:String = "Deep Water";
+		public static const kLevel5Title:String = "Choose Yer Hook";
+		private static const kLevelTitleArray:Array = new Array(kLevel1Title, kLevel2Title, kLevel3Title, kLevel4Title, kLevel5Title);
 		
-		private var selectedLevel:String = "LEVEL 1";
+		private var selectedLevel:int = 1;
 		private var delayTimer:Timer = new Timer(1500, 0); //used to animate 'fade out'. The dely before the screen disappears.
 		
 		public function PopUpScroll(api:* = null) {
@@ -54,25 +58,27 @@ package odyssey
 		// the 'continue' button, for when you've won the game.
 		private function chooseLevelButtonHandlerNext(e:MouseEvent):void{
 			mainBtn.removeEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
-			chooseHuntLevel(true);
+			if(selectedLevel < 4)
+				selectedLevel++;
+			chooseHuntLevel(true, false);
 		}
 		
 		// click the 'retry' button
 		private function replayLevelButtonHandler(e:MouseEvent):void{
 			mainBtn.removeEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
-			
 			var mHuntLevel:int = game.getHuntMission();
 			game.startHunt(mHuntLevel + 1);
 			game.restartMission();
 		}
 		
 		// select what level will be played.
-		public function chooseHuntLevel(sailToNext:Boolean = false):void 
+		public function chooseHuntLevel(sailToNext:Boolean = false, skipAnimation:Boolean = true):void 
 		{
-			//game.boundLevelText = "";	// clear the text at the top of the game.
+			game.setGameTitle("Choose a Mission!");
+			
 			visible = true;
 			gotoAndStop("level");
-			displayMissionInstructions();
+			displayMissionInstructions(null, skipAnimation);
 			
 			missions.mission1.addEventListener(MouseEvent.MOUSE_DOWN, displayMission1);
 			missions.mission2.addEventListener(MouseEvent.MOUSE_DOWN, displayMission2);
@@ -85,30 +91,30 @@ package odyssey
 			game.startHunt(selectedLevel, e, autoStart);
 		}
 		
-		private function displayMissionInstructions(e:MouseEvent = null):void {
+		private function displayMissionInstructions(e:MouseEvent = null, skipAnimation:Boolean = true):void {
 			body.text = getCurrentLevelDescription(selectedLevel);
-			title.text = getCurrentLevelTitle(selectedLevel);
-			//missions.selectMission(selectedLevel);
+			titleBar.gotoAndStop(selectedLevel);
+			missions.choose(selectedLevel, skipAnimation);
 		}
 		private function displayMission1(e:MouseEvent):void {
 			body.text = kLevel1Instructions;
-			title.text = kLevel1Title;
-			selectedLevel = "LEVEL 1";
+			selectedLevel = 1;
+			titleBar.gotoAndStop(selectedLevel);
 		}
 		private function displayMission2(e:MouseEvent):void {
 			body.text = kLevel2Instructions;
-			title.text = kLevel2Title;
-			selectedLevel = "LEVEL 2";
+			selectedLevel = 2;
+			titleBar.gotoAndStop(selectedLevel);
 		}
 		private function displayMission3(e:MouseEvent):void {
 			body.text = kLevel3Instructions;
-			title.text = kLevel3Title;
-			selectedLevel = "LEVEL 3";
+			selectedLevel = 3;
+			titleBar.gotoAndStop(selectedLevel);
 		}
 		private function displayMission4(e:MouseEvent):void {
 			body.text = kLevel4Instructions;
-			title.text = kLevel4Title;
-			selectedLevel = "LEVEL 4";
+			selectedLevel = 4;
+			titleBar.gotoAndStop(selectedLevel);
 		}
 		
 		//remove all listeners from the level chooser window & close it.
@@ -144,41 +150,23 @@ package odyssey
 			title.text = getCurrentLevelTitle();
 			body.text = getCurrentLevelDescription();
 		}
+		public function isShowingHelp():Boolean{
+			return currentFrameLabel == "help";
+		}
+
 		
 		// returns the name of the current level
-		public function getCurrentLevelTitle(arg:String = null):String
+		public function getCurrentLevelTitle(arg:int = -1):String
 		{
-			var switcher:String = (arg ? arg : game.getCurrentMission());
-			switch(switcher)
-			{
-				case "LEVEL 1":
-					return kLevel1Title;
-				case "LEVEL 2":
-					return kLevel2Title;
-				case "LEVEL 3":
-					return kLevel3Title;
-				case "LEVEL 4":
-					return kLevel4Title;
-			}
-			return "";
+			var switcher:int = (arg > 0 ? arg : selectedLevel);
+			return kLevelTitleArray[switcher - 1];
 		}
 		
 		//returns the current level description
-		public function getCurrentLevelDescription(arg:String = null):String
+		public function getCurrentLevelDescription(arg:int = -1):String
 		{
-			var switcher:String = (arg ? arg : game.getCurrentMission());
-			switch(switcher)
-			{
-				case "LEVEL 1":
-					return PopUpScroll.kLevel1Instructions;
-				case "LEVEL 2":
-					return PopUpScroll.kLevel2Instructions;
-				case "LEVEL 3":
-					return PopUpScroll.kLevel3Instructions;
-				case "LEVEL 4":
-					return PopUpScroll.kLevel4Instructions;
-			}
-			return "";
+			var switcher:int = (arg > 0 ? arg : selectedLevel);
+			return kLevelInstructionsArray[switcher - 1];
 		}
 		
 		
