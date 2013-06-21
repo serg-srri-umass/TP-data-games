@@ -905,14 +905,14 @@
 				trace("ShipOdyssey.onClickExitNewGame(iEvent)");
 				
 				if( mExitNewGameButton.label == "Pull Anchor"){
-					exitGame(iEvent);
+					runSailOnAnim();
 				} else { 
 					// Clicking on 'New Game'
 					newMission(iEvent);
 				}
 			}
 			
-			private function exitGame(iEvent:MouseEvent = null):void{
+			private function exitGame(iEvent:Event = null):void{
 				sendGameDataClose();
 				
 				//clean up everything so it is back in initial state for start of next game
@@ -1149,8 +1149,8 @@
 				onChangeCenterPosition(new Event("Stepper"));	
 				//crane is stored and ready to zoom out
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, zoomOutAndSail);
-				transitionTimer = new Timer(6000, 1); //timer is in milliseconds
-				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, readyToZoomIn);
+				transitionTimer = new Timer(5000, 1); //timer is in milliseconds
+				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, exitGame);
 				sailingMovie.visible = true;
 				crane.visible = false;
 				sailingMovie.doZoomOut();
