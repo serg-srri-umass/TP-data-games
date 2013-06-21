@@ -450,7 +450,7 @@
 			// firstHuntLevel() sets the current hunt level to the first level.
 			private function firstHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				setGameTitle(PopUpScroll.kLevel1Title);
+				setGameTitle("1). "+ PopUpScroll.kLevel1Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -481,7 +481,7 @@
 			// secondHuntLevel() sets the current hunt level to the second level.
 			private function secondHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				setGameTitle(PopUpScroll.kLevel2Title);
+				setGameTitle("1). "+ PopUpScroll.kLevel2Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -510,7 +510,7 @@
 			
 			private function thirdHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				setGameTitle(PopUpScroll.kLevel3Title);
+				setGameTitle("1). "+ PopUpScroll.kLevel3Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -539,7 +539,7 @@
 			
 			private function fourthHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				setGameTitle(PopUpScroll.kLevel4Title);
+				setGameTitle("1). "+ PopUpScroll.kLevel4Title);
 				
 				if(iEvent)
 					popUpScreen.stripMissionButtonListeners();
@@ -1161,7 +1161,7 @@
 				if(false){
 					//				if(mCurrentGameComplete || mCurrentTreasureNum == kNumTreasures){
 					//finish and show end screen
-					gameFinish();
+					//gameFinish();
 				}else{
 					//zoom back in
 					cHerder.setCloudSpeed(1.0);
@@ -1280,8 +1280,10 @@
 			private var dayTickOffClockTimer:Timer;
 			
 			//ties the crane to MXML loader and sets up the mask
-			private function initCrane():void{					
-				crane = CraneLoader.content as MovieClip;
+			private function initCrane():void{
+				var crane_outer:MovieClip = CraneLoader.content as MovieClip;
+				crane = crane_outer.craneOuter;
+				
 				crane.visible = false;
 				craneMask = new Shape();
 				craneMask.graphics.beginFill(0x000000);
