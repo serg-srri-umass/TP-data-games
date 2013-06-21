@@ -1123,11 +1123,11 @@
 			private function runSailOnAnim():void{
 				trace("ShipOdyssey.runSailOnAnim()");
 				disableAllButtons();
-				transitionTimer = new Timer(2000, 1); //timer is in milliseconds
-				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, zoomOutAndSail);
-				crane.tweenTo(100, 2);//turn to frame 100 in 2 secs
-				transitionTimer.start();
+				//transitionTimer = new Timer(2000, 1); //timer is in milliseconds
+				crane.Crane_mc.addEventListener("craneStowed", zoomOutAndSail);
+				crane.runTo(100);//turn to frame 100 in 2 secs
 			}
+			
 			private function sailThenZoomIn():void{
 				trace("ShipOdyssey.sailThenZoomIn()");
 				cHerder.setCloudSpeed(-.5);
@@ -1142,7 +1142,7 @@
 			
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
 			//(decouples visual with state and play so a broken animation doesn't stop play)
-			private function zoomOutAndSail(e:TimerEvent):void{
+			private function zoomOutAndSail(e:Event):void{
 				trace("ShipOdyssey.zoomOutAndSail(e)");
 				cHerder.setCloudSpeed(-.5);
 				mCenterPositionStepper.value = 100;
