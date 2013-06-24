@@ -1295,8 +1295,8 @@
 				craneMask.graphics.drawRect(0,0,395,286);
 				uic.addChild(craneMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
 				crane.mask = craneMask;
-				crane.addEventListener("dragging", updateCraneStepper);	// sloppy. Will use CraneEvents in the future. 
-				crane.addEventListener("scaleClicked", updateCraneStepperSnapped);
+				crane.addEventListener(CraneEvent.DRAGGING, updateCraneStepper);
+				crane.addEventListener(CraneEvent.SCALE_CLICKED, updateCraneStepperSnapped);
 				checkSWFLoaders();
 			}
 			
