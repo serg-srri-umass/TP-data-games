@@ -11,10 +11,9 @@
       <libraryPathEntry kind="1" linkType="1" path="libs"/>
       <libraryPathEntry kind="3" linkType="1" path="../KCPTCommonLibrary/bin/KCPTCommonLibrary.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="../SRRICommonLibrary/bin/SRRICommonLibrary.swc" useDefaultLinkType="false"/>
-      <libraryPathEntry kind="3" linkType="1" path="src/odysseyAssets/Dot.swc" useDefaultLinkType="false"/>
-      <libraryPathEntry kind="3" linkType="1" path="src/odysseyAssets/splash.swc" useDefaultLinkType="false"/>
-      <libraryPathEntry kind="3" linkType="1" path="src/odysseyAssets/bootyBar.swc" useDefaultLinkType="false"/>
-      <libraryPathEntry kind="3" linkType="1" path="src/odysseyAssets/popUps.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/RatSplash.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/bootyBar.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/popUps.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
