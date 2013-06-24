@@ -18,12 +18,5 @@ Flash/ShipOdyssey/com.adobe.flexbuilder.project.prefs
 Flash/ShipOdyssey/bin-release/odyssey/
 Flash/ShipOdyssey/bin-release/swfobject.js
 
-# ignore 'obsolete' folder
-Flash/ShipOdyssey/obsolete/*
-
-# ignore rebuilds of the library .SWCs
-Flash/KCPTCommonLibrary/bin/KCPTCommonLibrary.swc
-Flash/SRRICommonLibrary/bin/SRRICommonLibrary.swc
-
 # ignore .actionscript properties files
 */.actionScriptProperties
