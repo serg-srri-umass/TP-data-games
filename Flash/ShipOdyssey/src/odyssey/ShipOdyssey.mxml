@@ -843,7 +843,6 @@
 				if (mFoundTreasure)
 				{
 					// Add treasure value to accumulated wealth.
-					bootyMeter.hideGhost();
 					bootyMeter.finishTreasureDrop(true);
 
 					mCashSound.play(); // Play cash register sound.	
