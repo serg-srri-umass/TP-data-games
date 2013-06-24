@@ -734,7 +734,7 @@
 				mMaxHookRange			= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
 				mRangeValueLabel.text	= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
 				
-				if(event.type == "dragging"){	// this is sloppy. We need CraneEvents.
+				if(event.type == CraneEvent.DRAGGING){
 					crane.toFrame(mCenterPosition);
 				}else{
 					if(Math.abs(prevCP - mCenterPosition)>2)
@@ -1301,7 +1301,10 @@
 			}
 			
 			private function updateCraneStepper(e:Event):void{
-				mCenterPositionStepper.value = crane.getFrame();
+				var value:int = crane.getFrame();
+				if(value == 1 && crane.zeroed)
+					value = 0;
+				mCenterPositionStepper.value = value;
 				onChangeCenterPosition(e);
 			}
 			private function updateCraneStepperSnapped(e:Event):void{
