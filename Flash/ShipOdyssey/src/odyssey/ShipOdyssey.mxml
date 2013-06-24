@@ -43,7 +43,7 @@
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
 			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
-			public static const VERSION:String = "v.2013.06.21";
+			public static const VERSION:String = "v.2013.06.24";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -682,13 +682,13 @@
 					mRatsSent +=1; // Increment rat counter.
 					if(numTreasuresHere == 1){
 						// Generate a noisy result based on the current treasure's location.
-						noisyLocation = Math.round((mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[0]); // Display nothing after decimal point.		
+						noisyLocation = (mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[0]; // Display nothing after decimal point.		
 					} else if(numTreasuresHere == 0){
 						//get random normal values from the entire range
-						noisyLocation = Math.round(randomLocation());
+						noisyLocation = randomLocation();
 					} else if(numTreasuresHere == 2) {
 						//do swap back and forth for two locations if they have 2 left
-						noisyLocation = Math.round((mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[evenOdd]);
+						noisyLocation = (mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[evenOdd];
 					}
 					
 					
