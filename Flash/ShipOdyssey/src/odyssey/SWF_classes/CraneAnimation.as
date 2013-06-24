@@ -2,7 +2,7 @@
 	import flash.display.MovieClip;
 	import flash.events.*;
 	
-	public class CraneAnimationRoot extends MovieClip{
+	public class CraneAnimation extends MovieClip{
 		
 		//PASS-THROUGH CODE:
 		public function runTo(frame:int):void{
@@ -119,7 +119,7 @@
 			Crane_mc.position.txt.text = limit(calcMousePosition());
 		}
 		
-		public function CraneAnimationRoot(){
+		public function CraneAnimation(){
 			toFrame(100);
 			
 			grabbyX = grabby.x;
