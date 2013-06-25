@@ -42,7 +42,8 @@
 		public var grabbyX:Number;
 		public var grabbyY:Number;
 		public var snappingPoint:int;
-
+		public var zeroed:Boolean; //whether the hook is being dragged to position zero.
+		
 		public function highlightArrows(e:Event):void{
 			if(canDrag){
 				Crane_mc.glowingArrows.visible = true;	
@@ -81,6 +82,7 @@
 			dispatchEvent(new Event("dragging"));
 			var newPos = calcMousePosition() - downPos;
 			toFrame(lastPos + newPos);
+			zeroed = (lastPos + newPos) < 1;
 		}
 		
 		public function calcMousePosition():int{

@@ -5,13 +5,8 @@ package odyssey
 	//			call this method to set up the cost arrow.
 	// 	pay( cost:int): void;
 	//			pay $. Give it a value, and it will animate it for you.
-	// 	ghost( cost:int): void;
-	//			Will show a white bar with this cost spent. Used to demo costs.
-	// 	hideGhost():void;
-	//			Removes the current ghost bar.
 	
-	import flash.events.Event;
-	
+	import flash.events.Event;	
 	import odyssey.events.BootyEventDispatcher;
 	
 	public class BootyBarMVC extends BootyMeter
@@ -92,27 +87,15 @@ package odyssey
 		{
 			// set the movieclip to its "off" state (grayed out) when its created.
 			gotoAndStop(1);
-			goalMVC.text = "$0";
+			goalMVC.htmlText = "$0";
 			myCash.booty.text = "";
 			costArrow.visible = false;
 		}
 		
-		public function ghost(arg:int):void{
-			if(!_lockedGhost)
-				costArrow.ghost(arg);
-		}
-		
-		public function hideGhost():void {
-			if(!_lockedGhost)
-				costArrow.hideGhost();	
-		}
-		
 		// when a hook drop finishes, this method runs. 
 		public function finishTreasureDrop(success:Boolean, cost:int = 0):void{
-			unlockGhost();
 			if(success)
 			{
-				hideGhost();
 				_booty += treasureValue;
 				account();
 				if(_booty >= _goal)
@@ -145,7 +128,7 @@ package odyssey
 			_startingBooty = _capital;
 			_costs = 0;
 			
-			goalMVC.text = parseToCash(_goal);	// write the goal at the top
+			goalMVC.htmlText = parseToCash(_goal);	// write the goal at the top
 			animateBooty(true);
 			costArrow.visible = true;
 			costArrow.establish(_treasureValue, _goal);

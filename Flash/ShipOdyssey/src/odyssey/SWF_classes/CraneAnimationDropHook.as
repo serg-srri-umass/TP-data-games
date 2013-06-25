@@ -5,12 +5,12 @@
 
 	public class CraneAnimationDropHook extends MovieClip{
 		private var junkArray:Array;
-		private var junkChance:int = 100;
+		private var junkChance:int = 50;
 		
 		public function CraneAnimationDropHook(){
 			super();
 			stop();
-			junkArray = new Array(Boot, DarkMass)
+			junkArray = new Array(Boot, DarkMass, DarkMass)
 		}
 		
 		public function showRandom(){
