@@ -1228,8 +1228,8 @@
 				enableAllButtons();
 				
 				
-				for(var i:int = 0; mTreasureLocArr[i]; i++){
-					mTreasurePrint[i] = mTreasureLocArr[i];
+				for(var k:int = 0; mTreasureLocArr[k]; k++){
+					mTreasurePrint[k] = mTreasureLocArr[k];
 				}
 			}
 			
