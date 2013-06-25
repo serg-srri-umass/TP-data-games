@@ -9,10 +9,10 @@ package odyssey
 	{
 		private var game:ShipMissionAPI;	//reference to the main. Allows this class to directly interact with the application.
 		
-		public static const kLevel1Instructions:String = "At this location, each treasure is worth $7,000. You start with $15,000. To complete it, earn $25,000. Rats are free, but be careful; a missed hook will cost you $5,000!";
-		public static const kLevel2Instructions:String = "Each treasure is still worth $7,000, but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals!";
-		public static const kLevel3Instructions:String = "Each treasure is now worth $15,000. Rats will cost you $100 each. Check the loot meter for your new goals!";
-		public static const kLevel4Instructions:String = "Each treasure is worth $18,000. The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals!";
+		public static const kLevel1Instructions:String = "At this location, each treasure is worth $7,000. You start with $15,000. To complete it, earn $25,000. Rats are free, but be careful; a missed hook will cost you $5,000.";
+		public static const kLevel2Instructions:String = "Each treasure is still worth $7,000, but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals.";
+		public static const kLevel3Instructions:String = "Each treasure is now worth $15,000. Rats will cost you $100 each. Check the loot meter for your new goals.";
+		public static const kLevel4Instructions:String = "Each treasure is worth $18,000. The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
 		public static const kLevel5Instructions:String = "";
 		private static const kLevelInstructionsArray:Array = new Array(kLevel1Instructions, kLevel2Instructions, kLevel3Instructions, kLevel4Instructions, kLevel5Instructions);
 		
@@ -74,7 +74,7 @@ package odyssey
 		// select what level will be played.
 		public function chooseHuntLevel(sailToNext:Boolean = false, skipAnimation:Boolean = true):void 
 		{
-			game.setGameTitle("Choose a Mission!");
+			game.setGameTitle("Choose a Mission");
 			
 			visible = true;
 			gotoAndStop("level");
@@ -132,7 +132,7 @@ package odyssey
 			visible = true;
 			gotoAndStop("treasure");
 			title.text = "Treasure!";
-			body.text = "You found the " + item + " worth " + value + " at location " + location + "!";
+			body.text = "You found the " + item + " worth " + value + " at location " + location + ".";
 		}
 		
 		// display the prompt that comes up when you pull anchor
