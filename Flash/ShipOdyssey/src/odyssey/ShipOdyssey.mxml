@@ -736,7 +736,7 @@
 				mMaxHookRange			= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
 				mRangeValueLabel.text	= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
 				
-				if(event.type == "dragging"){	// this is sloppy. We need CraneEvents.
+				if(event.type == CraneEvent.DRAGGING){
 					crane.toFrame(mCenterPosition);
 				}else{
 					if(Math.abs(prevCP - mCenterPosition)>2)
@@ -845,7 +845,6 @@
 				if (mFoundTreasure)
 				{
 					// Add treasure value to accumulated wealth.
-					bootyMeter.hideGhost();
 					bootyMeter.finishTreasureDrop(true);
 
 					mCashSound.play(); // Play cash register sound.	
@@ -1302,13 +1301,16 @@
 				craneMask.graphics.drawRect(0,0,395,286);
 				uic.addChild(craneMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
 				crane.mask = craneMask;
-				crane.addEventListener("dragging", updateCraneStepper);	// sloppy. Will use CraneEvents in the future. 
-				crane.addEventListener("scaleClicked", updateCraneStepperSnapped);
+				crane.addEventListener(CraneEvent.DRAGGING, updateCraneStepper);
+				crane.addEventListener(CraneEvent.SCALE_CLICKED, updateCraneStepperSnapped);
 				checkSWFLoaders();
 			}
 			
 			private function updateCraneStepper(e:Event):void{
-				mCenterPositionStepper.value = crane.getFrame();
+				var value:int = crane.getFrame();
+				if(value == 1 && crane.zeroed)
+					value = 0;
+				mCenterPositionStepper.value = value;
 				onChangeCenterPosition(e);
 			}
 			private function updateCraneStepperSnapped(e:Event):void{
