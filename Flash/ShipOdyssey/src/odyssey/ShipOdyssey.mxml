@@ -617,14 +617,14 @@
 					case 0:
 						return "There was no treasure here.";
 					case 1:
-						if(mTreasuresFound == 1) return "There was 1 treasure here at " + printLocations() + ", and you found it.";
-						else return "There was 1 treasure here at " + printLocations() + ", but you didn't find it.";
+						if(mTreasuresFound == 1) return "There was 1 treasure here, and you found it.";
+						else return "There was 1 treasure here at " + printLocations() + ". You didn't find it.";
 					case 2:
 						switch(mTreasuresFound)
 						{
-							case 0: return "There were two treasures here at " + printLocations() + ", but you found neither of them.";
-							case 1: return "There were two treasures here at " + printLocations() + ", and you found 1 of them.";
-							case 2: return "There were two treasures here at " + printLocations() + ", and you found them both.";
+							case 0: return "There were two treasures here at " + printLocations() + ". You found neither of them.";
+							case 1: return "There were two treasures here at " + printLocations() + ". You found 1 of them.";
+							case 2: return "There were two treasures here at " + printLocations() + ". You found them both.";
 						}
 					default: return "You found " + mTreasuresFound + " of the " + mNumTreasures + " treasures!";
 				}
@@ -1228,9 +1228,7 @@
 				sailingMovie.visible = false;
 				enableAllButtons();
 				
-				//takes location data from each mTreasureLocArr index, and stores in mTreasurePrint.
-				//Needs loop, else the two arrays reference the same thing, and if one is changed,
-				//the other will change. 
+				
 				for(var i:int = 0; mTreasureLocArr[i]; i++){
 					mTreasurePrint[i] = mTreasureLocArr[i];
 				}
