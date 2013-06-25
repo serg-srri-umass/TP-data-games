@@ -127,6 +127,9 @@
 			// Array of treasures (zero-based).
 			private var mTreasureArray:Array;
 			
+			//stores treasure locations for printing in Achor Pulled! dialog 
+			private var mTreasurePrint:Array = new Array(2);
+			
 			//booty meter
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
 			
@@ -615,13 +618,13 @@
 						return "There was no treasure here.";
 					case 1:
 						if(mTreasuresFound == 1) return "There was 1 treasure here, and you found it.";
-						else return "There was 1 treasure here at " + printLocations() + ", but you didn't find it.";
+						else return "There was 1 treasure here at " + printLocations() + ". You didn't find it.";
 					case 2:
 						switch(mTreasuresFound)
 						{
-							case 0: return "There were two treasures here at " + printLocations() + ", but you found neither of them.";
-							case 1: return "There were two treasures here at " + printLocations() + ", and you found 1 of them.";
-							case 2: return "There were two treasures here at " + printLocations() + ", and you found them both.";
+							case 0: return "There were two treasures here at " + printLocations() + ". You found neither of them.";
+							case 1: return "There were two treasures here at " + printLocations() + ". You found 1 of them.";
+							case 2: return "There were two treasures here at " + printLocations() + ". You found them both.";
 						}
 					default: return "You found " + mTreasuresFound + " of the " + mNumTreasures + " treasures!";
 				}
@@ -630,9 +633,8 @@
 			//prints any number of treasure locations based on how many treasures are in the water
 			private function printLocations():String{
 				var outString:String = "";
-				for(var j:int=0; mTreasureLocArr[j]; j++){
-					var treasure:Array = mTreasureArray[mCurrentTreasureNum+j];
-					outString = outString + int(treasure[kLocation] * 10)/10 + ((mTreasureLocArr[j + 1]) ? " and " : "");
+				for(var j:int=0; mTreasurePrint[j]; j++){
+					outString = outString + int(mTreasurePrint[j] * 10)/10 + ((mTreasurePrint[j + 1]) ? " and " : "");
 				}
 				return outString;
 			}
@@ -1224,6 +1226,11 @@
 				crane.runTo(mCenterPosition);
 				sailingMovie.visible = false;
 				enableAllButtons();
+				
+				
+				for(var i:int = 0; mTreasureLocArr[i]; i++){
+					mTreasurePrint[i] = mTreasureLocArr[i];
+				}
 			}
 			
 			//currently unused since there are no rat drop sounds or anims
