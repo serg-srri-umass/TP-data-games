@@ -18,7 +18,7 @@ package odyssey
 		
 		//NOTE: ON THE MAP, Titles are set in the .swc. If they're changed, the .swc has to be updated as well.
 		public static const kLevel1Title:String = "Hundreds o' Rats";
-		public static const kLevel2Title:String = "Uncertain Treasure";
+		public static const kLevel2Title:String = "Treasure or Not";
 		public static const kLevel3Title:String = "Rat Shortage";
 		public static const kLevel4Title:String = "Deep Water";
 		public static const kLevel5Title:String = "Choose Yer Hook";
