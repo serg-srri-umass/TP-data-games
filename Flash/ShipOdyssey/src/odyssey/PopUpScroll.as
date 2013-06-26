@@ -36,16 +36,17 @@ package odyssey
 			gotoAndStop("load");
 		}
 		
-		public function loseGame(e:Event):void {
+		public function loseGame(e:Event = null):void {
 			visible = true;
 			gotoAndStop("lose");
 			mainBtn.addEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
 			chooseLevelBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
 		}
 		
-		public function winGame(e:Event):void {
+		public function winGame(treasureName:String = "", treasureLocation:String = ""):void {
 			visible = true;
 			gotoAndStop("win");
+			body.text = "You've filled your loot meter and completed this mission. Your last treasure was by finding the "+treasureName+" at location "+treasureLocation;
 			mainBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
 		}
 		
@@ -128,19 +129,21 @@ package odyssey
 		}
 		
 		// display the prompt that comes up when you find a treasure
-		public function displayTreasure(item:String, value:String, location:String):void { 
+		public function displayTreasure(item:String, value:String, location:String, func:Function):void { 
 			visible = true;
-			gotoAndStop("treasure");
+			gotoAndStop("treasureNext");
 			title.text = "Treasure!";
 			body.text = "You found the " + item + " worth " + value + " at location " + location + ".";
+			nextSiteBtn.addEventListener(MouseEvent.CLICK, func);
 		}
 		
 		// display the prompt that comes up when you pull anchor
-		public function displayRecap(arg:String):void {
+		public function displayRecap(arg:String, func:Function):void {
 			visible = true;
 			gotoAndStop("recap");
 			title.text = "Anchor Pulled!";		
 			body.text = arg;
+			nextSiteBtn.addEventListener(MouseEvent.CLICK, func);
 		}
 		
 		// display the help
