@@ -932,8 +932,6 @@
 				
 				if(bootyMeter.profit < 0)
 					bootyMeter.payThenAccount();
-				
-				DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
 			}
 			
 			private function newMission(iEvent:MouseEvent = null):void{
@@ -1120,11 +1118,8 @@
 			
 			//group function calls for state changes for different events
 			private function runSailOnAnim():void{
-				trace("ShipOdyssey.runSailOnAnim()");
 				disableAllButtons();
-				//transitionTimer = new Timer(2000, 1); //timer is in milliseconds
-				crane.Crane_mc.addEventListener("craneStowed", zoomOutAndSail);
-				crane.runTo(100);//turn to frame 100 in 2 secs
+				zoomOutAndSail();
 			}
 			
 			private function sailThenZoomIn():void{
@@ -1141,40 +1136,33 @@
 			
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
 			//(decouples visual with state and play so a broken animation doesn't stop play)
-			private function zoomOutAndSail(e:Event):void{
-				trace("ShipOdyssey.zoomOutAndSail(e)");
+			private function zoomOutAndSail():void{	
+				var craneFrame:int = crane.getFrame();
+				
 				cHerder.setCloudSpeed(-.5);
 				mCenterPositionStepper.value = 100;
-				onChangeCenterPosition(new Event("Stepper"));	
-				//crane is stored and ready to zoom out
-				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, zoomOutAndSail);
-				transitionTimer = new Timer(5000, 1); //timer is in milliseconds
+				onChangeCenterPosition(new Event("Stepper"));
+				DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
+
+				transitionTimer = new Timer(2500, 1); //timer is in milliseconds
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, exitGame);
+				
 				sailingMovie.visible = true;
 				crane.visible = false;
 				sailingMovie.doZoomOut();
+				sailingMovie.sendCraneToFrame(craneFrame);
 				transitionTimer.start()
 			}
 			
 			private function readyToZoomIn(e:TimerEvent):void{
-				trace("ShipOdyssey.readyToZoomIn(e)");
 				sailingMovie.reset();
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, readyToZoomIn);
-				if(false){
-					//				if(mCurrentGameComplete || mCurrentTreasureNum == kNumTreasures){
-					//finish and show end screen
-					//gameFinish();
-				}else{
-					//zoom back in
-					cHerder.setCloudSpeed(1.0);
-					if(false)
-						transitionTimer = new Timer(0,1);
-					else
-						transitionTimer = new Timer(5000, 1);
-					transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, zoomInTimerFinish);
-					sailingMovie.doZoomIn();
-					transitionTimer.start();
-				}
+				
+				cHerder.setCloudSpeed(1.0);
+				transitionTimer = new Timer(5000, 1);
+				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, zoomInTimerFinish);
+				sailingMovie.doZoomIn();
+				transitionTimer.start();
 			}
 			
 			private function zoomInTimerFinish(e:TimerEvent):void{
@@ -1223,7 +1211,7 @@
 					}
 				}
 				crane.visible = true;
-				crane.runTo(mCenterPosition);
+				//crane.runTo(mCenterPosition);
 				sailingMovie.visible = false;
 				enableAllButtons();
 				

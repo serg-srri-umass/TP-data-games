@@ -44,6 +44,10 @@
 		public var snappingPoint:int;
 		public var zeroed:Boolean; //whether the hook is being dragged to position zero.
 		
+		public function get frame():int{
+			return Crane_mc.currentFrame;
+		}
+		
 		public function highlightArrows(e:Event):void{
 			if(canDrag){
 				Crane_mc.glowingArrows.visible = true;	

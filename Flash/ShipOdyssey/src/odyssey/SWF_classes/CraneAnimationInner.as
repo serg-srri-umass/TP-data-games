@@ -120,10 +120,10 @@
 		
 		public function gotoAndStopMod(frame:Object, scene:String = null):void{
 			super.gotoAndStop(frame, scene);
-			crane.inner.gotoAndStop(frame);
-			ring1.inner.gotoAndStop(frame);
-			ring2.inner.gotoAndStop(frame);
-			ring3.inner.gotoAndStop(frame);
+			crane.gotoAndStop(frame);
+			ring1.gotoAndStop(frame);
+			ring2.gotoAndStop(frame);
+			ring3.gotoAndStop(frame);
 		}
 	}
 }
