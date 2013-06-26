@@ -43,7 +43,7 @@
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
 			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
-			public static const VERSION:String = "v.2013.06.24";
+			public static const VERSION:String = "v.2013.06.25";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -126,6 +126,9 @@
 			
 			// Array of treasures (zero-based).
 			private var mTreasureArray:Array;
+			
+			//stores treasure locations for printing in Achor Pulled! dialog 
+			private var mTreasurePrint:Array = new Array(2);
 			
 			//booty meter
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
@@ -615,13 +618,13 @@
 						return "There was no treasure here.";
 					case 1:
 						if(mTreasuresFound == 1) return "There was 1 treasure here, and you found it.";
-						else return "There was 1 treasure here at " + printLocations() + ", but you didn't find it.";
+						else return "There was 1 treasure here at " + printLocations() + ". You didn't find it.";
 					case 2:
 						switch(mTreasuresFound)
 						{
-							case 0: return "There were two treasures here at " + printLocations() + ", but you found neither of them.";
-							case 1: return "There were two treasures here at " + printLocations() + ", and you found 1 of them.";
-							case 2: return "There were two treasures here at " + printLocations() + ", and you found them both.";
+							case 0: return "There were two treasures here at " + printLocations() + ". You found neither of them.";
+							case 1: return "There were two treasures here at " + printLocations() + ". You found 1 of them.";
+							case 2: return "There were two treasures here at " + printLocations() + ". You found them both.";
 						}
 					default: return "You found " + mTreasuresFound + " of the " + mNumTreasures + " treasures!";
 				}
@@ -630,9 +633,8 @@
 			//prints any number of treasure locations based on how many treasures are in the water
 			private function printLocations():String{
 				var outString:String = "";
-				for(var j:int=0; mTreasureLocArr[j]; j++){
-					var treasure:Array = mTreasureArray[mCurrentTreasureNum+j];
-					outString = outString + int(treasure[kLocation] * 10)/10 + ((mTreasureLocArr[j + 1]) ? " and " : "");
+				for(var j:int=0; mTreasurePrint[j]; j++){
+					outString = outString + int(mTreasurePrint[j] * 10)/10 + ((mTreasurePrint[j + 1]) ? " and " : "");
 				}
 				return outString;
 			}
@@ -899,14 +901,14 @@
 				trace("ShipOdyssey.onClickExitNewGame(iEvent)");
 				hideInstructions();
 				if( mExitNewGameButton.label == "Pull Anchor"){
-					exitGame(iEvent);
+					runSailOnAnim();
 				} else { 
 					// Clicking on 'New Game'
 					newMission(iEvent);
 				}
 			}
 			
-			private function exitGame(iEvent:MouseEvent = null):void{
+			private function exitGame(iEvent:Event = null):void{
 				sendGameDataClose();
 				
 				//clean up everything so it is back in initial state for start of next game
@@ -1120,11 +1122,11 @@
 			private function runSailOnAnim():void{
 				trace("ShipOdyssey.runSailOnAnim()");
 				disableAllButtons();
-				transitionTimer = new Timer(2000, 1); //timer is in milliseconds
-				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, zoomOutAndSail);
-				crane.tweenTo(100, 2);//turn to frame 100 in 2 secs
-				transitionTimer.start();
+				//transitionTimer = new Timer(2000, 1); //timer is in milliseconds
+				crane.Crane_mc.addEventListener("craneStowed", zoomOutAndSail);
+				crane.runTo(100);//turn to frame 100 in 2 secs
 			}
+			
 			private function sailThenZoomIn():void{
 				trace("ShipOdyssey.sailThenZoomIn()");
 				cHerder.setCloudSpeed(-.5);
@@ -1139,15 +1141,15 @@
 			
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
 			//(decouples visual with state and play so a broken animation doesn't stop play)
-			private function zoomOutAndSail(e:TimerEvent):void{
+			private function zoomOutAndSail(e:Event):void{
 				trace("ShipOdyssey.zoomOutAndSail(e)");
 				cHerder.setCloudSpeed(-.5);
 				mCenterPositionStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));	
 				//crane is stored and ready to zoom out
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, zoomOutAndSail);
-				transitionTimer = new Timer(6000, 1); //timer is in milliseconds
-				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, readyToZoomIn);
+				transitionTimer = new Timer(5000, 1); //timer is in milliseconds
+				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, exitGame);
 				sailingMovie.visible = true;
 				crane.visible = false;
 				sailingMovie.doZoomOut();
@@ -1224,6 +1226,11 @@
 				crane.runTo(mCenterPosition);
 				sailingMovie.visible = false;
 				enableAllButtons();
+				
+				
+				for(var k:int = 0; mTreasureLocArr[k]; k++){
+					mTreasurePrint[k] = mTreasureLocArr[k];
+				}
 			}
 			
 			//currently unused since there are no rat drop sounds or anims
