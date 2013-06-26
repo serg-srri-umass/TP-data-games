@@ -133,8 +133,10 @@
 			//booty meter
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
 			
-			//variables for holding loaded MovieClips
+			//TreasureNamePicker. Make new obj to reset name iteration. 
+			private var mNamePicker:TreasureNamePicker = new TreasureNamePicker();
 			
+			//variables for holding loaded MovieClips
 			private function getCurrentMission():int{ return mCurrentLevel; }
 			private function getHuntMission():uint{ return mHuntLevel; }
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI(firstHuntLevel, secondHuntLevel, thirdHuntLevel, fourthHuntLevel, restartMission, getCurrentMission, getHuntMission, setGameTitle);	
@@ -396,33 +398,42 @@
 				mHooksDropped			= 0;	// Reset number of hooks dropped.
 				mCurrentGameComplete	= false;// Game is in play.
 				
-				// Set up the treasure number, location, value, and item.
-				mTreasure0 = new Array("1st", randomLocation(), 7000, "Brass Chalice");
-				mTreasure1 = new Array("2nd", randomLocation(), 7000, "Sword with Ebony Handle");
-				mTreasure2 = new Array("3rd", randomLocation(), 15000, "Pearl Necklace");
-				mTreasure3 = new Array("4th", randomLocation(), 18000, "Silver Goblet");
+				//reset the TreasureNamePicker
+				//mNamePicker = new TreasureNamePicker();
+				
+				// Set up the treasure number, location, value, and item 
+				//(set as an empty string until it is set in the level switch below)
+				mTreasure0 = new Array("1st", randomLocation(), 7000, "");
+				mTreasure1 = new Array("2nd", randomLocation(), 7000, "");
+				mTreasure2 = new Array("3rd", randomLocation(), 15000, "");
+				mTreasure3 = new Array("4th", randomLocation(), 18000, "");
 				
 				// Create new treasure array and add treasures to array.
 				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
 					mTreasure3 );
 				
-				//instead of choosing treasure randomly, chooses based on which level you are on
+				//instead of choosing treasure randomly, chooses based on which level you are on.
+				//Choose treasure name from matching level pool. Iterates through names linearly. 
 				switch (mHuntLevel){
 					
 					case 0:
 						mCurrentTreasureNum = 0;
+						mTreasure0[kItem] = mNamePicker.pool1();
 						break;
 					
 					case 1:
 						mCurrentTreasureNum = 1;
+						mTreasure1[kItem] = mNamePicker.pool2();
 						break;
 					
 					case 2:
 						mCurrentTreasureNum = 2;
+						mTreasure2[kItem] = mNamePicker.pool3();
 						break;
 					
 					case 3:
 						mCurrentTreasureNum = 3;
+						mTreasure3[kItem] = mNamePicker.pool4();
 						break;
 					
 				} 
