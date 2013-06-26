@@ -970,10 +970,12 @@
 				var red:int = 14579041; //#de7561
 				mHelpButton.setStyle("chromeColor", red);
 				popUpScreen.displayHelp();
+				popUpScreen.addEventListener(MouseEvent.CLICK, hideInstructions);
 			}
 			
-			private function hideInstructions():void
+			private function hideInstructions(e:Event = null):void
 			{
+				removeEventListener(MouseEvent.CLICK, hideInstructions);
 				if(popUpScreen.isShowingHelp()){
 					var tan:int = 13742987; //#d1b38b
 					mHelpButton.setStyle("chromeColor", tan);
