@@ -132,6 +132,7 @@
 			
 			//booty meter
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
+			private var haveTreasure:Boolean = false; //whether you pulled up a treasure or not.
 			
 			//TreasureNamePicker. Make new obj to reset name iteration. 
 			private var mNamePicker:TreasureNamePicker = new TreasureNamePicker();
@@ -378,7 +379,7 @@
 			
 			// switchToTreasureHunt() sets the current state to the Treasure Hunt game
 			// screen and initializes the game.
-			protected function switchToTreasureHunt(iEvent:MouseEvent):void
+			protected function switchToTreasureHunt(iEvent:Event):void
 			{
 				currentState='TreasureHunt';	// Switch to Treasure Hunt screen.
 				// Create a  game level modal dialog.
@@ -445,7 +446,7 @@
 				setCurrentMinMaxRats( mRatsToSend, mMinRatsToSend, mMaxRatsToSend );
 				
 				// Move hook to center of treasure area.
-				mCenterPosition				= kInitCenter;	
+				mCenterPosition				= 100;	
 				mCenterPositionStepper.value= mCenterPosition;					// Set stepper to center position.
 				mMinHookRange				= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
 				mMaxHookRange				= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
@@ -825,8 +826,7 @@
 			private function restartMission():void{
 				exitGame();
 				initializeTreasureHunt();
-				showCurrentLevelInstructions();
-				enableNewGame();
+				newMission();
 			}
 			
 			//wait and check timer routine for when the hook is moving before a drop
@@ -863,10 +863,8 @@
 					// Send event data to TinkerPlots / Fathom.
 					//sendEventData("Hook", getEventDataValues( "Hit" )); --Disabled
 					
-					
-					var valueInDollars:String = usdFormatter.format(mTreasureArray[mCurrentTreasureNum][kValue]);
-					popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1));
-					
+					haveTreasure = true;
+										
 					if(mHuntLevel == kHuntLevelTwo) // if on level 2
 					{
 						if(!bootyMeter.won)
@@ -887,8 +885,8 @@
 				{
 
 					bootyMeter.finishTreasureDrop(false, kCostPerHookDrop)
-					
-					enableAllButtons();
+					if(!bootyMeter.lost)
+						enableAllButtons();
 					
 					
 					// Send event data to TinkerPlots / Fathom.
@@ -909,12 +907,13 @@
 			// onClickExitNewGame() starts a new game and ends a game in progress
 			protected function onClickExitNewGame(iEvent:MouseEvent):void
 			{
-				trace("ShipOdyssey.onClickExitNewGame(iEvent)");
 				hideInstructions();
 				if( mExitNewGameButton.label == "Pull Anchor"){
-					runSailOnAnim();
+					disableAllButtons();
+					if(bootyMeter.profit < 0)
+						bootyMeter.payThenAccount();
+					zoomOutAndSail();
 				} else { 
-					// Clicking on 'New Game'
 					newMission(iEvent);
 				}
 			}
@@ -929,10 +928,20 @@
 				sailingMovie.reset();
 				mCurrentGameComplete = true;// Game is now complete.	
 				
-				if(!popUpScreen.visible)
-					popUpScreen.displayRecap(treasuresFoundString());
-				
-				
+				if(!popUpScreen.visible){
+					if(haveTreasure){
+						haveTreasure = false;
+						var valueInDollars:String = usdFormatter.format(mTreasureArray[mCurrentTreasureNum][kValue]);
+						if(bootyMeter.won){
+							popUpScreen.winGame(mTreasureArray[mCurrentTreasureNum][kItem], mLocationFound.toFixed(1));
+						}else{
+							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), newMission);
+						}
+					}else{
+						popUpScreen.displayRecap(treasuresFoundString(), newMission);
+					}
+				}
+								
 				mLevelsButton.enabled = true;
 				mExitNewGameButton.enabled = true;
 				mExitNewGameButton.label = "New Site";
@@ -940,12 +949,9 @@
 				mDropHookButton.enabled = false;
 				mCenterPositionStepper.enabled = false;
 				mRatStepper.enabled = false;
-				
-				if(bootyMeter.profit < 0)
-					bootyMeter.payThenAccount();
 			}
 			
-			private function newMission(iEvent:MouseEvent = null):void{
+			private function newMission(iEvent:Event = null):void{
 				popUpScreen.visible = false;
 				hideInstructions();
 				sailThenZoomIn();
@@ -986,7 +992,7 @@
 			
 			private function hideInstructions(e:Event = null):void
 			{
-				removeEventListener(MouseEvent.CLICK, hideInstructions);
+				popUpScreen.removeEventListener(MouseEvent.CLICK, hideInstructions);
 				if(popUpScreen.isShowingHelp()){
 					var tan:int = 13742987; //#d1b38b
 					mHelpButton.setStyle("chromeColor", tan);
@@ -1128,21 +1134,15 @@
 					}
 				}
 			}
-			
-			//group function calls for state changes for different events
-			private function runSailOnAnim():void{
-				disableAllButtons();
-				zoomOutAndSail();
-			}
+		
 			
 			private function sailThenZoomIn():void{
-				trace("ShipOdyssey.sailThenZoomIn()");
 				cHerder.setCloudSpeed(-.5);
 				if(true)
 					transitionTimer = new Timer(0,1);
 				else
 					transitionTimer = new Timer(4000, 1);
-				//				transitionTimer = new Timer(0, 1); //zoom in immediately
+				
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, readyToZoomIn);
 				transitionTimer.start();
 			}
@@ -1157,12 +1157,12 @@
 				onChangeCenterPosition(new Event("Stepper"));
 				DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
 
-				transitionTimer = new Timer(2500, 1); //timer is in milliseconds
+				transitionTimer = new Timer(1900, 1); //timer is in milliseconds
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, exitGame);
 				
 				sailingMovie.visible = true;
 				crane.visible = false;
-				sailingMovie.doZoomOut();
+				sailingMovie.doZoomOut(haveTreasure);
 				sailingMovie.sendCraneToFrame(craneFrame);
 				transitionTimer.start()
 			}
@@ -1367,9 +1367,8 @@
 			private function initListeners():void{
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, finishRatDive);
-				bootyMeter.dispatcher.addEventListener(BootyEvent.WIN, popUpScreen.winGame);				
+				//bootyMeter.dispatcher.addEventListener(BootyEvent.WIN, popUpScreen.winGame);				
 				bootyMeter.dispatcher.addEventListener(BootyEvent.LOSE, popUpScreen.loseGame);
-				bootyMeter.dispatcher.addEventListener(BootyEvent.ACCOUNTING, disableAllButtons);
 			}
 		
 			// attach the booty bar to the screen. And popups
