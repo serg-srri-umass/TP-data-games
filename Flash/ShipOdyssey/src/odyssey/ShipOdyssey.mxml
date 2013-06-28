@@ -49,9 +49,7 @@
 			private function getVersion():String {
 				return( VERSION + (kUseDataGamesInterface ? DG_suffix : TP_suffix ));
 			}
-			
-			public var debug:Boolean = true;
-			
+						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			public static const kHuntLevelOne:uint = 0;	// First treasure hunt game level.
 			public static const kHuntLevelTwo:uint = 1;	// Second treasure hunt game level. New level with 0-2 treasures per location with 6 treasures total.
@@ -655,12 +653,9 @@
 			// show how much the currently dropped rats are going to cost on the cost meter.
 			protected function onMouseOverRatsButton(event:MouseEvent):void
 			{
-				//if(mCostPerRat > 0)
-				//	bootyMeter.ghost(mCostPerRat * mRatsToSend);
 			}
 			protected function onMouseOutRatsButton(event:MouseEvent):void
 			{
-				//bootyMeter.hideGhost();
 			}
 			
 			// onClickSendRatsButton() is called when the Send Rats button is
@@ -1211,7 +1206,7 @@
 					mTreasureLocArr.push(mTreasureArray[mCurrentTreasureNum+i][kLocation]);
 				}
 				
-				if(debug)
+				if(DebugMode.PRINT_TREASURE_LOCATION)
 				{
 					if(mNumTreasures == 0)
 					{
@@ -1255,11 +1250,13 @@
 			
 			private function enableAllButtons():void{
 				mExitNewGameButton.enabled = true;
-				mDropHookButton.enabled = true;
 				mCenterPositionStepper.enabled = true;
 				mRatStepper.enabled = true;
 				mHelpButton.enabled = true;
 				mSendRatsButton.enabled = true;
+				
+				if(mRatsSent > 0 && DebugMode.DISABLE_DROP_BUTTON)
+					mDropHookButton.enabled = true;
 				
 				if(crane)
 					crane.canDrag = true;
@@ -1277,7 +1274,8 @@
 			
 			private function enableRatButton(e:RatEvent = null):void{
 				mSendRatsButton.enabled = true;
-				mDropHookButton.enabled = true;
+				if(mRatsSent > 0 && DebugMode.DISABLE_DROP_BUTTON)
+					mDropHookButton.enabled = true;
 			}
 			
 			//********new visual items and visual only code **********
