@@ -2,6 +2,7 @@ package odyssey
 {
 	import flash.events.Event;
 	import odyssey.events.BootyEventDispatcher;
+	import common.TextFormatter;
 	
 	public class BootyBarMVC extends BootyMeter
 	{
@@ -113,7 +114,7 @@ package odyssey
 			_startingBooty = _capital;
 			_costs = 0;
 			
-			goalMVC.htmlText = parseToCash(_goal);	// write the goal at the top
+			goalMVC.htmlText = TextFormatter.toCash(_goal);	// write the goal at the top
 			animateBooty(true);
 		}
 		
@@ -183,13 +184,13 @@ package odyssey
 					loot = Math.max(loot, _booty);
 				if(loot < 0)
 					loot = 0;
-				myCash.booty.text = parseToCash(loot);
+				myCash.booty.text = TextFormatter.toCash(loot);
 			}
 			
 			if(currentFrame == targetFrame)
 			{
 				_settingStartValue = false;
-				myCash.booty.text = parseToCash(_booty);
+				myCash.booty.text = TextFormatter.toCash(_booty);
 				_animateBooty = false;
 				
 				// check for winning or losing at the end of animation:
@@ -198,28 +199,6 @@ package odyssey
 				else if(lost)
 					_dispatcher.dispatchLose();
 			}
-		}
-		
-		// give this method a number, and it will return it in readable format. 3000 --> $3,000
-		private function parseToCash(arg:int):String
-		{
-			var stringArg:String = String(arg);
-			var outputString:String = "$";
-			var backwardsString:String = "";
-			var ticker:int = 0;
-			
-			for( var i:int = stringArg.length; i >= 0; i--){
-				backwardsString += stringArg.charAt(i);
-				if(ticker == 3 && i > 0){
-					backwardsString += ",";
-					ticker = 0;
-				}
-				ticker++;
-			}
-			for( var j:int = backwardsString.length; j >= 0; j--)
-				outputString += backwardsString.charAt(j);
-			
-			return outputString;
 		}
 		
 		// given a booty, this method returns what % it is of the goal

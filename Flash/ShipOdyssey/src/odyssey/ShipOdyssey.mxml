@@ -24,9 +24,7 @@
 			import com.adobe.serialization.json.JSON;
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
-			import common.MathUtilities;
-			import common.ParkMiller;
-			import common.VersionChecker;
+			import common.*;
 			
 			import mx.controls.Alert;
 			import mx.core.SoundAsset;
@@ -602,18 +600,7 @@
 						return "0";
 				}
 			}
-			
-			// formatDollars() adds the dollar sign to the input value, which may be negative.
-			protected function formatDollars(iDollars:int):String
-			{
-				// Add the $ sign, comma(s), and cents.
-				var withCents:String = usdFormatter.format(iDollars);
-				
-				// Strip out the cents before returning the currency string.
-				var splitArray:Array = withCents.split(usdFormatter.decimalSeparatorFrom);
-				return splitArray[0];
-			}
-			
+						
 			// randomLocation() creates a new location on the ocean floor based on a uniform
 			// distribution.
 			protected function randomLocation():Number
@@ -867,7 +854,7 @@
 					
 					if(mHuntLevel == kHuntLevelTwo) // if on level 2
 					{
-						var valueInDollars:String = usdFormatter.format(mTreasureArray[mCurrentTreasureNum][kValue]);
+						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.won){	// if you've won, sail on.
 							haveTreasure = true;
 							onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
@@ -941,7 +928,7 @@
 				if(!popUpScreen.visible){
 					if(haveTreasure){
 						haveTreasure = false;
-						var valueInDollars:String = usdFormatter.format(mTreasureArray[mCurrentTreasureNum][kValue]);
+						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.won){
 							popUpScreen.winGame(mTreasureArray[mCurrentTreasureNum][kItem], mLocationFound.toFixed(1));
 						}else{
@@ -1423,10 +1410,6 @@
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<mx:CurrencyFormatter id="usdFormatter"				precision="0" 
-							  currencySymbol="$"			decimalSeparatorFrom="."
-							  decimalSeparatorTo="."		useNegativeSign="true" 
-							  useThousandsSeparator="true"	alignSymbol="left"/>
 		<s:LinearGradient id="murkyWater" rotation="90">
 			<s:GradientEntry color="0x796f5a" ratio=".33" alpha=".75"/>
 			<s:GradientEntry color="0x645a45" ratio=".66" alpha=".75"/>
