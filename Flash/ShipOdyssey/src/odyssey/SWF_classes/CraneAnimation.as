@@ -29,6 +29,9 @@
 			return Crane_mc.getFrame();
 		}
 		
+		public function hideTreasure():void{
+			Crane_mc.DropHook.hideAll();
+		}
 		
 		//DRAGGING CODE:
 		public const SCALE_START:Number = 65;
