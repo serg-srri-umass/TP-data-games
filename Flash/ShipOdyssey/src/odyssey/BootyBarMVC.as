@@ -225,7 +225,6 @@ package odyssey
 		// given a booty, this method returns what % it is of the goal
 		private function getPercent(arg:int):int{
 			var percent:Number = (arg/_goal)*1000;
-			trace(percent);
 			return percent;
 		}
 	}

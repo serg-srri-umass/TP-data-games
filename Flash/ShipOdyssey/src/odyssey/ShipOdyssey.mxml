@@ -821,6 +821,9 @@
 				exitGame();
 				initializeTreasureHunt();
 				newMission();
+				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
+				mCenterPositionStepper.value = 100;
+				onChangeCenterPosition(new Event("Stepper"));
 			}
 			
 			//wait and check timer routine for when the hook is moving before a drop
@@ -1172,10 +1175,7 @@
 			}
 			
 			private function zoomInTimerFinish(e:TimerEvent):void{
-				trace("ShipOdyssey.zoomInTimerFinish(e)");
-				
 				mTreasureLocArr = new Array();
-				
 				if(mCurrentLevel == 2) //level 2 can have 0, 1, or 2 treasures
 				{
 					mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
@@ -1217,7 +1217,6 @@
 					}
 				}
 				crane.visible = true;
-				//crane.runTo(mCenterPosition);
 				sailingMovie.visible = false;
 				enableAllButtons();
 				

@@ -110,7 +110,13 @@
 				this.addEventListener(Event.ENTER_FRAME, BoatBob);
 			}
 		}
-		
+		public function hardReset(e:Event = null):void{
+			reset();
+			sendCraneToFrame(100);
+			scale.gotoAndStop("off");
+			ToyBoat.gotoAndStop(59);
+			ToyBoat.startSail();
+		}
 		public function doZoomIn():void{
 			ToyBoat.stopSail();
 			zoomCounter = 0;
