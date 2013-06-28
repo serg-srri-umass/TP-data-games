@@ -56,6 +56,12 @@
 			public static const kHuntLevelThree:uint = 2;	// Third treasure hunt game level. Used to be Clear Level.
 			public static const kHuntLevelFour:uint = 3;	// Fourth treasure hunt game level. Used to be Murky Level.
 			
+			public static const MISSION1_TREASURE_VALUE:int = 12000;
+			public static const MISSION2_TREASURE_VALUE:int = 12000;
+			public static const MISSION3_TREASURE_VALUE:int = 20000;
+			public static const MISSION4_TREASURE_VALUE:int = 23000;
+			
+			
 			//** **
 			public static const kCostPerHookDrop:int = 5000 // Cost each time you drop a hook		
 			public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
@@ -110,7 +116,6 @@
 			
 			private var mTreasuresAtLocArr:Array;			//Used for new multi-treasure aspect - tells how many treasures are at the current loc
 			private var mTreasureLocArr:Array;				//location of each treasure at current loc, treasures are removed as found
-			//OBSOLETE private var mDropLocationNum:int;				//Treasure num != Drop Location in lvl 2 so need this to access the 2 arrays above this
 			private var mAutoSailOnAfterFoundTreasure:Boolean; //Added for lvl 2 where the user must choose when to sail on because there can be 0, 1, or 2 treasures
 			private var mLocationFound:Number;					// for storing the location of a found treasure across timer steps
 			
@@ -402,10 +407,10 @@
 				
 				// Set up the treasure number, location, value, and item 
 				//(set as an empty string until it is set in the level switch below)
-				mTreasure0 = new Array("1st", randomLocation(), 7000, "");
-				mTreasure1 = new Array("2nd", randomLocation(), 7000, "");
-				mTreasure2 = new Array("3rd", randomLocation(), 15000, "");
-				mTreasure3 = new Array("4th", randomLocation(), 18000, "");
+				mTreasure0 = new Array("1st", randomLocation(), MISSION1_TREASURE_VALUE, "");
+				mTreasure1 = new Array("2nd", randomLocation(), MISSION2_TREASURE_VALUE, "");
+				mTreasure2 = new Array("3rd", randomLocation(), MISSION3_TREASURE_VALUE, "");
+				mTreasure3 = new Array("4th", randomLocation(), MISSION4_TREASURE_VALUE, "");
 				
 				// Create new treasure array and add treasures to array.
 				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
@@ -483,7 +488,7 @@
 				mCurrentLevel = 1;
 				mSailOnAlertString = kSailOnNormalLevel;
 				
-				bootyMeter.initialize(15000, 30000, 7000);
+				bootyMeter.initialize(15000, 30000, MISSION1_TREASURE_VALUE);
 				
 				if(!goRightAway)
 					showCurrentLevelInstructions();
@@ -514,7 +519,7 @@
 				mCurrentLevel = 2;
 				mSailOnAlertString = kSailOnMultiTreasureLevel;
 				
-				bootyMeter.initialize(15000, 40000, 7000);
+				bootyMeter.initialize(15000, 40000, MISSION2_TREASURE_VALUE);
 				if(!goRightAway)
 					showCurrentLevelInstructions();
 				else
@@ -543,7 +548,7 @@
 				mCurrentLevel = 3;
 				mSailOnAlertString = kSailOnNormalLevel;
 				
-				bootyMeter.initialize(10000, 45000, 15000);
+				bootyMeter.initialize(10000, 45000, MISSION3_TREASURE_VALUE);
 				if(!goRightAway)
 					showCurrentLevelInstructions();
 				else
@@ -572,7 +577,7 @@
 				mCurrentLevel = 4;
 				mSailOnAlertString = kSailOnNormalLevel;
 				
-				bootyMeter.initialize(10000, 45000, 18000);
+				bootyMeter.initialize(10000, 45000, MISSION4_TREASURE_VALUE);
 				
 				if(!goRightAway)
 					showCurrentLevelInstructions();
@@ -857,35 +862,39 @@
 					bootyMeter.finishTreasureDrop(true);
 
 					mCashSound.play(); // Play cash register sound.	
-					// Tell the player which treasure was found and how much it is worth.
-					// Send event data to TinkerPlots / Fathom.
-					//sendEventData("Hook", getEventDataValues( "Hit" )); --Disabled
 					
-					haveTreasure = true;
-										
+					// Tell the player which treasure was found and how much it is worth.					
+					
 					if(mHuntLevel == kHuntLevelTwo) // if on level 2
 					{
-						if(!bootyMeter.won)
-							popUpScreen.fadeOut();
-						enableAllButtons();
-					}
+						var valueInDollars:String = usdFormatter.format(mTreasureArray[mCurrentTreasureNum][kValue]);
+						if(bootyMeter.won){	// if you've won, sail on.
+							haveTreasure = true;
+							onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
+						}else if(mTreasuresFound == 1){
+							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), hideScrollThenSail, true);
+						} else {
+							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), popUpScreen.hide, true);
+							enableAllButtons();
+						}
+					} 
 					else // on levels 1,3,4
 					{
-						onClickExitNewGame(new MouseEvent("click")); //simulate pressing 'end game'
+						haveTreasure = true;
+						onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
 					}
 					
-					//change treasure location
+					// change treasure location
 					mTreasureArray[mCurrentTreasureNum][kLocation] = randomLocation();
 					
 					mTreasuresFound++;
 				}
 				else // Treasure was not found at drop location.
 				{
-
-					bootyMeter.finishTreasureDrop(false)
+					haveTreasure = false;
+					bootyMeter.finishTreasureDrop(false);
 					if(!bootyMeter.lost)
 						enableAllButtons();
-					
 					
 					// Send event data to TinkerPlots / Fathom.
 					//sendEventData("Hook", getEventDataValues( "Miss" )); --Disabled
@@ -893,6 +902,11 @@
 				
 				// send updated [mHooksDropped, mTreasuresFound, profitSoFar] to DG game case
 				sendGameDataUpdate();
+			}
+			
+			private function hideScrollThenSail(e:Event):void{
+				popUpScreen.hide(e);
+				zoomOutAndSail(e);
 			}
 			
 			//instead of incrementing mCurrentTreasureNum by 1 for each location, pick a random treasure so there is no limit.
@@ -1145,7 +1159,7 @@
 			
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
 			//(decouples visual with state and play so a broken animation doesn't stop play)
-			private function zoomOutAndSail():void{	
+			private function zoomOutAndSail(e:Event = null):void{	
 				var craneFrame:int = crane.getFrame();
 				
 				cHerder.setCloudSpeed(-.5);
@@ -1213,7 +1227,7 @@
 					for(var j:int=0; mTreasureLocArr[j]; j++)
 					{
 						var treasure:Array = mTreasureArray[mCurrentTreasureNum+j];
-						trace("Treasure "+j+": " + treasure[kItem] + " worth $" + treasure[kValue] + " at " + treasure[kLocation]);
+						trace("Treasure "+j+": " + treasure[kItem] + " at " + treasure[kLocation]);
 					}
 				}
 				crane.visible = true;
@@ -1372,7 +1386,6 @@
 			private function initListeners():void{
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, finishRatDive);
-				//bootyMeter.dispatcher.addEventListener(BootyEvent.WIN, popUpScreen.winGame);				
 				bootyMeter.dispatcher.addEventListener(BootyEvent.LOSE, popUpScreen.loseGame);
 			}
 		

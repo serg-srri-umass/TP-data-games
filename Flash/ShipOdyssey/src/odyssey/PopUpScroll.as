@@ -9,10 +9,10 @@ package odyssey
 	{
 		private var game:ShipMissionAPI;	//reference to the main. Allows this class to directly interact with the application.
 		
-		public static const kLevel1Instructions:String = "At this location, each treasure is worth $7,000. You start with $15,000. To complete it, earn $25,000. Rats are free, but be careful; a missed hook will cost you $5,000.";
-		public static const kLevel2Instructions:String = "Each treasure is still worth $7,000, but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals.";
-		public static const kLevel3Instructions:String = "Each treasure is now worth $15,000. Rats will cost you $100 each. Check the loot meter for your new goals.";
-		public static const kLevel4Instructions:String = "Each treasure is worth $18,000. The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
+		public static const kLevel1Instructions:String = "At this location, each treasure is worth $12,000. You start with $15,000. To complete it, earn $25,000. Rats are free, but be careful; a missed hook will cost you $5,000.";
+		public static const kLevel2Instructions:String = "Each treasure is still worth $12,000, but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals.";
+		public static const kLevel3Instructions:String = "Each treasure is now worth $20,000. Rats will cost you $100 each. Check the loot meter for your new goals.";
+		public static const kLevel4Instructions:String = "Each treasure is worth $23,000. The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
 		public static const kLevel5Instructions:String = "";
 		private static const kLevelInstructionsArray:Array = new Array(kLevel1Instructions, kLevel2Instructions, kLevel3Instructions, kLevel4Instructions, kLevel5Instructions);
 		
@@ -26,6 +26,9 @@ package odyssey
 		
 		private var selectedLevel:int = 1;
 		private var delayTimer:Timer = new Timer(1500, 0); //used to animate 'fade out'. The dely before the screen disappears.
+		private var okayFunc:Function = emptyFunction;	// the funciton that's assigned to the okay button
+		
+		private function emptyFunction():void{	trace("EMPTY FUNCTION");	}
 		
 		public function PopUpScroll(api:* = null) {
 			game = api;
@@ -129,21 +132,32 @@ package odyssey
 		}
 		
 		// display the prompt that comes up when you find a treasure
-		public function displayTreasure(item:String, value:String, location:String, func:Function):void { 
+		public function displayTreasure(item:String, value:String, location:String, func:Function, okayMessage:Boolean = false):void { 
 			visible = true;
-			gotoAndStop("treasureNext");
+			
+			if(okayMessage)	
+				gotoAndStop("treasureOkay");
+			else
+				gotoAndStop("treasureNext");
+			
+			okayFunc = func;
 			title.text = "Treasure!";
-			body.text = "You found the " + item + " worth " + value + " at location " + location + ".";
-			nextSiteBtn.addEventListener(MouseEvent.CLICK, func);
+			body.text = "You found " + item + " worth " + value + " at location " + location + ".";
+			nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
 		}
 		
 		// display the prompt that comes up when you pull anchor
 		public function displayRecap(arg:String, func:Function):void {
 			visible = true;
 			gotoAndStop("recap");
+			okayFunc = func;
 			title.text = "Anchor Pulled";		
 			body.text = arg;
-			nextSiteBtn.addEventListener(MouseEvent.CLICK, func);
+			nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
+		}
+		
+		private function useOkayFunc(e:Event):void{
+			okayFunc(e);
 		}
 		
 		// display the help
@@ -172,29 +186,8 @@ package odyssey
 			return kLevelInstructionsArray[switcher - 1];
 		}
 		
-		
-		// ---- FX SECTION ------------
-		// ----------------------------
-		
-		// call this to make the popUpWindow fade out. 
-		public function fadeOut():void {
-			delayTimer.addEventListener(TimerEvent.TIMER, fadeOutInner);
-			delayTimer.start();
-		}
-		
-		private function fadeOutInner(e:Event):void {
-			addEventListener(Event.ENTER_FRAME, reduceAlpha);
-		}
-		
-		private function reduceAlpha(e:Event):void {
-			
-			alpha -= 0.05;
-			if(alpha <= 0) {
-				alpha = 1;
-				visible = false;
-				removeEventListener(Event.ENTER_FRAME, reduceAlpha);
-				delayTimer.removeEventListener(TimerEvent.TIMER, fadeOutInner);
-			}
+		public function hide(e:Event = null):void{
+			visible = false;
 		}
 	}
 }
