@@ -1,12 +1,6 @@
 package odyssey
 {
-	//The costArrow is an object within the .swc. It has the following methods:
-	// 	establish( treasureValue:int, goal:int): void;
-	//			call this method to set up the cost arrow.
-	// 	pay( cost:int): void;
-	//			pay $. Give it a value, and it will animate it for you.
-	
-	import flash.events.Event;	
+	import flash.events.Event;
 	import odyssey.events.BootyEventDispatcher;
 	
 	public class BootyBarMVC extends BootyMeter
@@ -29,8 +23,7 @@ package odyssey
 		private var displayBooty:int; //used for animation logic. Animated $
 		private var _settingStartValue:Boolean; // animation logic. when it's true, the starting value will move along with the $.
 		private var _animateBooty:Boolean = false;
-		private var _lockedGhost:Boolean = false; // when this is true, the ghost can't be removed.
-		
+	
 		private var _isGameOver:int = NO;	//an int based on whether or not the game is over.
 		
 		public function BootyBarMVC()
@@ -55,7 +48,7 @@ package odyssey
 		
 		public function get booty():int
 		{
-			return _booty + _treasureValue - _costs;
+			return _booty;
 		}
 		public function get profitSoFar():int
 		{
@@ -76,12 +69,6 @@ package odyssey
 		public function get costs():int{
 			return _costs;
 		}
-		public function lockGhost():void {
-			_lockedGhost = true;
-		}
-		public function unlockGhost():void {
-			_lockedGhost = false;
-		}
 		
 		private function turnOff(e:Event = null):void
 		{
@@ -89,11 +76,10 @@ package odyssey
 			gotoAndStop(1);
 			goalMVC.htmlText = "$0";
 			myCash.booty.text = "";
-			costArrow.visible = false;
 		}
 		
 		// when a hook drop finishes, this method runs. 
-		public function finishTreasureDrop(success:Boolean, cost:int = 0):void{
+		public function finishTreasureDrop(success:Boolean):void{
 			if(success)
 			{
 				_booty += treasureValue;
@@ -104,11 +90,10 @@ package odyssey
 					_isGameOver = NO;
 			} else
 			{
-				pay(cost);
-				if(_booty + _treasureValue - costs <= 0)
+				if(_booty <= 0)
 				{
 					_isGameOver = LOSE;
-					account(true);
+					account();
 				}else
 				{
 					_isGameOver = NO;
@@ -130,15 +115,13 @@ package odyssey
 			
 			goalMVC.htmlText = parseToCash(_goal);	// write the goal at the top
 			animateBooty(true);
-			costArrow.visible = true;
-			costArrow.establish(_treasureValue, _goal);
 		}
 		
 		// call this method whenever you spend money
 		public function pay(cost:int):void
 		{
 			_costs += cost;	
-			costArrow.pay(cost);
+			account();
 		}
 		
 		
@@ -148,22 +131,14 @@ package odyssey
 			_isGameOver = NO;
 			_startingBooty = _booty;
 			animateBooty(true);
-			costArrow.visible = true;
-			costArrow.establish(_treasureValue, _goal);
 			_costs = 0;
 		}
 		
-		// accounting moves costs from the cost bar over to the booty bar.
-		// call this account method if you drop an anchor, and game is not over (no winning or losing)
-		public function payThenAccount():void {
-			_booty = _booty - _costs + _treasureValue;
-			animateBooty();
-			_costs = 0;
-		}
-		
-		// call this account method if the game IS over. It will turn off the player's controls.
-		private function account(bankrupt:Boolean = false):void{
-			_booty -= (bankrupt ? _booty : _costs);	
+		//this account method whenever the player spends money.
+		private function account():void{
+			_booty -= costs;
+			if(_booty < 0)
+				_booty = 0;
 			_dispatcher.dispatchAccounting();
 			animateBooty();
 			_costs = 0;
@@ -191,7 +166,8 @@ package odyssey
 			else if(targetFrame < 1)
 				targetFrame = 1;
 			
-			dist = (targetFrame > currentFrame ? Math.ceil(dist) : Math.floor(dist));
+			var goingUp:Boolean = targetFrame > currentFrame;
+			dist = (goingUp ? Math.ceil(dist) : Math.floor(dist));
 			// rounding is based on whether the graph is moving up or down
 			
 			gotoAndStop(currentFrame + dist);
@@ -200,11 +176,15 @@ package odyssey
 			{
 				myCash.booty.text = "$0";
 			}else{
-				myCash.booty.text = parseToCash((_goal*currentFrame)/1000);
+				var loot:int = (_goal*currentFrame)/1000;
+				if(goingUp)
+					loot = Math.min(loot, _booty);
+				else
+					loot = Math.max(loot, _booty);
+				if(loot < 0)
+					loot = 0;
+				myCash.booty.text = parseToCash(loot);
 			}
-			
-			if(_settingStartValue)
-				costArrow.y = barPosition.y;
 			
 			if(currentFrame == targetFrame)
 			{
