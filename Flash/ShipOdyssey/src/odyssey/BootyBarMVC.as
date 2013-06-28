@@ -153,7 +153,7 @@ package odyssey
 		
 		private function animateBooty(setStartingValue:Boolean = false):void
 		{
-			var arg:int = getPercent(_booty)*10;	// convert percent to per thousand
+			var arg:int = getPercent(_booty);
 			_settingStartValue = setStartingValue;
 			targetFrame = arg;
 			_animateBooty = true;
@@ -224,7 +224,8 @@ package odyssey
 		
 		// given a booty, this method returns what % it is of the goal
 		private function getPercent(arg:int):int{
-			var percent:int = (arg/_goal)*100;
+			var percent:Number = (arg/_goal)*1000;
+			trace(percent);
 			return percent;
 		}
 	}
