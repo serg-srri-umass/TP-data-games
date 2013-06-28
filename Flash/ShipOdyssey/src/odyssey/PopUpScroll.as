@@ -46,7 +46,7 @@ package odyssey
 		public function winGame(treasureName:String = "", treasureLocation:String = ""):void {
 			visible = true;
 			gotoAndStop("win");
-			body.text = "You've filled your loot meter and completed this mission. Your last treasure was by finding the "+treasureName+" at location "+treasureLocation;
+			body.text = "You've completed this mission. Your last treasure was "+treasureName+" at location "+treasureLocation;
 			mainBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
 		}
 		
@@ -141,7 +141,7 @@ package odyssey
 		public function displayRecap(arg:String, func:Function):void {
 			visible = true;
 			gotoAndStop("recap");
-			title.text = "Anchor Pulled!";		
+			title.text = "Anchor Pulled";		
 			body.text = arg;
 			nextSiteBtn.addEventListener(MouseEvent.CLICK, func);
 		}
