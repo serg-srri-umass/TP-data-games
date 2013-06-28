@@ -778,7 +778,6 @@
 			protected function onClickDropHookButton(event:MouseEvent):void
 			{		
 				hideInstructions();
-				bootyMeter.lockGhost();
 				mDropHookButton.enabled = false;
 				crane.canDrag = false;
 				//check to see if the crane needs to move before we can drop the hook
@@ -835,6 +834,7 @@
 			
 			//call the animation, disable all buttons during animation, and start a timer
 			private function dropHook():void{
+				bootyMeter.pay(kCostPerHookDrop);
 				disableAllButtons();
 				crane.dropHook(mFoundTreasure, 1, 5);
 				transitionTimer = new Timer(6000, 1);
@@ -879,7 +879,7 @@
 				else // Treasure was not found at drop location.
 				{
 
-					bootyMeter.finishTreasureDrop(false, kCostPerHookDrop)
+					bootyMeter.finishTreasureDrop(false)
 					if(!bootyMeter.lost)
 						enableAllButtons();
 					
@@ -905,8 +905,6 @@
 				hideInstructions();
 				if( mExitNewGameButton.label == "Pull Anchor"){
 					disableAllButtons();
-					if(bootyMeter.profit < 0)
-						bootyMeter.payThenAccount();
 					zoomOutAndSail();
 				} else { 
 					newMission(iEvent);
@@ -1255,8 +1253,13 @@
 				mHelpButton.enabled = true;
 				mSendRatsButton.enabled = true;
 				
-				if(mRatsSent > 0 && DebugMode.DISABLE_DROP_BUTTON)
+				if(DebugMode.DISABLE_DROP_BUTTON){
+					if(mRatsSent > 0)
+						mDropHookButton.enabled = true;
+				} else {
 					mDropHookButton.enabled = true;
+				}
+						
 				
 				if(crane)
 					crane.canDrag = true;
@@ -1274,8 +1277,13 @@
 			
 			private function enableRatButton(e:RatEvent = null):void{
 				mSendRatsButton.enabled = true;
-				if(mRatsSent > 0 && DebugMode.DISABLE_DROP_BUTTON)
+				
+				if(DebugMode.DISABLE_DROP_BUTTON){
+					if(mRatsSent > 0)
+						mDropHookButton.enabled = true;
+				} else {
 					mDropHookButton.enabled = true;
+				}
 			}
 			
 			//********new visual items and visual only code **********
