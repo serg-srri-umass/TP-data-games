@@ -861,7 +861,7 @@
 						}else if(mTreasuresFound == 1){
 							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), hideScrollThenSail, true);
 						} else {
-							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), popUpScreen.hide, true);
+							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), hideScroll, true);
 							enableAllButtons();
 						}
 					} 
@@ -890,7 +890,10 @@
 				// send updated [mHooksDropped, mTreasuresFound, profitSoFar] to DG game case
 				sendGameDataUpdate();
 			}
-			
+			private function hideScroll(e:Event):void{
+				popUpScreen.hide(e);
+				crane.hideTreasure();
+			}
 			private function hideScrollThenSail(e:Event):void{
 				popUpScreen.hide(e);
 				zoomOutAndSail(e);
