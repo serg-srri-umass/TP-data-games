@@ -63,4 +63,45 @@
   purpose, create a package for them inside of the main package.
 \end{itemize}
 
+
+\section{Whitespace}
+
+\begin{itemize}
+\item Leave one blank line between each method/function that you
+  define. If there is a comment above a function, leave a line between
+  the end of your function, and the comment.
+\item Generally, leave one space character between parameters. This
+  includes arguments to a function/method, as well as anywhere you
+  have a comma between items in a list. i.e.
+\begin{verbatim}
+private var mArrayTest:Array = [1, 2, 3, 4];
+
+private function testFunc(arg1:int, arg2:int):void{
+    ...
+}
+\end{verbatim}
+\end{itemize}
+
+
+\section{Code Example}
+
+\begin{verbatim}
+package test_package{
+    
+    private var mTestVar:Number = 1.618;
+    
+    public static const kTestConst:Number = 1.618;
+    
+    //Here is the comment explaining what testFunc does
+    private function testFunc(arg1:String, arg2:Number):void{
+        ...
+    }
+    
+    //Here is the comment explaining what testFunc does
+    private function testFunc(arg1:String, arg2:Number):void{
+        ... //here is an example of an inline comment
+    }
+}
+\end{verbatim}
+
 \end{document}
