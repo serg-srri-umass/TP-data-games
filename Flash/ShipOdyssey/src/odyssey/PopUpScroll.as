@@ -135,15 +135,18 @@ package odyssey
 		public function displayTreasure(item:String, value:String, location:String, func:Function, okayMessage:Boolean = false):void { 
 			visible = true;
 			
-			if(okayMessage)	
+			if(okayMessage){
 				gotoAndStop("treasureOkay");
-			else
+			}else{
 				gotoAndStop("treasureNext");
+				doReplayPrivate();
+			}
 			
 			okayFunc = func;
-			title.text = "Treasure!";
+			//title.text = "Treasure!";
 			body.text = "You found " + item + " worth " + value + " at location " + location + ".";
 			nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
+			
 		}
 		
 		// display the prompt that comes up when you pull anchor
@@ -151,9 +154,11 @@ package odyssey
 			visible = true;
 			gotoAndStop("recap");
 			okayFunc = func;
-			title.text = "Anchor Pulled";		
+			//title.text = "Anchor Pulled";		
 			body.text = arg;
 			nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
+			
+			doReplayPrivate();
 		}
 		
 		private function useOkayFunc(e:Event):void{
@@ -188,6 +193,36 @@ package odyssey
 		
 		public function hide(e:Event = null):void{
 			visible = false;
+		}
+		
+		private var replayArray:Array = new Array();
+		private var treasuresArray:Array = new Array();
+		
+		public function doReplay(arg:Array, treasuresArg:Array):void{
+			replayArray = arg;
+			treasuresArray = treasuresArg;
+		}
+		
+		private function doReplayPrivate():void{
+			replayWindow.foreground.reset();
+			if(replayArray.length > 0){
+				while(replayArray.length > 0){
+					var h:Array = replayArray.shift();
+					replayWindow.foreground.addHook(h[0], h[1]);
+				}
+				replayWindow.foreground.startReplay();
+			}
+			
+			var t1:Number = -1;
+			var t2:Number = -1;
+			
+			if(treasuresArray.length == 1){
+				t1 = treasuresArray[0];
+			} else if(treasuresArray.length == 2) {
+				t1 = treasuresArray[0];
+				t2 = treasuresArray[1];
+			}
+			replayWindow.foreground.placeTreasure(t1, t2);
 		}
 	}
 }
