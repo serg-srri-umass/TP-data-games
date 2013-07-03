@@ -814,10 +814,13 @@
 			}
 			
 			//called from the PopUpMVC when the game needs to be restarted.mHuntLevel
-			private function restartMission():void{
+			private function restartMission(startNextMission:Boolean = true):void{
 				exitGame();
-				initializeTreasureHunt();
-				newMission();
+				
+				if(startNextMission){
+					initializeTreasureHunt();
+					newMission();
+				}
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
 				mCenterPositionStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
@@ -942,7 +945,7 @@
 						haveTreasure = false;
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.won){
-							popUpScreen.winGame(mTreasureArray[mCurrentTreasureNum][kItem], mLocationFound.toFixed(1));
+							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), popUpScreen.winGame, false, true);
 						}else{
 							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), newMission);
 						}
@@ -959,6 +962,11 @@
 				mDropHookButton.enabled = false;
 				mCenterPositionStepper.enabled = false;
 				mRatStepper.enabled = false;
+			}
+			
+			private function loseGame(e:Event):void{
+				popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
+				popUpScreen.displayRecap("You've run out of loot. " + treasuresFoundString(), popUpScreen.loseGame, true);	
 			}
 			
 			private function newMission(iEvent:Event = null):void{
@@ -1401,7 +1409,7 @@
 			private function initListeners():void{
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, finishRatDive);
-				bootyMeter.dispatcher.addEventListener(BootyEvent.LOSE, popUpScreen.loseGame);
+				bootyMeter.dispatcher.addEventListener(BootyEvent.LOSE, loseGame);
 			}
 		
 			// attach the booty bar to the screen. And popups

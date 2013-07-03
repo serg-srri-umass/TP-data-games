@@ -46,18 +46,19 @@ package odyssey
 			chooseLevelBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
 		}
 		
-		public function winGame(treasureName:String = "", treasureLocation:String = ""):void {
+		public function winGame(e:Event = null):void {
 			visible = true;
 			gotoAndStop("win");
-			body.text = "You've completed this mission. Your last treasure was "+treasureName+" at location "+treasureLocation;
 			mainBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
 		}
 		
 		// click the 'choose level' button
 		private function chooseLevelButtonHandler(e:MouseEvent):void{
+			game.restartMission(false);
 			chooseLevelBtn.removeEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
 			chooseHuntLevel();
 		}
+		
 		
 		// the 'continue' button, for when you've won the game.
 		private function chooseLevelButtonHandlerNext(e:MouseEvent):void{
@@ -132,32 +133,32 @@ package odyssey
 		}
 		
 		// display the prompt that comes up when you find a treasure
-		public function displayTreasure(item:String, value:String, location:String, func:Function, okayMessage:Boolean = false):void { 
+		public function displayTreasure(item:String, value:String, location:String, func:Function, mini:Boolean = false, okay:Boolean = false):void { 
 			visible = true;
+			okayFunc = func;
 			
-			if(okayMessage){
-				gotoAndStop("treasureOkay");
+			if(mini){
+				gotoAndStop("treasureMini");
+				nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
 			}else{
-				gotoAndStop("treasureNext");
+				gotoAndStop("recap");
+				okayBtn.visible = okay;
+				nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
+				okayBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
 				doReplayPrivate();
 			}
-			
-			okayFunc = func;
-			//title.text = "Treasure!";
 			body.text = "You found " + item + " worth " + value + " at location " + location + ".";
-			nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
-			
 		}
 		
 		// display the prompt that comes up when you pull anchor
-		public function displayRecap(arg:String, func:Function):void {
+		public function displayRecap(arg:String, func:Function, okay:Boolean = false):void {
 			visible = true;
 			gotoAndStop("recap");
 			okayFunc = func;
-			//title.text = "Anchor Pulled";		
 			body.text = arg;
+			okayBtn.visible = okay;
 			nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
-			
+			okayBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
 			doReplayPrivate();
 		}
 		
