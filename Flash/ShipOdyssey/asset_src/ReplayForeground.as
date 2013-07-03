@@ -14,6 +14,7 @@
 		
 		private var hookArray:Array;	//where hook data is stored.
 		private var recycleArray:Array;	//is used to loop the animation.
+		private var removalArray:Array = new Array(); // used in unloading the movieclips.
 		
 		var startTimer:Timer = new Timer(1000, 1);
 		var interTimer:Timer = new Timer(500, 1);
@@ -53,10 +54,11 @@
 			}
 		}
 		
-		public function addHook(pos:Number, treasure:Boolean = false):void{
-			var h:ReplayHook = new ReplayHook(getScalePosition(pos), treasure);
+		public function addHook(pos:Number, treasure:Boolean = false, junk:String = null):void{
+			var h:ReplayHook = new ReplayHook(getScalePosition(pos), treasure, junk);
 			addChild(h);
 			hookArray.push(h);
+			removalArray.push(h);
 		}
 		
 		public function startReplay():void{
@@ -96,10 +98,8 @@
 		}
 		
 		public function reset():void{
-			while(hookArray.length){
-				var h:ReplayHook = hookArray.pop();
-				removeChild(h);
-			}
+			while(removalArray.length > 0)
+				removeChild(removalArray.pop());
 			hookArray = new Array();
 			recycleArray = new Array();
 		}

@@ -8,16 +8,21 @@
 		private const HOOK_Y:Number = -56.75;	// the Y value at which to attach hooks.
 		private var _label:String;
 		
-		public function ReplayHook(position:Number = 0, treasure:Boolean = false) {
+		public function ReplayHook(position:Number = 0, treasure:Boolean = false, junk:String = null) {
 			x = position;
 			y = HOOK_Y;
 			
-			if(treasure)
-				_label = "hit";
-			else
-				_label = "miss";
-				
+			_label = (treasure ? "hit" : "miss");
 			gotoAndStop(_label);
+			
+			// show any junk you may have found.
+			if(!treasure){
+				if(junk == "got_boot"){
+					junkMVC.gotoAndStop("boot");
+				}else if(junk == "got_seaweed"){
+					junkMVC.gotoAndStop("seaweed");
+				}
+			}
 		}
 		
 		override public function play():void{

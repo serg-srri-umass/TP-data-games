@@ -6,15 +6,15 @@
 	// this class handles the "camera" of the replay window.
 	public class ReplayWindow extends MovieClip{
 		
-		static const SCREEN_BUFFER:int = 40;
+		static const SCREEN_BUFFER:int = 80;
 		static const SCREEN_WIDTH:Number = 415;
 		
 		var targetPos:Number;
 		
 		public function ReplayWindow() {
-			foreground.addEventListener("treasurePlaced", measureToTreasure);
+			//foreground.addEventListener("treasurePlaced", measureToTreasure);
 			foreground.addEventListener("replayStart", measureToHook);
-			addEventListener("hookComplete", measure);
+			addEventListener("hookComplete", measureToHook);
 		}
 		
 		private function measureToTreasure(e:Event = null):void{
@@ -27,7 +27,7 @@
 			var h:ReplayHook = foreground.peekAtNextHook();
 			if(!h)	//if there's nothing in the array, don't go any farther.
 				return;
-				
+			
 			var pt:Point = new Point(h.x, h.y);
 			pt = foreground.localToGlobal(pt);
 			measure(pt.x, h.treasure);

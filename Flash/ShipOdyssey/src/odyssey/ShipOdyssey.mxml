@@ -848,7 +848,7 @@
 				//or as the item on the hook comes into view
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);				
 				
-				hooksDroppedArray.push(new Array(mCenterPosition, mFoundTreasure));
+				hooksDroppedArray.push(new Array(mCenterPosition, mFoundTreasure, lastHookItem));
 				
 				if (mFoundTreasure)
 				{
@@ -1328,7 +1328,17 @@
 				crane.mask = craneMask;
 				crane.addEventListener(CraneEvent.DRAGGING, updateCraneStepper);
 				crane.addEventListener(CraneEvent.SCALE_CLICKED, updateCraneStepperSnapped);
+				
+				crane.addEventListener(CraneEvent.GOT_BOOT, handleGettingJunk);
+				crane.addEventListener(CraneEvent.GOT_SEAWEED, handleGettingJunk);
+				crane.addEventListener(CraneEvent.GOT_NOTHING, handleGettingJunk);
+
 				checkSWFLoaders();
+			}
+			
+			private var lastHookItem:String;
+			private function handleGettingJunk(e:Event):void{
+				lastHookItem = e.type;
 			}
 			
 			private function updateCraneStepper(e:Event):void{

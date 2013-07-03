@@ -5,19 +5,27 @@
 
 	public class CraneAnimationDropHook extends MovieClip{
 		private var junkArray:Array;
-		private var junkChance:int = 50;
+		private var junkChance:int = 40;
 		
 		public function CraneAnimationDropHook(){
 			super();
 			stop();
-			junkArray = new Array(Boot, DarkMass, DarkMass)
+			junkArray = new Array(Boot, DarkMass, DarkMass);
 		}
 		
 		public function showRandom(){
 			var randomPickUp:int = Math.random()*100;
-			if(randomPickUp < junkChance) {
-				var junkIndex = Math.floor(Math.random()*junkArray.length);
-				junkArray[junkIndex].visible = true;
+			if(randomPickUp < junkChance) {	// you grabbed junk.
+				var junkIndex:int = Math.random()*junkArray.length;
+				if(junkArray[junkIndex] == Boot){
+					Boot.visible = true;
+					dispatchEvent( new Event("got_boot", true));
+				}else {
+					DarkMass.visible = true;
+					dispatchEvent (new Event("got_seaweed", true));
+				}
+			}else{
+				dispatchEvent (new Event("got_nothing", true));
 			}
 		}
 		

@@ -205,14 +205,6 @@ package odyssey
 		
 		private function doReplayPrivate():void{
 			replayWindow.foreground.reset();
-			if(replayArray.length > 0){
-				while(replayArray.length > 0){
-					var h:Array = replayArray.shift();
-					replayWindow.foreground.addHook(h[0], h[1]);
-				}
-				replayWindow.foreground.startReplay();
-			}
-			
 			var t1:Number = -1;
 			var t2:Number = -1;
 			
@@ -222,7 +214,16 @@ package odyssey
 				t1 = treasuresArray[0];
 				t2 = treasuresArray[1];
 			}
+			
 			replayWindow.foreground.placeTreasure(t1, t2);
+			
+			if(replayArray.length > 0){
+				while(replayArray.length > 0){
+					var h:Array = replayArray.shift();
+					replayWindow.foreground.addHook(h[0], h[1], h[2]);
+				}
+				replayWindow.foreground.startReplay();
+			}
 		}
 	}
 }
