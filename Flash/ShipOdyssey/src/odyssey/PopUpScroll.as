@@ -4,15 +4,16 @@ package odyssey
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.utils.Timer;
+	import common.TextFormatter;
 	
 	public class PopUpScroll extends popUps
 	{
 		private var game:ShipMissionAPI;	//reference to the main. Allows this class to directly interact with the application.
 		
-		public static const kLevel1Instructions:String = "At this location, each treasure is worth $12,000. You start with $15,000. To complete it, earn $25,000. Rats are free, but be careful; a missed hook will cost you $5,000.";
-		public static const kLevel2Instructions:String = "Each treasure is still worth $12,000, but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals.";
-		public static const kLevel3Instructions:String = "Each treasure is now worth $20,000. Rats will cost you $100 each. Check the loot meter for your new goals.";
-		public static const kLevel4Instructions:String = "Each treasure is worth $23,000. The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
+		public static const kLevel1Instructions:String = "At this location, each treasure is worth " + TextFormatter.toCash(ShipOdyssey.MISSION1_TREASURE_VALUE) + ". You start with $15,000. To complete it, earn $25,000. Rats are free, but be careful; a missed hook will cost you $5,000.";
+		public static const kLevel2Instructions:String = "Each treasure is still worth " + TextFormatter.toCash(ShipOdyssey.MISSION2_TREASURE_VALUE) + ", but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals.";
+		public static const kLevel3Instructions:String = "Each treasure is now worth " + TextFormatter.toCash(ShipOdyssey.MISSION3_TREASURE_VALUE) + ". Rats will cost you $100 each. Check the loot meter for your new goals.";
+		public static const kLevel4Instructions:String = "Each treasure is worth" + TextFormatter.toCash(ShipOdyssey.MISSION4_TREASURE_VALUE) + ". The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
 		public static const kLevel5Instructions:String = "";
 		private static const kLevelInstructionsArray:Array = new Array(kLevel1Instructions, kLevel2Instructions, kLevel3Instructions, kLevel4Instructions, kLevel5Instructions);
 		

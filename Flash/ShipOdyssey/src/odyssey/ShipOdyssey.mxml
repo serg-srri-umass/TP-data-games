@@ -27,7 +27,6 @@
 			import common.*;
 			
 			import mx.controls.Alert;
-			import mx.core.SoundAsset;
 			import mx.events.CloseEvent;
 			import mx.flash.UIMovieClip;
 			import mx.managers.PopUpManager;
@@ -54,10 +53,15 @@
 			public static const kHuntLevelThree:uint = 2;	// Third treasure hunt game level. Used to be Clear Level.
 			public static const kHuntLevelFour:uint = 3;	// Fourth treasure hunt game level. Used to be Murky Level.
 			
+			/*
 			public static const MISSION1_TREASURE_VALUE:int = 12000;
 			public static const MISSION2_TREASURE_VALUE:int = 12000;
 			public static const MISSION3_TREASURE_VALUE:int = 20000;
-			public static const MISSION4_TREASURE_VALUE:int = 23000;
+			public static const MISSION4_TREASURE_VALUE:int = 23000;*/
+			public static const MISSION1_TREASURE_VALUE:int = 7000;
+			public static const MISSION2_TREASURE_VALUE:int = 7000;
+			public static const MISSION3_TREASURE_VALUE:int = 1500;
+			public static const MISSION4_TREASURE_VALUE:int = 1800;
 			
 			
 			//** **
@@ -248,7 +252,7 @@
 			// Licensed under the attribution license (http://creativecommons.org/licenses/by/3.0/)
 			[Embed(source="../embedded_assets/91924-benboncan-till-with-bell.mp3")]
 			private var CashMP3:Class;
-			private var mCashSound:SoundAsset = new CashMP3() as SoundAsset;
+			private var mCashSound:AdvancedSound = new AdvancedSound(new CashMP3() as Sound);
 			
 			// Embed the rat squeal sound in the Treasure Hunt game.
 			// The link from which the sound came no longer exists as of 10/28/2011. The larger
@@ -544,7 +548,7 @@
 				cHerder.startClouds();
 				mHuntLevel = kHuntLevelThree;
 				
-				setCurrentMinMaxRats( 10, 1, 500 );
+				setCurrentMinMaxRats( 5, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = 3;
@@ -573,7 +577,7 @@
 				cHerder.startClouds();
 				mHuntLevel = kHuntLevelFour;
 				
-				setCurrentMinMaxRats( 10, 1, 500 );
+				setCurrentMinMaxRats( 5, 1, 500 );
 				mCostPerRat	= 100;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = true;
 				mCurrentLevel = 4;
@@ -837,7 +841,8 @@
 			
 			//call the animation, disable all buttons during animation, and start a timer
 			private function dropHook():void{
-				bootyMeter.pay(kCostPerHookDrop);
+				if(!DebugMode.ONLY_PAY_MISSED_HOOKS)
+					bootyMeter.pay(kCostPerHookDrop);
 				disableAllButtons();
 				crane.dropHook(mFoundTreasure, 1, 5);
 				transitionTimer = new Timer(6000, 1);
@@ -890,6 +895,9 @@
 				}
 				else // Treasure was not found at drop location.
 				{
+					if(DebugMode.ONLY_PAY_MISSED_HOOKS)
+						bootyMeter.pay(kCostPerHookDrop);	//pay, if only on misses.
+					
 					haveTreasure = false;
 					bootyMeter.finishTreasureDrop(false);
 					if(!bootyMeter.lost)
@@ -1489,6 +1497,7 @@
 		</s:Sequence> -->
 	</fx:Declarations>
 	
+	
 	<!--Game Header Bar-->
 	<s:BorderContainer id="StatusBar" x="3" y="0" width="{this.width - 6}" height="30" cornerRadius="3" depth="10">
 		<s:backgroundFill>
@@ -1525,7 +1534,7 @@
 	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">	
 		
-		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Quit" chromeColor="#D1B38B" click="quitMission();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
+		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Map" chromeColor="#D1B38B" click="quitMission();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 		<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
 		<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="Set Sail" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
 	</mx:Canvas>
