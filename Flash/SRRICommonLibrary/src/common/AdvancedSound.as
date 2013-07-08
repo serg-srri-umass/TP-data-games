@@ -69,7 +69,7 @@
 			_channel = play();
 		}
 		
-		private var _toDoFunction:Function;
+		private var _toDoFunction:Function = function():void{};
 		public function doOnPercentPlayed(arg:Number, func:Function):void{
 			if(arg < 0 || arg > 1)
 				throw new Error("Percent must range from 0 to 1.");
@@ -83,13 +83,10 @@
 			
 			_toDoFunction = func;
 			percentageCounter.addEventListener(TimerEvent.TIMER_COMPLETE, notifyInner);
-			
-			
-		}
+		}		
 		
 		private function notifyInner(e:Event):void{
-			_toDoFunction();
-			percentageCounter.removeEventListener(TimerEvent.TIMER_COMPLETE, _toDoFunction);
+			_toDoFunction(e);
 		}
 		
 		private function tickFadeOut(e:Event):void{
