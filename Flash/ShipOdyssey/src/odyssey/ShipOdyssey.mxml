@@ -114,6 +114,7 @@
 			
 			private var mTreasuresAtLocArr:Array;			//Used for new multi-treasure aspect - tells how many treasures are at the current loc
 			private var mTreasureLocArr:Array;				//location of each treasure at current loc, treasures are removed as found
+			private var mTreasureLocArrLocked:Array;		// like the other array, but treasures aren't removed when they're found.
 			private var mAutoSailOnAfterFoundTreasure:Boolean; //Added for lvl 2 where the user must choose when to sail on because there can be 0, 1, or 2 treasures
 			private var mLocationFound:Number;					// for storing the location of a found treasure across timer steps
 			
@@ -127,6 +128,9 @@
 			
 			// Array of treasures (zero-based).
 			private var mTreasureArray:Array;
+			
+			// Array of hooks dropped at a site.
+			private var hooksDroppedArray:Array;
 			
 			//stores treasure locations for printing in Achor Pulled! dialog 
 			private var mTreasurePrint:Array = new Array(2);
@@ -806,13 +810,17 @@
 					}
 					dropHook();
 				}
+				
 			}
 			
 			//called from the PopUpMVC when the game needs to be restarted.mHuntLevel
-			private function restartMission():void{
+			private function restartMission(startNextMission:Boolean = true):void{
 				exitGame();
-				initializeTreasureHunt();
-				newMission();
+				
+				if(startNextMission){
+					initializeTreasureHunt();
+					newMission();
+				}
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
 				mCenterPositionStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
@@ -842,7 +850,9 @@
 				//does the visual and sound items that occur after the hook drop finishes playing
 				//or as the item on the hook comes into view
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);				
-				//take off the ghost cost price when the hook is revealed
+				
+				hooksDroppedArray.push(new Array(mCenterPosition, mFoundTreasure, lastHookItem));
+				
 				if (mFoundTreasure)
 				{
 					// Add treasure value to accumulated wealth.
@@ -859,6 +869,7 @@
 							haveTreasure = true;
 							onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
 						}else if(mTreasuresFound == 1){
+							popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
 							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), hideScrollThenSail, true);
 						} else {
 							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), hideScroll, true);
@@ -868,6 +879,7 @@
 					else // on levels 1,3,4
 					{
 						haveTreasure = true;
+						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
 						onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
 					}
 					
@@ -933,11 +945,12 @@
 						haveTreasure = false;
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.won){
-							popUpScreen.winGame(mTreasureArray[mCurrentTreasureNum][kItem], mLocationFound.toFixed(1));
+							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), popUpScreen.winGame, false, true);
 						}else{
 							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), newMission);
 						}
 					}else{
+						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
 						popUpScreen.displayRecap(treasuresFoundString(), newMission);
 					}
 				}
@@ -951,11 +964,16 @@
 				mRatStepper.enabled = false;
 			}
 			
+			private function loseGame(e:Event):void{
+				popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
+				popUpScreen.displayRecap("You've run out of loot. " + treasuresFoundString(), popUpScreen.loseGame, true);	
+			}
+			
 			private function newMission(iEvent:Event = null):void{
 				popUpScreen.visible = false;
 				hideInstructions();
 				sailThenZoomIn();
-				mLevelsButton.enabled = false;
+				//mLevelsButton.enabled = false;
 				mExitNewGameButton.enabled = true;
 				mExitNewGameButton.label = "Pull Anchor";
 				disableAllButtons();
@@ -1180,6 +1198,7 @@
 			
 			private function zoomInTimerFinish(e:TimerEvent):void{
 				mTreasureLocArr = new Array();
+				mTreasureLocArrLocked = new Array();
 				if(mCurrentLevel == 2) //level 2 can have 0, 1, or 2 treasures
 				{
 					mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
@@ -1206,6 +1225,7 @@
 				for(var i:int=0; i<mNumTreasures; i++)
 				{
 					mTreasureLocArr.push(mTreasureArray[mCurrentTreasureNum+i][kLocation]);
+					mTreasureLocArrLocked.push(mTreasureArray[mCurrentTreasureNum+i][kLocation]);
 				}
 				
 				if(DebugMode.PRINT_TREASURE_LOCATION)
@@ -1228,6 +1248,8 @@
 				for(var k:int = 0; mTreasureLocArr[k]; k++){
 					mTreasurePrint[k] = mTreasureLocArr[k];
 				}
+				
+				hooksDroppedArray = new Array();
 			}
 			
 			//currently unused since there are no rat drop sounds or anims
@@ -1255,7 +1277,8 @@
 				mRatStepper.enabled = true;
 				mHelpButton.enabled = true;
 				mSendRatsButton.enabled = true;
-				
+				mLevelsButton.enabled = true;
+
 				if(DebugMode.DISABLE_DROP_BUTTON){
 					if(mRatsSent > 0)
 						mDropHookButton.enabled = true;
@@ -1313,7 +1336,17 @@
 				crane.mask = craneMask;
 				crane.addEventListener(CraneEvent.DRAGGING, updateCraneStepper);
 				crane.addEventListener(CraneEvent.SCALE_CLICKED, updateCraneStepperSnapped);
+				
+				crane.addEventListener(CraneEvent.GOT_BOOT, handleGettingJunk);
+				crane.addEventListener(CraneEvent.GOT_SEAWEED, handleGettingJunk);
+				crane.addEventListener(CraneEvent.GOT_NOTHING, handleGettingJunk);
+
 				checkSWFLoaders();
+			}
+			
+			private var lastHookItem:String;
+			private function handleGettingJunk(e:Event):void{
+				lastHookItem = e.type;
 			}
 			
 			private function updateCraneStepper(e:Event):void{
@@ -1376,7 +1409,7 @@
 			private function initListeners():void{
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, finishRatDive);
-				bootyMeter.dispatcher.addEventListener(BootyEvent.LOSE, popUpScreen.loseGame);
+				bootyMeter.dispatcher.addEventListener(BootyEvent.LOSE, loseGame);
 			}
 		
 			// attach the booty bar to the screen. And popups
@@ -1385,6 +1418,16 @@
 				popUpContainer.addChild(popUpScreen);
 				popUpScreen.visible = false;
 			}	
+
+			// the 'map' / quit button needs to be pressable during normal gameplay. That means resetting the sailing animation when its clicked.
+			private function quitMission(e:Event = null):void{								//$WIP.
+				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
+				sailingMovie.visible = true;
+				crane.visible = false;
+				mCenterPositionStepper.value = 100;
+				onChangeCenterPosition(new Event("Stepper"));
+				popUpScreen.chooseHuntLevel();
+			}
 			
 			//********** Title Bar Volume Control*********
 			private function updateVolume(vol:Number):void
@@ -1482,7 +1525,7 @@
 	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">	
 		
-		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Map" chromeColor="#D1B38B" click="popUpScreen.chooseHuntLevel();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
+		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Quit" chromeColor="#D1B38B" click="quitMission();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
 		<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
 		<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="Set Sail" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
 	</mx:Canvas>
