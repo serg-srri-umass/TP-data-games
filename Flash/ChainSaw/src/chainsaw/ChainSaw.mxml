@@ -21,6 +21,7 @@
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
 			import common.VersionChecker;
+			import common.AdvancedSound;
 			
 			import flash.media.Sound;
 			import flash.media.SoundMixer;
@@ -195,17 +196,22 @@
 			
 			[Embed("../src/embedded_assets/longBogDown.mp3")]
 			private var ChainsawSoundMP3:Class;
-			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
+			private var mChainsawSound:AdvancedSound = new AdvancedSound(new ChainsawSoundMP3() as Sound);
 			
 			[Embed("../src/embedded_assets/engineStop.mp3")]
 			private var EngineStopSoundMP3:Class;
-			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
+			private var mEngineStopsSound:AdvancedSound = new AdvancedSound(new EngineStopSoundMP3() as Sound);
 			
 			[Embed("../src/embedded_assets/startUp.mp3")]
 			private var EngineStartSoundMP3:Class;
-			private var mEngineStartSound:Sound = new EngineStartSoundMP3() as Sound;
+			private var mEngineStartSound:AdvancedSound = new AdvancedSound(new EngineStartSoundMP3() as Sound);
 			
 			private var mEngineStartSoundChannel:SoundChannel;
+			
+			// all event listeners based on sounds should go here.
+			private function initSounds():void{
+				mEngineStartSound.doOnPercentPlayed(0.8, bogDownPlayerHandler);
+			}
 			
 			// test flash player makes sure the player is meeting the minimum requirements.
 			private function testFlashPlayer():void
@@ -226,6 +232,8 @@
 				BrickWall.visible = false;
 				
 				if(allAssetsLoaded) {
+					initSounds();
+
 					//preloader code:
 					LoadWall.visible = false;
 					recheckTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, checkSWFLoaders);
@@ -708,8 +716,7 @@
 				mLeftToRight		= true;	// Begin cutting left to right.
 				mCutNumber			= 0;	// Reset cut number.
 				
-				mEngineStartSoundChannel = mEngineStartSound.play(0);
-				mEngineStartSoundChannel.addEventListener(Event.SOUND_COMPLETE, bogDownPlayerHandler);
+				mEngineStartSound.play(0);
 
 				// Randomize log array, but not for first game, as it's already random.
 				if (!mFirstGame)
@@ -798,7 +805,8 @@
 			}
 			
 			private function bogDownPlayerHandler(e:Event):void{
-				mChainsawSound.play(0, int.MAX_VALUE);
+				mChainsawSound.fadeIn();
+				mEngineStartSound.fadeOut();
 			}
 			
 			// endGame() performs all operations necessary when game is complete.
