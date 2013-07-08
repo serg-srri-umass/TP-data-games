@@ -870,9 +870,9 @@
 							onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
 						}else if(mTreasuresFound == 1){
 							popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
-							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), hideScrollThenSail, true);
+							popUpScreen.displayTreasure(treasuresFoundString(), hideScrollThenSail, true);
 						} else {
-							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), hideScroll, true);
+							popUpScreen.displayTreasure(treasuresFoundString(), hideScroll, true);
 							enableAllButtons();
 						}
 					} 
@@ -945,9 +945,9 @@
 						haveTreasure = false;
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.won){
-							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), popUpScreen.winGame, false, true);
+							popUpScreen.displayTreasure(treasuresFoundString(), popUpScreen.winGame, false, true);
 						}else{
-							popUpScreen.displayTreasure(mTreasureArray[mCurrentTreasureNum][kItem], valueInDollars, mLocationFound.toFixed(1), newMission);
+							popUpScreen.displayTreasure(treasuresFoundString(), newMission);
 						}
 					}else{
 						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
@@ -1201,7 +1201,7 @@
 				mTreasureLocArrLocked = new Array();
 				if(mCurrentLevel == 2) //level 2 can have 0, 1, or 2 treasures
 				{
-					mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
+					mNumTreasures = (DebugMode.ALWAYS_2_TREASURES ? 2 : Math.round(Math.random()*2));	//random int in set {0,1,2}
 					
 					try
 					{
@@ -1228,6 +1228,7 @@
 					mTreasureLocArrLocked.push(mTreasureArray[mCurrentTreasureNum+i][kLocation]);
 				}
 				
+				
 				if(DebugMode.PRINT_TREASURE_LOCATION)
 				{
 					if(mNumTreasures == 0)
@@ -1240,6 +1241,7 @@
 						trace("Treasure "+j+": " + treasure[kItem] + " at " + treasure[kLocation]);
 					}
 				}
+				
 				crane.visible = true;
 				sailingMovie.visible = false;
 				enableAllButtons();

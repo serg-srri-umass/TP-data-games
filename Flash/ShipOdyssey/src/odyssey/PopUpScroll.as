@@ -133,7 +133,7 @@ package odyssey
 		}
 		
 		// display the prompt that comes up when you find a treasure
-		public function displayTreasure(item:String, value:String, location:String, func:Function, mini:Boolean = false, okay:Boolean = false):void { 
+		public function displayTreasure(text:String, func:Function, mini:Boolean = false, okay:Boolean = false):void { 
 			visible = true;
 			okayFunc = func;
 			
@@ -147,7 +147,7 @@ package odyssey
 				okayBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
 				doReplayPrivate();
 			}
-			body.text = "You found " + item + " worth " + value + " at location " + location + ".";
+			body.text = text;
 		}
 		
 		// display the prompt that comes up when you pull anchor
