@@ -421,29 +421,25 @@
 				//instead of choosing treasure randomly, chooses based on which level you are on.
 				//Choose treasure name from matching level pool. Iterates through names linearly. 
 				switch (mHuntLevel){
-					
 					case 0:
 						mCurrentTreasureNum = 0;
-						mTreasure0[kItem] = mNamePicker.pool1();
 						break;
-					
 					case 1:
 						mCurrentTreasureNum = 1;
-						mTreasure1[kItem] = mNamePicker.pool2();
 						break;
-					
 					case 2:
 						mCurrentTreasureNum = 2;
-						mTreasure2[kItem] = mNamePicker.pool3();
 						break;
-					
 					case 3:
 						mCurrentTreasureNum = 3;
-						mTreasure3[kItem] = mNamePicker.pool4();
 						break;
-					
 				} 
 				
+				mTreasure0[kItem] = mNamePicker.poolShift(1);
+				mTreasure1[kItem] = mNamePicker.poolShift(2);
+				mTreasure2[kItem] = mNamePicker.poolShift(3);
+				mTreasure3[kItem] = mNamePicker.poolShift(4);
+
 				mTreasuresFound				= 0;	// No treasures found yet.
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
 				
@@ -616,21 +612,29 @@
 			// of the total number of treasures available.
 			protected function treasuresFoundString():String
 			{
+				//if you've only found 1 of 2 treaures, this determines which one you found, and which you missed
+				var foundFirstOf2:Boolean = false; 
+				if(mLocationFound == mTreasureArray[mCurrentTreasureNum][kLocation]){
+					foundFirstOf2 = true; 
+				}
+				
 				//mNumTreasures: the number of treasures at the current location
 				//mTreasuresFound: the number of treasures the player found
 				switch(mNumTreasures)
 				{
 					case 0:
-						return "There was no treasure here.";
+						return "There were no treasures here.";
 					case 1:
-						if(mTreasuresFound == 1) return "There was 1 treasure here, and you found it.";
-						else return "There was 1 treasure here at " + printLocations() + ". You didn't find it.";
+						if(mTreasuresFound == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
+						else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
 					case 2:
 						switch(mTreasuresFound)
 						{
-							case 0: return "There were two treasures here at " + printLocations() + ". You found neither of them.";
-							case 1: return "There were two treasures here at " + printLocations() + ". You found 1 of them.";
-							case 2: return "There were two treasures here at " + printLocations() + ". You found them both.";
+							//these really long strings format the info for the two treasures on two tabular lines
+							case 0: return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You missed " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue]) + " at " + Math.round(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10;
+							//the really long string is there to format the message based on which of the two treasures you found, and which you missed 	
+							case 1: return "You found " + ((foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " worth " + ((foundFirstOf2) ? TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) : TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue])) + " at " + ((foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10)) + "\n" + "You missed " + ((!foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " worth " + ((!foundFirstOf2) ? TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) : TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue])) + " at " + ((!foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10));
+							case 2: return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You found " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10);
 						}
 					default: return "You found " + mTreasuresFound + " of the " + mNumTreasures + " treasures!";
 				}
@@ -810,7 +814,6 @@
 					}
 					dropHook();
 				}
-				
 			}
 			
 			//called from the PopUpMVC when the game needs to be restarted.mHuntLevel
@@ -868,24 +871,19 @@
 						if(bootyMeter.won){	// if you've won, sail on.
 							haveTreasure = true;
 							onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
-						}else if(mTreasuresFound == 1){
+						}/* else if(mTreasuresFound == 1){
 							popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
-							popUpScreen.displayTreasure(treasuresFoundString(), hideScrollThenSail, true);
-						} else {
-							popUpScreen.displayTreasure(treasuresFoundString(), hideScroll, true);
+							//popUpScreen.displayTreasure(treasuresFoundString(), hideScrollThenSail, true);
+						} */ else {
+							//popUpScreen.displayTreasure(treasuresFoundString(), hideScroll, true);
 							enableAllButtons();
 						}
-					} 
-					else // on levels 1,3,4
+					} else // on levels 1,3,4
 					{
 						haveTreasure = true;
 						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
 						onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
 					}
-					
-					// change treasure location
-					mTreasureArray[mCurrentTreasureNum][kLocation] = randomLocation();
-					
 					mTreasuresFound++;
 				}
 				else // Treasure was not found at drop location.
@@ -952,6 +950,7 @@
 					}else{
 						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
 						popUpScreen.displayRecap(treasuresFoundString(), newMission);
+						trace("treasure found string: " + treasuresFoundString());
 					}
 				}
 								
