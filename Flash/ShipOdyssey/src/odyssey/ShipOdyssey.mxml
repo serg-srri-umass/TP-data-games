@@ -844,8 +844,12 @@
 				if(!DebugMode.ONLY_PAY_MISSED_HOOKS)
 					bootyMeter.pay(kCostPerHookDrop);
 				disableAllButtons();
-				crane.dropHook(mFoundTreasure, 1, 5);
-				transitionTimer = new Timer(6000, 1);
+				
+				var hookDropTime:Number = 1;
+				var hookRaiseTime:Number = 2.75;
+				
+				crane.dropHook(mFoundTreasure, hookDropTime, hookRaiseTime);
+				transitionTimer = new Timer( (hookDropTime + hookRaiseTime)*1000 , 1);
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);
 				transitionTimer.start();
 			}
