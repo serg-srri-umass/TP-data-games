@@ -33,6 +33,7 @@
 			import mx.utils.StringUtil;
 			
 			import odyssey.events.*;
+			import odyssey.missions.*;
 
 			// BUILD FOR TinkerPlots or DG: 
 			// edit true/false and rebuild to create a new build for each.
@@ -48,21 +49,6 @@
 			}
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
-			public static const kHuntLevelOne:uint = 0;	// First treasure hunt game level.
-			public static const kHuntLevelTwo:uint = 1;	// Second treasure hunt game level. New level with 0-2 treasures per location with 6 treasures total.
-			public static const kHuntLevelThree:uint = 2;	// Third treasure hunt game level. Used to be Clear Level.
-			public static const kHuntLevelFour:uint = 3;	// Fourth treasure hunt game level. Used to be Murky Level.
-			
-			/*
-			public static const MISSION1_TREASURE_VALUE:int = 12000;
-			public static const MISSION2_TREASURE_VALUE:int = 12000;
-			public static const MISSION3_TREASURE_VALUE:int = 20000;
-			public static const MISSION4_TREASURE_VALUE:int = 23000;*/
-			public static const MISSION1_TREASURE_VALUE:int = 7000;
-			public static const MISSION2_TREASURE_VALUE:int = 7000;
-			public static const MISSION3_TREASURE_VALUE:int = 1500;
-			public static const MISSION4_TREASURE_VALUE:int = 1800;
-			
 			
 			//** **
 			public static const kCostPerHookDrop:int = 5000 // Cost each time you drop a hook		
@@ -75,22 +61,15 @@
 			public static const kItem:uint		= 3;	// Array position of treasure item.
 			public static const kMinLocation:Number = 0;	// Leftmost treasure location.
 			public static const kMaxLocation:Number = 100;	// Rightmost treasure location.
-			public static const kStdDeviationClear:Number = 10;// Standard deviation of rat results in clear water.
-			public static const kStdDeviationMurky:Number = 15;// Standard deviation of rat results in murky water.
+			public static const kMaxRatsToSend:int = 500; // the most rats that can be sent.
 			
-			public static const kSailOnNormalLevel:String = "Are you sure you would like to skip this treasure and sail on?";
-			public static const kSailOnMultiTreasureLevel:String = "Are you sure there are no treasures here and you'd like to sail on?";
-			public static const kTreasureGoal:int = 30000;
 			public static const kEventsCollectionName:String = "Events";
 			public static const kGamesCollectionName:String = "Games";
-			public static const kTimeBeforeWin:int = 3000;
-			public static const kTimeBeforeLose:int = 3000;
 			
 			public var mNumTreasures:uint = 1;	// Number of treasures to find.
 			
-			private var mSailOnAlertString:String = kSailOnNormalLevel; //Set to standard sail on question for levels 1, 3, & 4
-			private var mStdDeviation:Number= kStdDeviationClear;	// Standard deviation of rat results.
-			private var mHuntLevel:uint		= 0;			// Current hunt level.
+			private var mStdDeviation:Number;	// Standard deviation of rat results.
+			private var mHuntLevel:uint		= 0;
 			private var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
 			public var mNextHuntLevel:uint = 0;
 			[Bindable]	public static var mMaxRatsToSend:uint	= 500;	// Maximum allowable number of rats to send at a time
@@ -149,7 +128,7 @@
 			//variables for holding loaded MovieClips
 			private function getCurrentMission():int{ return mCurrentLevel; }
 			private function getHuntMission():uint{ return mHuntLevel; }
-			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI(firstHuntLevel, secondHuntLevel, thirdHuntLevel, fourthHuntLevel, restartMission, getCurrentMission, getHuntMission, setGameTitle);	
+			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI(huntLevel, restartMission, getCurrentMission, getHuntMission, setGameTitle);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
 			
 			//timer when your money hits zero, waits before showing lose screen
@@ -298,7 +277,7 @@
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
-			private function setCurrentMinMaxRats( iCurrentRatsToSend:uint, iMinRatsToSend:uint, iMaxRatsToSend:uint ):void
+			private function setCurrentMinMaxRats( iCurrentRatsToSend:uint, iMinRatsToSend:uint = 1, iMaxRatsToSend:uint = kMaxRatsToSend ):void
 			{
 				if( iCurrentRatsToSend > iMaxRatsToSend) trace("LOGIC ERROR: current rats greater than max rats");
 				if( iCurrentRatsToSend < iMinRatsToSend) trace("LOGIC ERROR: current rats less than min rats");
@@ -413,10 +392,10 @@
 				
 				// Set up the treasure number, location, value, and item 
 				//(set as an empty string until it is set in the level switch below)
-				mTreasure0 = new Array("1st", randomLocation(), MISSION1_TREASURE_VALUE, "");
-				mTreasure1 = new Array("2nd", randomLocation(), MISSION2_TREASURE_VALUE, "");
-				mTreasure2 = new Array("3rd", randomLocation(), MISSION3_TREASURE_VALUE, "");
-				mTreasure3 = new Array("4th", randomLocation(), MISSION4_TREASURE_VALUE, "");
+				mTreasure0 = new Array("1st", randomLocation(), Missions.mission1.treasureValue, "");
+				mTreasure1 = new Array("2nd", randomLocation(), Missions.mission2.treasureValue, "");
+				mTreasure2 = new Array("3rd", randomLocation(), Missions.mission3.treasureValue, "");
+				mTreasure3 = new Array("4th", randomLocation(), Missions.mission4.treasureValue, "");
 				
 				// Create new treasure array and add treasures to array.
 				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
@@ -471,138 +450,72 @@
 			
 			
 			
-			// firstHuntLevel() sets the current hunt level to the first level.
-			private function firstHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
-			{
-				setGameTitle("1.  "+ PopUpScroll.kLevel1Title);
+			
+			private function huntLevel(mission:MissionData, stripBtnListeners:Boolean, goRightAway:Boolean):void{
+				setGameTitle(mission.number + ". " + mission.title);
 				
-				if(iEvent)
+				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();
 				
-				mPrevHuntLevel = mHuntLevel;		// Track game level change.
-				//Set background image and standard deviation that fit with game level.
-				mStdDeviation = kStdDeviationClear;
-				Water.fill = clearWater;
-				Sky.backgroundFill = daylight;
-				cHerder.init(5,395,0xDDDDDD);
+				mPrevHuntLevel = mHuntLevel;
+				mStdDeviation = mission.stdDeviation;
+				Water.fill = mission.waterGradient;
+				Sky.backgroundFill = mission.skyGradient;
+				cHerder.init(mission.cloudPattern);
 				cHerder.startClouds();
-				mHuntLevel = kHuntLevelOne; // Set game level to first level.
+				mHuntLevel = mission.number; // Set game level to first level.
 				
-				setCurrentMinMaxRats( 100, 100, 500 );
-				mCostPerRat	= 0;	// Cost per rat in dollars.
-				mAutoSailOnAfterFoundTreasure = true;
-				mCurrentLevel = 1;
-				mSailOnAlertString = kSailOnNormalLevel;
+				setCurrentMinMaxRats(mission.startingRats, mission.minRats);
+				mCostPerRat	= mission.ratCost;	// Cost per rat in dollars.
+				mAutoSailOnAfterFoundTreasure = !mission.variableTreasures;
+				mCurrentLevel = mission.number;
 				
-				bootyMeter.initialize(15000, 30000, MISSION1_TREASURE_VALUE);
+				bootyMeter.initialize(mission.startingLoot, mission.goal, mission.treasureValue);
 				
 				if(!goRightAway)
 					showCurrentLevelInstructions();
 				else
 					newMission();
+			}
+			
+			/*// firstHuntLevel() sets the current hunt level to the first level.
+			private function firstHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
+			{
+				var stripBtnListeners:Boolean = (iEvent ? true : false);
+				huntLevel(stripBtnListeners, Missions.mission1, goRightAway);
 			}
 			
 			// secondHuntLevel() sets the current hunt level to the second level.
 			private function secondHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				setGameTitle("2.  "+ PopUpScroll.kLevel2Title);
-				
-				if(iEvent)
-					popUpScreen.stripMissionButtonListeners();
-				
-				mPrevHuntLevel = mHuntLevel;		// Track game level change.
-				// Set background image and standard deviation that fit with game level.
-				mStdDeviation = kStdDeviationClear;
-				Water.fill = clearWater;
-				Sky.backgroundFill = daylight;
-				cHerder.init(5,395,0x999999);
-				cHerder.startClouds();
-				mHuntLevel = kHuntLevelTwo; // Set game level to second level.
-				
-				setCurrentMinMaxRats( 100, 100, 500 );
-				mCostPerRat	= 0;	// Cost per rat in dollars.
-				mAutoSailOnAfterFoundTreasure = false;
-				mCurrentLevel = 2;
-				mSailOnAlertString = kSailOnMultiTreasureLevel;
-				
-				bootyMeter.initialize(15000, 40000, MISSION2_TREASURE_VALUE);
-				if(!goRightAway)
-					showCurrentLevelInstructions();
-				else
-					newMission();
+				var stripBtnListeners:Boolean = (iEvent ? true : false);
+				huntLevel(stripBtnListeners, Missions.mission2, goRightAway);
 			}
 			
 			private function thirdHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				setGameTitle("3.  "+ PopUpScroll.kLevel3Title);
-				
-				if(iEvent)
-					popUpScreen.stripMissionButtonListeners();
-				
-				mPrevHuntLevel = mHuntLevel;		// Track game level change.
-				// Set background image and standard deviation that fit with game level.
-				mStdDeviation = kStdDeviationClear;
-				Water.fill = clearWater;
-				Sky.backgroundFill = daylight;
-				cHerder.init(5,395,0x999999);
-				cHerder.startClouds();
-				mHuntLevel = kHuntLevelThree;
-				
-				setCurrentMinMaxRats( 5, 1, 500 );
-				mCostPerRat	= 100;	// Cost per rat in dollars.
-				mAutoSailOnAfterFoundTreasure = true;
-				mCurrentLevel = 3;
-				mSailOnAlertString = kSailOnNormalLevel;
-				
-				bootyMeter.initialize(10000, 45000, MISSION3_TREASURE_VALUE);
-				if(!goRightAway)
-					showCurrentLevelInstructions();
-				else
-					newMission();
+				var stripBtnListeners:Boolean = (iEvent ? true : false);
+				huntLevel(stripBtnListeners, Missions.mission3, goRightAway);
 			}
 			
 			private function fourthHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
 			{
-				setGameTitle("4.  "+ PopUpScroll.kLevel4Title);
-				
-				if(iEvent)
-					popUpScreen.stripMissionButtonListeners();
-				
-				mPrevHuntLevel = mHuntLevel;		// Track game level change.
-				// Set background image and standard deviation that fit with game level.
-				mStdDeviation = kStdDeviationMurky;
-				Water.fill = murkyWater;
-				Sky.backgroundFill = darkDay;
-				cHerder.init(5,395,0x999999);
-				cHerder.startClouds();
-				mHuntLevel = kHuntLevelFour;
-				
-				setCurrentMinMaxRats( 5, 1, 500 );
-				mCostPerRat	= 100;	// Cost per rat in dollars.
-				mAutoSailOnAfterFoundTreasure = true;
-				mCurrentLevel = 4;
-				mSailOnAlertString = kSailOnNormalLevel;
-				
-				bootyMeter.initialize(10000, 45000, MISSION4_TREASURE_VALUE);
-				
-				if(!goRightAway)
-					showCurrentLevelInstructions();
-				else
-					newMission();
+				var stripBtnListeners:Boolean = (iEvent ? true : false);
+				huntLevel(stripBtnListeners, Missions.mission4, goRightAway);
 			}
-			
+			*/
 			// getOceanQuality() returns a string descibing the ocean quality based on the hunt level
 			protected function getOceanQuality():String
 			{
 				switch (mHuntLevel)
 				{
-					case kHuntLevelOne:
+					case 1:
 						return "1";
-					case kHuntLevelTwo:
+					case 2:
 						return "2";
-					case kHuntLevelThree:
+					case 3:
 						return "3";
-					case kHuntLevelFour:
+					case 4:
 						return "4";
 					default:
 						return "0";
@@ -871,7 +784,7 @@
 					
 					// Tell the player which treasure was found and how much it is worth.					
 					
-					if(mHuntLevel == kHuntLevelTwo) // if on level 2
+					if(mHuntLevel == Missions.mission2.number) // if on level 2
 					{
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.won){	// if you've won, sail on.
@@ -1382,7 +1295,7 @@
 				skyAreaMask.graphics.drawRect(0,0,395,186);
 				uic.addChild(skyAreaMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
 				cHerder.mask = skyAreaMask;
-				cHerder.init(5,395,0xDDDDDD);
+				cHerder.init(VisualVariables.fluffyClouds);
 				cHerder.startClouds();
 				checkSWFLoaders();
 			}
@@ -1466,91 +1379,94 @@
 		<s:State name="TreasureHunt"/>
 	</s:states>
 	
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<s:LinearGradient id="murkyWater" rotation="90">
-			<s:GradientEntry color="0x796f5a" ratio=".33" alpha=".75"/>
-			<s:GradientEntry color="0x645a45" ratio=".66" alpha=".75"/>
-		</s:LinearGradient>
-		<s:LinearGradient id="greenWater" rotation="90">
-			<s:GradientEntry color="0x6ba898" ratio=".33" alpha=".75"/>
-			<s:GradientEntry color="0x1cdbc1" ratio=".66" alpha=".75"/>
-		</s:LinearGradient>
-		<s:LinearGradient id="clearWater" rotation="90">
-			<s:GradientEntry color="0x076FA3" ratio=".33" alpha=".6"/>
-			<s:GradientEntry color="0x025987" ratio=".66" alpha=".75"/>
-		</s:LinearGradient>
-		<s:LinearGradient id="daylight" rotation="90">
-			<s:GradientEntry color="0x3BCFF3" ratio=".0" alpha=".75"/>
-			<s:GradientEntry color="0xBFEFFB" ratio=".66" alpha=".75"/>
-		</s:LinearGradient>
-		<s:LinearGradient id="evening" rotation="90">
-			<s:GradientEntry color="0xb197ed" ratio=".0" alpha=".75"/>
-			<s:GradientEntry color="0x346dd1" ratio=".66" alpha=".75"/>
-		</s:LinearGradient>
-		<s:LinearGradient id="darkDay" rotation="90">
-			<s:GradientEntry color="0x002358" ratio=".33" alpha=".75"/>
-			<s:GradientEntry color="0x77787E" ratio=".66" alpha=".75"/>
-		</s:LinearGradient>
-		<s:SolidColorStroke id="separator" color="0x000000" weight="1"/>
-		
-		<!-- Fade out effect that hides the treasure found scroll (used for automatically hiding it in level 2) -->
-		<!-- <s:Sequence id="fadeOutScroll" duration="1000" startDelay="1500"
-					target="{popUpScreen}" effectEnd="popUpScreen.visible=false; popUpScreen.alpha=1">
-			<s:Fade alphaFrom="1" alphaTo="0" />
-		</s:Sequence> -->
+	<fx:Declarations>	
 	</fx:Declarations>
 	
 	
 	<!--Game Header Bar-->
-	<s:BorderContainer id="StatusBar" x="3" y="0" width="{this.width - 6}" height="30" cornerRadius="3" depth="10">
+	<s:BorderContainer id="StatusBar" x="3" y="0" width="{this.width - 6}" height="30"
+					   cornerRadius="3" depth="10">
 		<s:backgroundFill>
 			<s:LinearGradient rotation="90">
 				<s:GradientEntry color="0xf0f0f0"/>
 				<s:GradientEntry color="0xd8d8d8"/>
 			</s:LinearGradient>
 		</s:backgroundFill>
-		<s:Label id="currentLevel" includeIn="TreasureHunt" x="12" y="7" width="399" chromeColor="#294867" color="#294867" text="{boundLevelText}" fontFamily="Impact" fontSize="18" fontStyle="normal" depth="1"/>
-		<s:Label id="GameVersionLabel" includeIn="TreasureHunt" x="290" y="12" width="150" color="#16203a" fontFamily="Georgia" fontSize="10" fontStyle="normal" initialize="GameVersionLabel.text=getVersion()" />
+		<s:Label id="currentLevel" includeIn="TreasureHunt" x="12" y="7" width="399"
+				 chromeColor="#294867" color="#294867" depth="1" fontFamily="Impact" fontSize="18"
+				 fontStyle="normal" text="{boundLevelText}"/>
+		<s:Label id="GameVersionLabel" includeIn="TreasureHunt" x="290" y="12" width="150"
+				 color="#16203a" fontFamily="Georgia" fontSize="10" fontStyle="normal"
+				 initialize="GameVersionLabel.text=getVersion()"/>
 		<s:Image id="mVolumeImage" x="390" y="6" source="{mVolumeIcon}"/>
-		<s:HSlider id="mVolumeSlider" x="415" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="80"/>
+		<s:HSlider id="mVolumeSlider" x="415" y="9" width="80"
+				   change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100"
+				   value="80"/>
 	</s:BorderContainer>
 	
 	<!--Rat controls -->
 	<s:Group id="RatControls" includeIn="TreasureHunt" x="3" y="35" width="215" height="85">
 		
 		<s:Image id="mDivingRatBacker" x="0" y="0" source="{mRatBacker}"/>
-		<s:Label id="mRatControlLabel" text="Diving Rats" fontFamily="Georgia" fontSize="16" fontStyle="normal" fontWeight="bold" x="75" y="5" includeIn="TreasureHunt"/>
-		<s:NumericStepper id="mRatStepper" width="50" height="23" x="45" y="28" change="onChangeRatStepper(event)" contentBackgroundColor="#5081B4" maximum="{mMaxRatsToSend}" minimum="{mMinRatsToSend}" stepSize="1" includeIn="TreasureHunt"/>
-		<s:Button id="mSendRatsButton" height="23" width="100" x="100" y="28" label="Send Rats" mouseOver="onMouseOverRatsButton(event)" mouseOut="onMouseOutRatsButton(event)" click="onClickSendRatsButton(event)" includeIn="TreasureHunt"/>
+		<s:Label id="mRatControlLabel" includeIn="TreasureHunt" x="75" y="5" fontFamily="Georgia"
+				 fontSize="16" fontStyle="normal" fontWeight="bold" text="Diving Rats"/>
+		<s:NumericStepper id="mRatStepper" includeIn="TreasureHunt" x="45" y="28" width="50"
+						  height="23" change="onChangeRatStepper(event)"
+						  contentBackgroundColor="#5081B4" maximum="{mMaxRatsToSend}"
+						  minimum="{mMinRatsToSend}" stepSize="1"/>
+		<s:Button id="mSendRatsButton" includeIn="TreasureHunt" x="100" y="28" width="100"
+				  height="23" label="Send Rats" click="onClickSendRatsButton(event)"
+				  mouseOut="onMouseOutRatsButton(event)" mouseOver="onMouseOverRatsButton(event)"/>
 	</s:Group>
 	<!-- Hook controls -->
-		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="265" y="35" width="240" height="76">
-			<s:Image 		id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
-			<s:Label		id="mHookLabel" x="58" y="5" text="Grappling Hook" fontSize="16" fontFamily="Georgia" fontWeight="bold" fontStyle="normal"/>
-			<s:Button 		id="mDropHookButton" x="55" y="28" label="Drop Hook" width="80" height="23" fontSize="12" mouseOver="onMouseOverDropHookButton(event)" mouseOut="onMouseOutDropHookButton(event)" click="onClickDropHookButton(event)"/>
-			<s:NumericStepper id="mCenterPositionStepper" x="140" y="28" width="57" minimum="0" maximum="100" stepSize="1" snapInterval="0.1" change="onChangeCenterPosition(event)" contentBackgroundColor="#5081B4"/>
-			<s:Label		id="mRangeLabel" x="55" y="62" text="Interval:" fontFamily="Georgia" fontWeight="bold"/>
-			<s:Label 		id="mRangeValueLabel" x="130" y="62" width="80" fontFamily="Georgia" fontWeight="bold"/>
+		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="265" y="35" width="240"
+				 height="76">
+			<s:Image id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
+			<s:Label id="mHookLabel" x="58" y="5" fontFamily="Georgia" fontSize="16"
+					 fontStyle="normal" fontWeight="bold" text="Grappling Hook"/>
+			<s:Button id="mDropHookButton" x="55" y="28" width="80" height="23" label="Drop Hook"
+					  click="onClickDropHookButton(event)" fontSize="12"
+					  mouseOut="onMouseOutDropHookButton(event)"
+					  mouseOver="onMouseOverDropHookButton(event)"/>
+			<s:NumericStepper id="mCenterPositionStepper" x="140" y="28" width="57"
+							  change="onChangeCenterPosition(event)"
+							  contentBackgroundColor="#5081B4" maximum="100" minimum="0"
+							  snapInterval="0.1" stepSize="1"/>
+			<s:Label id="mRangeLabel" x="55" y="62" fontFamily="Georgia" fontWeight="bold"
+					 text="Interval:"/>
+			<s:Label id="mRangeValueLabel" x="130" y="62" width="80" fontFamily="Georgia"
+					 fontWeight="bold"/>
 		</s:Group>
 	
 	<!-- Left Sidebar Log -->
 	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">	
 		
-		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18" label="Map" chromeColor="#D1B38B" click="quitMission();" color="#000000" fontFamily="Georgia" fontSize="14" fontStyle="italic" enabled="false"/>
-		<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18" label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000" fontSize="14"/>
-		<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90" height="18" label="Set Sail" chromeColor="#D1B38B" click="onClickExitNewGame(event);" color="#000000" enabled="true" fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
+		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18"
+				  label="Map" chromeColor="#D1B38B" click="quitMission();" color="#000000"
+				  enabled="false" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
+		<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18"
+				  label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000"
+				  fontSize="14"/>
+		<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90"
+				  height="18" label="Set Sail" chromeColor="#D1B38B"
+				  click="onClickExitNewGame(event);" color="#000000" enabled="true"
+				  fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
 	</mx:Canvas>
 	
 	<!-- Animated Ship and Crane area -->
-	<s:Group	id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286">
-		<s:BorderContainer id="Sky" width="395" height="186" depth="1" backgroundFill="{daylight}" borderVisible="false">
-			<s:SWFLoader id="CloudLoader" source="odyssey_assets/cloudHerder.swf" depth="2" complete="initClouds()" includeIn="TreasureHunt"/>
+	<s:Group id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286">
+		<s:BorderContainer id="Sky" width="395" height="186"
+						   borderVisible="false" depth="1">
+			<s:SWFLoader id="CloudLoader" includeIn="TreasureHunt" complete="initClouds()" depth="2"
+						 source="odyssey_assets/cloudHerder.swf"/>
 		</s:BorderContainer>	
-		<s:Rect id="Water" fill="{clearWater}" includeIn="TreasureHunt" x="0" y="186" width="395" height="100" depth="3" />
-		<s:SWFLoader id="CraneLoader" x="0" y="0" width="395" height="286" source="odyssey_assets/CraneAnimation.swf" depth="4" complete="initCrane()" includeIn="TreasureHunt"/>
-		<s:SWFLoader id="BoatLoader" x="0" y="0" width="395" height="286" source="odyssey_assets/BoatSailAnim.swf" depth="5" complete="initBoat()" includeIn="TreasureHunt"/>
+		<s:Rect id="Water" includeIn="TreasureHunt" x="0" y="186" width="395" height="100" depth="3"
+				/>
+		<s:SWFLoader id="CraneLoader" includeIn="TreasureHunt" x="0" y="0" width="395" height="286"
+					 complete="initCrane()" depth="4" source="odyssey_assets/CraneAnimation.swf"/>
+		<s:SWFLoader id="BoatLoader" includeIn="TreasureHunt" x="0" y="0" width="395" height="286"
+					 complete="initBoat()" depth="5" source="odyssey_assets/BoatSailAnim.swf"/>
 	</s:Group>
 	<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
 	<mx:UIComponent id="ratContainer" x="120" y="121" width="395" height="286"/> <!-- container to hold dots for rat animation demo-->
@@ -1564,7 +1480,9 @@
 	<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="You found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/> -->
 	
 	<!-- Error message for bad version of flash player -->	
-	<s:BorderContainer id="BrickWall"	x="0" y="0" width="{GameScreen.TOTAL_SCREEN_WIDTH}" height="{GameScreen.TOTAL_SCREEN_HEIGHT}" visible="false" depth="999">
+	<s:BorderContainer id="BrickWall" visible="false" x="0" y="0"
+					   width="{GameScreen.TOTAL_SCREEN_WIDTH}"
+					   height="{GameScreen.TOTAL_SCREEN_HEIGHT}" depth="999">
 		<s:backgroundFill>
 			<s:LinearGradient rotation="90">
 				<s:GradientEntry color="0x13B3C2"/>
@@ -1572,11 +1490,22 @@
 			</s:LinearGradient>
 		</s:backgroundFill>
 		
-		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="70"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
-		<s:Label id="midLabelError" text="{'Ship Odyssey requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="160"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
-		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="180"  fontSize="15" fontFamily="Arial" textAlign="center" width="{GameScreen.TOTAL_SCREEN_WIDTH}" color="0xffffff"/>
-		<s:Button id = "upgradeButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}" y="250"  click="VersionChecker.openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
-		<s:Button id = "ignoreButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}"  y="310"  click="startUp()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
+		<s:Label id="topLabelError" x="0" y="70" width="{GameScreen.TOTAL_SCREEN_WIDTH}"
+				 color="0xffffff" fontFamily="Arial" fontSize="20" fontWeight="bold"
+				 text="You are using an outdated version of Adobe Flash Player." textAlign="center"/>
+		<s:Label id="midLabelError" x="0" y="160" width="{GameScreen.TOTAL_SCREEN_WIDTH}"
+				 color="0xffffff" fontFamily="Arial" fontSize="15"
+				 text="{'Ship Odyssey requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}"
+				 textAlign="center"/>
+		<s:Label id="midLabel2Error" x="0" y="180" width="{GameScreen.TOTAL_SCREEN_WIDTH}"
+				 color="0xffffff" fontFamily="Arial" fontSize="15"
+				 text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}"
+				 textAlign="center"/>
+		<s:Button id="upgradeButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}" y="250" width="350"
+				  height="50" label="Upgrade Flash Player" click="VersionChecker.openAdobeWebsite()"
+				  enabled="true" fontSize="25"/>
+		<s:Button id="ignoreButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}" y="310" width="350"
+				  height="30" label="Ignore Warning" click="startUp()" enabled="true" fontSize="12"/>
 	
 	</s:BorderContainer>
 	

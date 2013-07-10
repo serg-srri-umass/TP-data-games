@@ -14,14 +14,16 @@
 		public var skyWidth:int;
 		public var percentSpeed:Number = 1.0;
 		
+		//public var removalArray:Array = new Array();
+		
 		public function CloudHerder() {
-			// constructor code
-			//init(10,350);
-			//startClouds();
-			//cm.setBaseColor(0x999999);
 		}
 		
-		public function init(numberOfClouds:int, sWidth:int, baseColor:uint=0x999999):void{
+		public function init(dataArray:Array):void{
+			var numberOfClouds:int = dataArray[0];
+			var sWidth:int = dataArray[1];
+			var baseColor:uint = dataArray[2];
+			
 			numClouds = numberOfClouds;
 			skyWidth = sWidth;
 			cm.setBaseColor(baseColor);
@@ -33,6 +35,7 @@
 				mvArr.push(mv);
 				velArr.push(windVelocity * mv.scaleX);
 				this.addChildAt(mv,0);
+				//removalArray.push(mv);
 			}
 		}
 		

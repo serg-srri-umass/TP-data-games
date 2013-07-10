@@ -2,24 +2,20 @@ package odyssey
 {
 	import flash.display.SimpleButton;
 	import flash.events.Event;
+	import odyssey.missions.Missions;
+	import odyssey.missions.MissionData;
+
 	
 	public class ShipMissionAPI
 	{
+		private var beginMission:Function;
 		public var getHuntMission:Function;
 		public var getCurrentMission:Function;
 		public var restartMission:Function;
 		public var setGameTitle:Function;
-
-		private var startFirstHunt:Function;
-		private var startSecondHunt:Function;
-		private var startThirdHunt:Function;
-		private var startFourthHunt:Function;
 		
-		public function ShipMissionAPI (first:Function, second:Function, third:Function, fourth:Function, restart:Function, cm:Function, hm:Function, setGTitle:Function) {
-			startFirstHunt = first;
-			startSecondHunt = second;
-			startThirdHunt = third;
-			startFourthHunt = fourth;
+		public function ShipMissionAPI (begin:Function, restart:Function, cm:Function, hm:Function, setGTitle:Function) {
+			beginMission = begin;
 			restartMission = restart;
 			getCurrentMission = cm;
 			getHuntMission = hm;
@@ -27,14 +23,9 @@ package odyssey
 		}
 		
 		public function startHunt(num:int, e:Event = null, autoStart:Boolean = false):void {
-			if(num == 1)
-				startFirstHunt(e, autoStart);
-			else if(num == 2)
-				startSecondHunt(e, autoStart);
-			else if(num == 3)
-				startThirdHunt(e, autoStart);
-			else if(num == 4)
-				startFourthHunt(e, autoStart);
+			var md:MissionData = Missions.getMission(num);
+			var stripBtnListeners:Boolean = (e ? true : false);
+			beginMission(md, stripBtnListeners, autoStart);
 		}
 	}
 }

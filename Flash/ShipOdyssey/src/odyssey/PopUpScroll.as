@@ -4,26 +4,16 @@ package odyssey
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.utils.Timer;
+	
 	import common.TextFormatter;
+	import odyssey.missions.Missions;
 	
 	public class PopUpScroll extends popUps
 	{
 		private var game:ShipMissionAPI;	//reference to the main. Allows this class to directly interact with the application.
 		
-		public static const kLevel1Instructions:String = "At this location, each treasure is worth " + TextFormatter.toCash(ShipOdyssey.MISSION1_TREASURE_VALUE) + ". You start with $15,000. To complete it, earn $25,000. Rats are free, but be careful; a missed hook will cost you $5,000.";
-		public static const kLevel2Instructions:String = "Each treasure is still worth " + TextFormatter.toCash(ShipOdyssey.MISSION2_TREASURE_VALUE) + ", but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals.";
-		public static const kLevel3Instructions:String = "Each treasure is now worth " + TextFormatter.toCash(ShipOdyssey.MISSION3_TREASURE_VALUE) + ". Rats will cost you $100 each. Check the loot meter for your new goals.";
-		public static const kLevel4Instructions:String = "Each treasure is worth" + TextFormatter.toCash(ShipOdyssey.MISSION4_TREASURE_VALUE) + ". The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
-		public static const kLevel5Instructions:String = "";
-		private static const kLevelInstructionsArray:Array = new Array(kLevel1Instructions, kLevel2Instructions, kLevel3Instructions, kLevel4Instructions, kLevel5Instructions);
-		
-		//NOTE: ON THE MAP, Titles are set in the .swc. If they're changed, the .swc has to be updated as well.
-		public static const kLevel1Title:String = "Hundreds o' Rats";
-		public static const kLevel2Title:String = "Treasure or Not";
-		public static const kLevel3Title:String = "Rat Shortage";
-		public static const kLevel4Title:String = "Deep Water";
-		public static const kLevel5Title:String = "Choose Yer Hook";
-		private static const kLevelTitleArray:Array = new Array(kLevel1Title, kLevel2Title, kLevel3Title, kLevel4Title, kLevel5Title);
+		private static const kLevelInstructionsArray:Array = new Array(Missions.mission1.instructions, Missions.mission2.instructions, Missions.mission3.instructions, Missions.mission4.instructions);
+		private static const kLevelTitleArray:Array = new Array(Missions.mission1.title, Missions.mission2.title, Missions.mission3.title, Missions.mission4.title);
 		
 		private var selectedLevel:int = 1;
 		private var delayTimer:Timer = new Timer(1500, 0); //used to animate 'fade out'. The dely before the screen disappears.
@@ -103,23 +93,23 @@ package odyssey
 			missions.choose(selectedLevel, skipAnimation);
 		}
 		private function displayMission1(e:MouseEvent):void {
-			body.text = kLevel1Instructions;
-			selectedLevel = 1;
+			body.text = Missions.mission1.instructions;
+			selectedLevel = Missions.mission1.number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		private function displayMission2(e:MouseEvent):void {
-			body.text = kLevel2Instructions;
-			selectedLevel = 2;
+			body.text = Missions.mission2.instructions;
+			selectedLevel = Missions.mission2.number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		private function displayMission3(e:MouseEvent):void {
-			body.text = kLevel3Instructions;
-			selectedLevel = 3;
+			body.text = Missions.mission3.instructions;
+			selectedLevel = Missions.mission3.number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		private function displayMission4(e:MouseEvent):void {
-			body.text = kLevel4Instructions;
-			selectedLevel = 4;
+			body.text = Missions.mission4.instructions;
+			selectedLevel = Missions.mission4.number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		
