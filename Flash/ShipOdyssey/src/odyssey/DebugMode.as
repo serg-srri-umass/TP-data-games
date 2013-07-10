@@ -11,5 +11,7 @@ package odyssey
 		
 		// when this is false, you pay for every hook you drop. When its true, you only have to pay for the misses.
 		public static const ONLY_PAY_MISSED_HOOKS:Boolean = true;  // true
+
+		public static const ALWAYS_2_TREASURES:Boolean = true;
 	}
 }
