@@ -42,7 +42,7 @@
 				
 		public function fadeOut(duration:Number = 1000):void{
 			if(duration < 1)
-				throw new Error("fade duration must be longer than 1 milisecond.");
+				throw new Error("fade duration must be longer than 1 millisecond.");
 				
 			ticksToComplete = Math.ceil(duration/40);
 			
@@ -53,9 +53,9 @@
 			fadeTimer.start();
 		}
 		
-		public function fadeIn(duration:Number = 1000):void{
+		public function fadeIn(duration:Number = 1000, numLoops:int = 0):void{
 			if(duration < 1)
-				throw new Error("fade duration must be longer than 1 milisecond.");
+				throw new Error("fade duration must be longer than 1 millisecond.");
 				
 			ticksToComplete = Math.ceil(duration/40);
 			
@@ -66,10 +66,11 @@
 			fadeTimer.start();
 			
 			_volume = 0;
-			_channel = play();
+			_channel = play(0, numLoops, null);
 		}
 		
 		private var _toDoFunction:Function = function():void{};
+		
 		public function doOnPercentPlayed(arg:Number, func:Function):void{
 			if(arg < 0 || arg > 1)
 				throw new Error("Percent must range from 0 to 1.");

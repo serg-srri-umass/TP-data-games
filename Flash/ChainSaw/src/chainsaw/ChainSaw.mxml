@@ -20,8 +20,8 @@
 			import com.adobe.serialization.json.JSON;
 			import com.kcpt.scriptInterface.ScriptInterface;
 			
-			import common.VersionChecker;
 			import common.AdvancedSound;
+			import common.VersionChecker;
 			
 			import flash.media.Sound;
 			import flash.media.SoundMixer;
@@ -151,6 +151,9 @@
 			// An array that keeps track of the cuts
 			private var mCutsArray:Array = new Array();
 			
+			//conrols playback of dynamic sounds. recieves events from mxml
+			private var mSoundHandler:SoundHandler = new SoundHandler();
+			
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
 			// Converted from .ani format to .png.
@@ -194,25 +197,6 @@
 			[Bindable]
 			private var mLowVolumeIcon:Class;
 			
-			[Embed("../src/embedded_assets/longBogDown.mp3")]
-			private var ChainsawSoundMP3:Class;
-			private var mChainsawSound:AdvancedSound = new AdvancedSound(new ChainsawSoundMP3() as Sound);
-			
-			[Embed("../src/embedded_assets/engineStop.mp3")]
-			private var EngineStopSoundMP3:Class;
-			private var mEngineStopsSound:AdvancedSound = new AdvancedSound(new EngineStopSoundMP3() as Sound);
-			
-			[Embed("../src/embedded_assets/startUp.mp3")]
-			private var EngineStartSoundMP3:Class;
-			private var mEngineStartSound:AdvancedSound = new AdvancedSound(new EngineStartSoundMP3() as Sound);
-			
-			private var mEngineStartSoundChannel:SoundChannel;
-			
-			// all event listeners based on sounds should go here.
-			private function initSounds():void{
-				mEngineStartSound.doOnPercentPlayed(0.8, bogDownPlayerHandler);
-			}
-			
 			// test flash player makes sure the player is meeting the minimum requirements.
 			private function testFlashPlayer():void
 			{
@@ -232,7 +216,6 @@
 				BrickWall.visible = false;
 				
 				if(allAssetsLoaded) {
-					initSounds();
 
 					//preloader code:
 					LoadWall.visible = false;
@@ -716,8 +699,6 @@
 				mLeftToRight		= true;	// Begin cutting left to right.
 				mCutNumber			= 0;	// Reset cut number.
 				
-				mEngineStartSound.play(0);
-
 				// Randomize log array, but not for first game, as it's already random.
 				if (!mFirstGame)
 				{
@@ -801,15 +782,15 @@
 						// send data to open a case in Game collection to TinkerPlots/Fathom
 						// (Nothing to do)
 					}
+					mSoundHandler.onStart();
+					addEventListener(MouseEvent.MOUSE_DOWN, mSoundHandler.onMouseDown);
+					addEventListener(MouseEvent.MOUSE_UP, mSoundHandler.onMouseUp);
+
+					
 				}
 			}
 			
-			private function bogDownPlayerHandler(e:Event):void{
-				mChainsawSound.fadeIn();
-				mEngineStartSound.fadeOut();
-			}
-			
-			// endGame() performs all operations necessary when game is complete.
+			//endGame() performs all operations necessary when game is complete.
 			protected function endGame():void
 			{
 				var strategy:String = "";
@@ -966,8 +947,8 @@
 				
 				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
 				SoundMixer.stopAll();							// Stop all currently playing sounds
-				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
-				
+/* 				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
+ */				
 				mStartStopButton.label			= "Start";
 				
 				mChangeLevelButton.enabled		= true;
