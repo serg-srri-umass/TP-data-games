@@ -947,10 +947,7 @@
 				
 				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
 				SoundMixer.stopAll();							// Stop all currently playing sounds
-/* 				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
- */				
 				mStartStopButton.label			= "Start";
-				
 				mChangeLevelButton.enabled		= true;
 				mPlayerTextInput.enabled		= true;
 			}

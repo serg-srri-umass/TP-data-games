@@ -43,6 +43,7 @@
 		}
 				
 		public function fadeOut(duration:Number = 1000):void{
+			trace("fadeOut" + sound);
 			if(duration < 1)
 				throw new Error("fade duration must be longer than 1 millisecond.");
 				
@@ -56,6 +57,7 @@
 		}
 		
 		public function fadeIn(duration:Number = 1000, numLoops:int = 0):void{
+			trace("fadeIn" + sound);
 			if(duration < 1)
 				throw new Error("fade duration must be longer than 1 millisecond.");
 				
