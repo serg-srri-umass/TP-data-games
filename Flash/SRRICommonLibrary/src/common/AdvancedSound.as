@@ -24,6 +24,7 @@
 			sound = s;
 		}
 		
+		// works exactly like sound.play
 		public function play(startTime:Number = 0, loops:int = 0, sndTransform:SoundTransform = null):SoundChannel{
 			_channel.stop();
 			_channel = sound.play(startTime, loops, sndTransform);
@@ -32,7 +33,8 @@
 			isPlaying = true;
 			return _channel;
 		}
-
+		
+		// stops & resets the sound
 		public function stop():SoundChannel{
 			_channel.stop();	
 			percentageCounter.stop();
