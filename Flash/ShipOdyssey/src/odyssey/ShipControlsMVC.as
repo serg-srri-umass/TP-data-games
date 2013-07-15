@@ -8,6 +8,7 @@ package odyssey
 			ratStepper.minValue = 0;
 			hookStepper.minValue = 0;
 			hookStepper.maxValue = 100;
+			hookStepper.precision = 1;
 		}
 		
 		public function disableRatsButton():void{

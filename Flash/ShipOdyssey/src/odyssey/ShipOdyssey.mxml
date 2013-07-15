@@ -572,8 +572,10 @@
 				if(crane){	// failsafe to ensure that the crane exists.
 					if(event.type == CraneEvent.DRAGGING){
 						crane.toFrame(mCenterPosition);
+					}else if(Math.abs(mCenterPosition - prevCP) < 2){
+						crane.toFrame(mCenterPosition);
 					}else{
-						crane.tweenTo(mCenterPosition, 1); //goto frame = mCenterPosition, tween length = 1 second
+						crane.tweenTo(mCenterPosition, 1); 
 					}
 				}
 			}
@@ -801,7 +803,7 @@
 			
 			private function loseGame(e:Event):void{
 				popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
-				popUpScreen.displayRecap("You've run out of loot. " + treasuresFoundString(), popUpScreen.loseGame, true);	
+				popUpScreen.displayRecap(treasuresFoundString(), popUpScreen.loseGame, true);	
 			}
 			
 			private function newMission(iEvent:Event = null):void{

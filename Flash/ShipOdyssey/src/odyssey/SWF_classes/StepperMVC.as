@@ -12,9 +12,10 @@
 		
 		private const ENTER_KEY:uint = 13; //keycode of the enter key.
 		
-		private var _value:int;
+		private var _value:Number;
 		private var _minValue:int = 0;
 		private var _maxValue:int = 999;
+		private var _precision:int = 0; // how much decimal precision the stepper # has.
 		
 		private var holdTimer:Timer = new Timer(300, 1);	//when you click an arrow, this timer counts down before the button counts as being "held"
 		private var goingUp:Boolean; // whether a held stepper is going upwards or downwards.
@@ -40,10 +41,10 @@
 		}
 		
 		
-		public function get value():int{
+		public function get value():Number{
 			return _value;
 		}
-		public function set value(arg:int):void{
+		public function set value(arg:Number):void{
 			_value = arg;
 			validate();
 		}
@@ -62,9 +63,18 @@
 			_minValue = arg;
 		}
 		
+		// how many decimal points the stepper functions up to. Default 0.
+		public function get precision():int{
+			return _precision;
+		}
+		public function set precision(arg:int):void{
+			_precision = arg;
+		}
+			
 		//Returns whether or not the value in the stepper is permitted. If not, forces it into the proper range.
 		public function validate():Boolean{
 			var fixBadNumber:Boolean = false;
+			_value = setPrecision(_value, _precision);
 			if(_value < _minValue){
 				_value = _minValue;
 				fixBadNumber = true;
@@ -115,7 +125,7 @@
 		}
 		
 		private function handleChange(e:Event):void{
-			_value = int(valueWrapper.valueField.text);
+			_value = Number(valueWrapper.valueField.text);
 		}
 		
 		private function tickUp(e:Event):void{
@@ -160,6 +170,12 @@
 			if(e.keyCode == ENTER_KEY){
 				validate();
 			}
+		}
+
+		// give this method a # and a precision, and it will cut it down to that precision.				
+		private function setPrecision(number:Number, precision_in:int) {
+			precision_in = Math.pow(10, precision_in);
+			return (Math.round(number * precision_in)/precision_in);
 		}
 	}
 	
