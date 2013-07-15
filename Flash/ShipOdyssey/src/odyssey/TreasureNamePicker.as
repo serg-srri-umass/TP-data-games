@@ -19,7 +19,7 @@ package odyssey {
 			"the Cloisonné Teapot", "the Porcelain Mask",
 			"the Crystal Chandelier", "the Crimson Grail",
 			"the Glass Slippers", "a Chest of Spanish Coins",
-			"King Arthur’s Sword (Reproduction)", "a Trip for Two to Puerto Vallarta");
+			"King Arthur’s Sword (Reproduction)");
 		
 		private var pool4Arr:Array = new Array( 
 			"the Jade Elephant", "the Viscount's Helmet",
@@ -40,46 +40,37 @@ package odyssey {
 			"some Matsutake Mushrooms");
 		
 		//each of these functions returns the next string available in its pool, 
-		//or a name from the reserve pool if the chosen pool is empty. 
-		//To reset pools, make a new TreasureNamePicker obj. 										
-		public function pool1():String{
-			if(pool1Arr.length > 0){
-				return pool1Arr.shift();
-			}else{
-				return reserveArr.shift();
-			}
-		}
+		 //or a name from the reserve pool if the chosen pool is empty. 
+		//To reset pools, make a new TreasureNamePicker obj.										
 		
-		public function pool2():String{
-			if(pool2Arr.length > 0){
-				return pool2Arr.shift();
-			}else{
-				return reserveArr.shift();
-			}
-		}
 		
-		public function pool3():String{
-			if(pool3Arr.length > 0){
-				return pool3Arr.shift();
-			}else{
-				return reserveArr.shift();
+		//returns next String available in pool specified by @param poolNum. 
+		//Puts the returned String back at the end of the pool. 
+		public function poolShift(poolNum:int):String{
+			var outString:String = "";
+			switch(poolNum){
+				case 1:
+					outString = pool1Arr.shift();
+					pool1Arr.push(outString);
+					break;
+				case 2:
+					outString = pool2Arr.shift();
+					pool2Arr.push(outString);
+					break;
+				case 3:
+					outString = pool3Arr.shift();
+					pool3Arr.push(outString);
+					break;
+				case 4:
+					outString = pool4Arr.shift();
+					pool4Arr.push(outString);
+					break;
+				case 5:
+					outString = pool5Arr.shift();
+					pool5Arr.push(outString);
+					break;
 			}
-		}
-		
-		public function pool4():String{
-			if(pool4Arr.length > 0){
-				return pool4Arr.shift();
-			}else{
-				return reserveArr.shift();
-			}
-		}
-		
-		public function pool5():String{
-			if(pool5Arr.length > 0){
-				return pool5Arr.shift();
-			}else{
-				return reserveArr.shift();
-			}
+			return outString;
 		}
 	}
 }

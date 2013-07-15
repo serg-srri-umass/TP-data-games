@@ -41,6 +41,7 @@
 			waterBaseY = ToyBoat.TBWave.y;
 			sendCraneToFrame(100);
 			scale.gotoAndStop("off");
+			ToyBoat.crane.hook.chest.visible = false;
 		}
 		
 		public function sendCraneToFrame(arg:int):void{
@@ -109,7 +110,13 @@
 				this.addEventListener(Event.ENTER_FRAME, BoatBob);
 			}
 		}
-		
+		public function hardReset(e:Event = null):void{
+			reset();
+			sendCraneToFrame(100);
+			scale.gotoAndStop("off");
+			ToyBoat.gotoAndStop(59);
+			ToyBoat.startSail();
+		}
 		public function doZoomIn():void{
 			ToyBoat.stopSail();
 			zoomCounter = 0;
@@ -118,9 +125,10 @@
 			xZoomStep = (finalX - ToyBoat.x)/zoomTime;
 			yZoomStep = (finalY - ToyBoat.y)/zoomTime;
 			hwZoomStep = (zoomPercent - 100)/zoomTime;
+			ToyBoat.crane.hook.chest.visible = false;
 			this.addEventListener(Event.ENTER_FRAME, slowSwells);
 		}
-		public function doZoomOut():void{
+		public function doZoomOut(haveTreasure:Boolean = false):void{
 			ToyBoat.startSail();
 			zoomCounter = 0;
 			//ToyBoat.visible = true;
@@ -129,6 +137,7 @@
 			yZoomStep = -yZoomStep;
 			hwZoomStep = -hwZoomStep;
 			scale.gotoAndPlay("fadeOut");
+			ToyBoat.crane.hook.chest.visible = haveTreasure;
 			this.addEventListener(Event.ENTER_FRAME, zoomStepOut);
 		}
 		
@@ -139,6 +148,7 @@
 			sendCraneToFrame(100);
 			this.addEventListener(Event.ENTER_FRAME, startSwells);
 			this.addEventListener(Event.ENTER_FRAME, BoatBob);
+			ToyBoat.crane.hook.chest.visible = false;
 		}
 	}
 }
