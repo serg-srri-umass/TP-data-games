@@ -42,7 +42,10 @@
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
-			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
+			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	// the oldest version of flash player you can play this game on.
+			
+			private static const DEBUG_MODE:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
+			
 			public static const VERSION:String = "v.2013.07.12";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
@@ -667,12 +670,7 @@
 			
 			//call the animation, disable all buttons during animation, and start a timer
 			private function dropHook():void{
-				if(!DebugMode.ONLY_PAY_MISSED_HOOKS){
-					bootyMeter.pay(kCostPerHookDrop);
-					updateRatLimit();
-				}
 				disableAllButtons();
-				
 				var hookDropTime:Number = 1;
 				var hookRaiseTime:Number = 2.75;
 				
@@ -722,8 +720,7 @@
 				}
 				else // Treasure was not found at drop location.
 				{
-					if(DebugMode.ONLY_PAY_MISSED_HOOKS)
-						bootyMeter.pay(kCostPerHookDrop);	//pay, if only on misses.
+					bootyMeter.pay(kCostPerHookDrop);	//pay, if only on misses.
 					updateRatLimit();
 					haveTreasure = false;
 					bootyMeter.finishTreasureDrop(false);
@@ -1038,7 +1035,7 @@
 				mTreasureLocArrLocked = new Array();
 				if(mCurrentLevel == 2) //level 2 can have 0, 1, or 2 treasures
 				{
-					mNumTreasures = (DebugMode.ALWAYS_2_TREASURES ? 2 : Math.round(Math.random()*2));	//random int in set {0,1,2}
+					mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
 					
 					try
 					{
@@ -1066,7 +1063,7 @@
 				}
 				
 				
-				if(DebugMode.PRINT_TREASURE_LOCATION)
+				if(VersionChecker.isDebug && DEBUG_MODE)
 				{
 					if(mNumTreasures == 0)
 					{
@@ -1118,11 +1115,11 @@
 				shipControlsMVC.ratStepper.enabled = true;
 				shipControlsMVC.enableRatsButton();
 
-				if(DebugMode.DISABLE_DROP_BUTTON){
+				if(VersionChecker.isDebug && DEBUG_MODE){
+					shipControlsMVC.enableHookButton();
+				} else {
 					if(mRatsSent > 0)
 						shipControlsMVC.enableHookButton();
-				} else {
-					shipControlsMVC.enableHookButton();
 				}
 				if(crane)//failsafe for crane loading
 					crane.canDrag = true;
@@ -1141,11 +1138,11 @@
 			private function enableRatButton(e:RatEvent = null):void{
 				shipControlsMVC.enableRatsButton();
 				
-				if(DebugMode.DISABLE_DROP_BUTTON){
+				if(VersionChecker.isDebug && DEBUG_MODE){
+					shipControlsMVC.enableHookButton();
+				} else {
 					if(mRatsSent > 0)
 						shipControlsMVC.enableHookButton();
-				} else {
-					shipControlsMVC.enableHookButton();
 				}
 			}
 			
