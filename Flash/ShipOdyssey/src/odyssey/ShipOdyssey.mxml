@@ -26,6 +26,8 @@
 			
 			import common.*;
 			
+			import flash.display.Stage;
+			
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			import mx.flash.UIMovieClip;
@@ -41,7 +43,7 @@
 			// export the TinkerPlots version to ./bin-release-tp
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
 			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	//the oldest version of flash player you can play this game on.
-			public static const VERSION:String = "v.2013.06.25";
+			public static const VERSION:String = "v.2013.07.12";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -72,8 +74,8 @@
 			private var mHuntLevel:uint		= 0;
 			private var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
 			public var mNextHuntLevel:uint = 0;
-			[Bindable]	public static var mMaxRatsToSend:uint	= 500;	// Maximum allowable number of rats to send at a time
-			[Bindable]	public static var mMinRatsToSend:uint	= 1;	// Minimum allowable number of rats to send at a time.
+			public static var mMaxRatsToSend:uint	= 500;	// Maximum allowable number of rats to send at a time
+			public static var mMinRatsToSend:uint	= 1;	// Minimum allowable number of rats to send at a time.
 			private var mRatsToSend:uint	= 10;			// Rats to send at one time: should match current stepper value.
 			private var mCostPerRat:uint	= 100;			// Cost per rat in dollars.
 			private var mRandomNormal:ParkMiller;			// Class that creates a normal distribution.
@@ -91,7 +93,6 @@
 			private var mHooksDropped:uint	= 0;			// Number of hooks already dropped in current game.
 			private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet?
 			private var mFoundTreasure:Boolean = false; 	// Has the current hook drop found this treasure?
-			[Bindable] public var boundLevelText:String = "";
 			private var mCurrentLevel:int = 0;
 			private	var	parentCaseID:int = 0;
 			
@@ -130,6 +131,8 @@
 			private function getHuntMission():uint{ return mHuntLevel; }
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI(huntLevel, restartMission, getCurrentMission, getHuntMission, setGameTitle);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
+			private var topBarMVC:TopBarMVC = new TopBarMVC();
+			private var shipControlsMVC:ShipControlsMVC = new ShipControlsMVC();
 			
 			//timer when your money hits zero, waits before showing lose screen
 			private var endTimer:Timer;
@@ -146,82 +149,6 @@
 			//[Embed(source="../odysseyAssets/Pirate Ship 515 x 410.png")]
 			//[Bindable]
 			//private var mPirateShipImage:Class;
-			
-			// ********** TREASURE HUNT IMAGES **********
-			
-			// Embed the parchment image in the Treasure Hunt game.
-			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
-			// From http://www.clker.com/disclaimer.html
-			//   "Clker.com is owned by Rolera LLC, an Illinois Limited Liability Corporation." 
-			//   "Clker and Clker.com are trademarks of Rolera LLC."
-			//   "Clker.com is an online sharing service where users share free public domain" 
-			//   "vector cliparts, or share public domain photos and derive vector cliparts"
-			//   "from those photos using clker's online tracer."
-			//[Embed(source="../odysseyAssets/Parchment.png")]
-			//[Bindable]
-			//private var mParchmentImage:Class;
-			
-			// Embed the All Treasures Found image in the Treasure Hunt game.
-			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
-			// See Disclaimer above
-			// Modified by adding text in Photoshop CS5.
-			//[Embed(source="../odysseyAssets/All Treasures Found.png")]
-			//[Bindable]
-			//private var mAllTreasuresFoundImage:Class;
-			
-			// Embed the Time Up and Treasures Found image in the Treasure Hunt game.
-			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
-			// See Disclaimer above
-			// Modified by adding text in Seashore on Mac.
-			//[Embed(source="../odysseyAssets/Time Up and Treasures Found.png")]
-			//[Bindable]
-			//private var mTimeRanOutImage:Class;
-			
-			// Embed the Congratulations image in the Treasure Hunt game.
-			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
-			// See Disclaimer above
-			// Modified by adding text in Seashore on Mac.
-			//[Embed(source="../odysseyAssets/Congratulations.png")]
-			//[Bindable]
-			//private var mCongratulationsImage:Class;
-			
-			// Embed the NoTreasuresFound image in the Treasure Hunt game.
-			// Parchment image is from http://www.clker.com/clipart-15930.html on 4/4/2011.
-			// See Disclaimer above
-			// Modified by adding text in Seashore on Mac.
-			//			[Embed(source="../odysseyAssets/No Treasures Found.png")]
-			//			[Bindable]
-			//			private var mNoTreasuresFoundImage:Class;
-			
-			// Embed the new UI items for treasure hunt.
-			// All components created by Tristan Warneke except the Parchment which is the same as above
-			
-			// Backer to Hook/Crane controls
-			//			[Embed(source="../odysseyAssets/SO-UI2-HookDropBackerExt.png")]
-			[Embed(source="../embedded_assets/backer-wood-light.png")]
-			[Bindable] private var mHookDropBacker:Class;
-			
-			// Backer to Rat controls
-			//			[Embed(source="../odysseyAssets/SO-UI2-DivingRatsBacker.png")]
-			[Embed(source="../embedded_assets/backer-wood-light.png")]
-			[Bindable] private var mRatBacker:Class;
-			
-			// Embed volume icons -- source: Ryan McCann
-			[Embed(source="../embedded_assets/Volume.png")]
-			[Bindable]
-			private var mVolumeIcon:Class;
-			
-			[Embed(source="../embedded_assets/Volume_half.png")]
-			[Bindable]
-			private var mHalfVolumeIcon:Class;
-			
-			[Embed(source="../embedded_assets/Volume_off.png")]
-			[Bindable]
-			private var mLowVolumeIcon:Class;
-			
-			// **NOTE: If you are looking for the button images, they are embedded in skin mxml files in the skins folder.
-			
-			// ********** END OF EMBEDDED TREASURE HUNT IMAGES **********
 			
 			// ********** TREASURE HUNT SOUNDS ********
 			
@@ -287,9 +214,13 @@
 				mMinRatsToSend	= iMinRatsToSend;
 				mMaxRatsToSend	= iMaxRatsToSend;
 				// sync stepper
-				mRatStepper.value = mRatsToSend;
-				mRatStepper.minimum = mMinRatsToSend;
-				mRatStepper.maximum = mMaxRatsToSend;
+				shipControlsMVC.ratStepper.value = mRatsToSend;
+				shipControlsMVC.ratStepper.minValue = mMinRatsToSend;
+				shipControlsMVC.ratStepper.maxValue = mMaxRatsToSend;
+				
+				//mRatStepper.value = mRatsToSend;
+				//mRatStepper.minimum = mMinRatsToSend;
+				//mRatStepper.maximum = mMaxRatsToSend;
 			}
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
@@ -430,11 +361,11 @@
 				setCurrentMinMaxRats( mRatsToSend, mMinRatsToSend, mMaxRatsToSend );
 				
 				// Move hook to center of treasure area.
-				mCenterPosition				= 100;	
-				mCenterPositionStepper.value= mCenterPosition;					// Set stepper to center position.
-				mMinHookRange				= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
-				mMaxHookRange				= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
-				mRangeValueLabel.text		= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
+				mCenterPosition						= 100;	
+				shipControlsMVC.hookStepper.value	= mCenterPosition;					// Set stepper to center position.
+				mMinHookRange						= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
+				mMaxHookRange						= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
+				shipControlsMVC.interval.text		= mMinHookRange.toFixed(1) + " – " + mMaxHookRange.toFixed(1);
 				
 				// Hide all parchment announcements until they are needed.OLD STUFF 6/19/13
 				//mAllTreasuresFoundAlert.visible	= false;
@@ -448,8 +379,7 @@
 			
 			
 			private function huntLevel(mission:MissionData, stripBtnListeners:Boolean, goRightAway:Boolean):void{
-				setGameTitle(mission.number + ". " + mission.title);
-				
+				setGameTitle(mission.title);
 				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();
 				
@@ -577,16 +507,17 @@
 			
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
-			protected function onClickSendRatsButton(event:MouseEvent):void{
+			protected function onClickSendRatsButton(event:MouseEvent = null):void{
 				hideInstructions();
 				mEventNumber += 1;	// Sending rats counts as an event.	
 				
+				shipControlsMVC.ratStepper.validate();
 				
 				//check to see if we can afford rats
 				if((mCostPerRat * mRatsToSend) >= (bootyMeter.booty)){
 					//trace("You can't buy rats silly!"); //replace this with a rat dialog
 					mRatsToSend = (bootyMeter.booty/mCostPerRat)-1;
-					mRatStepper.value = mRatsToSend;
+					shipControlsMVC.ratStepper.value = mRatsToSend;
 					return; 
 				}
 				
@@ -655,51 +586,50 @@
 				// Update the hook's range based on the center position.
 				//mCenterPositionStepper.value = mMathUtils.setPrecision(mCenterPositionStepper.value, kHookCenterPrecision);
 				var prevCP:int = mCenterPosition;
-				mCenterPosition			= mCenterPositionStepper.value;
+				mCenterPosition			= shipControlsMVC.hookStepper.value; //mCenterPositionStepper.value;
 				mMinHookRange			= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
 				mMaxHookRange			= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
-				mRangeValueLabel.text	= mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
+				shipControlsMVC.interval.text = mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
 				
-				if(event.type == CraneEvent.DRAGGING){
-					crane.toFrame(mCenterPosition);
-				}else{
-					if(Math.abs(prevCP - mCenterPosition)>2)
+				if(crane){	// failsafe to ensure that the crane exists.
+					if(event.type == CraneEvent.DRAGGING){
+						crane.toFrame(mCenterPosition);
+					}else{
 						crane.tweenTo(mCenterPosition, 1); //goto frame = mCenterPosition, tween length = 1 second
-					else
-						crane.runTo(mCenterPosition);
+					}
 				}
 			}
 			
 			// onChangeRatStepper() is called when the number of rats to be sent
 			// is changed.
-			protected function onChangeRatStepper(event:Event):void
+			protected function onChangeRatStepper(e:Event):void
 			{
 				// Update number of rats to be sent at one time.
-				mRatsToSend = mRatStepper.value;
+				mRatsToSend = shipControlsMVC.ratStepper.value;
 			}
 			
 			// show how much the hook drop is going to cost
 			protected function onMouseOverDropHookButton(event:MouseEvent):void
 			{
-				//bootyMeter.ghost(kCostPerHookDrop);
 			}
 			
 			protected function onMouseOutDropHookButton(event:MouseEvent):void
 			{
-				//bootyMeter.hideGhost();
 			}
 			
 			// onClickDropHookButton() is called when the Drop Hook button is
 			// pressed and handles all actions assiociated with attempting to
 			// retrieve treasure at the specified location.
-			protected function onClickDropHookButton(event:MouseEvent):void
+			protected function onClickDropHookButton(event:MouseEvent = null):void
 			{		
 				hideInstructions();
-				mDropHookButton.enabled = false;
+				shipControlsMVC.disableHookButton();
 				crane.canDrag = false;
+				
+				shipControlsMVC.hookStepper.validate();
 				//check to see if the crane needs to move before we can drop the hook
 				//this happens if someone changes the value of the stepper and then clicks the Drop Hook button before the crane finishes moving
-				if(mCenterPosition != mCenterPositionStepper.value || Math.abs(crane.getFrame()- mCenterPosition)>1){
+				if(mCenterPosition != shipControlsMVC.hookStepper.value || Math.abs(crane.getFrame()- mCenterPosition)>1){
 					transitionTimer = new Timer(500, 0);
 					transitionTimer.addEventListener(TimerEvent.TIMER,waitOnCraneMove);
 					transitionTimer.start();
@@ -742,13 +672,13 @@
 					newMission();
 				}
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
-				mCenterPositionStepper.value = 100;
+				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
 			}
 			
 			//wait and check timer routine for when the hook is moving before a drop
 			private function waitOnCraneMove(e:TimerEvent):void{
-				if(mCenterPosition == mCenterPositionStepper.value && Math.abs(crane.getFrame()- mCenterPosition)<1){
+				if(mCenterPosition == shipControlsMVC.hookStepper.value && Math.abs(crane.getFrame()- mCenterPosition)<1){
 					transitionTimer.stop();
 					transitionTimer.removeEventListener(TimerEvent.TIMER, waitOnCraneMove);
 					onClickDropHookButton(new MouseEvent(MouseEvent.CLICK));
@@ -882,10 +812,10 @@
 				mLevelsButton.enabled = true;
 				mExitNewGameButton.enabled = true;
 				mExitNewGameButton.label = "New Site";
-				mSendRatsButton.enabled = false;
-				mDropHookButton.enabled = false;
-				mCenterPositionStepper.enabled = false;
-				mRatStepper.enabled = false;
+				shipControlsMVC.disableRatsButton();
+				shipControlsMVC.disableHookButton();
+				shipControlsMVC.hookStepper.enabled = false;
+				shipControlsMVC.ratStepper.enabled = false;
 			}
 			
 			private function loseGame(e:Event):void{
@@ -897,7 +827,6 @@
 				popUpScreen.visible = false;
 				hideInstructions();
 				sailThenZoomIn();
-				//mLevelsButton.enabled = false;
 				mExitNewGameButton.enabled = true;
 				mExitNewGameButton.label = "Pull Anchor";
 				disableAllButtons();
@@ -1095,7 +1024,7 @@
 				var craneFrame:int = crane.getFrame();
 				
 				cHerder.setCloudSpeed(-.5);
-				mCenterPositionStepper.value = 100;
+				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
 				DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
 
@@ -1187,10 +1116,10 @@
 			private function disableAllButtons(e:Event = null):void{
 				mLevelsButton.enabled = false;
 				mExitNewGameButton.enabled = false;
-				mDropHookButton.enabled = false;
-				mCenterPositionStepper.enabled = false;
-				mRatStepper.enabled = false;
-				mSendRatsButton.enabled = false;
+				shipControlsMVC.hookStepper.enabled = false;
+				shipControlsMVC.disableHookButton();
+				shipControlsMVC.ratStepper.enabled = false;
+				shipControlsMVC.disableRatsButton();
 				mHelpButton.enabled = false;
 				
 				if(crane)	// failsafe to prevent the crane from being turned off before it loads.
@@ -1199,21 +1128,19 @@
 			
 			private function enableAllButtons():void{
 				mExitNewGameButton.enabled = true;
-				mCenterPositionStepper.enabled = true;
-				mRatStepper.enabled = true;
 				mHelpButton.enabled = true;
-				mSendRatsButton.enabled = true;
+				shipControlsMVC.hookStepper.enabled = true;
 				mLevelsButton.enabled = true;
+				shipControlsMVC.ratStepper.enabled = true;
+				shipControlsMVC.enableRatsButton();
 
 				if(DebugMode.DISABLE_DROP_BUTTON){
 					if(mRatsSent > 0)
-						mDropHookButton.enabled = true;
+						shipControlsMVC.enableHookButton();
 				} else {
-					mDropHookButton.enabled = true;
+					shipControlsMVC.enableHookButton();
 				}
-						
-				
-				if(crane)
+				if(crane)//failsafe for crane loading
 					crane.canDrag = true;
 			}
 			
@@ -1223,18 +1150,18 @@
 			}
 			
 			private function disableRatButton(e:RatEvent = null):void{
-				mSendRatsButton.enabled = false;
-				mDropHookButton.enabled = false;
+				shipControlsMVC.disableRatsButton();
+				shipControlsMVC.disableHookButton();
 			}
 			
 			private function enableRatButton(e:RatEvent = null):void{
-				mSendRatsButton.enabled = true;
+				shipControlsMVC.enableRatsButton();
 				
 				if(DebugMode.DISABLE_DROP_BUTTON){
 					if(mRatsSent > 0)
-						mDropHookButton.enabled = true;
+						shipControlsMVC.enableHookButton();
 				} else {
-					mDropHookButton.enabled = true;
+					shipControlsMVC.enableHookButton();
 				}
 			}
 			
@@ -1279,11 +1206,12 @@
 				var value:int = crane.getFrame();
 				if(value == 1 && crane.zeroed)
 					value = 0;
-				mCenterPositionStepper.value = value;
+				shipControlsMVC.hookStepper.value = value;
+				shipControlsMVC.hookStepper.validate();
 				onChangeCenterPosition(e);
 			}
 			private function updateCraneStepperSnapped(e:Event):void{
-				mCenterPositionStepper.value = crane.snappingPoint;
+				shipControlsMVC.hookStepper.value = crane.snappingPoint;
 				onChangeCenterPosition(e);
 				hideInstructions();
 			}
@@ -1328,7 +1256,7 @@
 			}
 			
 			private function setGameTitle(arg:String):void {
-				boundLevelText = arg;
+				topBarMVC.setTitle(arg);
 			}
 			
 			// This function is called when the game starts. These objects will have the following listeners for the entirety of the play session:
@@ -1341,16 +1269,39 @@
 			// attach the booty bar to the screen. And popups
 			private function initVisualElements():void{	
 				bootyMeterContainer.addChild(bootyMeter);
+				
+				popUpContainer.addChild(shipControlsMVC);
+				shipControlsMVC.x = 7;
+				shipControlsMVC.y = 35;
+				shipControlsMVC.setRatButtonFunction(onClickSendRatsButton);
+				shipControlsMVC.setHookButtonFunction(onClickDropHookButton);
+				shipControlsMVC.ratStepper.setOnChangeFunction(onChangeRatStepper);
+				shipControlsMVC.hookStepper.setOnChangeFunction(onChangeCenterPosition);
+				
 				popUpContainer.addChild(popUpScreen);
 				popUpScreen.visible = false;
+
+				popUpContainer.addChild(topBarMVC);
+				topBarMVC.setVersion(getVersion());
+				
+				addEventListener(MouseEvent.CLICK, handleFocus);
+				
+				
 			}	
+			
+			//MXML's with multiple SWF's handle focus in a strange way. This keeps the focus working the way it should.
+			private function handleFocus(e:MouseEvent):void{
+				var clickingTextField:Boolean = (e.target is TextField);
+				if(!clickingTextField)
+					this.setFocus();
+			}
 
 			// the 'map' / quit button needs to be pressable during normal gameplay. That means resetting the sailing animation when its clicked.
 			private function quitMission(e:Event = null):void{								//$WIP.
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
 				sailingMovie.visible = true;
 				crane.visible = false;
-				mCenterPositionStepper.value = 100;
+				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
 				popUpScreen.chooseHuntLevel();
 			}
@@ -1364,13 +1315,14 @@
 				SoundMixer.soundTransform = st;
 				
 				//adjust the volume level icon
-				if(vol < 33){
+				
+				/*if(vol < 33){
 					mVolumeImage.source = mLowVolumeIcon;
 				} else if(vol > 66) {
 					mVolumeImage.source = mVolumeIcon;
 				} else {
 					mVolumeImage.source = mHalfVolumeIcon;
-				}
+				}*/
 			}
 		]]>
 	</fx:Script>
@@ -1385,6 +1337,7 @@
 	
 	
 	<!--Game Header Bar-->
+	<!--
 	<s:BorderContainer id="StatusBar" x="3" y="0" width="{this.width - 6}" height="30"
 					   cornerRadius="3" depth="10">
 		<s:backgroundFill>
@@ -1404,8 +1357,10 @@
 				   change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100"
 				   value="80"/>
 	</s:BorderContainer>
+	-->
 	
 	<!--Rat controls -->
+	<!--
 	<s:Group id="RatControls" includeIn="TreasureHunt" x="3" y="35" width="215" height="85">
 		
 		<s:Image id="mDivingRatBacker" x="0" y="0" source="{mRatBacker}"/>
@@ -1419,7 +1374,10 @@
 				  height="23" label="Send Rats" click="onClickSendRatsButton(event)"
 				  mouseOut="onMouseOutRatsButton(event)" mouseOver="onMouseOverRatsButton(event)"/>
 	</s:Group>
+	-->
+	
 	<!-- Hook controls -->
+	<!--
 		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="265" y="35" width="240"
 				 height="76">
 			<s:Image id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
@@ -1438,6 +1396,7 @@
 			<s:Label id="mRangeValueLabel" x="130" y="62" width="80" fontFamily="Georgia"
 					 fontWeight="bold"/>
 		</s:Group>
+	-->
 	
 	<!-- Left Sidebar Log -->
 	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
@@ -1492,14 +1451,14 @@
 		</s:backgroundFill>
 		
 		<s:Label id="topLabelError" x="0" y="70" width="{GameScreen.TOTAL_SCREEN_WIDTH}"
-				 color="0xffffff" fontFamily="Arial" fontSize="20" fontWeight="bold"
+				 color="0xffffff" fontFamily="Georgia" fontSize="20" fontWeight="bold"
 				 text="You are using an outdated version of Adobe Flash Player." textAlign="center"/>
 		<s:Label id="midLabelError" x="0" y="160" width="{GameScreen.TOTAL_SCREEN_WIDTH}"
-				 color="0xffffff" fontFamily="Arial" fontSize="15"
+				 color="0xffffff" fontFamily="Georgia" fontSize="15"
 				 text="{'Ship Odyssey requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}"
 				 textAlign="center"/>
 		<s:Label id="midLabel2Error" x="0" y="180" width="{GameScreen.TOTAL_SCREEN_WIDTH}"
-				 color="0xffffff" fontFamily="Arial" fontSize="15"
+				 color="0xffffff" fontFamily="Georgia" fontSize="15"
 				 text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}"
 				 textAlign="center"/>
 		<s:Button id="upgradeButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}" y="250" width="350"
