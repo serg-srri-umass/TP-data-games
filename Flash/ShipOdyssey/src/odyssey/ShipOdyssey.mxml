@@ -26,7 +26,7 @@
 			
 			import common.*;
 			
-			import flash.display.Stage;
+			import flash.display.*;
 			
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
@@ -188,7 +188,6 @@
 				BrickWall.visible = false;
 				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
 				this.sendCollectionData();		//		set it up so we can emit data
-				updateVolume(80); // start at 80% volume
 				
 				initListeners();	// adds event listeners that exist for the entirety of the game.
 				initVisualElements(); // any visual elements of .swc format are init'd here
@@ -204,10 +203,10 @@
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
-			private function setCurrentMinMaxRats( iCurrentRatsToSend:uint, iMinRatsToSend:uint = 1, iMaxRatsToSend:uint = kMaxRatsToSend ):void
+			private function setCurrentMinMaxRats( iCurrentRatsToSend:uint, iMinRatsToSend:uint = 0, iMaxRatsToSend:uint = kMaxRatsToSend ):void
 			{
-				if( iCurrentRatsToSend > iMaxRatsToSend) trace("LOGIC ERROR: current rats greater than max rats");
-				if( iCurrentRatsToSend < iMinRatsToSend) trace("LOGIC ERROR: current rats less than min rats");
+				if( iCurrentRatsToSend > iMaxRatsToSend) iCurrentRatsToSend = iMaxRatsToSend;
+				if( iCurrentRatsToSend < iMinRatsToSend) iCurrentRatsToSend = iMinRatsToSend;
 				
 				// save values
 				mRatsToSend	= iCurrentRatsToSend;
@@ -358,7 +357,7 @@
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
 				
 				// sync the rat stepper with the current level if needed
-				setCurrentMinMaxRats( mRatsToSend, mMinRatsToSend, mMaxRatsToSend );
+				setCurrentMinMaxRats( mRatsToSend);
 				
 				// Move hook to center of treasure area.
 				mCenterPosition						= 100;	
@@ -395,7 +394,11 @@
 				mCostPerRat	= mission.ratCost;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = !mission.variableTreasures;
 				mCurrentLevel = mission.number;
-				
+				if(mCostPerRat == 0)
+					shipControlsMVC.ratCost.text = "";
+				else
+					shipControlsMVC.ratCost.text = "Each rat costs "+TextFormatter.toCash(mCostPerRat);
+
 				bootyMeter.initialize(mission.startingLoot, mission.goal, mission.treasureValue);
 				
 				if(!goRightAway)
@@ -404,32 +407,6 @@
 					newMission();
 			}
 			
-			/*// firstHuntLevel() sets the current hunt level to the first level.
-			private function firstHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
-			{
-				var stripBtnListeners:Boolean = (iEvent ? true : false);
-				huntLevel(stripBtnListeners, Missions.mission1, goRightAway);
-			}
-			
-			// secondHuntLevel() sets the current hunt level to the second level.
-			private function secondHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
-			{
-				var stripBtnListeners:Boolean = (iEvent ? true : false);
-				huntLevel(stripBtnListeners, Missions.mission2, goRightAway);
-			}
-			
-			private function thirdHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
-			{
-				var stripBtnListeners:Boolean = (iEvent ? true : false);
-				huntLevel(stripBtnListeners, Missions.mission3, goRightAway);
-			}
-			
-			private function fourthHuntLevel(iEvent:Event = null, goRightAway:Boolean = false):void 
-			{
-				var stripBtnListeners:Boolean = (iEvent ? true : false);
-				huntLevel(stripBtnListeners, Missions.mission4, goRightAway);
-			}
-			*/
 			// getOceanQuality() returns a string descibing the ocean quality based on the hunt level
 			protected function getOceanQuality():String
 			{
@@ -504,63 +481,64 @@
 			protected function onMouseOutRatsButton(event:MouseEvent):void
 			{
 			}
+
+			// this function sets the max # of rats your stepper goes up to, based on how much $ you have.
+			private function updateRatLimit():void{
+				var maxRats:int = (mCostPerRat == 0 ? kMaxRatsToSend : Math.max(bootyMeter.booty/mCostPerRat - 1, 0));
+				if(maxRats > kMaxRatsToSend)
+					maxRats = kMaxRatsToSend;
+				shipControlsMVC.ratStepper.maxValue = maxRats;
+			}
 			
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent = null):void{
 				hideInstructions();
-				mEventNumber += 1;	// Sending rats counts as an event.	
-				
-				shipControlsMVC.ratStepper.validate();
-				
-				//check to see if we can afford rats
-				if((mCostPerRat * mRatsToSend) >= (bootyMeter.booty)){
-					//trace("You can't buy rats silly!"); //replace this with a rat dialog
-					mRatsToSend = (bootyMeter.booty/mCostPerRat)-1;
-					shipControlsMVC.ratStepper.value = mRatsToSend;
-					return; 
-				}
-				
-				// Update the cumulative cost of rats sent and profit so far.
-				if(mCostPerRat > 0)
-					bootyMeter.pay(mCostPerRat * mRatsToSend);
-				
-				//				mRatSound.play(); // Play rat sound.
-				
-				// For every rat sent, update Results text and send Rat data to TinkerPlots/DG
-				var	numTreasuresHere:int = mTreasureLocArr.length,
-					noisyLocation:Number, 
-					ratNum:int, //init vars that are used in all 3 forks
-					evenOdd:int = 0,
-					eventsAtATime:int = Math.max( 1, Math.round( mRatsToSend / 10 )),
-					eventArray:Array = [];
-				//trace("rats to send: " + mRatsToSend);
-				for(ratNum = 0; ratNum < mRatsToSend; ++ratNum){
-					mRatsSent +=1; // Increment rat counter.
-					if(numTreasuresHere == 1){
-						// Generate a noisy result based on the current treasure's location.
-						noisyLocation = (mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[0]; // Display nothing after decimal point.		
-					} else if(numTreasuresHere == 0){
-						//get random normal values from the entire range
-						noisyLocation = randomLocation();
-					} else if(numTreasuresHere == 2) {
-						//do swap back and forth for two locations if they have 2 left
-						noisyLocation = (mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[evenOdd];
-					}
-					
-					
-					eventArray.push( getEventDataValues( noisyLocation ));
-					if( (ratNum+1==mRatsToSend) || (eventArray.length >= eventsAtATime )){
-						DivingRatDirector.addRat( noisyLocation, eventArray);
-						eventArray = []; // clear values already sent
+				if(shipControlsMVC.ratStepper.validate()){ // check if the stepper is valid #, based on how much $ you have.
+					if(mCostPerRat >= bootyMeter.booty){
+						shipControlsMVC.ratStepper.gotoAndPlay("blink"); // make the stepper flash red if you can afford 0 rats.
 					}else{
-						DivingRatDirector.addRat( noisyLocation);					
+						if(mCostPerRat > 0){ // pay if rats cost $
+							bootyMeter.pay(mCostPerRat * mRatsToSend);
+							updateRatLimit();
+						}
+						//				mRatSound.play(); // Play rat sound.
+						
+						// For every rat sent, update Results text and send Rat data to TinkerPlots/DG
+						var	numTreasuresHere:int = mTreasureLocArr.length,
+							noisyLocation:Number, 
+							ratNum:int, //init vars that are used in all 3 forks
+							evenOdd:int = 0,
+							eventsAtATime:int = Math.max( 1, Math.round( mRatsToSend / 10 )),
+							eventArray:Array = [];
+						//trace("rats to send: " + mRatsToSend);
+						for(ratNum = 0; ratNum < mRatsToSend; ++ratNum){
+							mRatsSent +=1; // Increment rat counter.
+							if(numTreasuresHere == 1){
+								// Generate a noisy result based on the current treasure's location.
+								noisyLocation = (mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[0]; // Display nothing after decimal point.		
+							} else if(numTreasuresHere == 0){
+								//get random normal values from the entire range
+								noisyLocation = randomLocation();
+							} else if(numTreasuresHere == 2) {
+								//do swap back and forth for two locations if they have 2 left
+								noisyLocation = (mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[evenOdd];
+							}
+							
+							
+							eventArray.push( getEventDataValues( noisyLocation ));
+							if( (ratNum+1==mRatsToSend) || (eventArray.length >= eventsAtATime )){
+								DivingRatDirector.addRat( noisyLocation, eventArray);
+								eventArray = []; // clear values already sent
+							}else{
+								DivingRatDirector.addRat( noisyLocation);					
+							}
+							evenOdd = (evenOdd+1)%2;
+						}
+						if(mRatsToSend > 0)
+							DivingRatDirector.releaseRats();
 					}
-					evenOdd = (evenOdd+1)%2;
 				}
-				if(mRatsToSend > 0)
-					DivingRatDirector.releaseRats();
-				
 			}
 			
 			// when a rat animation finishes, put the data on DG.
@@ -687,8 +665,10 @@
 			
 			//call the animation, disable all buttons during animation, and start a timer
 			private function dropHook():void{
-				if(!DebugMode.ONLY_PAY_MISSED_HOOKS)
+				if(!DebugMode.ONLY_PAY_MISSED_HOOKS){
 					bootyMeter.pay(kCostPerHookDrop);
+					updateRatLimit();
+				}
 				disableAllButtons();
 				
 				var hookDropTime:Number = 1;
@@ -742,9 +722,10 @@
 				{
 					if(DebugMode.ONLY_PAY_MISSED_HOOKS)
 						bootyMeter.pay(kCostPerHookDrop);	//pay, if only on misses.
-					
+					updateRatLimit();
 					haveTreasure = false;
 					bootyMeter.finishTreasureDrop(false);
+					updateRatLimit();
 					if(!bootyMeter.lost)
 						enableAllButtons();
 					
@@ -834,6 +815,7 @@
 				switchToTreasureHunt(iEvent); //start a new game
 				sendGameDataOpen();
 				bootyMeter.readyNewLocation();
+				updateRatLimit();
 			}
 			
 			// Toggles the Instructions scroll
@@ -1283,6 +1265,8 @@
 
 				popUpContainer.addChild(topBarMVC);
 				topBarMVC.setVersion(getVersion());
+				topBarMVC.setStage(this.systemManager.stage);
+
 				
 				addEventListener(MouseEvent.CLICK, handleFocus);
 				
@@ -1304,25 +1288,6 @@
 				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
 				popUpScreen.chooseHuntLevel();
-			}
-			
-			//********** Title Bar Volume Control*********
-			private function updateVolume(vol:Number):void
-			{
-				//cannot do: SoundMixer.soundTransform.volume = vol/100;
-				var st:SoundTransform = SoundMixer.soundTransform;
-				st.volume = vol/100; //changes range [0-100] (slider position) to [0-1] (volume level)
-				SoundMixer.soundTransform = st;
-				
-				//adjust the volume level icon
-				
-				/*if(vol < 33){
-					mVolumeImage.source = mLowVolumeIcon;
-				} else if(vol > 66) {
-					mVolumeImage.source = mVolumeIcon;
-				} else {
-					mVolumeImage.source = mHalfVolumeIcon;
-				}*/
 			}
 		]]>
 	</fx:Script>
