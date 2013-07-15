@@ -1,17 +1,19 @@
 package chainsaw{
 	public class SoundHandler{
 		
+		//our imports
 		import common.AdvancedSound;
 		import common.AdvancedSoundEvent;
 		
+		//flash imports
 		import flash.events.Event;
 		import flash.media.*;
 		
+		//constructor
 		public function SoundHandler(){
 		}
 		
 		//sound embeds
-		//looped sounds
 		[Embed("../src/embedded_assets/runSound.mp3")]
 		private var runSoundMP3:Class;
 		private var mRunSound:AdvancedSound = new AdvancedSound(new runSoundMP3() as Sound);
@@ -71,20 +73,19 @@ package chainsaw{
 			trace("idleToRun");
 			mRevDownSound.stop();
 			mRevUpSound.doOnPercentPlayed(.9, revToRunTrans);
-			mRevUpSound.fadeIn(300);
 			mIdleSound.fadeOut(300);
+			mRevUpSound.fadeIn(300);
 		}
 			
-		
 		private function runToIdle():void{
 			trace("runToIdle");
 			mRevUpSound.stop();
 			mRevDownSound.doOnPercentPlayed(.9, runToRevTrans);
-			mRevDownSound.fadeIn(300);
 			mRunSound.fadeOut(300);
+			mRevDownSound.fadeIn(300);
 		}
 		
-		//transition handling
+		//transition clip handling
 		private function revToRunTrans(e:Event = null):void{
 			trace("revToRunTrans");
 			mIdleSound.stop();
@@ -95,6 +96,8 @@ package chainsaw{
 		private function runToRevTrans(e:Event = null):void{
 			trace("runToRevTrans");
 			mRunSound.stop();
+			mIdleSound.doOnPercentPlayed(.9, idleLoop);
+			mRevDownSound.fadeOut(300);
 			mIdleSound.fadeIn(300, int.MAX_VALUE);
 		}
 		
@@ -105,11 +108,11 @@ package chainsaw{
 		private function idleLoop(e:Event = null):void{
 			trace("idleLoop");
 			if(isIdling){
-				mIdleSound2 = new AdvancedSound(new idleSoundMP3() as Sound);
-				mIdleSound2.addEventListener(AdvancedSoundEvent.FULL_VOL, switchIdleReferences);
-				mIdleSound2.doOnPercentPlayed(.9, idleLoop);
-				mIdleSound.fadeOut(300);
-				mIdleSound2.fadeIn(300);
+				mIdleSound2 = new AdvancedSound(new idleSoundMP3() as Sound); //making a new idle instance to fade to
+				mIdleSound2.addEventListener(AdvancedSoundEvent.FULL_VOL, switchIdleReferences); //when the second idle instance has reached full vol, switch references
+				mIdleSound2.doOnPercentPlayed(.9, idleLoop); //when second instance of idle is 90% done, call this function again to loop
+				mIdleSound.fadeOut(300); //do the actual fade transition
+				mIdleSound2.fadeIn(300); 
 			}else{
 				return;
 			}

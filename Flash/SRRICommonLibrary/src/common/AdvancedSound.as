@@ -23,7 +23,7 @@
 
 		public function AdvancedSound(s:Sound){
 			sound = s;
-			soundID = String(Math.random());
+			soundID = String(Math.round(Math.random()*1000)/1000) //random ID truncated to .000 places
 		}
 		
 		// works exactly like sound.play
@@ -45,7 +45,7 @@
 		}
 				
 		public function fadeOut(duration:Number = 1000):void{
-			trace("fadeOut" + soundID);
+			trace("fadeOut ID:" + soundID + " Sound:" + sound.toString());
 			if(duration < 1)
 				throw new Error("fade duration must be longer than 1 millisecond.");
 				
@@ -59,7 +59,7 @@
 		}
 		
 		public function fadeIn(duration:Number = 1000, numLoops:int = 0):void{
-			trace("fadeIn" + soundID);
+			trace("fadeIn ID:" + soundID + " Sound:" + sound.toString());
 			if(duration < 1)
 				throw new Error("fade duration must be longer than 1 millisecond.");
 				
