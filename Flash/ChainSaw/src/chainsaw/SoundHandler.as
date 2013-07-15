@@ -2,6 +2,7 @@ package chainsaw{
 	public class SoundHandler{
 		
 		import common.AdvancedSound;
+		import common.AdvancedSoundEvent;
 		
 		import flash.events.Event;
 		import flash.media.*;
@@ -40,7 +41,10 @@ package chainsaw{
 		private var revDownSoundMP3:Class;
 		private var mRevDownSound:AdvancedSound = new AdvancedSound(new revDownSoundMP3() as Sound);
 		
-		//event handling 
+		private var mIdleSound2:AdvancedSound; //references the new instance of idle sound that we fade into when looping idle sound
+		private var isIdling:Boolean = false; //used to break out of idleLoop when we no longer need to idle. 
+		
+		//event handling; public functions
 		public function onStart():void{
 			mStartUpSound.doOnPercentPlayed(0.9, startToIdle);
 			mStartUpSound.play();
@@ -57,8 +61,10 @@ package chainsaw{
 		//fade handling
 		private function startToIdle(e:Event):void{
 			trace("startToIdle");
-			mIdleSound.fadeIn(300, int.MAX_VALUE);
 			mStartUpSound.fadeOut(300);
+			mIdleSound.doOnPercentPlayed(.9, idleLoop);
+			mIdleSound.fadeIn(300);
+			isIdling = true;
 		}
 		
 		private function idleToRun():void{
@@ -68,6 +74,7 @@ package chainsaw{
 			mRevUpSound.fadeIn(300);
 			mIdleSound.fadeOut(300);
 		}
+			
 		
 		private function runToIdle():void{
 			trace("runToIdle");
@@ -89,6 +96,30 @@ package chainsaw{
 			trace("runToRevTrans");
 			mRunSound.stop();
 			mIdleSound.fadeIn(300, int.MAX_VALUE);
+		}
+		
+		//loop handling
+		/* makes new instance of idle sound in mIdleSound2. when mIdleSound2 reaches full vol, 
+		trigger switchIdleReferences. when mIdleSound2 reaches 90 percent played, trigger 
+		idleLoop again to crossfade into a new instance of the sound. */
+		private function idleLoop(e:Event = null):void{
+			trace("idleLoop");
+			if(isIdling){
+				mIdleSound2 = new AdvancedSound(new idleSoundMP3() as Sound);
+				mIdleSound2.addEventListener(AdvancedSoundEvent.FULL_VOL, switchIdleReferences);
+				mIdleSound2.doOnPercentPlayed(.9, idleLoop);
+				mIdleSound.fadeOut(300);
+				mIdleSound2.fadeIn(300);
+			}else{
+				return;
+			}
+		}
+		
+		/* deletes mIdleSound, and makes mIdleSound reference point to mIdleSound2 when
+		mIdleSound2 has reached full volume.*/ 
+		private function switchIdleReferences(e:AdvancedSoundEvent):void{
+			trace("switchIdleReferences");
+			mIdleSound = mIdleSound2;
 		}
 	}
 }

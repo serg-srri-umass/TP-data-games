@@ -3,6 +3,7 @@
   <includeClasses>
     <classEntry path="common.ParkMiller"/>
     <classEntry path="common.TextFormatter"/>
+    <classEntry path="common.AdvancedSoundEvent"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

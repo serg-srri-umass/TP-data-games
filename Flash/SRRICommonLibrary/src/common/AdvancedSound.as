@@ -16,12 +16,14 @@
 		private var fadeTimer:Timer; // used to fade out the sound
 		private var ticker:int;	// counts for fading.
 		private var ticksToComplete:int; // how many ticks must elapse to meet a certain duration. 
+		private var soundID:String;
 
 		private var isPlaying:Boolean = false;		
 		private var percentageCounter:Timer = new Timer(1, 1); // used to dispatch events based on percentage reached
 
 		public function AdvancedSound(s:Sound){
 			sound = s;
+			soundID = String(Math.random());
 		}
 		
 		// works exactly like sound.play
@@ -43,6 +45,7 @@
 		}
 				
 		public function fadeOut(duration:Number = 1000):void{
+			trace("fadeOut" + soundID);
 			if(duration < 1)
 				throw new Error("fade duration must be longer than 1 millisecond.");
 				
@@ -56,6 +59,7 @@
 		}
 		
 		public function fadeIn(duration:Number = 1000, numLoops:int = 0):void{
+			trace("fadeIn" + soundID);
 			if(duration < 1)
 				throw new Error("fade duration must be longer than 1 millisecond.");
 				
@@ -113,6 +117,7 @@
 			fadeTimer.removeEventListener(TimerEvent.TIMER, tickFadeIn);
 			fadeTimer.removeEventListener(TimerEvent.TIMER, cleanFadeIn);
 			_volume = 1;
+			dispatchEvent(new AdvancedSoundEvent(AdvancedSoundEvent.FULL_VOL));
 		}
 		
 		// sets the volume based on ticker & ticksToComplete
