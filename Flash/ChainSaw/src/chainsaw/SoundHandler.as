@@ -5,7 +5,6 @@ package chainsaw{
 		import common.AdvancedSound;
 		import common.AdvancedSoundEvent;
 		
-		//flash imports
 		import flash.events.Event;
 		import flash.media.*;
 		
@@ -44,7 +43,9 @@ package chainsaw{
 		private var mRevDownSound:AdvancedSound = new AdvancedSound(new revDownSoundMP3() as Sound);
 		
 		private var mIdleSound2:AdvancedSound; //references the new instance of idle sound that we fade into when looping idle sound
+		private var mRunSound2:AdvancedSound;
 		private var isIdling:Boolean = false; //used to break out of idleLoop when we no longer need to idle. 
+		private var isRunning:Boolean = false;
 		
 		//event handling; public functions
 		public function onStart():void{
@@ -66,7 +67,6 @@ package chainsaw{
 			mStartUpSound.fadeOut(300);
 			mIdleSound.doOnPercentPlayed(.9, idleLoop);
 			mIdleSound.fadeIn(300);
-			isIdling = true;
 		}
 		
 		private function idleToRun():void{
@@ -79,7 +79,7 @@ package chainsaw{
 			
 		private function runToIdle():void{
 			trace("runToIdle");
-			mRevUpSound.stop();
+			//mRevUpSound.stop();
 			mRevDownSound.doOnPercentPlayed(.9, runToRevTrans);
 			mRunSound.fadeOut(300);
 			mRevDownSound.fadeIn(300);
@@ -88,9 +88,10 @@ package chainsaw{
 		//transition clip handling
 		private function revToRunTrans(e:Event = null):void{
 			trace("revToRunTrans");
-			mIdleSound.stop();
+			//mIdleSound.stop();
 			mRevUpSound.fadeOut(300);
-			mRunSound.fadeIn(300, int.MAX_VALUE);
+			mRunSound.doOnPercentPlayed(.9, runLoop);
+			mRunSound.fadeIn(300);
 		}
 		
 		private function runToRevTrans(e:Event = null):void{
@@ -98,7 +99,7 @@ package chainsaw{
 			mRunSound.stop();
 			mIdleSound.doOnPercentPlayed(.9, idleLoop);
 			mRevDownSound.fadeOut(300);
-			mIdleSound.fadeIn(300, int.MAX_VALUE);
+			mIdleSound.fadeIn(300);
 		}
 		
 		//loop handling
@@ -107,15 +108,20 @@ package chainsaw{
 		idleLoop again to crossfade into a new instance of the sound. */
 		private function idleLoop(e:Event = null):void{
 			trace("idleLoop");
-			if(isIdling){
 				mIdleSound2 = new AdvancedSound(new idleSoundMP3() as Sound); //making a new idle instance to fade to
 				mIdleSound2.addEventListener(AdvancedSoundEvent.FULL_VOL, switchIdleReferences); //when the second idle instance has reached full vol, switch references
 				mIdleSound2.doOnPercentPlayed(.9, idleLoop); //when second instance of idle is 90% done, call this function again to loop
 				mIdleSound.fadeOut(300); //do the actual fade transition
 				mIdleSound2.fadeIn(300); 
-			}else{
-				return;
-			}
+		}
+		
+		private function runLoop(e:Event = null):void{
+			trace("runLoop");
+				mRunSound2 = new AdvancedSound(new runSoundMP3() as Sound); //making a new Run instance to fade to
+				mRunSound2.addEventListener(AdvancedSoundEvent.FULL_VOL, switchRunReferences); //when the second Run instance has reached full vol, switch references
+				mRunSound2.doOnPercentPlayed(.9, runLoop); //when second instance of Run is 90% done, call this function again to loop
+				mRunSound.fadeOut(300); //do the actual fade transition
+				mRunSound2.fadeIn(300); 
 		}
 		
 		/* deletes mIdleSound, and makes mIdleSound reference point to mIdleSound2 when
@@ -124,5 +130,11 @@ package chainsaw{
 			trace("switchIdleReferences");
 			mIdleSound = mIdleSound2;
 		}
+		
+		private function switchRunReferences(e:AdvancedSoundEvent):void{
+			trace("switchRunReferences");
+			mRunSound = mRunSound2;
+		}
+		
 	}
 }
