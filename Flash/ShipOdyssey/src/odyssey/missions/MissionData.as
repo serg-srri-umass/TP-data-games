@@ -20,7 +20,7 @@ package odyssey.missions
 		public var variableTreasures:Boolean = false; // if there is only ever 1 treasure here, set this to false.
 		
 		// rat variables:
-		public var minRats:int = 1;		// the minimum # of rats that the stepper can go to at this level
+		public var minRats:int = 0;		// the minimum # of rats that the stepper can go to at this level
 		public var startingRats:int; 	// how many rats start in the stepper.
 		public var ratCost:int = 0; 	// how many $ each rat costs here
 		

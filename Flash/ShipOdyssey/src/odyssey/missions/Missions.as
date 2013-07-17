@@ -15,7 +15,6 @@ package odyssey.missions
 		//NOTE: ON THE MAP, Titles are set in the .swc. If they're changed, the .swc has to be updated as well.
 		with( mission1){ 		// Mission 1 section:
 			title = "Hundreds o' Rats";
-			instructions = "At this location, each treasure is worth " + TextFormatter.toCash(mission1.treasureValue) + ". You start with "+ TextFormatter.toCash(mission1.startingLoot) +". To complete it, earn " + TextFormatter.toCash(mission1.goal) + ". Rats are free, but be careful; a missed hook will cost you $5,000.";
 
 			treasureValue = 7000;
 			startingLoot = 15000;
@@ -28,11 +27,12 @@ package odyssey.missions
 			skyGradient = VisualVariables.daylight;
 			waterGradient = VisualVariables.clearWater;
 			cloudPattern = VisualVariables.fluffyClouds;
+			
+			instructions = "At this location, each treasure is worth " + TextFormatter.toCash(mission1.treasureValue) + ". You start with "+ TextFormatter.toCash(mission1.startingLoot) +". To complete it, earn " + TextFormatter.toCash(mission1.goal) + ". Rats are free, but be careful; a missed hook will cost you $5,000.";
 		}
 		
 		with( mission2){		// Mission 2 section:
 			title = "Treasure or Not";
-			instructions = "Each treasure is still worth " + TextFormatter.toCash(mission2.treasureValue) + ", but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals.";
 			
 			treasureValue = 7000;
 			startingLoot = 15000;
@@ -46,11 +46,13 @@ package odyssey.missions
 			skyGradient = VisualVariables.daylight;
 			waterGradient = VisualVariables.clearWater;
 			cloudPattern = VisualVariables.grayClouds;
+			
+			instructions = "Each treasure is still worth " + TextFormatter.toCash(mission2.treasureValue) + ", but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals.";
+
 		}
 		
 		with( mission3){		// Mission 3 section:
 			title = "Rat Shortage";
-			instructions = "Each treasure is now worth " + TextFormatter.toCash(mission3.treasureValue) + ". Rats will cost you $100 each. Check the loot meter for your new goals.";
 			
 			treasureValue = 15000;
 			startingLoot = 10000;
@@ -63,11 +65,12 @@ package odyssey.missions
 			skyGradient = VisualVariables.daylight;
 			waterGradient = VisualVariables.clearWater;
 			cloudPattern = VisualVariables.grayClouds;
+			
+			instructions = "Each treasure is now worth " + TextFormatter.toCash(mission3.treasureValue) + ". Rats will cost you $100 each. Check the loot meter for your new goals.";
 		}
 		
 		with( mission4){		// Mission 4 section:
 			title = "Deep Water";
-			instructions = "Each treasure is worth " + TextFormatter.toCash(mission4.treasureValue) + ". The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
 			
 			treasureValue = 18000;
 			startingLoot = 10000;
@@ -80,6 +83,8 @@ package odyssey.missions
 			skyGradient = VisualVariables.darkDay;
 			waterGradient = VisualVariables.murkyWater;
 			cloudPattern = VisualVariables.grayClouds;
+			
+			instructions = "Each treasure is worth " + TextFormatter.toCash(mission4.treasureValue) + ". The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
 		}
 		
 		// pass this function a #, and it will return the cooresponding MissionData object.
