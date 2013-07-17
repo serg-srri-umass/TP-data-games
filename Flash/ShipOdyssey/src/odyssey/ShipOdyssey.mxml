@@ -381,6 +381,7 @@
 			
 			
 			private function huntLevel(mission:MissionData, stripBtnListeners:Boolean, goRightAway:Boolean):void{
+				trace("huntLevel");
 				setGameTitle(mission.title);
 				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();
@@ -389,6 +390,7 @@
 				mStdDeviation = mission.stdDeviation;
 				Water.fill = mission.waterGradient;
 				Sky.backgroundFill = mission.skyGradient;
+				cHerder.cleanClouds();
 				cHerder.init(mission.cloudPattern);
 				cHerder.startClouds();
 				mHuntLevel = mission.number; // Set game level to first level.
@@ -806,7 +808,7 @@
 			private function newMission(iEvent:Event = null):void{
 				popUpScreen.visible = false;
 				hideInstructions();
-				sailThenZoomIn();
+				readyToZoomIn();
 				mExitNewGameButton.enabled = true;
 				mExitNewGameButton.label = "Pull Anchor";
 				disableAllButtons();
@@ -988,20 +990,21 @@
 			}
 		
 			
-			private function sailThenZoomIn():void{
-				cHerder.setCloudSpeed(-.5);
+			/* private function sailThenZoomIn():void{
+				trace("sailThenZoomIn");
 				if(true)
-					transitionTimer = new Timer(0,1);
+					transitionTimer = new Timer(0, 1);
 				else
 					transitionTimer = new Timer(4000, 1);
 				
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, readyToZoomIn);
 				transitionTimer.start();
-			}
+			} */
 			
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
 			//(decouples visual with state and play so a broken animation doesn't stop play)
-			private function zoomOutAndSail(e:Event = null):void{	
+			private function zoomOutAndSail(e:Event = null):void{
+				trace("zoomOutAndSail");
 				var craneFrame:int = crane.getFrame();
 				
 				cHerder.setCloudSpeed(-.5);
@@ -1017,13 +1020,12 @@
 				sailingMovie.doZoomOut(haveTreasure);
 				sailingMovie.sendCraneToFrame(craneFrame);
 				transitionTimer.start()
-			}
+			} 
 			
-			private function readyToZoomIn(e:TimerEvent):void{
+			private function readyToZoomIn():void{
+				trace("readyToZoomIn");
 				sailingMovie.reset();
-				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, readyToZoomIn);
-				
-				cHerder.setCloudSpeed(1.0);
+				cHerder.setCloudSpeed(1.5);
 				transitionTimer = new Timer(5000, 1);
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, zoomInTimerFinish);
 				sailingMovie.doZoomIn();
@@ -1205,8 +1207,8 @@
 				skyAreaMask.graphics.drawRect(0,0,395,186);
 				uic.addChild(skyAreaMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
 				cHerder.mask = skyAreaMask;
-				cHerder.init(VisualVariables.fluffyClouds);
-				cHerder.startClouds();
+				//cHerder.init(VisualVariables.fluffyClouds);
+				//cHerder.startClouds();
 				checkSWFLoaders();
 			}
 			
