@@ -40,6 +40,7 @@
 		}
 		
 		public function startClouds(){
+			trace("there are " + mvArr.length + " clouds in the sky.");
 			this.addEventListener(Event.ENTER_FRAME, moveCloud);
 		}
 		public function setCloudSpeed(speed:Number){

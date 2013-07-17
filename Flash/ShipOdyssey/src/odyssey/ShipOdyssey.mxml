@@ -381,7 +381,6 @@
 			
 			
 			private function huntLevel(mission:MissionData, stripBtnListeners:Boolean, goRightAway:Boolean):void{
-				trace("huntLevel");
 				setGameTitle(mission.title);
 				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();
@@ -1023,7 +1022,6 @@
 			} 
 			
 			private function readyToZoomIn():void{
-				trace("readyToZoomIn");
 				sailingMovie.reset();
 				cHerder.setCloudSpeed(1.5);
 				transitionTimer = new Timer(5000, 1);
@@ -1207,8 +1205,6 @@
 				skyAreaMask.graphics.drawRect(0,0,395,186);
 				uic.addChild(skyAreaMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
 				cHerder.mask = skyAreaMask;
-				//cHerder.init(VisualVariables.fluffyClouds);
-				//cHerder.startClouds();
 				checkSWFLoaders();
 			}
 			
