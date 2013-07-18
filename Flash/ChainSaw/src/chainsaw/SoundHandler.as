@@ -30,9 +30,9 @@ package chainsaw{
 		private var StartUpSoundMP3:Class;
 		private var mStartUpSound:AdvancedSound = new AdvancedSound(new StartUpSoundMP3() as Sound);
 		
-		[Embed("../src/embedded_assets/shutDownSound.mp3")]
-		private var shutDownSoundMP3:Class;
-		private var mShutDownSound:AdvancedSound = new AdvancedSound(new shutDownSoundMP3() as Sound);
+		//[Embed("../src/embedded_assets/shutDownSound.mp3")]
+		//private var shutDownSoundMP3:Class;
+		//private var mShutDownSound:AdvancedSound = new AdvancedSound(new shutDownSoundMP3() as Sound);
 		
 		[Embed("../src/embedded_assets/revUpSound.mp3")]
 		private var revUpSoundMP3:Class;
