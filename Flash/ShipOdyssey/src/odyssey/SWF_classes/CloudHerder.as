@@ -40,6 +40,7 @@
 		}
 		
 		public function startClouds(){
+			trace("there are " + mvArr.length + " clouds in the sky.");
 			this.addEventListener(Event.ENTER_FRAME, moveCloud);
 		}
 		public function setCloudSpeed(speed:Number){
@@ -71,23 +72,15 @@
 					this.addChild(mvArr[i]);
 					this.setChildIndex(mc, i);
 				}
-				/* 	//REMOVED the going back left clouds because they were popping and unpopping and they only move left
-					//when the boat is sailing, which is for a short duration
-				else if(mvArr[i].getBounds(this).x < skyWidth-mvArr[i].width-20 && percentSpeed < 0){
-					//cloud is offscreen left
-					prevY = mvArr[i].y;
-					scale = mvArr[i].scaleX;
+			}
+		}
+		
+		public function cleanClouds():void{
+			if(mvArr.length > 0){
+				for(var i:int = 0; i < numClouds; i++){
 					this.removeChild(mvArr[i]);
-					//create new cloud so clouds look different
-					mc = cm.createCloud();
-					mc.y = prevY;
-					mc.scaleX = mvArr[i].scaleY = scale;
-					mc.x = skyWidth + 20;
-					velArr[i] = windVelocity * scale;
-					mvArr[i] = mc;
-					this.addChild(mvArr[i]);
-					this.setChildIndex(mc, i);
-				}*/
+				}
+				mvArr = new Array();
 			}
 		}
 	}

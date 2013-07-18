@@ -14,6 +14,8 @@
       <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/RatSplash.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/bootyBar.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/popUps.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/topbarMVC.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/shipControls.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>

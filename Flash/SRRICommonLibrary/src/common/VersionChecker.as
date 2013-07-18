@@ -34,5 +34,31 @@ package common
 			var url:URLRequest = new URLRequest("http://get.adobe.com/flashplayer/");
 			navigateToURL(url, "_blank");
 		}
+		
+		
+		
+		
+		/* Code from http://michaelvandaniker.com/blog/2008/11/25/how-to-check-debug-swf/ */
+		// Returns whether or not the .swf was compiled in debug mode.
+		private static var hasDeterminedDebugStatus:Boolean = false;
+		public static function get isDebug():Boolean
+		{
+			if(!hasDeterminedDebugStatus)
+			{
+				try
+				{
+					throw new Error();
+				}
+				catch(e:Error)
+				{
+					var stackTrace:String = e.getStackTrace();
+					_isDebug = stackTrace != null && stackTrace.indexOf("[") != -1;
+					hasDeterminedDebugStatus = true;
+					return _isDebug;
+				}
+			}
+			return _isDebug;
+		}
+		private static var _isDebug:Boolean;
 	}
 }
