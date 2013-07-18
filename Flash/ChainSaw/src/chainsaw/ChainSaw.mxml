@@ -328,7 +328,7 @@
 							] // collections
 						} // args
 					}; //initGameObj
-					var	initGameString:String = JSON.encode( initGameObj );
+					var	initGameString:String = com.adobe.serialization.json.JSON.encode( initGameObj );
 					result = ScriptInterface.doCommand( initGameString );
 				}
 				else {
@@ -650,7 +650,7 @@
 									]
 							}
 						};
-						ScriptInterface.doCommand( JSON.encode( createCaseObj ));
+						ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( createCaseObj ));
 					}
 					else {
 						// send data for case in Cut collection to TinkerPlots/Fathom
@@ -774,8 +774,8 @@
 									]
 								} 	
 							}
-						var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
-						var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+						var	resultString:String = ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( openGameCaseObj ));
+						var resultObj:Object = (resultString ? com.adobe.serialization.json.JSON.decode( resultString ) : null );
 						this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
 					}
 					else {
@@ -872,7 +872,7 @@
 									]
 								}
 							};
-						ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
+						ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( closeGameCaseObj ));
 						// extract value of formula attribute 'score', if created by user in DG
 						var	requestAttributeValueObj:Object = {
 								action: "requestAttributeValues",
@@ -882,8 +882,8 @@
 									attributeNames: ["Score"]
 								}
 							};
-						var	resultString:String = ScriptInterface.doCommand( JSON.encode( requestAttributeValueObj ));
-						var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+						var	resultString:String = ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( requestAttributeValueObj ));
+						var resultObj:Object = (resultString ? com.adobe.serialization.json.JSON.decode( resultString ) : null );
 						this.parentCaseScore = "?";
 						if( resultObj && resultObj.success && resultObj.values ) {
 							if( resultObj.values.length >= 1 && resultObj.values[0] != null ) {
