@@ -44,7 +44,7 @@ package odyssey.missions
 		
 		//method for getting a mission, given a number
 		public static function getMission(arg:int):MissionData{
-			arg -= 1; //move the mission # to index 0.
+			arg -= 1; //move the mission # to index origin 0.
 			if(arg < 0 || arg > _missionArray.length)
 				throw new Error("requested mission does not exist");
 			return _missionArray[arg];
