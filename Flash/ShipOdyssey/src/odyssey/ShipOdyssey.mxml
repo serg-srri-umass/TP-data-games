@@ -46,7 +46,7 @@
 			
 			private static const DEBUG_MODE:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
 			
-			public static const VERSION:String = "v.2013.07.12";
+			public static const VERSION:String = "v.2013.07.19";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -74,9 +74,9 @@
 			public var mNumTreasures:uint = 1;	// Number of treasures to find.
 			
 			private var mStdDeviation:Number;	// Standard deviation of rat results.
-			private var mHuntLevel:uint		= 0;
-			private var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
-			public var mNextHuntLevel:uint = 0;
+			private var mMissionNum:uint	= 1;			// which mission, as a number 1+
+			//private var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
+			//public var mNextHuntLevel:uint = 0;
 			public static var mMaxRatsToSend:uint	= 500;	// Maximum allowable number of rats to send at a time
 			public static var mMinRatsToSend:uint	= 1;	// Minimum allowable number of rats to send at a time.
 			private var mRatsToSend:uint	= 10;			// Rats to send at one time: should match current stepper value.
@@ -131,7 +131,7 @@
 			
 			//variables for holding loaded MovieClips
 			private function getCurrentMission():int{ return mCurrentLevel; }
-			private function getHuntMission():uint{ return mHuntLevel; }
+			private function getHuntMission():uint{ return mMissionNum; }
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI(huntLevel, restartMission, getCurrentMission, getHuntMission, setGameTitle);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
 			private var topBarMVC:TopBarMVC = new TopBarMVC();
@@ -336,20 +336,9 @@
 				
 				//instead of choosing treasure randomly, chooses based on which level you are on.
 				//Choose treasure name from matching level pool. Iterates through names linearly. 
-				switch (mHuntLevel){
-					case 0:
-						mCurrentTreasureNum = 0;
-						break;
-					case 1:
-						mCurrentTreasureNum = 1;
-						break;
-					case 2:
-						mCurrentTreasureNum = 2;
-						break;
-					case 3:
-						mCurrentTreasureNum = 3;
-						break;
-				} 
+				mCurrentTreasureNum = mMissionNum - 1;
+				if( mCurrentTreasureNum < 0 || mCurrentTreasureNum > 3 )
+					throw new Error("invalid index to mTreasureArray");
 				
 				mTreasure0[kItem] = mNamePicker.poolShift(1);
 				mTreasure1[kItem] = mNamePicker.poolShift(2);
@@ -379,20 +368,20 @@
 			
 			
 			
-			
+			// TO-DO: rename this to setMissionLevel
 			private function huntLevel(mission:MissionData, stripBtnListeners:Boolean, goRightAway:Boolean):void{
 				setGameTitle(mission.title);
 				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();
 				
-				mPrevHuntLevel = mHuntLevel;
+				//mPrevHuntLevel = mMissionNum;
 				mStdDeviation = mission.stdDeviation;
 				Water.fill = mission.waterGradient;
 				Sky.backgroundFill = mission.skyGradient;
 				cHerder.cleanClouds();
 				cHerder.init(mission.cloudPattern);
 				cHerder.startClouds();
-				mHuntLevel = mission.number; // Set game level to first level.
+				mMissionNum = mission.number;
 				
 				setCurrentMinMaxRats(mission.startingRats, mission.minRats);
 				mCostPerRat	= mission.ratCost;	// Cost per rat in dollars.
@@ -409,24 +398,6 @@
 					showCurrentLevelInstructions();
 				else
 					newMission();
-			}
-			
-			// getOceanQuality() returns a string descibing the ocean quality based on the hunt level
-			protected function getOceanQuality():String
-			{
-				switch (mHuntLevel)
-				{
-					case 1:
-						return "1";
-					case 2:
-						return "2";
-					case 3:
-						return "3";
-					case 4:
-						return "4";
-					default:
-						return "0";
-				}
 			}
 						
 			// randomLocation() creates a new location on the ocean floor based on a uniform
@@ -647,7 +618,7 @@
 				}
 			}
 			
-			//called from the PopUpMVC when the game needs to be restarted.mHuntLevel
+			//called from the PopUpMVC when the game needs to be restarted
 			private function restartMission(startNextMission:Boolean = true):void{
 				exitGame();
 				
@@ -698,7 +669,7 @@
 					
 					// Tell the player which treasure was found and how much it is worth.					
 					
-					if(mHuntLevel == Missions.mission2.number) // if on level 2
+					if(mMissionNum == Missions.mission2.number) // if on level 2
 					{
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.won){	// if you've won, sail on.
@@ -890,7 +861,7 @@
 							collection: kGamesCollectionName,
 							values: [
 								mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
-								getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+								Missions.getMissionTitle(mMissionNum),	 // game level string
 								"",
 								"",
 								""
@@ -923,7 +894,7 @@
 							caseID: this.parentCaseID,
 								values: [
 									mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
-									getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+									Missions.getMissionTitle(mMissionNum),	 // game level string
 									mRatsSent,			 // Total number of rats sent during current game.
 									mHooksDropped,		 // Number of times hook was dropped during current game.
 									mTreasuresFound, 	 // Number of treasures found during current game.
@@ -939,7 +910,7 @@
 						kGamesCollectionName,
 						[
 							mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
-							getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+							Missions.getMissionTitle(mMissionNum),	 // game level string
 							mRatsSent,			 // Total number of rats sent during current game.
 							mHooksDropped,		 // Number of times hook was dropped during current game.
 							mTreasuresFound, 	 // Number of treasures found during current game.
