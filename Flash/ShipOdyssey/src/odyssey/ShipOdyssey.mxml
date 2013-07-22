@@ -367,10 +367,13 @@
 			
 			
 			
+			private function updateGameTitle():void{
+				setGameTitle(Missions.getMissionTitle(mMissionNum)+ ", Site " + mGameNumber);
+			}
 			
 			// TO-DO: rename this to setMissionLevel
 			private function huntLevel(mission:MissionData, stripBtnListeners:Boolean, goRightAway:Boolean):void{
-				setGameTitle(mission.title);
+				updateGameTitle();
 				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();
 				
@@ -394,8 +397,13 @@
 
 				bootyMeter.initialize(mission.startingLoot, mission.goal, mission.treasureValue);
 				
+				if(mission.variableTreasures)
+					bootyMeter.nextSiteBtn.visible = true;
+				else
+					bootyMeter.nextSiteBtn.visible = false;
+				
 				if(!goRightAway)
-					showCurrentLevelInstructions();
+					popUpScreen.displayHelp();
 				else
 					newMission();
 			}
@@ -468,7 +476,6 @@
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent = null):void{
-				hideInstructions();
 				if(shipControlsMVC.ratStepper.validate()){ // check if the stepper is valid #, based on how much $ you have.
 					if(mCostPerRat >= bootyMeter.booty){
 						shipControlsMVC.ratStepper.gotoAndPlay("blink"); // make the stepper flash red if you can afford 0 rats.
@@ -577,7 +584,6 @@
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent = null):void
 			{		
-				hideInstructions();
 				shipControlsMVC.disableHookButton();
 				crane.canDrag = false;
 				
@@ -726,13 +732,8 @@
 			// onClickExitNewGame() starts a new game and ends a game in progress
 			protected function onClickExitNewGame(iEvent:MouseEvent):void
 			{
-				hideInstructions();
-				if( mExitNewGameButton.label == "Pull Anchor"){
-					disableAllButtons();
-					zoomOutAndSail();
-				} else { 
-					newMission(iEvent);
-				}
+				disableAllButtons();
+				zoomOutAndSail();
 			}
 			
 			private function exitGame(iEvent:Event = null):void{
@@ -760,10 +761,7 @@
 						trace("treasure found string: " + treasuresFoundString());
 					}
 				}
-								
-				mLevelsButton.enabled = true;
-				mExitNewGameButton.enabled = true;
-				mExitNewGameButton.label = "New Site";
+
 				shipControlsMVC.disableRatsButton();
 				shipControlsMVC.disableHookButton();
 				shipControlsMVC.hookStepper.enabled = false;
@@ -777,50 +775,26 @@
 			
 			private function newMission(iEvent:Event = null):void{
 				popUpScreen.visible = false;
-				hideInstructions();
 				readyToZoomIn();
-				mExitNewGameButton.enabled = true;
-				mExitNewGameButton.label = "Pull Anchor";
 				disableAllButtons();
 				mGameNumber += 1;
 				switchToTreasureHunt(iEvent); //start a new game
 				sendGameDataOpen();
 				bootyMeter.readyNewLocation();
 				updateRatLimit();
+				updateGameTitle();
 			}
 			
 			// Toggles the Instructions scroll
 			private function onClickHelpButton():void
 			{
-				var tan:int = 13742987; //#d1b38b
-				var red:int = 14579041; //#de7561
-				
-				var active:Boolean = (mHelpButton.getStyle("chromeColor")==red);
-				if(active)
+				if(popUpScreen.isShowingHelp())
 				{
-					hideInstructions();
+					popUpScreen.hideHelp();
 				}
 				else
 				{
-					showCurrentLevelInstructions();
-				}
-			}
-			
-			private function showCurrentLevelInstructions():void
-			{
-				var red:int = 14579041; //#de7561
-				mHelpButton.setStyle("chromeColor", red);
-				popUpScreen.displayHelp();
-				popUpScreen.addEventListener(MouseEvent.CLICK, hideInstructions);
-			}
-			
-			private function hideInstructions(e:Event = null):void
-			{
-				popUpScreen.removeEventListener(MouseEvent.CLICK, hideInstructions);
-				if(popUpScreen.isShowingHelp()){
-					var tan:int = 13742987; //#d1b38b
-					mHelpButton.setStyle("chromeColor", tan);
-					popUpScreen.visible = false;
+					popUpScreen.displayHelp();
 				}
 			}
 			
@@ -1066,25 +1040,25 @@
 			
 			//button control methods
 			private function disableAllButtons(e:Event = null):void{
-				mLevelsButton.enabled = false;
-				mExitNewGameButton.enabled = false;
 				shipControlsMVC.hookStepper.enabled = false;
 				shipControlsMVC.disableHookButton();
 				shipControlsMVC.ratStepper.enabled = false;
 				shipControlsMVC.disableRatsButton();
-				mHelpButton.enabled = false;
+				topBarMVC.disableHelpButton();
+				bootyMeter.disableEndMissionButton();
+				bootyMeter.disableNextSiteButton();
 				
 				if(crane)	// failsafe to prevent the crane from being turned off before it loads.
 					crane.canDrag = false;
 			}	
 			
 			private function enableAllButtons():void{
-				mExitNewGameButton.enabled = true;
-				mHelpButton.enabled = true;
+				topBarMVC.enableHelpButton();
 				shipControlsMVC.hookStepper.enabled = true;
-				mLevelsButton.enabled = true;
 				shipControlsMVC.ratStepper.enabled = true;
 				shipControlsMVC.enableRatsButton();
+				bootyMeter.enableNextSiteButton();
+				bootyMeter.enableEndMissionButton();
 
 				if(VersionChecker.isDebug && DEBUG_MODE){
 					shipControlsMVC.enableHookButton();
@@ -1094,11 +1068,6 @@
 				}
 				if(crane)//failsafe for crane loading
 					crane.canDrag = true;
-			}
-			
-			private function enableNewGame():void{
-				mExitNewGameButton.enabled = true;
-				mExitNewGameButton.label = "Play";
 			}
 			
 			private function disableRatButton(e:RatEvent = null):void{
@@ -1165,7 +1134,6 @@
 			private function updateCraneStepperSnapped(e:Event):void{
 				shipControlsMVC.hookStepper.value = crane.snappingPoint;
 				onChangeCenterPosition(e);
-				hideInstructions();
 			}
 			
 			//loads the swf, sets colors, and starts the clouds
@@ -1219,6 +1187,8 @@
 			// attach the booty bar to the screen. And popups
 			private function initVisualElements():void{	
 				bootyMeterContainer.addChild(bootyMeter);
+				bootyMeter.nextSiteFunction = onClickExitNewGame;
+				bootyMeter.endMissionFunction = quitMission;
 				
 				popUpContainer.addChild(shipControlsMVC);
 				shipControlsMVC.x = 7;
@@ -1234,7 +1204,7 @@
 				popUpContainer.addChild(topBarMVC);
 				topBarMVC.setVersion(getVersion());
 				topBarMVC.setStage(this.systemManager.stage);
-
+				topBarMVC.helpFunction = onClickHelpButton;
 				
 				addEventListener(MouseEvent.CLICK, handleFocus);
 				
@@ -1249,9 +1219,13 @@
 			}
 
 			// the 'map' / quit button needs to be pressable during normal gameplay. That means resetting the sailing animation when its clicked.
-			private function quitMission(e:Event = null):void{								//$WIP.
+			private function quitMission(e:Event = null):void{
+				popUpScreen.confirmAction(quitMissionConfirmed);
+			}
+			private function quitMissionConfirmed(e:Event = null):void{								//$WIP.
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
 				sailingMovie.visible = true;
+				topBarMVC.disableHelpButton();
 				crane.visible = false;
 				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
@@ -1333,19 +1307,6 @@
 	
 	<!-- Left Sidebar Log -->
 	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
-	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">	
-		
-		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18"
-				  label="Map" chromeColor="#D1B38B" click="quitMission();" color="#000000"
-				  enabled="false" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
-		<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18"
-				  label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000"
-				  fontSize="14"/>
-		<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90"
-				  height="18" label="Set Sail" chromeColor="#D1B38B"
-				  click="onClickExitNewGame(event);" color="#000000" enabled="true"
-				  fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
-	</mx:Canvas>
 	
 	<!-- Animated Ship and Crane area -->
 	<s:Group id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286">

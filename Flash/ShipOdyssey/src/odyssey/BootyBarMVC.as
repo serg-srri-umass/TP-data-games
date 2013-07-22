@@ -1,8 +1,9 @@
 package odyssey
 {
 	import flash.events.Event;
-	import odyssey.events.BootyEventDispatcher;
+	import flash.events.MouseEvent;
 	import common.TextFormatter;
+	import odyssey.events.BootyEventDispatcher;
 	
 	public class BootyBarMVC extends BootyMeter
 	{
@@ -32,6 +33,9 @@ package odyssey
 			addEventListener(Event.ADDED_TO_STAGE, turnOff); 
 			addEventListener(Event.ENTER_FRAME, handleEnterFrame);
 			BAR_HEIGHT = barBacking.height;
+			
+			nextSiteBtn.addEventListener(MouseEvent.CLICK, donextSiteFunc);
+			endMissionBtn.addEventListener(MouseEvent.CLICK, doEndMissionFunc);
 		}
 		
 		public function get dispatcher():BootyEventDispatcher
@@ -205,6 +209,54 @@ package odyssey
 		private function getPercent(arg:int):int{
 			var percent:Number = (arg/_goal)*1000;
 			return percent;
+		}
+		
+		private var _endMissionFunc:Function;
+		public function set endMissionFunction(arg:Function):void{
+			_endMissionFunc = arg;
+		}
+		public function get endMissionFunction():Function{
+			return _endMissionFunc;
+		}
+		private function doEndMissionFunc(e:Event):void{
+			_endMissionFunc(e);
+		}
+		
+		private var _nextSiteFunc:Function;
+		public function set nextSiteFunction(arg:Function):void{
+			_nextSiteFunc = arg;
+		}
+		public function get nextSiteFunction():Function{
+			return _nextSiteFunc;
+		}
+		private function donextSiteFunc(e:Event):void{
+			_nextSiteFunc(e);
+		}
+		
+		public function disableNextSiteButton():void{
+			nextSiteBtn.alpha = 0;
+			removeEventListener(Event.ENTER_FRAME, animateNextSiteBtnIn);
+			nextSiteBtn.mouseEnabled = false;
+		}
+		public function enableNextSiteButton():void{
+			addEventListener(Event.ENTER_FRAME, animateNextSiteBtnIn);
+			nextSiteBtn.mouseEnabled = true;
+		}
+		public function disableEndMissionButton():void{
+			endMissionBtn.alpha = .5;
+			endMissionBtn.mouseEnabled = false;
+		}
+		public function enableEndMissionButton():void{
+			endMissionBtn.alpha = 1;
+			endMissionBtn.mouseEnabled = true;
+		}
+		
+		// this code fades in the next site button
+		private function animateNextSiteBtnIn(e:Event):void{
+			if(nextSiteBtn.alpha < 1)
+				nextSiteBtn.alpha += 0.1;
+			else
+				removeEventListener(Event.ENTER_FRAME, animateNextSiteBtnIn);
 		}
 	}
 }

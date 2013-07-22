@@ -63,7 +63,7 @@ package odyssey
 		private function replayLevelButtonHandler(e:MouseEvent):void{
 			mainBtn.removeEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
 			var mHuntLevel:int = game.getHuntMission();
-			game.startHunt(mHuntLevel + 1);
+			game.startHunt(mHuntLevel);
 			game.restartMission();
 		}
 		
@@ -163,9 +163,14 @@ package odyssey
 			gotoAndStop("help");
 			title.text = getCurrentLevelTitle();
 			body.text = getCurrentLevelDescription();
+			okayBtn.addEventListener(MouseEvent.CLICK, hide);
+		}
+		public function hideHelp():void{
+			if(isShowingHelp())
+				hide();
 		}
 		public function isShowingHelp():Boolean{
-			return currentFrameLabel == "help";
+			return (visible && currentFrameLabel == "help");
 		}
 
 		
@@ -217,5 +222,17 @@ package odyssey
 				replayWindow.foreground.startReplay();
 			}
 		}
+		
+		public function confirmAction(arg:Function):void{
+			visible = true;
+			okayFunc = arg;
+			gotoAndStop("confirm");
+			mainBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
+			noBtn.addEventListener(MouseEvent.CLICK, cancelAction);
+		}
+		private function cancelAction(e:Event):void{
+			visible = false;
+		}
+		
 	}
 }
