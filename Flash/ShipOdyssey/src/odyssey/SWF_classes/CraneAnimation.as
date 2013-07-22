@@ -15,6 +15,8 @@
 			frame = limit(frame);
 			Crane_mc.gotoAndStopMod(frame);
 			Crane_mc.frameTarget = frame;
+			if(!Crane_mc.mHook.visible)
+				Crane_mc.init();
 		}
 		
 		public function dropHook(treasureFound:Boolean, secsDrop:Number, secsLift:Number):void{
