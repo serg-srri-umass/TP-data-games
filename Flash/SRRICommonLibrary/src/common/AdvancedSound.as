@@ -26,6 +26,14 @@
 			soundID = String(Math.round(Math.random()*1000)/1000) //random ID truncated to .000 places
 		}
 		
+		public function getChannel():SoundChannel{
+			return _channel;
+		}
+		
+		public function getLength():Number{
+			return sound.length;
+		}
+		
 		// works exactly like sound.play
 		public function play(startTime:Number = 0, loops:int = 0, sndTransform:SoundTransform = null):SoundChannel{
 			_channel.stop();
@@ -58,7 +66,7 @@
 			fadeTimer.start();
 		}
 		
-		public function fadeIn(duration:Number = 1000, numLoops:int = 0):void{
+		public function fadeIn(duration:Number = 1000, numLoops:int = 0, startPosition:Number = 0):void{
 			trace("fadeIn ID:" + soundID + " Sound:" + sound.toString());
 			if(duration < 1)
 				throw new Error("fade duration must be longer than 1 millisecond.");
@@ -72,7 +80,7 @@
 			fadeTimer.start();
 			
 			_volume = 0;
-			_channel = play(0, numLoops, null);
+			_channel = play(startPosition, numLoops, null);
 		}
 		
 		private var _toDoFunction:Function = function():void{};
@@ -83,10 +91,10 @@
 			
 			var percentLength:int = arg * sound.length;
 			
-			if(isPlaying)
+			if(isPlaying){
 					throw new Error("Cannot add function to an already playing sound.");
-
-			percentageCounter = new Timer(percentLength - _channel.position, 1);
+			}
+			percentageCounter = new Timer(percentLength, 1);
 			
 			_toDoFunction = func;
 			percentageCounter.addEventListener(TimerEvent.TIMER_COMPLETE, notifyInner);
