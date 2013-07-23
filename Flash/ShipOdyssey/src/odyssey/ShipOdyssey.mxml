@@ -97,7 +97,7 @@
 			private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet?
 			private var mFoundTreasure:Boolean = false; 	// Has the current hook drop found this treasure?
 			private var mCurrentLevel:int = 0;
-			private	var	parentCaseID:int = 0;
+			private	var	parentCaseID:int = -2;				// parent (game-level) case ID for DG; -2 means DG data not yet initialized, -1 means that no game case is open, 0+ is valid ID
 			
 			private var mTreasuresAtLocArr:Array;			//Used for new multi-treasure aspect - tells how many treasures are at the current loc
 			private var mTreasureLocArr:Array;				//location of each treasure at current loc, treasures are removed as found
@@ -269,7 +269,9 @@
 						} // args
 					}; //initGameObj
 					var	initGameString:String = JSON.encode( initGameObj );
-					result = ScriptInterface.doCommand( initGameString );
+					result = ScriptInterface.doCommand( initGameString ); // note: as of 2013-07-23 initGame always returns null
+					this.parentCaseID = -1; // change from -2 to -1 to indicate game data sent (for error detection only)
+					trace( "DG interface: initGame" );
 				}
 				else {
 					// use the old data interface compatible with TinkerPlots 2.0 Research Edition; 
@@ -784,6 +786,10 @@
 				disableAllButtons();
 				mGameNumber += 1;
 				switchToTreasureHunt(iEvent); //start a new game
+				if( this.parentCaseID >=0 ) {
+					trace( "DG interface: closing old parent case (ID="+this.parentCaseID+" before starting new mission" );
+					sendGameDataClose();
+				}
 				sendGameDataOpen();
 				bootyMeter.readyNewLocation();
 				updateRatLimit();
@@ -830,27 +836,6 @@
 				mCurrentTreasureNum = selectRandomTreasure();
 			}
 			
-			//old function, called nowhere
-//			private function gameFinish():void{
-//				// Tell the player the game is over.
-//				if (mTreasuresFound) // At least one treasure was found.
-//				{
-//					mCongratulationsAlert.visible	= true;
-//					mTreasuresFoundLabel.text		= treasuresFoundString();
-//					mTreasuresFoundLabel.visible	= true;
-//				}else{ // No treasures were found.
-//					//					mNoTreasuresFoundAlert.visible	= true;
-//				}
-//				// display exit button
-//				//				mExitFinishButton.visible = true;
-//				// If game didn't already end when hook dropped, send game data to TinkerPlots / Fathom.
-//				if (mCurrentGameComplete == false)
-//					sendGameDataClose();
-//				mCurrentGameComplete = true;// Game is complete.
-//			}
-			
-			//call to update the log any time a value changes
-			
 			// send the Game-level data to TinkerPlots or DG.
 			// this creates and opens the game case, see also sendGameDataClose()
 			private function sendGameDataOpen():void{
@@ -868,9 +853,18 @@
 							]
 						} 	
 					}
-					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
-					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
-					this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );	
+						
+					if( this.parentCaseID >= 0 ) {
+						trace( "DG interface error: openCase without closing previous parent case ID ("+this.parentCaseID+")" );
+					} else {
+						var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
+						var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+						this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
+						if(VersionChecker.isDebug && DEBUG_MODE && this.parentCaseID == -1 ) {
+							trace("DG interface: simulating openCase with parentCaseID 0 (debug only)");
+							this.parentCaseID = 0; // fake a valid case ID for validating sendGameDataUpdate() when not connected to DG
+						}
+					}
 				} else {
 					// else do nothing for TinkerPlots; old game API wants nothing for start of game
 				}
@@ -887,22 +881,29 @@
 			private function sendGameDataUpdate( wantCaseClosed:Boolean = false ):void{
 				if( kUseDataGamesInterface ) {
 					// send data to close a case in Game collection to DG
-					var	closeGameCaseObj:Object = { 
-						action: (wantCaseClosed ? "closeCase" : "updateCase" ),
-						args: { 
-							collection: kGamesCollectionName,
-							caseID: this.parentCaseID,
-								values: [
-									mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
-									Missions.getMissionTitle(mMissionNum),	 // game level string
-									mRatsSent,			 // Total number of rats sent during current game.
-									mHooksDropped,		 // Number of times hook was dropped during current game.
-									mTreasuresFound, 	 // Number of treasures found during current game.
-									bootyMeter.profitSoFar  // Value of (treasures found) minus (crew/ship costs and rat costs).
-								]
-						}
-					};
-					ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
+					var	whichAction:String = (wantCaseClosed ? "closeCase" : "updateCase" ),
+						closeGameCaseObj:Object = { 
+							action: whichAction,
+							args: { 
+								collection: kGamesCollectionName,
+								caseID: this.parentCaseID,
+									values: [
+										mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
+										Missions.getMissionTitle(mMissionNum),	 // game level string
+										mRatsSent,			 // Total number of rats sent during current game.
+										mHooksDropped,		 // Number of times hook was dropped during current game.
+										mTreasuresFound, 	 // Number of treasures found during current game.
+										bootyMeter.profitSoFar  // Value of (treasures found) minus (crew/ship costs and rat costs).
+									]
+								}
+							};
+					if( this.parentCaseID >= 0 )
+						ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
+					else
+						trace( "DG interface error: "+whichAction+" with invalid parent case ID ("+this.parentCaseID+")" );
+					
+					if( wantCaseClosed )
+						this.parentCaseID = -1;	// set to invalid ID after close so we can detect errors
 					
 				} else if (wantCaseClosed) { // do nothing if just updating (not in TinkerPlots game data API)
 					// TinkerPlots 2.0 Research Edition interface
@@ -932,8 +933,7 @@
 			}
 			
 			// send Event data to TinkerPlots or DG
-			// Event data is the "Hook" or "Rat" event
-			// NOTE: we no longer send type=="Hook" events
+			// Event data are "Rat Sent" events (one rat sending per case); we no longer send "Hook dropped" events
 			private function sendEventData(type:String, valArrays:Array):void{
 				var numEvents:int = valArrays.length,
 					i:int;
@@ -946,8 +946,12 @@
 							parent: this.parentCaseID,
 								values: valArrays
 						}
-					};
-					ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
+					};				
+					
+					if( this.parentCaseID >= 0 )
+						ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
+					else
+						trace( "DG interface error: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
 				}
 				else { // TinkerPlots interface
 					for( i = 0; i<numEvents; ++i ) {
