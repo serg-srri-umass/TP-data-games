@@ -633,7 +633,7 @@
 			
 			//called from the PopUpMVC when the game needs to be restarted
 			private function restartMission(startNextMission:Boolean = true):void{
-				exitGame();
+				finishSite();
 				
 				if(startNextMission){
 					initializeTreasureHunt();
@@ -743,12 +743,14 @@
 				zoomOutAndSail();
 			}
 			
-			private function exitGame(iEvent:Event = null):void{
+			// This function is called when a site is complete. It sets everything back to how it started, and then shows the instant replay.
+			// If you click 'end mission', this method isn't called because you don't want a replay.
+			// this function was previously named exitGame
+			private function finishSite(iEvent:Event = null):void{
 				sendGameDataClose();
 				
 				//clean up everything so it is back in initial state for start of next game
 				crane.visible = false;
-				
 				sailingMovie.visible = true;
 				sailingMovie.reset();
 				mCurrentGameComplete = true;// Game is now complete.	
@@ -966,7 +968,7 @@
 				DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
 
 				transitionTimer = new Timer(1900, 1); //timer is in milliseconds
-				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, exitGame);
+				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, finishSite);
 				
 				sailingMovie.visible = true;
 				crane.visible = false;
@@ -1240,6 +1242,8 @@
 				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
 				popUpScreen.chooseHuntLevel();
+				trace("closed game data from 'end mission' screen.");
+				sendGameDataClose();
 			}
 		]]>
 	</fx:Script>
