@@ -1227,7 +1227,8 @@
 			private function quitMission(e:Event = null):void{
 				popUpScreen.confirmAction(quitMissionConfirmed);
 			}
-			private function quitMissionConfirmed(e:Event = null):void{								//$WIP.
+			
+			private function quitMissionConfirmed(e:Event = null):void{								
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
 				sailingMovie.visible = true;
 				topBarMVC.disableHelpButton();

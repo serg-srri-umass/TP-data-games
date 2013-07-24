@@ -4,7 +4,6 @@ package odyssey
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.media.*;
-	import flash.text.TextFormat;
 	
 	public class TopBarMVC extends topBar_mvc
 	{
@@ -76,6 +75,7 @@ package odyssey
 		public function get helpFunction():Function{
 			return _helpFunction;
 		}
+		
 		public function set helpFunction(arg:Function):void{
 			_helpFunction = arg;
 		}
@@ -89,6 +89,7 @@ package odyssey
 			helpBtn.mouseEnabled = false;
 			helpBtn.alpha = 0.5;
 		}
+		
 		public function enableHelpButton():void{
 			helpBtn.mouseEnabled = true;
 			helpBtn.alpha = 1;
