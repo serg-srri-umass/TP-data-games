@@ -47,8 +47,12 @@ package chainsaw{
 		private var mRunSound2:AdvancedSound;
 		private var isIdling:Boolean = false; //used to break out of idleLoop when we no longer need to idle. 
 		private var isRunning:Boolean = false;
-		private var isRevving:Boolean = false; 
+		private var isRevvingUp:Boolean = false; 
+		private var isRevvingDown:Boolean = false; 
 		
+		private var loopIdleSound:Boolean = false;
+		private var loopRunSound:Boolean = false;
+
 		//event handling; public functions
 		public function onStart():void{
 			mStartUpSound.doOnPercentPlayed(0.9, startToIdle);
@@ -56,23 +60,27 @@ package chainsaw{
 		}
 		
 		public function onMouseDown(e:Event):void{
-			idleToRun();
+			if(mRevDownSound.isPlaying() && !mRevUpSound.isPlaying()){
+				revDownToRevUpTrans();
+			}else{
+				idleToRun();
+			}
 		}
 		
 		public function onMouseUp(e:Event):void{
-			if(isRevving){
-				revUpToRevDownTrans()
-			}else{
-				
-				
-			runToIdle();
-		}}
+			if(mRevUpSound.isPlaying() && !mRevDownSound.isPlaying()){
+				revUpToRevDownTrans();
+			}
+			else{
+				runToIdle();
+			}
+		}
 		
 		//initialization 
 		private function initSounds():void{
 			mIdleSound.doOnPercentPlayed(.95, idleLoop);
 			mRevUpSound.doOnPercentPlayed(.95, revToRunTrans);
-			mRevDownSound.doOnPercentPlayed(.95, runToRevTrans);
+			mRevDownSound.doOnPercentPlayed(.95, revToIdleTrans);
 			mRunSound.doOnPercentPlayed(.95, runLoop);			
 		}
 		
@@ -81,45 +89,75 @@ package chainsaw{
 			trace("startToIdle");
 			mStartUpSound.fadeOut(50);
 			mIdleSound.fadeIn(50);
+			loopIdleSound = true;
 		}
 		
 		private function idleToRun():void{
 			trace("idleToRun");
+			loopIdleSound = false; 
 			mIdleSound.fadeOut(50);
+			if(mIdleSound2 && mIdleSound2.isPlaying()){
+				mIdleSound2.fadeOut(50);
+			}
 			mRevUpSound.fadeIn(50);
-			isRevving = true;
 		}
 			
 		private function runToIdle():void{
 			trace("runToIdle");
 			//mRevUpSound.stop();
+			loopRunSound = false; 
 			mRunSound.fadeOut(50);
+			if( mRunSound2 && mRunSound2.isPlaying()){
+				mRunSound2.fadeOut(50);
+			}
 			mRevDownSound.fadeIn(50);
-			trace("rev down length without revving trick: " + mRevDownSound.getLength());
 		}
 		
 		//transition clip handling
 		private function revToRunTrans(e:Event = null):void{
 			trace("revToRunTrans");
 			//mIdleSound.stop();
-			isRevving = false; 
 			mRevUpSound.fadeOut(50);
 			mRunSound.fadeIn(50);
+			loopRunSound = true;
 		}
 		
-		private function runToRevTrans(e:Event = null):void{
-			trace("runToRevTrans");
-			mRunSound.stop();
+		private function revToIdleTrans(e:Event = null):void{
+			trace("revToIdleTrans");
 			mRevDownSound.fadeOut(50);
 			mIdleSound.fadeIn(50);
+			loopIdleSound = true;
 		}
 		
 		private function revUpToRevDownTrans():void{
 			trace("revUpToRevDownTrans");
+			loopRunSound = false; 
+			mRunSound.fadeOut(50);
+			
+			if(mRunSound2 && mRunSound2.isPlaying()){
+				mRunSound2.fadeOut(50);
+			}
+			
 			mRevUpSound.fadeOut(50);
-			mRevDownSound.doOnPercentPlayed(.95, runToRevTrans);
-			mRevDownSound.fadeIn(50, 0, mapPosition(mRevUpSound.getChannel().position, mRevUpSound.getLength(), mRevDownSound.getLength()));
-			trace("sound length with rev trick: " + mRevDownSound.getLength());
+			//mRevDownSound.doOnPercentPlayed(.95, revToIdleTrans);
+			mRevDownSound.setStartPosition(mapPosition(mRevUpSound.getChannel().position, mRevUpSound.getLength(), mRevDownSound.getLength()));
+			mRevDownSound.doOnPercentPlayed(.98, revToIdleTrans);
+			mRevDownSound.fadeIn(50, 0, mRevDownSound.getStartPosition());
+		}
+		
+		private function revDownToRevUpTrans():void{
+			trace("revDownToRevUpTrans");
+			loopRunSound = false; 
+			mRunSound.fadeOut(50);
+			
+			if(mRunSound2 && mRunSound2.isPlaying()){
+				mRunSound2.fadeOut(50);
+			}
+			
+			mRevDownSound.fadeOut(50);
+			mRevUpSound.setStartPosition(mapPosition(mRevDownSound.getChannel().position, mRevDownSound.getLength(), mRevUpSound.getLength()));
+			mRevUpSound.doOnPercentPlayed(.99, revToRunTrans);
+			mRevUpSound.fadeIn(100, 0, mRevUpSound.getStartPosition());
 		}
 		
 		//loop handling
@@ -128,21 +166,30 @@ package chainsaw{
 		idleLoop again to crossfade into a new instance of the sound. */
 		private function idleLoop(e:Event = null):void{
 			trace("idleLoop");
+			if(loopIdleSound){
 				mIdleSound2 = new AdvancedSound(new idleSoundMP3() as Sound); //making a new idle instance to fade to
 				mIdleSound2.addEventListener(AdvancedSoundEvent.FULL_VOL, switchIdleReferences); //when the second idle instance has reached full vol, switch references
 				mIdleSound2.doOnPercentPlayed(.95, idleLoop); //when second instance of idle is 90% done, call this function again to loop
 				mIdleSound.fadeOut(50); //do the actual fade transition
 				mIdleSound2.fadeIn(50); 
+			}else{
+				return;
+			}
 		}
 		
 		private function runLoop(e:Event = null):void{
 			trace("runLoop");
+			if(loopRunSound){
 				mRunSound2 = new AdvancedSound(new runSoundMP3() as Sound); //making a new Run instance to fade to
 				mRunSound2.addEventListener(AdvancedSoundEvent.FULL_VOL, switchRunReferences); //when the second Run instance has reached full vol, switch references
-				mRunSound2.doOnPercentPlayed(.95, runLoop); //when second instance of Run is 90% done, call this function again to loop
+				mRunSound2.doOnPercentPlayed(.99, runLoop); //when second instance of Run is 99% done, call this function again to loop
 				mRunSound.fadeOut(50); //do the actual fade transition
 				mRunSound2.fadeIn(50); 
+			}else{
+				return;
+			}
 		}
+	
 		
 		/* deletes mIdleSound, and makes mIdleSound reference point to mIdleSound2 when
 		mIdleSound2 has reached full volume.*/ 
@@ -160,7 +207,7 @@ package chainsaw{
 		private function mapPosition(MappedFromPosition:Number, 
 									 MappedFromClipLength:Number, 
 									 MappedToClipLength:Number):Number{
-			return (1 - (MappedFromPosition/MappedFromClipLength)) * MappedToClipLength;
+			return (1 - (MappedFromPosition/MappedFromClipLength)) * (MappedToClipLength * .9);
 		}
 	}
 }

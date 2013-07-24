@@ -18,14 +18,19 @@
 		private var ticksToComplete:int; // how many ticks must elapse to meet a certain duration. 
 		private var soundID:String;
 
-		private var isPlaying:Boolean = false;		
+		private var _isPlaying:Boolean = false;		
 		private var percentageCounter:Timer = new Timer(1, 1); // used to dispatch events based on percentage reached
+		
+		private var startPosition:Number = 0; //records the starting positon in ms for fading in this sound. 
+											 //changed every time a fadeIn is called; if no start position 
+											 //is passed to fadeIn, gets set to 0. 
 
 		public function AdvancedSound(s:Sound){
 			sound = s;
 			soundID = String(Math.round(Math.random()*1000)/1000) //random ID truncated to .000 places
 		}
 		
+		//setters and getters
 		public function getChannel():SoundChannel{
 			return _channel;
 		}
@@ -34,13 +39,27 @@
 			return sound.length;
 		}
 		
+		public function setStartPosition(sp:Number):void{
+			startPosition = sp;
+		}
+		
+		public function getStartPosition():Number{
+			return startPosition;
+		}
+		
+		public function isPlaying():Boolean{
+			return _isPlaying;
+		}
+		
+		
+		
 		// works exactly like sound.play
 		public function play(startTime:Number = 0, loops:int = 0, sndTransform:SoundTransform = null):SoundChannel{
 			_channel.stop();
 			_channel = sound.play(startTime, loops, sndTransform);
 			percentageCounter.reset();
 			percentageCounter.start();
-			isPlaying = true;
+			_isPlaying = true;
 			return _channel;
 		}
 		
@@ -48,7 +67,7 @@
 		public function stop():SoundChannel{
 			_channel.stop();	
 			percentageCounter.stop();
-			isPlaying = false;
+			_isPlaying = false;
 			return _channel;
 		}
 				
@@ -66,8 +85,13 @@
 			fadeTimer.start();
 		}
 		
-		public function fadeIn(duration:Number = 1000, numLoops:int = 0, startPosition:Number = 0):void{
+		public function fadeIn(duration:Number = 1000, numLoops:int = 0, startPos:Number = 0):void{
 			trace("fadeIn ID:" + soundID + " Sound:" + sound.toString());
+			
+			if(startPos != 0){
+				trace("start position: " + startPos); // for debugging
+			}
+			
 			if(duration < 1)
 				throw new Error("fade duration must be longer than 1 millisecond.");
 				
@@ -80,7 +104,8 @@
 			fadeTimer.start();
 			
 			_volume = 0;
-			_channel = play(startPosition, numLoops, null);
+			startPosition = startPos; 
+			_channel = play(startPos, numLoops, null);
 		}
 		
 		private var _toDoFunction:Function = function():void{};
@@ -89,9 +114,9 @@
 			if(arg < 0 || arg > 1)
 				throw new Error("Percent must range from 0 to 1.");
 			
-			var percentLength:int = arg * sound.length;
+			var percentLength:int = arg * (sound.length-startPosition);
 			
-			if(isPlaying){
+			if(_isPlaying){
 					throw new Error("Cannot add function to an already playing sound.");
 			}
 			percentageCounter = new Timer(percentLength, 1);
