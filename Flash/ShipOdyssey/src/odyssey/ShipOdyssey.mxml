@@ -46,7 +46,7 @@
 			
 			private static const DEBUG_MODE:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
 			
-			public static const VERSION:String = "v.2013.07.19";
+			public static const VERSION:String = "v.2013.07.24";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -190,7 +190,8 @@
 			{
 				BrickWall.visible = false;
 				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
-				this.sendCollectionData();		//		set it up so we can emit data
+				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
+				this.sendCreateGraphRequestToDG();		// create a Graph view in DG, if not present already
 				
 				initListeners();	// adds event listeners that exist for the entirety of the game.
 				initVisualElements(); // any visual elements of .swc format are init'd here
@@ -223,6 +224,21 @@
 				//mRatStepper.value = mRatsToSend;
 				//mRatStepper.minimum = mMinRatsToSend;
 				//mRatStepper.maximum = mMaxRatsToSend;
+			}
+			
+			// ask DG to create a Graph object, for viewing Site+Rat data.  It should ignore this request if a Graph already exists.
+			private function sendCreateGraphRequestToDG():void {
+				var result:String;
+				if( ! kUseDataGamesInterface )
+					return;
+				var createGraphObj:Object = {
+							action: "createComponent",
+							args: {
+								type: "DG.GraphView"
+							}
+						};
+				var	createGraphString:String = JSON.encode( createGraphObj );
+				result = ScriptInterface.doCommand( createGraphString );
 			}
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
