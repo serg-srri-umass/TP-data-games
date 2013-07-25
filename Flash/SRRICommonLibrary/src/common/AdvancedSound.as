@@ -51,8 +51,6 @@
 			return _isPlaying;
 		}
 		
-		
-		
 		// works exactly like sound.play
 		public function play(startTime:Number = 0, loops:int = 0, sndTransform:SoundTransform = null):SoundChannel{
 			_channel.stop();
@@ -85,6 +83,8 @@
 			fadeTimer.start();
 		}
 		
+		//takes number of times you want to loop the sound after fading, and startPosition if you want 
+		//to fade in part-way through the sound
 		public function fadeIn(duration:Number = 1000, numLoops:int = 0, startPos:Number = 0):void{
 			trace("fadeIn ID:" + soundID + " Sound:" + sound.toString());
 			
@@ -114,7 +114,7 @@
 			if(arg < 0 || arg > 1)
 				throw new Error("Percent must range from 0 to 1.");
 			
-			var percentLength:int = arg * (sound.length-startPosition);
+			var percentLength:int = arg * (sound.length-startPosition); //accounting for start position in timer length
 			
 			if(_isPlaying){
 					throw new Error("Cannot add function to an already playing sound.");
@@ -125,6 +125,7 @@
 			percentageCounter.addEventListener(TimerEvent.TIMER_COMPLETE, notifyInner);
 		}		
 		
+		//trigger the function you want to doOnPercentPlayed
 		private function notifyInner(e:Event):void{
 			_toDoFunction(e);
 		}

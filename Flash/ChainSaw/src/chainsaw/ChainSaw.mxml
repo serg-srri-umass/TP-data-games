@@ -785,8 +785,6 @@
 					mSoundHandler.onStart();
 					addEventListener(MouseEvent.MOUSE_DOWN, mSoundHandler.onMouseDown);
 					addEventListener(MouseEvent.MOUSE_UP, mSoundHandler.onMouseUp);
-
-					
 				}
 			}
 			
@@ -1204,24 +1202,32 @@
 				dynamicLog1.enabled = false;
 				dynamicLog1.mouseChildren = false;
 				dynamicLog1['setLogNum'](1);
+				dynamicLog1.addEventListener(MouseEvent.ROLL_OVER, mSoundHandler.onMouseOverLog);
+				dynamicLog1.addEventListener(MouseEvent.MOUSE_OUT, mSoundHandler.onMouseOutLog);
 			}
 			protected function initLog2():void{
 				dynamicLog2 = mDynamicLog2.content as MovieClip;
 				dynamicLog2.enabled = false;
 				dynamicLog2.mouseChildren = false;
 				dynamicLog2['setLogNum'](2);
+				dynamicLog2.addEventListener(MouseEvent.ROLL_OVER, mSoundHandler.onMouseOverLog);
+				dynamicLog2.addEventListener(MouseEvent.MOUSE_OUT, mSoundHandler.onMouseOutLog);
 			}
 			protected function initLog3():void{
 				dynamicLog3 = mDynamicLog3.content as MovieClip;
 				dynamicLog3.enabled = false;
 				dynamicLog3.mouseChildren = false;
 				dynamicLog3['setLogNum'](3);
+				dynamicLog3.addEventListener(MouseEvent.ROLL_OVER, mSoundHandler.onMouseOverLog);
+				dynamicLog3.addEventListener(MouseEvent.MOUSE_OUT, mSoundHandler.onMouseOutLog);
 			}
 			protected function initLog4():void{
 				dynamicLog4 = mDynamicLog4.content as MovieClip;
 				dynamicLog4.enabled = false;
 				dynamicLog4.mouseChildren = false;
 				dynamicLog4['setLogNum'](4);
+				dynamicLog4.addEventListener(MouseEvent.ROLL_OVER, mSoundHandler.onMouseOverLog);
+				dynamicLog4.addEventListener(MouseEvent.MOUSE_OUT, mSoundHandler.onMouseOutLog);
 			}
 			
 			//mouse up on currently enabled log, sends to the log's SWF for handling
@@ -1232,6 +1238,8 @@
 			}
 			//mouse in event on currently enabled log
 			protected function logIn(e:MouseEvent):void{
+				mSoundHandler.onMouseOverLog(e);
+				
 				if(e.buttonDown && e.currentTarget.content.enabled){
 					
 					//					sawdustParticles.x = e.stageX+10; //TODO REMOVE
@@ -1250,6 +1258,8 @@
 			}
 			//mouse out event on enabled log
 			protected function logOut(e:MouseEvent):void{
+				mSoundHandler.onMouseOutLog(e);
+				
 				sawdustParticles['stopParticleAnim']();
 				var offsetX:Number = e.localX - e.currentTarget.content.x;
 				var offsetY:Number = e.localY - e.currentTarget.content.y;
