@@ -14,10 +14,13 @@ package odyssey
 		
 		private var _dispatcher:BootyEventDispatcher = new BootyEventDispatcher(); // object that dispatches booty events		
 		
-		private var _goal:int;  // how many treasures the player needs to win the level.
 		private var _treasuresFound:int; // how many treasures the player has
+		private var _missesAllowed:int;
+		private var _misses:int;
 		
 		private var _gold:int; // how much gold the player has to spend.
+		private var goldText:int; // what the display says.
+
 		private var _startingGold:int; // how much gold the player started the mission with.
 		private var targetHeight:Number; // the height that the booty bar is trying to animate to.
 		
@@ -41,8 +44,8 @@ package odyssey
 			return _gold;
 		}
 		
-		public function get goal():int{
-			return _goal;
+		public function get misses():int{
+			return _misses;
 		}
 		
 		public function get startingGold():int{
@@ -62,7 +65,7 @@ package odyssey
 			if( success){
 				getTreasure();
 			} else{
-				_isGameOver = (_gold <= 0);
+				_isGameOver = missHook();
 				if(_isGameOver){
 					_dispatcher.dispatchEmpty();
 				}
@@ -74,25 +77,29 @@ package odyssey
 			_treasuresFound++;
 			treasureDisplay.gotoAndPlay("flash");
 			treasureDisplay.treasure.treasures.text = String(_treasuresFound);
-			if(treasuresFound >= _goal){
-				_isGameOver = true;
-				_dispatcher.dispatchWin();		// the game is over, and you win!
-			}
 		}
 		
 		// call this method at the start of each level
-		public function initialize(startingGold:int, goal:int = 0):void
+		public function initialize(startingGold:int, missesAllowed:int):void
 		{
 			// first, set all the numbers:
 			_isGameOver = false;
 			_startingGold = startingGold;
 			_gold = _startingGold;
-			_goal = (goal == 0 ? int.MAX_VALUE : goal);
+			
+			_misses = 0;
+			_missesAllowed = missesAllowed;
+			
 			_treasuresFound = 0;
 			goldMeter.maskObj.height = 101;
 			treasureDisplay.treasure.treasures.text = String(_treasuresFound);	// write the # of treasures you have at the top.
-			goldMeter.gold.text = String(_gold);		// write how much gold you have in the bar.
 			
+			goldText = _gold;
+			goldMeter.gold.text = goldText;		// write how much gold you have in the bar.
+			
+			hooks.gotoAndStop(missesAllowed);
+			for(var i:int = 0; i<missesAllowed; i++)
+				hooks["hook"+(i+1)].gotoAndStop(1);		//shows the correct # of hooks, from 1 - 4
 		}
 		
 		// call this method whenever you spend money
@@ -101,22 +108,29 @@ package odyssey
 			if(_gold <= 0) // stop it from going negative.
 				_gold = 0;
 			
-			goldMeter.gold.text = String(_gold); //wip.
 			account();
 		}
 		
 		private function account():void{
 			targetHeight = (_gold/_startingGold)*100 + 1;
+			goldMeter.gold.text = String(goldText); //wip.
 			addEventListener(Event.ENTER_FRAME, animateGold);
 		}
 		
+		private var ANIMATION_SPEED:int = 5; // how fast the bar drops. Bigger # = slower drop.
 		private function animateGold(e:Event):void{
 			if(targetHeight + 0.1 < goldMeter.maskObj.height){
-				goldMeter.maskObj.height -= (goldMeter.maskObj.height - targetHeight)/5;
+				var changeVar:Number = (goldMeter.maskObj.height - targetHeight)/ANIMATION_SPEED;
+				goldMeter.maskObj.height -= changeVar;
+				
+				var changeDist:Number = (goldText - _gold)/ANIMATION_SPEED;
+				goldText -= changeDist;
 			}else{
 				goldMeter.maskObj.height = targetHeight;
 				removeEventListener(Event.ENTER_FRAME, animateGold);
+				goldText = _gold;
 			}
+			goldMeter.gold.text = String(goldText);
 		}
 		
 		private var _endMissionFunc:Function;
@@ -176,6 +190,17 @@ package odyssey
 				nextSiteBtn.alpha += 0.1;
 			else
 				removeEventListener(Event.ENTER_FRAME, animateNextSiteBtnIn);
+		}
+		
+		// this method is called when a hook misses. It updates the UI, and returns whether or not the game is over
+		public function missHook():Boolean{
+			_misses++;
+			hooks["hook"+_misses].gotoAndPlay(1);
+			if(_misses >= _missesAllowed){
+				return true;
+			}else{
+				return false;
+			}
 		}
 	}
 }

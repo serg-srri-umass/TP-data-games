@@ -17,11 +17,11 @@ package odyssey.missions
 			title = "Hundreds o' Rats";
 
 			startingLoot = 800;
-			goal = 8;
+			missesAllowed = 2;
 			
 			startingRats = 100;
 			//minRats = 50;
-			ratCost = 0;
+			ratCost = 1;
 			stdDeviation = kStdDeviationClear;
 			
 			skyGradient = VisualVariables.daylight;
@@ -35,13 +35,13 @@ package odyssey.missions
 		with( mission2){		// Mission 2 section:
 			title = "Treasure or Not";
 			
-			startingLoot = 800;
-			goal = 8;
+			startingLoot = 600;
+			missesAllowed = 2;
 			variableTreasures = true;
 			
 			startingRats = 100;
 			//minRats = 50;
-			ratCost = 0;
+			ratCost = 1;
 			stdDeviation = kStdDeviationClear;
 			
 			skyGradient = VisualVariables.daylight;
@@ -56,8 +56,8 @@ package odyssey.missions
 		with( mission3){		// Mission 3 section:
 			title = "Rat Shortage";
 			
-			startingLoot = 800;
-			goal = 8;
+			startingLoot = 400;
+			missesAllowed = 2;
 			
 			startingRats = 5;
 			ratCost = 1;
@@ -74,8 +74,8 @@ package odyssey.missions
 		with( mission4){		// Mission 4 section:
 			title = "Deep Water";
 			
-			startingLoot = 800;
-			goal = 8;
+			startingLoot = 750;
+			missesAllowed = 2;
 			
 			startingRats = 5;
 			ratCost = 1;

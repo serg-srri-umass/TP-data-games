@@ -14,8 +14,9 @@ package odyssey.missions
 		public var title:String;
 		
 		// money variables:
-		public var goal:int; 			// the goal loot amount.
+		//public var goal:int; 			// the goal loot amount.
 		public var startingLoot:int; 	// the ammount of $ you start the mission with.
+		public var missesAllowed:int;
 		public var variableTreasures:Boolean = false; // if there is only ever 1 treasure here, set this to false.
 		
 		// rat variables:

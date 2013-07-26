@@ -397,7 +397,7 @@
 					shipControlsMVC.ratCost.text = "Each rat costs "+TextFormatter.toCash(mCostPerRat);
 				*/
 				
-				bootyMeter.initialize(mission.startingLoot, mission.goal);
+				bootyMeter.initialize(mission.startingLoot, mission.missesAllowed);
 				
 				if(mission.variableTreasures)
 					bootyMeter.nextSiteBtn.visible = true;
@@ -707,7 +707,7 @@
 				}
 				else // Treasure was not found at drop location.
 				{
-					bootyMeter.pay(kCostPerHookDrop);	//pay, if only on misses.
+					//bootyMeter.pay(kCostPerHookDrop);	//pay, if only on misses.
 					updateRatLimit();
 					haveTreasure = false;
 					bootyMeter.finishTreasureDrop(false);
