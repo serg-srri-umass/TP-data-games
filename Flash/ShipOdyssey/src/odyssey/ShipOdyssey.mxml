@@ -56,7 +56,7 @@
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
 			//** **
-			public static const kCostPerHookDrop:int = 5000 // Cost each time you drop a hook		
+			public static const kCostPerHookDrop:int = 50; // Cost each time you drop a hook		
 			public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
 			public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
 			public static const kHookRadius:uint= 2;	// Radius of grappling hook area.
@@ -80,7 +80,7 @@
 			public static var mMaxRatsToSend:uint	= 500;	// Maximum allowable number of rats to send at a time
 			public static var mMinRatsToSend:uint	= 1;	// Minimum allowable number of rats to send at a time.
 			private var mRatsToSend:uint	= 10;			// Rats to send at one time: should match current stepper value.
-			private var mCostPerRat:uint	= 100;			// Cost per rat in dollars.
+			private var mCostPerRat:uint	= 1;			// Cost per rat in dollars.
 			private var mRandomNormal:ParkMiller;			// Class that creates a normal distribution.
 			private var mMathUtils:MathUtilities = new MathUtilities();			// Class that uses SRRI math functions.
 			private var mCenterPosition:Number= kInitCenter;	// Center position of grappling hook.
@@ -205,24 +205,14 @@
 				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
 			}
 			
-			// set the rat stepper values and fix the minimum and maximum values at the same time
-			private function setCurrentMinMaxRats( iCurrentRatsToSend:uint, iMinRatsToSend:uint = 0, iMaxRatsToSend:uint = kMaxRatsToSend ):void
+			// set the rat stepper values and mRatsToSend.
+			private function setRatsToSend( iCurrentRatsToSend:uint):void
 			{
-				if( iCurrentRatsToSend > iMaxRatsToSend) iCurrentRatsToSend = iMaxRatsToSend;
-				if( iCurrentRatsToSend < iMinRatsToSend) iCurrentRatsToSend = iMinRatsToSend;
 				
 				// save values
 				mRatsToSend	= iCurrentRatsToSend;
-				mMinRatsToSend	= iMinRatsToSend;
-				mMaxRatsToSend	= iMaxRatsToSend;
 				// sync stepper
 				shipControlsMVC.ratStepper.value = mRatsToSend;
-				shipControlsMVC.ratStepper.minValue = mMinRatsToSend;
-				shipControlsMVC.ratStepper.maxValue = mMaxRatsToSend;
-				
-				//mRatStepper.value = mRatsToSend;
-				//mRatStepper.minimum = mMinRatsToSend;
-				//mRatStepper.maximum = mMaxRatsToSend;
 			}
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
@@ -327,10 +317,10 @@
 				
 				// Set up the treasure number, location, value, and item 
 				//(set as an empty string until it is set in the level switch below)
-				mTreasure0 = new Array("1st", randomLocation(), Missions.mission1.treasureValue, "");
-				mTreasure1 = new Array("2nd", randomLocation(), Missions.mission2.treasureValue, "");
-				mTreasure2 = new Array("3rd", randomLocation(), Missions.mission3.treasureValue, "");
-				mTreasure3 = new Array("4th", randomLocation(), Missions.mission4.treasureValue, "");
+				mTreasure0 = new Array("1st", randomLocation(), 0, "");	//$WIP.
+				mTreasure1 = new Array("2nd", randomLocation(), 0, "");
+				mTreasure2 = new Array("3rd", randomLocation(), 0, "");
+				mTreasure3 = new Array("4th", randomLocation(), 0, "");
 				
 				// Create new treasure array and add treasures to array.
 				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
@@ -351,7 +341,7 @@
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
 				
 				// sync the rat stepper with the current level if needed
-				setCurrentMinMaxRats( mRatsToSend);
+				setRatsToSend( mRatsToSend);
 				
 				// Move hook to center of treasure area.
 				mCenterPosition						= 100;	
@@ -388,16 +378,18 @@
 				cHerder.startClouds();
 				mMissionNum = mission.number;
 				
-				setCurrentMinMaxRats(mission.startingRats, mission.minRats);
+				setRatsToSend(mission.startingRats);
 				mCostPerRat	= mission.ratCost;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = !mission.variableTreasures;
 				mCurrentLevel = mission.number;
-				if(mCostPerRat == 0)
+				
+				/*if(mCostPerRat == 0)
 					shipControlsMVC.ratCost.text = "";
 				else
 					shipControlsMVC.ratCost.text = "Each rat costs "+TextFormatter.toCash(mCostPerRat);
-
-				bootyMeter.initialize(mission.startingLoot, mission.goal, mission.treasureValue);
+				*/
+				
+				bootyMeter.initialize(mission.startingLoot, mission.missesAllowed);
 				
 				if(mission.variableTreasures)
 					bootyMeter.nextSiteBtn.visible = true;
@@ -474,7 +466,7 @@
 
 			// this function sets the max # of rats your stepper goes up to, based on how much $ you have.
 			private function updateRatLimit():void{
-				var maxRats:int = (mCostPerRat == 0 ? kMaxRatsToSend : Math.max(bootyMeter.booty/mCostPerRat - 1, 0));
+				var maxRats:int = (mCostPerRat == 0 ? kMaxRatsToSend : Math.max(bootyMeter.gold/mCostPerRat, 0));
 				if(maxRats > kMaxRatsToSend)
 					maxRats = kMaxRatsToSend;
 				shipControlsMVC.ratStepper.maxValue = maxRats;
@@ -484,7 +476,7 @@
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent = null):void{
 				if(shipControlsMVC.ratStepper.validate()){ // check if the stepper is valid #, based on how much $ you have.
-					if(mCostPerRat >= bootyMeter.booty){
+					if(mCostPerRat >= bootyMeter.gold){
 						shipControlsMVC.ratStepper.gotoAndPlay("blink"); // make the stepper flash red if you can afford 0 rats.
 					}else{
 						if(mCostPerRat > 0){ // pay if rats cost $
@@ -656,6 +648,8 @@
 			//call the animation, disable all buttons during animation, and start a timer
 			private function dropHook():void{
 				disableAllButtons();
+				bootyMeter.disableNextSiteButton(false);
+				
 				var hookDropTime:Number = 1;
 				var hookRaiseTime:Number = 2.75;
 				
@@ -685,7 +679,7 @@
 					if(mMissionNum == Missions.mission2.number) // if on level 2
 					{
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
-						if(bootyMeter.won){	// if you've won, sail on.
+						if(bootyMeter.isGameOver){	// if you're out of $, or won. $WIP
 							haveTreasure = true;
 							onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
 						}/* else if(mTreasuresFound == 1){
@@ -705,13 +699,18 @@
 				}
 				else // Treasure was not found at drop location.
 				{
-					bootyMeter.pay(kCostPerHookDrop);	//pay, if only on misses.
+					//bootyMeter.pay(kCostPerHookDrop);	//pay, if only on misses.
 					updateRatLimit();
 					haveTreasure = false;
 					bootyMeter.finishTreasureDrop(false);
 					updateRatLimit();
-					if(!bootyMeter.lost)
+					if(!bootyMeter.isGameOver){
 						enableAllButtons();
+					}else{
+						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
+						onClickExitNewGame(new MouseEvent(MouseEvent.CLICK));
+					}
+						
 					
 					// Send event data to TinkerPlots / Fathom.
 					//sendEventData("Hook", getEventDataValues( "Miss" )); --Disabled
@@ -756,18 +755,17 @@
 				mCurrentGameComplete = true;// Game is now complete.	
 				
 				if(!popUpScreen.visible){
-					if(haveTreasure){
+					if(haveTreasure || bootyMeter.isGameOver){
 						haveTreasure = false;
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
-						if(bootyMeter.won){
-							popUpScreen.displayTreasure(treasuresFoundString(), popUpScreen.winGame, false, true);
+						if(bootyMeter.isGameOver){
+							popUpScreen.displayTreasure(treasuresFoundString(), popUpScreen.finishMission, false, true);
 						}else{
 							popUpScreen.displayTreasure(treasuresFoundString(), newMission);
 						}
 					}else{
 						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
 						popUpScreen.displayRecap(treasuresFoundString(), newMission);
-						trace("treasure found string: " + treasuresFoundString());
 					}
 				}
 
@@ -775,11 +773,21 @@
 				shipControlsMVC.disableHookButton();
 				shipControlsMVC.hookStepper.enabled = false;
 				shipControlsMVC.ratStepper.enabled = false;
+				
+				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
+				popUpScreen.rank = getRank();
 			}
 			
-			private function loseGame(e:Event):void{
+			// previously 'loseGame'
+			private function finishMission(e:Event = null):void{
 				popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
-				popUpScreen.displayRecap(treasuresFoundString(), popUpScreen.loseGame, true);	
+				popUpScreen.displayRecap(treasuresFoundString(), popUpScreen.finishMission, true);	
+				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
+				popUpScreen.rank = getRank();
+			}
+			
+			private function getRank():int{		//$WIP. 
+				return 3;
 			}
 			
 			private function newMission(iEvent:Event = null):void{
@@ -793,7 +801,7 @@
 					sendGameDataClose();
 				}
 				sendGameDataOpen();
-				bootyMeter.readyNewLocation();
+			//	bootyMeter.readyNewLocation();
 				updateRatLimit();
 				updateGameTitle();
 			}
@@ -874,7 +882,7 @@
 										mRatsSent,			 // Total number of rats sent during current game.
 										mHooksDropped,		 // Number of times hook was dropped during current game.
 										mTreasuresFound, 	 // Number of treasures found during current game.
-										bootyMeter.profitSoFar  // Value of (treasures found) minus (crew/ship costs and rat costs).
+										0  // Value of (treasures found) minus (crew/ship costs and rat costs).		// $WIp. this value no longer exists.
 									]
 								}
 							};
@@ -885,6 +893,7 @@
 					
 					if( wantCaseClosed )
 						this.parentCaseID = -1;	// set to invalid ID after close so we can detect errors
+
 					
 				} else if (wantCaseClosed) { // do nothing if just updating (not in TinkerPlots game data API)
 					// TinkerPlots 2.0 Research Edition interface
@@ -896,7 +905,7 @@
 							mRatsSent,			 // Total number of rats sent during current game.
 							mHooksDropped,		 // Number of times hook was dropped during current game.
 							mTreasuresFound, 	 // Number of treasures found during current game.
-							bootyMeter.profitSoFar		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+							bootyMeter.gold		 // Value of (treasures found) minus (crew/ship costs and rat costs).
 						]
 					);
 				}
@@ -1192,7 +1201,6 @@
 			private function initListeners():void{
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, finishRatDive);
-				bootyMeter.dispatcher.addEventListener(BootyEvent.LOSE, loseGame);
 			}
 		
 			// attach the booty bar to the screen. And popups
@@ -1240,11 +1248,15 @@
 				topBarMVC.disableHelpButton();
 				crane.visible = false;
 				shipControlsMVC.hookStepper.value = 100;
-				onChangeCenterPosition(new Event("Stepper"));
-				popUpScreen.chooseHuntLevel();
-				trace("closed game data from 'end mission' screen.");
+				onChangeCenterPosition(new Event("Stepper"));		
 				sendGameDataClose();
+				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
+				popUpScreen.rank = getRank();
+				
+				popUpScreen.finishMission();
+				//popUpScreen.chooseHuntLevel();
 			}
+			
 		]]>
 	</fx:Script>
 	
@@ -1255,70 +1267,7 @@
 	
 	<fx:Declarations>	
 	</fx:Declarations>
-	
-	
-	<!--Game Header Bar-->
-	<!--
-	<s:BorderContainer id="StatusBar" x="3" y="0" width="{this.width - 6}" height="30"
-					   cornerRadius="3" depth="10">
-		<s:backgroundFill>
-			<s:LinearGradient rotation="90">
-				<s:GradientEntry color="0xf0f0f0"/>
-				<s:GradientEntry color="0xd8d8d8"/>
-			</s:LinearGradient>
-		</s:backgroundFill>
-		<s:Label id="currentLevel" includeIn="TreasureHunt" x="12" y="7" width="399"
-				 chromeColor="#294867" color="#294867" depth="1" fontFamily="Impact" fontSize="18"
-				 fontStyle="normal" text="{boundLevelText}"/>
-		<s:Label id="GameVersionLabel" includeIn="TreasureHunt" x="290" y="12" width="150"
-				 color="#16203a" fontFamily="Georgia" fontSize="10" fontStyle="normal"
-				 initialize="GameVersionLabel.text=getVersion()"/>
-		<s:Image id="mVolumeImage" x="390" y="6" source="{mVolumeIcon}"/>
-		<s:HSlider id="mVolumeSlider" x="415" y="9" width="80"
-				   change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100"
-				   value="80"/>
-	</s:BorderContainer>
-	-->
-	
-	<!--Rat controls -->
-	<!--
-	<s:Group id="RatControls" includeIn="TreasureHunt" x="3" y="35" width="215" height="85">
-		
-		<s:Image id="mDivingRatBacker" x="0" y="0" source="{mRatBacker}"/>
-		<s:Label id="mRatControlLabel" includeIn="TreasureHunt" x="75" y="5" fontFamily="Georgia"
-				 fontSize="16" fontStyle="normal" fontWeight="bold" text="Diving Rats"/>
-		<s:NumericStepper id="mRatStepper" includeIn="TreasureHunt" x="45" y="28" width="50"
-						  height="23" change="onChangeRatStepper(event)"
-						  contentBackgroundColor="#5081B4" maximum="{mMaxRatsToSend}"
-						  minimum="{mMinRatsToSend}" stepSize="1"/>
-		<s:Button id="mSendRatsButton" includeIn="TreasureHunt" x="100" y="28" width="100"
-				  height="23" label="Send Rats" click="onClickSendRatsButton(event)"
-				  mouseOut="onMouseOutRatsButton(event)" mouseOver="onMouseOverRatsButton(event)"/>
-	</s:Group>
-	-->
-	
-	<!-- Hook controls -->
-	<!--
-		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="265" y="35" width="240"
-				 height="76">
-			<s:Image id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
-			<s:Label id="mHookLabel" x="58" y="5" fontFamily="Georgia" fontSize="16"
-					 fontStyle="normal" fontWeight="bold" text="Grappling Hook"/>
-			<s:Button id="mDropHookButton" x="55" y="28" width="80" height="23" label="Drop Hook"
-					  click="onClickDropHookButton(event)" fontSize="12"
-					  mouseOut="onMouseOutDropHookButton(event)"
-					  mouseOver="onMouseOverDropHookButton(event)"/>
-			<s:NumericStepper id="mCenterPositionStepper" x="140" y="28" width="57"
-							  change="onChangeCenterPosition(event)"
-							  contentBackgroundColor="#5081B4" maximum="100" minimum="0"
-							  snapInterval="0.1" stepSize="1"/>
-			<s:Label id="mRangeLabel" x="55" y="62" fontFamily="Georgia" fontWeight="bold"
-					 text="Interval:"/>
-			<s:Label id="mRangeValueLabel" x="130" y="62" width="80" fontFamily="Georgia"
-					 fontWeight="bold"/>
-		</s:Group>
-	-->
-	
+
 	<!-- Left Sidebar Log -->
 	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 	
@@ -1339,14 +1288,7 @@
 	<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
 	<mx:UIComponent id="ratContainer" x="120" y="121" width="395" height="286"/> <!-- container to hold dots for rat animation demo-->
 	<mx:UIComponent id="popUpContainer" x="0" y="0"/>
-	
-	
-	<!-- Popup Alert items 
-	<mx:Image	id="mAllTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mAllTreasuresFoundImage}" depth="6"/>
-	<mx:Image	id="mTimeRanOutAlert" includeIn="TreasureHunt" x="170" y="119" source="{mTimeRanOutImage}" depth="6"/>
-	<mx:Image	id="mCongratulationsAlert" includeIn="TreasureHunt" x="170" y="119" source="{mCongratulationsImage}" depth="6"/>
-	<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="You found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/> -->
-	
+
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall" visible="false" x="0" y="0"
 					   width="{GameScreen.TOTAL_SCREEN_WIDTH}"
