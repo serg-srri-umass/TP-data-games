@@ -5,6 +5,7 @@ package chainsaw{
 		import common.AdvancedSound;
 		import common.AdvancedSoundEvent;
 		
+		//flash imports
 		import flash.events.Event;
 		import flash.media.*;
 		
@@ -281,15 +282,12 @@ package chainsaw{
 			loopRunSound = false; 
 			mRunSound.fadeOut(100);
 			mIdleSound.fadeOut(100);
-			
 			if(mRunSound2 && mRunSound2.isPlaying()){
 				mRunSound2.fadeOut(100);
 			}
-			
 			if(mIdleSound2 && mIdleSound2.isPlaying()){
 				mIdleSound2.fadeOut(100);
 			}
-			
 			mRevUpSound.fadeOut(100);
 			mRevDownSound.setStartPosition(mapPosition(mRevUpSound.getChannel().position, mRevUpSound.getLength(), mRevDownSound.getLength()));
 			mRevDownSound.doOnPercentPlayed(.92, revToIdleTrans);
@@ -301,15 +299,12 @@ package chainsaw{
 			loopRunSound = false; 
 			mRunSound.fadeOut(100);
 			mIdleSound.fadeOut(100);
-			
 			if(mRunSound2 && mRunSound2.isPlaying()){
 				mRunSound2.fadeOut(100);
 			}
-			
 			if(mIdleSound2 && mIdleSound2.isPlaying()){
 				mIdleSound2.fadeOut(100);
 			}
-	
 			mRevDownSound.fadeOut(100);
 			mRevUpSound.setStartPosition(mapPosition(mRevDownSound.getChannel().position, mRevDownSound.getLength(), mRevUpSound.getLength()));
 			mRevUpSound.doOnPercentPlayed(.92, revToRunTrans);
@@ -321,15 +316,12 @@ package chainsaw{
 			loopRunSound = false; 
 			mRunSound.fadeOut(100);
 			mIdleSound.fadeOut(100);
-			
 			if(mRunSound2 && mRunSound2.isPlaying()){
 				mRunSound2.fadeOut(100);
 			}
-			
 			if(mIdleSound2 && mIdleSound2.isPlaying()){
 				mIdleSound2.fadeOut(100);
 			}
-			
 			mLoadDownSound.fadeOut(100);
 			mLoadUpSound.fadeIn(100);
 		}
@@ -339,15 +331,12 @@ package chainsaw{
 			loopRunSound = false; 
 			mRunSound.fadeOut(100);
 			mIdleSound.fadeOut(100);
-			
 			if(mRunSound2 && mRunSound2.isPlaying()){
 				mRunSound2.fadeOut(100);
 			}
-			
 			if(mIdleSound2 && mIdleSound2.isPlaying()){
 				mIdleSound2.fadeOut(100);
 			}
-			
 			mLoadUpSound.fadeOut(100);
 			mLoadDownSound.fadeIn(100);
 		}
@@ -385,15 +374,12 @@ package chainsaw{
 		private function loadLoop(e:Event = null):void{
 			trace("loadLoop");
 			if(loopLoadSound){
-				
 				loopRunSound = false; 
-				
 				if(mRunSound && mRunSound.isPlaying()){
 					mRunSound.fadeOut(100);
 				}else if(mRunSound2 && mRunSound2.isPlaying()){
 					mRunSound2.fadeOut(100);
 				}
-				
 				mLoadSound2 = new AdvancedSound(new loadSoundMP3() as Sound); //making a new Load instance to fade to
 				mLoadSound2.addEventListener(AdvancedSoundEvent.FULL_VOL, switchLoadReferences); //when the second Load instance has reached full vol, switch references
 				mLoadSound2.doOnPercentPlayed(.92, loadLoop); //when second instance of Load is 99% done, call this function again to loop
