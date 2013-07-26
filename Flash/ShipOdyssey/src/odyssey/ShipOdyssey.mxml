@@ -206,19 +206,13 @@
 			}
 			
 			// set the rat stepper values and fix the minimum and maximum values at the same time
-			private function setCurrentMinMaxRats( iCurrentRatsToSend:uint, iMinRatsToSend:uint = 0, iMaxRatsToSend:uint = kMaxRatsToSend ):void
+			private function setCurrentMinMaxRats( iCurrentRatsToSend:uint):void
 			{
-				if( iCurrentRatsToSend > iMaxRatsToSend) iCurrentRatsToSend = iMaxRatsToSend;
-				if( iCurrentRatsToSend < iMinRatsToSend) iCurrentRatsToSend = iMinRatsToSend;
 				
 				// save values
 				mRatsToSend	= iCurrentRatsToSend;
-				mMinRatsToSend	= iMinRatsToSend;
-				mMaxRatsToSend	= iMaxRatsToSend;
 				// sync stepper
 				shipControlsMVC.ratStepper.value = mRatsToSend;
-				shipControlsMVC.ratStepper.minValue = mMinRatsToSend;
-				shipControlsMVC.ratStepper.maxValue = mMaxRatsToSend;
 				
 				//mRatStepper.value = mRatsToSend;
 				//mRatStepper.minimum = mMinRatsToSend;
@@ -386,7 +380,7 @@
 				cHerder.startClouds();
 				mMissionNum = mission.number;
 				
-				setCurrentMinMaxRats(mission.startingRats, mission.minRats);
+				setCurrentMinMaxRats(mission.startingRats);
 				mCostPerRat	= mission.ratCost;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = !mission.variableTreasures;
 				mCurrentLevel = mission.number;
@@ -712,8 +706,13 @@
 					haveTreasure = false;
 					bootyMeter.finishTreasureDrop(false);
 					updateRatLimit();
-					if(!bootyMeter.isGameOver)	//$WIP
+					if(!bootyMeter.isGameOver){
 						enableAllButtons();
+					}else{
+						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
+						onClickExitNewGame(new MouseEvent(MouseEvent.CLICK));
+					}
+						
 					
 					// Send event data to TinkerPlots / Fathom.
 					//sendEventData("Hook", getEventDataValues( "Miss" )); --Disabled
@@ -1199,7 +1198,6 @@
 			private function initListeners():void{
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, finishRatDive);
-				bootyMeter.dispatcher.addEventListener(BootyEvent.EMPTY, zoomOutAndSail);	//$WIP
 			}
 		
 			// attach the booty bar to the screen. And popups
@@ -1267,70 +1265,7 @@
 	
 	<fx:Declarations>	
 	</fx:Declarations>
-	
-	
-	<!--Game Header Bar-->
-	<!--
-	<s:BorderContainer id="StatusBar" x="3" y="0" width="{this.width - 6}" height="30"
-					   cornerRadius="3" depth="10">
-		<s:backgroundFill>
-			<s:LinearGradient rotation="90">
-				<s:GradientEntry color="0xf0f0f0"/>
-				<s:GradientEntry color="0xd8d8d8"/>
-			</s:LinearGradient>
-		</s:backgroundFill>
-		<s:Label id="currentLevel" includeIn="TreasureHunt" x="12" y="7" width="399"
-				 chromeColor="#294867" color="#294867" depth="1" fontFamily="Impact" fontSize="18"
-				 fontStyle="normal" text="{boundLevelText}"/>
-		<s:Label id="GameVersionLabel" includeIn="TreasureHunt" x="290" y="12" width="150"
-				 color="#16203a" fontFamily="Georgia" fontSize="10" fontStyle="normal"
-				 initialize="GameVersionLabel.text=getVersion()"/>
-		<s:Image id="mVolumeImage" x="390" y="6" source="{mVolumeIcon}"/>
-		<s:HSlider id="mVolumeSlider" x="415" y="9" width="80"
-				   change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100"
-				   value="80"/>
-	</s:BorderContainer>
-	-->
-	
-	<!--Rat controls -->
-	<!--
-	<s:Group id="RatControls" includeIn="TreasureHunt" x="3" y="35" width="215" height="85">
-		
-		<s:Image id="mDivingRatBacker" x="0" y="0" source="{mRatBacker}"/>
-		<s:Label id="mRatControlLabel" includeIn="TreasureHunt" x="75" y="5" fontFamily="Georgia"
-				 fontSize="16" fontStyle="normal" fontWeight="bold" text="Diving Rats"/>
-		<s:NumericStepper id="mRatStepper" includeIn="TreasureHunt" x="45" y="28" width="50"
-						  height="23" change="onChangeRatStepper(event)"
-						  contentBackgroundColor="#5081B4" maximum="{mMaxRatsToSend}"
-						  minimum="{mMinRatsToSend}" stepSize="1"/>
-		<s:Button id="mSendRatsButton" includeIn="TreasureHunt" x="100" y="28" width="100"
-				  height="23" label="Send Rats" click="onClickSendRatsButton(event)"
-				  mouseOut="onMouseOutRatsButton(event)" mouseOver="onMouseOverRatsButton(event)"/>
-	</s:Group>
-	-->
-	
-	<!-- Hook controls -->
-	<!--
-		<s:Group id="mControlContainer" includeIn="TreasureHunt" x="265" y="35" width="240"
-				 height="76">
-			<s:Image id="mHookBacker" x="0" y="0" source="{mHookDropBacker}"/>
-			<s:Label id="mHookLabel" x="58" y="5" fontFamily="Georgia" fontSize="16"
-					 fontStyle="normal" fontWeight="bold" text="Grappling Hook"/>
-			<s:Button id="mDropHookButton" x="55" y="28" width="80" height="23" label="Drop Hook"
-					  click="onClickDropHookButton(event)" fontSize="12"
-					  mouseOut="onMouseOutDropHookButton(event)"
-					  mouseOver="onMouseOverDropHookButton(event)"/>
-			<s:NumericStepper id="mCenterPositionStepper" x="140" y="28" width="57"
-							  change="onChangeCenterPosition(event)"
-							  contentBackgroundColor="#5081B4" maximum="100" minimum="0"
-							  snapInterval="0.1" stepSize="1"/>
-			<s:Label id="mRangeLabel" x="55" y="62" fontFamily="Georgia" fontWeight="bold"
-					 text="Interval:"/>
-			<s:Label id="mRangeValueLabel" x="130" y="62" width="80" fontFamily="Georgia"
-					 fontWeight="bold"/>
-		</s:Group>
-	-->
-	
+
 	<!-- Left Sidebar Log -->
 	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
 	
@@ -1351,14 +1286,7 @@
 	<mx:UIComponent id="uic" x="120" y="121"/> <!--Note: this is used to place the animation masks and must be the same X and Y as 'mGameArea'-->
 	<mx:UIComponent id="ratContainer" x="120" y="121" width="395" height="286"/> <!-- container to hold dots for rat animation demo-->
 	<mx:UIComponent id="popUpContainer" x="0" y="0"/>
-	
-	
-	<!-- Popup Alert items 
-	<mx:Image	id="mAllTreasuresFoundAlert" includeIn="TreasureHunt" x="170" y="119" source="{mAllTreasuresFoundImage}" depth="6"/>
-	<mx:Image	id="mTimeRanOutAlert" includeIn="TreasureHunt" x="170" y="119" source="{mTimeRanOutImage}" depth="6"/>
-	<mx:Image	id="mCongratulationsAlert" includeIn="TreasureHunt" x="170" y="119" source="{mCongratulationsImage}" depth="6"/>
-	<s:Label	id="mTreasuresFoundLabel" includeIn="TreasureHunt" x="228" y="245" text="You found 3 of the 6 treasures!" fontFamily="Georgia" fontStyle="italic" height="53" width="169" fontSize="22" textAlign="center" color="#000000" depth="7" visible="false"/> -->
-	
+
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall" visible="false" x="0" y="0"
 					   width="{GameScreen.TOTAL_SCREEN_WIDTH}"

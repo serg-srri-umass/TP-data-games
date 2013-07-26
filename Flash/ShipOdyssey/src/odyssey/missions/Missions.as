@@ -20,7 +20,7 @@ package odyssey.missions
 			missesAllowed = 2;
 			
 			startingRats = 100;
-			//minRats = 50;
+			fixedRats = 100;
 			ratCost = 1;
 			stdDeviation = kStdDeviationClear;
 			
@@ -40,7 +40,6 @@ package odyssey.missions
 			variableTreasures = true;
 			
 			startingRats = 100;
-			//minRats = 50;
 			ratCost = 1;
 			stdDeviation = kStdDeviationClear;
 			

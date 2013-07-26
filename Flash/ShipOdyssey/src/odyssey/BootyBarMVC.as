@@ -66,9 +66,7 @@ package odyssey
 				getTreasure();
 			} else{
 				_isGameOver = missHook();
-				if(_isGameOver){
-					_dispatcher.dispatchEmpty();
-				}
+				_dispatcher.dispatchEmpty();
 			}
 		}
 		
