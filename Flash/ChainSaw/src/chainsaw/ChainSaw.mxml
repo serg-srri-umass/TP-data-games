@@ -791,6 +791,7 @@
 			//endGame() performs all operations necessary when game is complete.
 			protected function endGame():void
 			{
+				mSoundHandler.onGameEnd();
 				var strategy:String = "";
 				doEndGameStop();
 				if (mGameLevel >= kFreeCutLevel){
@@ -944,7 +945,6 @@
 				}
 				
 				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
-				SoundMixer.stopAll();							// Stop all currently playing sounds
 /* 				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
  */				
 				mStartStopButton.label			= "Start";

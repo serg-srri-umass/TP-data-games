@@ -51,6 +51,10 @@
 			return _isPlaying;
 		}
 		
+		public function stopFunctionTimer():void{
+			percentageCounter.stop();
+		}
+		
 		// works exactly like sound.play
 		public function play(startTime:Number = 0, loops:int = 0, sndTransform:SoundTransform = null):SoundChannel{
 			_channel.stop();
