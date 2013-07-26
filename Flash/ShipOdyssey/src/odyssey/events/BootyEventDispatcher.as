@@ -15,9 +15,9 @@ package odyssey.events
 			dispatchEvent (new BootyEvent( BootyEvent.WIN));
 		}
 		
-		public function dispatchLose(e:Event = null):void
+		public function dispatchEmpty(e:Event = null):void
 		{
-			dispatchEvent (new BootyEvent( BootyEvent.LOSE));
+			dispatchEvent (new BootyEvent( BootyEvent.EMPTY));
 		}
 	}
 }

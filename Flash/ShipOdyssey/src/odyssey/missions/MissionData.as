@@ -14,15 +14,15 @@ package odyssey.missions
 		public var title:String;
 		
 		// money variables:
-		public var treasureValue:int; 	// the value of a treasure here.
 		public var goal:int; 			// the goal loot amount.
 		public var startingLoot:int; 	// the ammount of $ you start the mission with.
 		public var variableTreasures:Boolean = false; // if there is only ever 1 treasure here, set this to false.
 		
 		// rat variables:
 		public var minRats:int = 0;		// the minimum # of rats that the stepper can go to at this level
+		public var maxRats:int = 500; 	// the max # of rats that the stepper can go to at this mission.
 		public var startingRats:int; 	// how many rats start in the stepper.
-		public var ratCost:int = 0; 	// how many $ each rat costs here
+		public var ratCost:int = 1; 	// how many $ each rat costs here
 		
 		// math variables:
 		public var stdDeviation:Number;	// the standard deviation of rats here

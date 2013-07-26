@@ -5,7 +5,7 @@ package odyssey
 	public class ShipControlsMVC extends shipControls
 	{
 		public function ShipControlsMVC(){
-			ratStepper.minValue = 0;
+			//ratStepper.minValue = 0;
 			hookStepper.minValue = 0;
 			hookStepper.maxValue = 100;
 			hookStepper.precision = 1;
