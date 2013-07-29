@@ -24,8 +24,7 @@ package odyssey.missions
 			waterGradient = VisualVariables.clearWater;
 			cloudPattern = VisualVariables.fluffyClouds;
 			
-			instructions = "The description of 'Hundreds o' Rats' goes here.";
-			//instructions = "At this location, each treasure is worth " + TextFormatter.toCash(mission1.treasureValue) + ". You start with "+ TextFormatter.toCash(mission1.startingLoot) +". To complete it, earn " + TextFormatter.toCash(mission1.goal) + ". Rats are free, but be careful; a missed hook will cost you $5,000.";
+			instructions = "Send down 100 rats at a time to guess the treasure's location.  Position the hook, then drop it. Be careful: when you miss twice, your mission is over.";
 		}
 		
 		with( mission2){		// Mission 3 section:
@@ -40,8 +39,7 @@ package odyssey.missions
 			waterGradient = VisualVariables.clearWater;
 			cloudPattern = VisualVariables.grayClouds;
 			
-			instructions = "The description of 'Rat Shortage' goes here.";
-			//instructions = "Each treasure is now worth " + TextFormatter.toCash(mission3.treasureValue) + ". Rats will cost you $100 each. Check the loot meter for your new goals.";
+			instructions = "You start this mission with 400 rats.  Send down as few as you can to estimate the treasure's location.  The mission is over when you miss twice with the hook.";
 		}
 		
 		with( mission3){		// Mission 2 section:
@@ -57,8 +55,7 @@ package odyssey.missions
 			waterGradient = VisualVariables.clearWater;
 			cloudPattern = VisualVariables.grayClouds;
 			
-			instructions = "The description of 'Treasure or Not' goes here.";
-			//instructions = "Each treasure is still worth " + TextFormatter.toCash(mission2.treasureValue) + ", but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals.";
+			instructions = "You start this mission with 600 rats.  But there may be 0, 1, or even 2 treasures at each site.  Click the next site button when you think there are no more treasures.";
 		}
 		
 		with( mission4){		// Mission 4 section:
@@ -74,8 +71,7 @@ package odyssey.missions
 			waterGradient = VisualVariables.murkyWater;
 			cloudPattern = VisualVariables.grayClouds;
 			
-			instructions = "The description of 'Deep Water' goes here.";
-			//instructions = "Each treasure is worth " + TextFormatter.toCash(mission4.treasureValue) + ". The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
+			instructions = "You start this mission with 750 rats.  This is deep water, so the rat readings are less accurate. The mission is over when you miss twice with the hook.";
 		}
 		
 		with( mission5){		// Mission 5 section:
@@ -92,8 +88,7 @@ package odyssey.missions
 			waterGradient = VisualVariables.clearWater;
 			cloudPattern = VisualVariables.fluffyClouds;
 			
-			instructions = "The description of 'Small Hook' goes here.";
-			//instructions = "Each treasure is worth " + TextFormatter.toCash(mission4.treasureValue) + ". The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
+			instructions = "You start this mission with 1000 rats.  But your hook is only two units wide rather than 4.  The mission is over when you miss twice with the hook.";
 		}
 		
 		

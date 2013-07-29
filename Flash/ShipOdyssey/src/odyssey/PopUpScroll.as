@@ -106,7 +106,7 @@ package odyssey
 		// the 'continue' button, for when you've won the game.
 		private function chooseLevelButtonHandlerNext(e:MouseEvent):void{
 			mainBtn.removeEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
-			chooseHuntLevel(true, false);
+			chooseHuntLevel(true);
 		}
 		
 		// click the 'retry' button
@@ -126,16 +126,17 @@ package odyssey
 			gotoAndStop("level");
 			displayMissionInstructions(null, skipAnimation);
 			
-			missions.mission1.addEventListener(MouseEvent.MOUSE_DOWN, displayMission1);
-			missions.mission2.addEventListener(MouseEvent.MOUSE_DOWN, displayMission2);
-			missions.mission3.addEventListener(MouseEvent.MOUSE_DOWN, displayMission3);
-			missions.mission4.addEventListener(MouseEvent.MOUSE_DOWN, displayMission4);
-			missions.mission5.addEventListener(MouseEvent.MOUSE_DOWN, displayMission5);
+			missions.mission1.addEventListener(MouseEvent.MOUSE_UP, displayMission1);
+			missions.mission2.addEventListener(MouseEvent.MOUSE_UP, displayMission2);
+			missions.mission3.addEventListener(MouseEvent.MOUSE_UP, displayMission3);
+			missions.mission4.addEventListener(MouseEvent.MOUSE_UP, displayMission4);
+			missions.mission5.addEventListener(MouseEvent.MOUSE_UP, displayMission5);
 			playBtn.addEventListener(MouseEvent.CLICK, startGame);
 		}
 		
-		private function startGame(e:MouseEvent, autoStart:Boolean = true):void {
-			game.startHunt(selectedLevel, e, autoStart);
+		private function startGame(e:MouseEvent):void {
+			var clearPreviousData:Boolean = deleteDataBox.checked; // whether or not the 'clear all data' box is checked.
+			game.startHunt(selectedLevel, e, clearPreviousData);
 		}
 		
 		private function displayMissionInstructions(e:MouseEvent = null, skipAnimation:Boolean = true):void {
@@ -177,11 +178,11 @@ package odyssey
 		//remove all listeners from the level chooser window & close it.
 		public function stripMissionButtonListeners():void {
 			visible = false;
-			missions.mission1.removeEventListener(MouseEvent.MOUSE_DOWN, displayMission1);
-			missions.mission2.removeEventListener(MouseEvent.MOUSE_DOWN, displayMission2);
-			missions.mission3.removeEventListener(MouseEvent.MOUSE_DOWN, displayMission3);
-			missions.mission4.removeEventListener(MouseEvent.MOUSE_DOWN, displayMission4);
-			missions.mission5.removeEventListener(MouseEvent.MOUSE_DOWN, displayMission5);
+			missions.mission1.removeEventListener(MouseEvent.MOUSE_UP, displayMission1);
+			missions.mission2.removeEventListener(MouseEvent.MOUSE_UP, displayMission2);
+			missions.mission3.removeEventListener(MouseEvent.MOUSE_UP, displayMission3);
+			missions.mission4.removeEventListener(MouseEvent.MOUSE_UP, displayMission4);
+			missions.mission5.removeEventListener(MouseEvent.MOUSE_UP, displayMission5);
 			playBtn.removeEventListener(MouseEvent.CLICK, startGame);
 		}
 		

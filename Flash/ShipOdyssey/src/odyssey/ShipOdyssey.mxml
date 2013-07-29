@@ -390,12 +390,20 @@
 			}
 			
 			// TO-DO: rename this to setMissionLevel
-			private function huntLevel(mission:MissionData, stripBtnListeners:Boolean, goRightAway:Boolean):void{
+			private function huntLevel(mission:MissionData, stripBtnListeners:Boolean, clearPreviousData:Boolean):void{
 				updateGameTitle();
 				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();
 				
-				//mPrevHuntLevel = mMissionNum;
+				if( clearPreviousData )  { // TO-DO: only do this after sendGameDataClose(), if user requests it.
+					if( this.parentCaseID >=0 ) {
+						trace( "DG interface: there was an open game! " );
+					}
+					trace( "DG interface: deleting all game cases" );
+					sendDeleteAllCaseDatatoDG();
+				}
+				
+				
 				mStdDeviation = mission.stdDeviation;
 				mHookRadius = mission.hookRadius;
 				
@@ -418,11 +426,7 @@
 				else
 					bootyMeter.nextSiteBtn.visible = false;
 				
-				
-				if(!goRightAway)
-					popUpScreen.displayHelp();
-				else
-					newMission();
+				newSite();
 				
 				crane.setHookSize(mission.hookSize);
 				sailingMovie.setHookSize(mission.hookSize);
@@ -660,7 +664,7 @@
 				
 				if(startNextMission){
 					initializeTreasureHunt();
-					newMission();
+					newSite();
 				}
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
 				shipControlsMVC.hookStepper.value = 100;
@@ -792,11 +796,11 @@
 						if(bootyMeter.isGameOver){
 							popUpScreen.displayTreasure(treasuresFoundString(), popUpScreen.finishMission, false, true);
 						}else{
-							popUpScreen.displayTreasure(treasuresFoundString(), newMission);
+							popUpScreen.displayTreasure(treasuresFoundString(), newSite);
 						}
 					}else{
 						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
-						popUpScreen.displayRecap(treasuresFoundString(), newMission);
+						popUpScreen.displayRecap(treasuresFoundString(), newSite);
 					}
 				}
 
@@ -821,7 +825,7 @@
 				return 3;
 			}
 			
-			private function newMission(iEvent:Event = null):void{
+			private function newSite(iEvent:Event = null):void{
 				popUpScreen.visible = false;
 				readyToZoomIn();
 				disableAllButtons();
@@ -831,10 +835,7 @@
 					trace( "DG interface: closing old parent case (ID="+this.parentCaseID+" before starting new mission" );
 					sendGameDataClose();
 				}
-				if( false )  { // TO-DO: only do this after sendGameDataClose(), if user requests it.
-					trace( "DG interface: deleting all game cases" );
-					sendDeleteAllCaseDatatoDG();
-				}
+				
 				sendGameDataOpen();
 			//	bootyMeter.readyNewLocation();
 				updateRatLimit();
