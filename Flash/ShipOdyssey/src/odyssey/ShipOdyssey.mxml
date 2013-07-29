@@ -46,7 +46,7 @@
 			
 			private static const DEBUG_MODE:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
 			
-			public static const VERSION:String = "v.2013.07.19";
+			public static const VERSION:String = "v.2013.07.29";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -191,7 +191,8 @@
 			{
 				BrickWall.visible = false;
 				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
-				this.sendCollectionData();		//		set it up so we can emit data
+				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
+				this.sendCreateGraphRequestToDG();		// create a Graph view in DG, if not present already
 				
 				initListeners();	// adds event listeners that exist for the entirety of the game.
 				initVisualElements(); // any visual elements of .swc format are init'd here
@@ -214,6 +215,27 @@
 				mRatsToSend	= iCurrentRatsToSend;
 				// sync stepper
 				shipControlsMVC.ratStepper.value = mRatsToSend;
+			}
+			
+			// ask DG to create a Graph object, for viewing Site+Rat data.  It should ignore this request if a Graph already exists.
+			private function sendCreateGraphRequestToDG():void {
+				var result:String,
+					doCommandObj:Object = {
+							action: "createComponent",
+							args: { type: "DG.GraphView" }
+						},
+					doCommandString:String = JSON.encode( doCommandObj );
+
+				result = ScriptInterface.doCommand( doCommandString );
+			}
+			
+			// ask DG to delete cases from completed missions (which exist at the game and event levels in the Table and Graph of the current DG document, if any)
+			private function sendDeleteAllCaseDatatoDG():void {
+				var result:String,
+					doCommandObj:Object = {  action: "deleteAllCaseData" },
+					doCommandString:String = JSON.encode( doCommandObj );
+				
+				result = ScriptInterface.doCommand( doCommandString );
 			}
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
@@ -808,6 +830,10 @@
 				if( this.parentCaseID >=0 ) {
 					trace( "DG interface: closing old parent case (ID="+this.parentCaseID+" before starting new mission" );
 					sendGameDataClose();
+				}
+				if( false )  { // TO-DO: only do this after sendGameDataClose(), if user requests it.
+					trace( "DG interface: deleting all game cases" );
+					sendDeleteAllCaseDatatoDG();
 				}
 				sendGameDataOpen();
 			//	bootyMeter.readyNewLocation();
