@@ -11,17 +11,16 @@ package odyssey
 	public class BootyBarMVC extends BootyMeter
 	{		
 		private var _isGameOver:Boolean = false; // whether or not the game is over.
-		
 		private var _dispatcher:BootyEventDispatcher = new BootyEventDispatcher(); // object that dispatches booty events		
 		
 		private var _treasuresFound:int; // how many treasures the player has
 		private var _missesAllowed:int;
 		private var _misses:int;
 		
-		private var _gold:int; // how much gold the player has to spend.
-		private var goldText:int; // what the display says.
+		private var _rats:int; // how much gold the player has to spend.
+		private var ratText:int; // what the display says.
 
-		private var _startingGold:int; // how much gold the player started the mission with.
+		private var _startingRats:int; // how much gold the player started the mission with.
 		private var targetHeight:Number; // the height that the booty bar is trying to animate to.
 		
 		public function BootyBarMVC()
@@ -32,7 +31,7 @@ package odyssey
 			var tf:TextFormat = new TextFormat();
 			tf.bold = true;
 			treasureDisplay.treasure.treasures.defaultTextFormat = tf;
-			goldMeter.gold.defaultTextFormat = tf;
+			ratMeter.rats.defaultTextFormat = tf;
 		}
 		
 		public function get dispatcher():BootyEventDispatcher
@@ -40,16 +39,16 @@ package odyssey
 			return _dispatcher;
 		}
 		
-		public function get gold():int{
-			return _gold;
+		public function get rats():int{
+			return _rats;
 		}
 		
 		public function get misses():int{
 			return _misses;
 		}
 		
-		public function get startingGold():int{
-			return _startingGold;
+		public function get startingRats():int{
+			return _startingRats;
 		}
 		
 		public function get treasuresFound():int{
@@ -78,22 +77,22 @@ package odyssey
 		}
 		
 		// call this method at the start of each level
-		public function initialize(startingGold:int, missesAllowed:int):void
+		public function initialize(startingRats:int, missesAllowed:int):void
 		{
 			// first, set all the numbers:
 			_isGameOver = false;
-			_startingGold = startingGold;
-			_gold = _startingGold;
+			_startingRats = startingRats;
+			_rats = startingRats;
 			
 			_misses = 0;
 			_missesAllowed = missesAllowed;
 			
 			_treasuresFound = 0;
-			goldMeter.maskObj.height = 101;
+			ratMeter.maskObj.height = 101;
 			treasureDisplay.treasure.treasures.text = String(_treasuresFound);	// write the # of treasures you have at the top.
 			
-			goldText = _gold;
-			goldMeter.gold.text = goldText;		// write how much gold you have in the bar.
+			ratText = _rats;
+			ratMeter.rats.text = ratText;		// write how much gold you have in the bar.
 			
 			hooks.gotoAndStop(missesAllowed);
 			for(var i:int = 0; i<missesAllowed; i++)
@@ -102,33 +101,33 @@ package odyssey
 		
 		// call this method whenever you spend money
 		public function pay(cost:int):void{
-			_gold -= cost;
-			if(_gold <= 0) // stop it from going negative.
-				_gold = 0;
+			_rats -= cost;
+			if(_rats <= 0) // stop it from going negative.
+				_rats = 0;
 			
 			account();
 		}
 		
 		private function account():void{
-			targetHeight = (_gold/_startingGold)*100 + 1;
-			goldMeter.gold.text = String(goldText); //wip.
+			targetHeight = (_rats/_startingRats)*100 + 1;
+			ratMeter.rats.text = String(ratText); //wip.
 			addEventListener(Event.ENTER_FRAME, animateGold);
 		}
 		
 		private var ANIMATION_SPEED:int = 5; // how fast the bar drops. Bigger # = slower drop.
 		private function animateGold(e:Event):void{
-			if(targetHeight + 0.1 < goldMeter.maskObj.height){
-				var changeVar:Number = (goldMeter.maskObj.height - targetHeight)/ANIMATION_SPEED;
-				goldMeter.maskObj.height -= changeVar;
+			if(targetHeight + 0.1 < ratMeter.maskObj.height){
+				var changeVar:Number = (ratMeter.maskObj.height - targetHeight)/ANIMATION_SPEED;
+				ratMeter.maskObj.height -= changeVar;
 				
-				var changeDist:Number = (goldText - _gold)/ANIMATION_SPEED;
-				goldText -= changeDist;
+				var changeDist:Number = (ratText - _rats)/ANIMATION_SPEED;
+				ratText -= changeDist;
 			}else{
-				goldMeter.maskObj.height = targetHeight;
+				ratMeter.maskObj.height = targetHeight;
 				removeEventListener(Event.ENTER_FRAME, animateGold);
-				goldText = _gold;
+				ratText = _rats;
 			}
-			goldMeter.gold.text = String(goldText);
+			ratMeter.rats.text = String(ratText);
 		}
 		
 		private var _endMissionFunc:Function;

@@ -4,9 +4,9 @@ package odyssey
 	
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	import flash.events.TimerEvent;
+	//import flash.events.TimerEvent;
 	import flash.text.TextFormat;
-	import flash.utils.Timer;
+	//import flash.utils.Timer;
 	
 	import odyssey.missions.Missions;
 	
@@ -18,7 +18,7 @@ package odyssey
 		private static const kLevelTitleArray:Array = new Array(Missions.mission1.title, Missions.mission2.title, Missions.mission3.title, Missions.mission4.title);
 		
 		private var selectedLevel:int = 1;
-		private var delayTimer:Timer; //used to animate 'fade out'. The dely before the screen disappears.
+		//private var delayTimer:Timer; //used to animate 'fade out'. The dely before the screen disappears.
 		private var okayFunc:Function = emptyFunction;	// the funciton that's assigned to the okay button
 		
 		private function emptyFunction():void{	trace("EMPTY FUNCTION");	}
@@ -47,26 +47,26 @@ package odyssey
 		
 		private var printedTreasures:int = 0; // how many treasures it says you have.
 		private var _treasuresFound:int = 0; // how many treasures you found this mission.
-		private var _rank:int = 1;
+		private var _rating:int = 1;	//TO-DO rename this rating.
 		
-		public function set rank(arg:int):void{
+		public function set rating(arg:int):void{
 			if(arg < 1 || arg > 5)
-				throw new Error("rank must range from 1-5");
-			_rank = arg;
+				throw new Error("rating must range from 1-5");
+			_rating = arg;
 		}
-		public function get rank():int{
-			return _rank;
+		public function get rating():int{
+			return _rating;
 		}
 		public function set treasuresFound(arg:int):void{
 			if(arg < 0)
-				throw new Error("rank must be positive");
+				throw new Error("rating must be positive");
 			_treasuresFound = arg;
 		}
 		
 		public function finishMission(e:Event = null):void{
 			visible = true;
 			gotoAndStop("finishMission");
-			delayTimer = new Timer(700, 1);
+			//delayTimer = new Timer(700, 1);
 			mainBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
 			
 			var tf:TextFormat = new TextFormat();
@@ -93,8 +93,8 @@ package odyssey
 		private function finishTicks(e:Event):void{
 			treasureDisplay.removeEventListener("tick", tickUp);
 			treasureDisplay.removeEventListener("complete", finishTicks);
-			rating.gotoAndPlay(1);
-			rating.rating.gotoAndStop(_rank);
+			ratingMVC.gotoAndPlay(1);
+			ratingMVC.rating.gotoAndStop(_rating);
 		}
 		
 		// click the 'choose level' button

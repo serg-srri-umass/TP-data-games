@@ -16,10 +16,10 @@ package odyssey.missions
 		with( mission1){ 		// Mission 1 section:
 			title = "Hundreds o' Rats";
 
-			startingLoot = 800;
+			startingRats = 800;
 			missesAllowed = 2;
 			
-			startingRats = 100;
+			ratsInStepper = 100;
 			fixedRats = 100;
 			ratCost = 1;
 			stdDeviation = kStdDeviationClear;
@@ -32,33 +32,13 @@ package odyssey.missions
 			//instructions = "At this location, each treasure is worth " + TextFormatter.toCash(mission1.treasureValue) + ". You start with "+ TextFormatter.toCash(mission1.startingLoot) +". To complete it, earn " + TextFormatter.toCash(mission1.goal) + ". Rats are free, but be careful; a missed hook will cost you $5,000.";
 		}
 		
-		with( mission2){		// Mission 2 section:
-			title = "Treasure or Not";
-			
-			startingLoot = 600;
-			missesAllowed = 2;
-			variableTreasures = true;
-			
-			startingRats = 100;
-			ratCost = 1;
-			stdDeviation = kStdDeviationClear;
-			
-			skyGradient = VisualVariables.daylight;
-			waterGradient = VisualVariables.clearWater;
-			cloudPattern = VisualVariables.grayClouds;
-			
-			instructions = "The description of 'Treasure or Not' goes here.";
-			//instructions = "Each treasure is still worth " + TextFormatter.toCash(mission2.treasureValue) + ", but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals.";
-
-		}
-		
-		with( mission3){		// Mission 3 section:
+		with( mission2){		// Mission 3 section:
 			title = "Rat Shortage";
 			
-			startingLoot = 400;
+			startingRats = 400;
 			missesAllowed = 2;
 			
-			startingRats = 5;
+			ratsInStepper = 5;
 			ratCost = 1;
 			stdDeviation = kStdDeviationClear;
 			
@@ -70,13 +50,32 @@ package odyssey.missions
 			//instructions = "Each treasure is now worth " + TextFormatter.toCash(mission3.treasureValue) + ". Rats will cost you $100 each. Check the loot meter for your new goals.";
 		}
 		
+		with( mission3){		// Mission 2 section:
+			title = "Treasure or Not";
+			
+			startingRats = 600;
+			missesAllowed = 2;
+			variableTreasures = true;
+			
+			ratsInStepper = 100;
+			ratCost = 1;
+			stdDeviation = kStdDeviationClear;
+			
+			skyGradient = VisualVariables.daylight;
+			waterGradient = VisualVariables.clearWater;
+			cloudPattern = VisualVariables.grayClouds;
+			
+			instructions = "The description of 'Treasure or Not' goes here.";
+			//instructions = "Each treasure is still worth " + TextFormatter.toCash(mission2.treasureValue) + ", but now there are either 0, 1, or 2 treasures. Check the loot meter for your new goals.";
+		}
+		
 		with( mission4){		// Mission 4 section:
 			title = "Deep Water";
 			
-			startingLoot = 750;
+			startingRats = 750;
 			missesAllowed = 2;
 			
-			startingRats = 5;
+			ratsInStepper = 5;
 			ratCost = 1;
 			stdDeviation = kStdDeviationDeep;
 			

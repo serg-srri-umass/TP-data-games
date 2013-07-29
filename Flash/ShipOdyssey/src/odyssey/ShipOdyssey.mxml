@@ -378,18 +378,11 @@
 				cHerder.startClouds();
 				mMissionNum = mission.number;
 				
-				setRatsToSend(mission.startingRats);
+				setRatsToSend(mission.ratsInStepper);
 				mCostPerRat	= mission.ratCost;	// Cost per rat in dollars.
 				mAutoSailOnAfterFoundTreasure = !mission.variableTreasures;
 				mCurrentLevel = mission.number;
-				
-				/*if(mCostPerRat == 0)
-					shipControlsMVC.ratCost.text = "";
-				else
-					shipControlsMVC.ratCost.text = "Each rat costs "+TextFormatter.toCash(mCostPerRat);
-				*/
-				
-				bootyMeter.initialize(mission.startingLoot, mission.missesAllowed);
+				bootyMeter.initialize(mission.startingRats, mission.missesAllowed);
 				
 				if(mission.variableTreasures)
 					bootyMeter.nextSiteBtn.visible = true;
@@ -466,7 +459,7 @@
 
 			// this function sets the max # of rats your stepper goes up to, based on how much $ you have.
 			private function updateRatLimit():void{
-				var maxRats:int = (mCostPerRat == 0 ? kMaxRatsToSend : Math.max(bootyMeter.gold/mCostPerRat, 0));
+				var maxRats:int = (mCostPerRat == 0 ? kMaxRatsToSend : Math.max(bootyMeter.rats/mCostPerRat, 0));
 				if(maxRats > kMaxRatsToSend)
 					maxRats = kMaxRatsToSend;
 				shipControlsMVC.ratStepper.maxValue = maxRats;
@@ -476,7 +469,7 @@
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent = null):void{
 				if(shipControlsMVC.ratStepper.validate()){ // check if the stepper is valid #, based on how much $ you have.
-					if(mCostPerRat >= bootyMeter.gold){
+					if(mCostPerRat >= bootyMeter.rats){
 						shipControlsMVC.ratStepper.gotoAndPlay("blink"); // make the stepper flash red if you can afford 0 rats.
 					}else{
 						if(mCostPerRat > 0){ // pay if rats cost $
@@ -647,8 +640,8 @@
 			
 			//call the animation, disable all buttons during animation, and start a timer
 			private function dropHook():void{
-				disableAllButtons();
-				bootyMeter.disableNextSiteButton(false);
+				disableAllButtons(); // this makes the next site button invisible
+				bootyMeter.disableNextSiteButton(false);  // this makes the next site button visible, but disabled.
 				
 				var hookDropTime:Number = 1;
 				var hookRaiseTime:Number = 2.75;
@@ -676,7 +669,7 @@
 					
 					// Tell the player which treasure was found and how much it is worth.					
 					
-					if(mMissionNum == Missions.mission2.number) // if on level 2
+					if(Missions.getMission(mCurrentLevel).variableTreasures) // if on level 2
 					{
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.isGameOver){	// if you're out of $, or won. $WIP
@@ -775,7 +768,7 @@
 				shipControlsMVC.ratStepper.enabled = false;
 				
 				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
-				popUpScreen.rank = getRank();
+				popUpScreen.rating = getRating();
 			}
 			
 			// previously 'loseGame'
@@ -783,10 +776,10 @@
 				popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
 				popUpScreen.displayRecap(treasuresFoundString(), popUpScreen.finishMission, true);	
 				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
-				popUpScreen.rank = getRank();
+				popUpScreen.rating = getRating();	
 			}
 			
-			private function getRank():int{		//$WIP. 
+			private function getRating():int{		//TO-DO Rename this to 'getRating'. 
 				return 3;
 			}
 			
@@ -882,7 +875,7 @@
 										mRatsSent,			 // Total number of rats sent during current game.
 										mHooksDropped,		 // Number of times hook was dropped during current game.
 										mTreasuresFound, 	 // Number of treasures found during current game.
-										0  // Value of (treasures found) minus (crew/ship costs and rat costs).		// $WIp. this value no longer exists.
+										bootyMeter.rats  // Value of (treasures found) minus (crew/ship costs and rat costs).
 									]
 								}
 							};
@@ -905,7 +898,7 @@
 							mRatsSent,			 // Total number of rats sent during current game.
 							mHooksDropped,		 // Number of times hook was dropped during current game.
 							mTreasuresFound, 	 // Number of treasures found during current game.
-							bootyMeter.gold		 // Value of (treasures found) minus (crew/ship costs and rat costs).
+							bootyMeter.rats		 // Value of (treasures found) minus (crew/ship costs and rat costs).
 						]
 					);
 				}
@@ -998,7 +991,7 @@
 			private function zoomInTimerFinish(e:TimerEvent):void{
 				mTreasureLocArr = new Array();
 				mTreasureLocArrLocked = new Array();
-				if(mCurrentLevel == 2) //level 2 can have 0, 1, or 2 treasures
+				if(Missions.getMission(mCurrentLevel).variableTreasures) //'Treasure or Not' can have 0, 1, or 2 treasures
 				{
 					mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
 					
@@ -1251,7 +1244,7 @@
 				onChangeCenterPosition(new Event("Stepper"));		
 				sendGameDataClose();
 				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
-				popUpScreen.rank = getRank();
+				popUpScreen.rating = getRating();
 				
 				popUpScreen.finishMission();
 				//popUpScreen.chooseHuntLevel();
