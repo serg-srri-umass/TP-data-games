@@ -91,5 +91,9 @@ package odyssey.missions
 		public static function getMission(arg:Number):MissionData{
 			return MissionData.getMission(arg);
 		}
+		
+		public static function getMissionTitle(arg:Number):String {
+			return getMission(arg).title;
+		}
 	}
 }

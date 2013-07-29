@@ -15,6 +15,10 @@
 			frame = limit(frame);
 			Crane_mc.gotoAndStopMod(frame);
 			Crane_mc.frameTarget = frame;
+			
+			// this hides the dropHook & shows the mHook.
+			if(!Crane_mc.mHook.visible)
+				Crane_mc.init();
 		}
 		
 		public function dropHook(treasureFound:Boolean, secsDrop:Number, secsLift:Number):void{
@@ -97,6 +101,8 @@
 			var pos = (	(mouseX - SCALE_START)/pxWidth);
 			return pos;
 		}
+		
+		// clips arg so its between 0 and 100.
 		public function limit(arg:int):int{
 			if(arg < 0)
 				arg = 0;

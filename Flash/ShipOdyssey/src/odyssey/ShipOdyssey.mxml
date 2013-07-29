@@ -46,7 +46,7 @@
 			
 			private static const DEBUG_MODE:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
 			
-			public static const VERSION:String = "v.2013.07.12";
+			public static const VERSION:String = "v.2013.07.24";
 			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -74,9 +74,9 @@
 			public var mNumTreasures:uint = 1;	// Number of treasures to find.
 			
 			private var mStdDeviation:Number;	// Standard deviation of rat results.
-			private var mHuntLevel:uint		= 0;
-			private var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
-			public var mNextHuntLevel:uint = 0;
+			private var mMissionNum:uint	= 1;			// which mission, as a number 1+
+			//private var mPrevHuntLevel:uint	= 0;			// Used to track hunt level changes.
+			//public var mNextHuntLevel:uint = 0;
 			public static var mMaxRatsToSend:uint	= 500;	// Maximum allowable number of rats to send at a time
 			public static var mMinRatsToSend:uint	= 1;	// Minimum allowable number of rats to send at a time.
 			private var mRatsToSend:uint	= 10;			// Rats to send at one time: should match current stepper value.
@@ -97,7 +97,7 @@
 			private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet?
 			private var mFoundTreasure:Boolean = false; 	// Has the current hook drop found this treasure?
 			private var mCurrentLevel:int = 0;
-			private	var	parentCaseID:int = 0;
+			private	var	parentCaseID:int = -2;				// parent (game-level) case ID for DG; -2 means DG data not yet initialized, -1 means that no game case is open, 0+ is valid ID
 			
 			private var mTreasuresAtLocArr:Array;			//Used for new multi-treasure aspect - tells how many treasures are at the current loc
 			private var mTreasureLocArr:Array;				//location of each treasure at current loc, treasures are removed as found
@@ -131,7 +131,7 @@
 			
 			//variables for holding loaded MovieClips
 			private function getCurrentMission():int{ return mCurrentLevel; }
-			private function getHuntMission():uint{ return mHuntLevel; }
+			private function getHuntMission():uint{ return mMissionNum; }
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI(huntLevel, restartMission, getCurrentMission, getHuntMission, setGameTitle);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
 			private var topBarMVC:TopBarMVC = new TopBarMVC();
@@ -190,7 +190,8 @@
 			{
 				BrickWall.visible = false;
 				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
-				this.sendCollectionData();		//		set it up so we can emit data
+				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
+				this.sendCreateGraphRequestToDG();		// create a Graph view in DG, if not present already
 				
 				initListeners();	// adds event listeners that exist for the entirety of the game.
 				initVisualElements(); // any visual elements of .swc format are init'd here
@@ -223,6 +224,21 @@
 				//mRatStepper.value = mRatsToSend;
 				//mRatStepper.minimum = mMinRatsToSend;
 				//mRatStepper.maximum = mMaxRatsToSend;
+			}
+			
+			// ask DG to create a Graph object, for viewing Site+Rat data.  It should ignore this request if a Graph already exists.
+			private function sendCreateGraphRequestToDG():void {
+				var result:String;
+				if( ! kUseDataGamesInterface )
+					return;
+				var createGraphObj:Object = {
+							action: "createComponent",
+							args: {
+								type: "DG.GraphView"
+							}
+						};
+				var	createGraphString:String = JSON.encode( createGraphObj );
+				result = ScriptInterface.doCommand( createGraphString );
 			}
 			
 			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
@@ -269,7 +285,9 @@
 						} // args
 					}; //initGameObj
 					var	initGameString:String = JSON.encode( initGameObj );
-					result = ScriptInterface.doCommand( initGameString );
+					result = ScriptInterface.doCommand( initGameString ); // note: as of 2013-07-23 initGame always returns null
+					this.parentCaseID = -1; // change from -2 to -1 to indicate game data sent (for error detection only)
+					trace( "DG interface: initGame" );
 				}
 				else {
 					// use the old data interface compatible with TinkerPlots 2.0 Research Edition; 
@@ -336,20 +354,9 @@
 				
 				//instead of choosing treasure randomly, chooses based on which level you are on.
 				//Choose treasure name from matching level pool. Iterates through names linearly. 
-				switch (mHuntLevel){
-					case 0:
-						mCurrentTreasureNum = 0;
-						break;
-					case 1:
-						mCurrentTreasureNum = 1;
-						break;
-					case 2:
-						mCurrentTreasureNum = 2;
-						break;
-					case 3:
-						mCurrentTreasureNum = 3;
-						break;
-				} 
+				mCurrentTreasureNum = mMissionNum - 1;
+				if( mCurrentTreasureNum < 0 || mCurrentTreasureNum > 3 )
+					throw new Error("invalid index to mTreasureArray");
 				
 				mTreasure0[kItem] = mNamePicker.poolShift(1);
 				mTreasure1[kItem] = mNamePicker.poolShift(2);
@@ -378,21 +385,24 @@
 			
 			
 			
+			private function updateGameTitle():void{
+				setGameTitle(Missions.getMissionTitle(mMissionNum)+ ", Site " + mGameNumber);
+			}
 			
-			
+			// TO-DO: rename this to setMissionLevel
 			private function huntLevel(mission:MissionData, stripBtnListeners:Boolean, goRightAway:Boolean):void{
-				setGameTitle(mission.title);
+				updateGameTitle();
 				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();
 				
-				mPrevHuntLevel = mHuntLevel;
+				//mPrevHuntLevel = mMissionNum;
 				mStdDeviation = mission.stdDeviation;
 				Water.fill = mission.waterGradient;
 				Sky.backgroundFill = mission.skyGradient;
 				cHerder.cleanClouds();
 				cHerder.init(mission.cloudPattern);
 				cHerder.startClouds();
-				mHuntLevel = mission.number; // Set game level to first level.
+				mMissionNum = mission.number;
 				
 				setCurrentMinMaxRats(mission.startingRats, mission.minRats);
 				mCostPerRat	= mission.ratCost;	// Cost per rat in dollars.
@@ -405,28 +415,15 @@
 
 				bootyMeter.initialize(mission.startingLoot, mission.goal, mission.treasureValue);
 				
+				if(mission.variableTreasures)
+					bootyMeter.nextSiteBtn.visible = true;
+				else
+					bootyMeter.nextSiteBtn.visible = false;
+				
 				if(!goRightAway)
-					showCurrentLevelInstructions();
+					popUpScreen.displayHelp();
 				else
 					newMission();
-			}
-			
-			// getOceanQuality() returns a string descibing the ocean quality based on the hunt level
-			protected function getOceanQuality():String
-			{
-				switch (mHuntLevel)
-				{
-					case 1:
-						return "1";
-					case 2:
-						return "2";
-					case 3:
-						return "3";
-					case 4:
-						return "4";
-					default:
-						return "0";
-				}
 			}
 						
 			// randomLocation() creates a new location on the ocean floor based on a uniform
@@ -453,16 +450,21 @@
 					case 0:
 						return "There were no treasures here.";
 					case 1:
-						if(mTreasuresFound == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
-						else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
+						if(mTreasuresFound == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + printLocations();
+						else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + printLocations();
+						//if(mTreasuresFound == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
+						//else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
 					case 2:
 						switch(mTreasuresFound)
 						{
 							//these really long strings format the info for the two treasures on two tabular lines
-							case 0: return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You missed " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue]) + " at " + Math.round(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10;
+							case 0: return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You missed " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " at " + Math.round(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10;
+							//case 0: return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You missed " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue]) + " at " + Math.round(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10;
 							//the really long string is there to format the message based on which of the two treasures you found, and which you missed 	
-							case 1: return "You found " + ((foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " worth " + ((foundFirstOf2) ? TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) : TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue])) + " at " + ((foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10)) + "\n" + "You missed " + ((!foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " worth " + ((!foundFirstOf2) ? TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) : TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue])) + " at " + ((!foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10));
-							case 2: return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You found " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10);
+							case 1: return "You found " + ((foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " at " + ((foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10)) + "\n" + "You missed " + ((!foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " at " + ((!foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10));
+							//case 1: return "You found " + ((foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " worth " + ((foundFirstOf2) ? TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) : TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue])) + " at " + ((foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10)) + "\n" + "You missed " + ((!foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " worth " + ((!foundFirstOf2) ? TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) : TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue])) + " at " + ((!foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10));
+							case 2: return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You found " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " at " + String(int(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10);
+							//case 2: return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You found " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10);
 						}
 					default: return "You found " + mTreasuresFound + " of the " + mNumTreasures + " treasures!";
 				}
@@ -497,7 +499,6 @@
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent = null):void{
-				hideInstructions();
 				if(shipControlsMVC.ratStepper.validate()){ // check if the stepper is valid #, based on how much $ you have.
 					if(mCostPerRat >= bootyMeter.booty){
 						shipControlsMVC.ratStepper.gotoAndPlay("blink"); // make the stepper flash red if you can afford 0 rats.
@@ -606,7 +607,6 @@
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent = null):void
 			{		
-				hideInstructions();
 				shipControlsMVC.disableHookButton();
 				crane.canDrag = false;
 				
@@ -647,9 +647,9 @@
 				}
 			}
 			
-			//called from the PopUpMVC when the game needs to be restarted.mHuntLevel
+			//called from the PopUpMVC when the game needs to be restarted
 			private function restartMission(startNextMission:Boolean = true):void{
-				exitGame();
+				finishSite();
 				
 				if(startNextMission){
 					initializeTreasureHunt();
@@ -698,7 +698,7 @@
 					
 					// Tell the player which treasure was found and how much it is worth.					
 					
-					if(mHuntLevel == Missions.mission2.number) // if on level 2
+					if(mMissionNum == Missions.mission2.number) // if on level 2
 					{
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.won){	// if you've won, sail on.
@@ -755,21 +755,18 @@
 			// onClickExitNewGame() starts a new game and ends a game in progress
 			protected function onClickExitNewGame(iEvent:MouseEvent):void
 			{
-				hideInstructions();
-				if( mExitNewGameButton.label == "Pull Anchor"){
-					disableAllButtons();
-					zoomOutAndSail();
-				} else { 
-					newMission(iEvent);
-				}
+				disableAllButtons();
+				zoomOutAndSail();
 			}
 			
-			private function exitGame(iEvent:Event = null):void{
+			// This function is called when a site is complete. It sets everything back to how it started, and then shows the instant replay.
+			// If you click 'end mission', this method isn't called because you don't want a replay.
+			// this function was previously named exitGame
+			private function finishSite(iEvent:Event = null):void{
 				sendGameDataClose();
 				
 				//clean up everything so it is back in initial state for start of next game
 				crane.visible = false;
-				
 				sailingMovie.visible = true;
 				sailingMovie.reset();
 				mCurrentGameComplete = true;// Game is now complete.	
@@ -789,10 +786,7 @@
 						trace("treasure found string: " + treasuresFoundString());
 					}
 				}
-								
-				mLevelsButton.enabled = true;
-				mExitNewGameButton.enabled = true;
-				mExitNewGameButton.label = "New Site";
+
 				shipControlsMVC.disableRatsButton();
 				shipControlsMVC.disableHookButton();
 				shipControlsMVC.hookStepper.enabled = false;
@@ -806,50 +800,30 @@
 			
 			private function newMission(iEvent:Event = null):void{
 				popUpScreen.visible = false;
-				hideInstructions();
 				readyToZoomIn();
-				mExitNewGameButton.enabled = true;
-				mExitNewGameButton.label = "Pull Anchor";
 				disableAllButtons();
 				mGameNumber += 1;
 				switchToTreasureHunt(iEvent); //start a new game
+				if( this.parentCaseID >=0 ) {
+					trace( "DG interface: closing old parent case (ID="+this.parentCaseID+" before starting new mission" );
+					sendGameDataClose();
+				}
 				sendGameDataOpen();
 				bootyMeter.readyNewLocation();
 				updateRatLimit();
+				updateGameTitle();
 			}
 			
 			// Toggles the Instructions scroll
 			private function onClickHelpButton():void
 			{
-				var tan:int = 13742987; //#d1b38b
-				var red:int = 14579041; //#de7561
-				
-				var active:Boolean = (mHelpButton.getStyle("chromeColor")==red);
-				if(active)
+				if(popUpScreen.isShowingHelp())
 				{
-					hideInstructions();
+					popUpScreen.hideHelp();
 				}
 				else
 				{
-					showCurrentLevelInstructions();
-				}
-			}
-			
-			private function showCurrentLevelInstructions():void
-			{
-				var red:int = 14579041; //#de7561
-				mHelpButton.setStyle("chromeColor", red);
-				popUpScreen.displayHelp();
-				popUpScreen.addEventListener(MouseEvent.CLICK, hideInstructions);
-			}
-			
-			private function hideInstructions(e:Event = null):void
-			{
-				popUpScreen.removeEventListener(MouseEvent.CLICK, hideInstructions);
-				if(popUpScreen.isShowingHelp()){
-					var tan:int = 13742987; //#d1b38b
-					mHelpButton.setStyle("chromeColor", tan);
-					popUpScreen.visible = false;
+					popUpScreen.displayHelp();
 				}
 			}
 			
@@ -858,27 +832,6 @@
 				//update the cumulative cost of using the ship and crew as well as the profit so far
 				mCurrentTreasureNum = selectRandomTreasure();
 			}
-			
-			//old function, called nowhere
-//			private function gameFinish():void{
-//				// Tell the player the game is over.
-//				if (mTreasuresFound) // At least one treasure was found.
-//				{
-//					mCongratulationsAlert.visible	= true;
-//					mTreasuresFoundLabel.text		= treasuresFoundString();
-//					mTreasuresFoundLabel.visible	= true;
-//				}else{ // No treasures were found.
-//					//					mNoTreasuresFoundAlert.visible	= true;
-//				}
-//				// display exit button
-//				//				mExitFinishButton.visible = true;
-//				// If game didn't already end when hook dropped, send game data to TinkerPlots / Fathom.
-//				if (mCurrentGameComplete == false)
-//					sendGameDataClose();
-//				mCurrentGameComplete = true;// Game is complete.
-//			}
-			
-			//call to update the log any time a value changes
 			
 			// send the Game-level data to TinkerPlots or DG.
 			// this creates and opens the game case, see also sendGameDataClose()
@@ -890,16 +843,25 @@
 							collection: kGamesCollectionName,
 							values: [
 								mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
-								getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+								Missions.getMissionTitle(mMissionNum),	 // game level string
 								"",
 								"",
 								""
 							]
 						} 	
 					}
-					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
-					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
-					this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );	
+						
+					if( this.parentCaseID >= 0 ) {
+						trace( "DG interface error: openCase without closing previous parent case ID ("+this.parentCaseID+")" );
+					} else {
+						var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
+						var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+						this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
+						if(VersionChecker.isDebug && DEBUG_MODE && this.parentCaseID == -1 ) {
+							trace("DG interface: simulating openCase with parentCaseID 0 (debug only)");
+							this.parentCaseID = 0; // fake a valid case ID for validating sendGameDataUpdate() when not connected to DG
+						}
+					}
 				} else {
 					// else do nothing for TinkerPlots; old game API wants nothing for start of game
 				}
@@ -916,22 +878,29 @@
 			private function sendGameDataUpdate( wantCaseClosed:Boolean = false ):void{
 				if( kUseDataGamesInterface ) {
 					// send data to close a case in Game collection to DG
-					var	closeGameCaseObj:Object = { 
-						action: (wantCaseClosed ? "closeCase" : "updateCase" ),
-						args: { 
-							collection: kGamesCollectionName,
-							caseID: this.parentCaseID,
-								values: [
-									mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
-									getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
-									mRatsSent,			 // Total number of rats sent during current game.
-									mHooksDropped,		 // Number of times hook was dropped during current game.
-									mTreasuresFound, 	 // Number of treasures found during current game.
-									bootyMeter.profitSoFar  // Value of (treasures found) minus (crew/ship costs and rat costs).
-								]
-						}
-					};
-					ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
+					var	whichAction:String = (wantCaseClosed ? "closeCase" : "updateCase" ),
+						closeGameCaseObj:Object = { 
+							action: whichAction,
+							args: { 
+								collection: kGamesCollectionName,
+								caseID: this.parentCaseID,
+									values: [
+										mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
+										Missions.getMissionTitle(mMissionNum),	 // game level string
+										mRatsSent,			 // Total number of rats sent during current game.
+										mHooksDropped,		 // Number of times hook was dropped during current game.
+										mTreasuresFound, 	 // Number of treasures found during current game.
+										bootyMeter.profitSoFar  // Value of (treasures found) minus (crew/ship costs and rat costs).
+									]
+								}
+							};
+					if( this.parentCaseID >= 0 )
+						ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
+					else
+						trace( "DG interface error: "+whichAction+" with invalid parent case ID ("+this.parentCaseID+")" );
+					
+					if( wantCaseClosed )
+						this.parentCaseID = -1;	// set to invalid ID after close so we can detect errors
 					
 				} else if (wantCaseClosed) { // do nothing if just updating (not in TinkerPlots game data API)
 					// TinkerPlots 2.0 Research Edition interface
@@ -939,7 +908,7 @@
 						kGamesCollectionName,
 						[
 							mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
-							getOceanQuality(),	 // Clear or murky, based on hunt level chosen.
+							Missions.getMissionTitle(mMissionNum),	 // game level string
 							mRatsSent,			 // Total number of rats sent during current game.
 							mHooksDropped,		 // Number of times hook was dropped during current game.
 							mTreasuresFound, 	 // Number of treasures found during current game.
@@ -961,8 +930,7 @@
 			}
 			
 			// send Event data to TinkerPlots or DG
-			// Event data is the "Hook" or "Rat" event
-			// NOTE: we no longer send type=="Hook" events
+			// Event data are "Rat Sent" events (one rat sending per case); we no longer send "Hook dropped" events
 			private function sendEventData(type:String, valArrays:Array):void{
 				var numEvents:int = valArrays.length,
 					i:int;
@@ -975,8 +943,12 @@
 							parent: this.parentCaseID,
 								values: valArrays
 						}
-					};
-					ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
+					};				
+					
+					if( this.parentCaseID >= 0 )
+						ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
+					else
+						trace( "DG interface error: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
 				}
 				else { // TinkerPlots interface
 					for( i = 0; i<numEvents; ++i ) {
@@ -1012,7 +984,7 @@
 				DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
 
 				transitionTimer = new Timer(1900, 1); //timer is in milliseconds
-				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, exitGame);
+				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, finishSite);
 				
 				sailingMovie.visible = true;
 				crane.visible = false;
@@ -1095,25 +1067,25 @@
 			
 			//button control methods
 			private function disableAllButtons(e:Event = null):void{
-				mLevelsButton.enabled = false;
-				mExitNewGameButton.enabled = false;
 				shipControlsMVC.hookStepper.enabled = false;
 				shipControlsMVC.disableHookButton();
 				shipControlsMVC.ratStepper.enabled = false;
 				shipControlsMVC.disableRatsButton();
-				mHelpButton.enabled = false;
+				topBarMVC.disableHelpButton();
+				bootyMeter.disableEndMissionButton();
+				bootyMeter.disableNextSiteButton();
 				
 				if(crane)	// failsafe to prevent the crane from being turned off before it loads.
 					crane.canDrag = false;
 			}	
 			
 			private function enableAllButtons():void{
-				mExitNewGameButton.enabled = true;
-				mHelpButton.enabled = true;
+				topBarMVC.enableHelpButton();
 				shipControlsMVC.hookStepper.enabled = true;
-				mLevelsButton.enabled = true;
 				shipControlsMVC.ratStepper.enabled = true;
 				shipControlsMVC.enableRatsButton();
+				bootyMeter.enableNextSiteButton();
+				bootyMeter.enableEndMissionButton();
 
 				if(VersionChecker.isDebug && DEBUG_MODE){
 					shipControlsMVC.enableHookButton();
@@ -1123,11 +1095,6 @@
 				}
 				if(crane)//failsafe for crane loading
 					crane.canDrag = true;
-			}
-			
-			private function enableNewGame():void{
-				mExitNewGameButton.enabled = true;
-				mExitNewGameButton.label = "Play";
 			}
 			
 			private function disableRatButton(e:RatEvent = null):void{
@@ -1194,7 +1161,6 @@
 			private function updateCraneStepperSnapped(e:Event):void{
 				shipControlsMVC.hookStepper.value = crane.snappingPoint;
 				onChangeCenterPosition(e);
-				hideInstructions();
 			}
 			
 			//loads the swf, sets colors, and starts the clouds
@@ -1248,6 +1214,8 @@
 			// attach the booty bar to the screen. And popups
 			private function initVisualElements():void{	
 				bootyMeterContainer.addChild(bootyMeter);
+				bootyMeter.nextSiteFunction = onClickExitNewGame;
+				bootyMeter.endMissionFunction = quitMission;
 				
 				popUpContainer.addChild(shipControlsMVC);
 				shipControlsMVC.x = 7;
@@ -1263,7 +1231,7 @@
 				popUpContainer.addChild(topBarMVC);
 				topBarMVC.setVersion(getVersion());
 				topBarMVC.setStage(this.systemManager.stage);
-
+				topBarMVC.helpFunction = onClickHelpButton;
 				
 				addEventListener(MouseEvent.CLICK, handleFocus);
 				
@@ -1278,13 +1246,20 @@
 			}
 
 			// the 'map' / quit button needs to be pressable during normal gameplay. That means resetting the sailing animation when its clicked.
-			private function quitMission(e:Event = null):void{								//$WIP.
+			private function quitMission(e:Event = null):void{
+				popUpScreen.confirmAction(quitMissionConfirmed);
+			}
+			
+			private function quitMissionConfirmed(e:Event = null):void{								
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
 				sailingMovie.visible = true;
+				topBarMVC.disableHelpButton();
 				crane.visible = false;
 				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
 				popUpScreen.chooseHuntLevel();
+				trace("closed game data from 'end mission' screen.");
+				sendGameDataClose();
 			}
 		]]>
 	</fx:Script>
@@ -1362,19 +1337,6 @@
 	
 	<!-- Left Sidebar Log -->
 	<mx:UIComponent id="bootyMeterContainer" x="20" y="135"/>
-	<mx:Canvas id="mScrollContainer" includeIn="TreasureHunt">	
-		
-		<s:Button id="mLevelsButton" includeIn="TreasureHunt" x="15" y="340" width="60" height="18"
-				  label="Map" chromeColor="#D1B38B" click="quitMission();" color="#000000"
-				  enabled="false" fontFamily="Georgia" fontSize="14" fontStyle="italic"/>
-		<s:Button id="mHelpButton" includeIn="TreasureHunt" x="77" y="340" width="28" height="18"
-				  label="?" chromeColor="#D1B38B" click="onClickHelpButton();" color="#000000"
-				  fontSize="14"/>
-		<s:Button id="mExitNewGameButton" includeIn="TreasureHunt" x="15" y="363" width="90"
-				  height="18" label="Set Sail" chromeColor="#D1B38B"
-				  click="onClickExitNewGame(event);" color="#000000" enabled="true"
-				  fontFamily="Georgia" fontSize="13" fontStyle="italic"/>
-	</mx:Canvas>
 	
 	<!-- Animated Ship and Crane area -->
 	<s:Group id="mGameArea" includeIn="TreasureHunt" x="120" y="121" width="395" height="286">
