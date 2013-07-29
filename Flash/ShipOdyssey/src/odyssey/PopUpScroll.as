@@ -13,10 +13,7 @@ package odyssey
 	public class PopUpScroll extends popUps
 	{
 		private var game:ShipMissionAPI;	//reference to the main. Allows this class to directly interact with the application.
-		
-		private static const kLevelInstructionsArray:Array = new Array(Missions.mission1.instructions, Missions.mission2.instructions, Missions.mission3.instructions, Missions.mission4.instructions);
-		private static const kLevelTitleArray:Array = new Array(Missions.mission1.title, Missions.mission2.title, Missions.mission3.title, Missions.mission4.title);
-		
+				
 		private var selectedLevel:int = 1;
 		//private var delayTimer:Timer; //used to animate 'fade out'. The dely before the screen disappears.
 		private var okayFunc:Function = emptyFunction;	// the funciton that's assigned to the okay button
@@ -90,6 +87,7 @@ package odyssey
 				treasureDisplay.gotoAndPlay("flash");
 			}
 		}
+		
 		private function finishTicks(e:Event):void{
 			treasureDisplay.removeEventListener("tick", tickUp);
 			treasureDisplay.removeEventListener("complete", finishTicks);
@@ -132,6 +130,7 @@ package odyssey
 			missions.mission2.addEventListener(MouseEvent.MOUSE_DOWN, displayMission2);
 			missions.mission3.addEventListener(MouseEvent.MOUSE_DOWN, displayMission3);
 			missions.mission4.addEventListener(MouseEvent.MOUSE_DOWN, displayMission4);
+			missions.mission5.addEventListener(MouseEvent.MOUSE_DOWN, displayMission5);
 			playBtn.addEventListener(MouseEvent.CLICK, startGame);
 		}
 		
@@ -144,24 +143,34 @@ package odyssey
 			titleBar.gotoAndStop(selectedLevel);
 			missions.choose(selectedLevel, skipAnimation);
 		}
+		
 		private function displayMission1(e:MouseEvent):void {
 			body.text = Missions.mission1.instructions;
 			selectedLevel = Missions.mission1.number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
+		
 		private function displayMission2(e:MouseEvent):void {
 			body.text = Missions.mission2.instructions;
 			selectedLevel = Missions.mission2.number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
+		
 		private function displayMission3(e:MouseEvent):void {
 			body.text = Missions.mission3.instructions;
 			selectedLevel = Missions.mission3.number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
+		
 		private function displayMission4(e:MouseEvent):void {
 			body.text = Missions.mission4.instructions;
 			selectedLevel = Missions.mission4.number;
+			titleBar.gotoAndStop(selectedLevel);
+		}
+		
+		private function displayMission5(e:MouseEvent):void {
+			body.text = Missions.mission5.instructions;
+			selectedLevel = Missions.mission5.number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		
@@ -172,6 +181,7 @@ package odyssey
 			missions.mission2.removeEventListener(MouseEvent.MOUSE_DOWN, displayMission2);
 			missions.mission3.removeEventListener(MouseEvent.MOUSE_DOWN, displayMission3);
 			missions.mission4.removeEventListener(MouseEvent.MOUSE_DOWN, displayMission4);
+			missions.mission5.removeEventListener(MouseEvent.MOUSE_DOWN, displayMission5);
 			playBtn.removeEventListener(MouseEvent.CLICK, startGame);
 		}
 		
@@ -231,14 +241,14 @@ package odyssey
 		public function getCurrentLevelTitle(arg:int = -1):String
 		{
 			var switcher:int = (arg > 0 ? arg : selectedLevel);
-			return kLevelTitleArray[switcher - 1];
+			return Missions.getMission(switcher).title;
 		}
 		
 		//returns the current level description
 		public function getCurrentLevelDescription(arg:int = -1):String
 		{
 			var switcher:int = (arg > 0 ? arg : selectedLevel);
-			return kLevelInstructionsArray[switcher - 1];
+			return Missions.getMission(switcher).instructions;
 		}
 		
 		public function hide(e:Event = null):void{
@@ -266,7 +276,6 @@ package odyssey
 			}
 			
 			replayWindow.foreground.placeTreasure(t1, t2);
-			
 			if(replayArray.length > 0){
 				while(replayArray.length > 0){
 					var h:Array = replayArray.shift();

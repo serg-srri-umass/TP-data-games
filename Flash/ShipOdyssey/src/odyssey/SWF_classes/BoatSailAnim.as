@@ -1,7 +1,8 @@
 ﻿package{
-	import flash.events.*;
 	import flash.display.*;
+	import flash.events.*;
 	import flash.geom.Rectangle;
+	
 	import odyssey.events.ZoomEvent;
 
 	public class BoatSailAnim extends MovieClip{
@@ -149,6 +150,10 @@
 			this.addEventListener(Event.ENTER_FRAME, startSwells);
 			this.addEventListener(Event.ENTER_FRAME, BoatBob);
 			ToyBoat.crane.hook.chest.visible = false;
+		}
+		
+		public function setHookSize(arg:int):void{
+			ToyBoat.crane.hook.gotoAndStop(arg);
 		}
 	}
 }

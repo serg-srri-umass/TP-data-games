@@ -8,9 +8,7 @@ package odyssey.missions
 		public static const mission2:MissionData = new MissionData();
 		public static const mission3:MissionData = new MissionData();
 		public static const mission4:MissionData = new MissionData();
-		
-		public static const kStdDeviationClear:Number = 10;// Standard deviation of rat results in clear water.
-		public static const kStdDeviationDeep:Number = 15;// Standard deviation of rat results in deep water.
+		public static const mission5:MissionData = new MissionData();
 		
 		//NOTE: ON THE MAP, Titles are set in the .swc. If they're changed, the .swc has to be updated as well.
 		with( mission1){ 		// Mission 1 section:
@@ -20,9 +18,7 @@ package odyssey.missions
 			missesAllowed = 2;
 			
 			ratsInStepper = 100;
-			fixedRats = 100;
-			ratCost = 1;
-			stdDeviation = kStdDeviationClear;
+			fixedRats = true;
 			
 			skyGradient = VisualVariables.daylight;
 			waterGradient = VisualVariables.clearWater;
@@ -39,8 +35,6 @@ package odyssey.missions
 			missesAllowed = 2;
 			
 			ratsInStepper = 5;
-			ratCost = 1;
-			stdDeviation = kStdDeviationClear;
 			
 			skyGradient = VisualVariables.daylight;
 			waterGradient = VisualVariables.clearWater;
@@ -58,8 +52,6 @@ package odyssey.missions
 			variableTreasures = true;
 			
 			ratsInStepper = 100;
-			ratCost = 1;
-			stdDeviation = kStdDeviationClear;
 			
 			skyGradient = VisualVariables.daylight;
 			waterGradient = VisualVariables.clearWater;
@@ -76,8 +68,7 @@ package odyssey.missions
 			missesAllowed = 2;
 			
 			ratsInStepper = 5;
-			ratCost = 1;
-			stdDeviation = kStdDeviationDeep;
+			stdDeviation = MissionData.kStdDeviationDeep;
 			
 			skyGradient = VisualVariables.darkDay;
 			waterGradient = VisualVariables.murkyWater;
@@ -86,6 +77,25 @@ package odyssey.missions
 			instructions = "The description of 'Deep Water' goes here.";
 			//instructions = "Each treasure is worth " + TextFormatter.toCash(mission4.treasureValue) + ". The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
 		}
+		
+		with( mission5){		// Mission 5 section:
+			title = "Small Hook";
+			
+			startingRats = 1000;
+			missesAllowed = 2;
+			
+			ratsInStepper = 100;
+			hookSize = MissionData.SMALL_HOOK;
+			hookRadius = 1;
+			
+			skyGradient = VisualVariables.daylight;
+			waterGradient = VisualVariables.clearWater;
+			cloudPattern = VisualVariables.fluffyClouds;
+			
+			instructions = "The description of 'Small Hook' goes here.";
+			//instructions = "Each treasure is worth " + TextFormatter.toCash(mission4.treasureValue) + ". The water is deep here,  so the rat readings will be less accurate. Check the loot meter for your new goals.";
+		}
+		
 		
 		// pass this function a #, and it will return the cooresponding MissionData object.
 		public static function getMission(arg:Number):MissionData{

@@ -59,7 +59,8 @@
 			public static const kCostPerHookDrop:int = 50; // Cost each time you drop a hook		
 			public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
 			public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
-			public static const kHookRadius:uint= 2;	// Radius of grappling hook area.
+			
+			public static var mHookRadius:uint= 2;	// Radius of grappling hook area.
 			//			public static const kTreasureID:uint= 0;	// Array position of categorical treasure ID.
 			public static const kLocation:uint= 1;	// Array position of treasure location.
 			public static const kValue:uint		= 2;	// Array position of treasure value.
@@ -84,8 +85,8 @@
 			private var mRandomNormal:ParkMiller;			// Class that creates a normal distribution.
 			private var mMathUtils:MathUtilities = new MathUtilities();			// Class that uses SRRI math functions.
 			private var mCenterPosition:Number= kInitCenter;	// Center position of grappling hook.
-			private var mMinHookRange:Number	= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
-			private var mMaxHookRange:Number	= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
+			private var mMinHookRange:Number	= mCenterPosition - mHookRadius;	// Left edge of hook's grasp.
+			private var mMaxHookRange:Number	= mCenterPosition + mHookRadius;	// Right edge of hook's grasp.
 			private var mCurrentTreasureNum:uint = 0;		// Starting treasure in zero-based array.
 			private var mTreasuresFound:uint= 0;			// Treasures found so far in current game.
 			private var mTreasureValueSoFar:uint = 0;		// Cumulative value of treasures found in current game.
@@ -321,21 +322,23 @@
 				mTreasure1 = new Array("2nd", randomLocation(), 0, "");
 				mTreasure2 = new Array("3rd", randomLocation(), 0, "");
 				mTreasure3 = new Array("4th", randomLocation(), 0, "");
+				mTreasure4 = new Array("5th", randomLocation(), 0, "");
 				
 				// Create new treasure array and add treasures to array.
 				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
-					mTreasure3 );
+					mTreasure3, mTreasure4 );
 				
 				//instead of choosing treasure randomly, chooses based on which level you are on.
 				//Choose treasure name from matching level pool. Iterates through names linearly. 
 				mCurrentTreasureNum = mMissionNum - 1;
-				if( mCurrentTreasureNum < 0 || mCurrentTreasureNum > 3 )
+				if( mCurrentTreasureNum < 0 || mCurrentTreasureNum > 4 )
 					throw new Error("invalid index to mTreasureArray");
 				
 				mTreasure0[kItem] = mNamePicker.poolShift(1);
 				mTreasure1[kItem] = mNamePicker.poolShift(2);
 				mTreasure2[kItem] = mNamePicker.poolShift(3);
 				mTreasure3[kItem] = mNamePicker.poolShift(4);
+				mTreasure4[kItem] = mNamePicker.poolShift(5);
 
 				mTreasuresFound				= 0;	// No treasures found yet.
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
@@ -346,8 +349,9 @@
 				// Move hook to center of treasure area.
 				mCenterPosition						= 100;	
 				shipControlsMVC.hookStepper.value	= mCenterPosition;					// Set stepper to center position.
-				mMinHookRange						= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
-				mMaxHookRange						= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
+				
+				mMinHookRange						= mCenterPosition - mHookRadius;	// Left edge of hook's grasp.
+				mMaxHookRange						= mCenterPosition + mHookRadius;	// Right edge of hook's grasp.
 				shipControlsMVC.interval.text		= mMinHookRange.toFixed(1) + " – " + mMaxHookRange.toFixed(1);
 				
 				// Hide all parchment announcements until they are needed.OLD STUFF 6/19/13
@@ -371,6 +375,8 @@
 				
 				//mPrevHuntLevel = mMissionNum;
 				mStdDeviation = mission.stdDeviation;
+				mHookRadius = mission.hookRadius;
+				
 				Water.fill = mission.waterGradient;
 				Sky.backgroundFill = mission.skyGradient;
 				cHerder.cleanClouds();
@@ -380,6 +386,7 @@
 				
 				setRatsToSend(mission.ratsInStepper);
 				mCostPerRat	= mission.ratCost;	// Cost per rat in dollars.
+				
 				mAutoSailOnAfterFoundTreasure = !mission.variableTreasures;
 				mCurrentLevel = mission.number;
 				bootyMeter.initialize(mission.startingRats, mission.missesAllowed);
@@ -389,10 +396,17 @@
 				else
 					bootyMeter.nextSiteBtn.visible = false;
 				
+				
 				if(!goRightAway)
 					popUpScreen.displayHelp();
 				else
 					newMission();
+				
+				crane.setHookSize(mission.hookSize);
+				sailingMovie.setHookSize(mission.hookSize);
+				ReplayHook.setHookSize(mission.hookSize);
+				
+				shipControlsMVC.ratStepper.locked = mission.fixedRats;
 			}
 						
 			// randomLocation() creates a new location on the ocean floor based on a uniform
@@ -539,8 +553,10 @@
 				//mCenterPositionStepper.value = mMathUtils.setPrecision(mCenterPositionStepper.value, kHookCenterPrecision);
 				var prevCP:int = mCenterPosition;
 				mCenterPosition			= shipControlsMVC.hookStepper.value; //mCenterPositionStepper.value;
-				mMinHookRange			= mCenterPosition - kHookRadius;	// Left edge of hook's grasp.
-				mMaxHookRange			= mCenterPosition + kHookRadius;	// Right edge of hook's grasp.
+				
+				mMinHookRange			= mCenterPosition - mHookRadius;	// Left edge of hook's grasp.
+				mMaxHookRange			= mCenterPosition + mHookRadius;	// Right edge of hook's grasp.
+				
 				shipControlsMVC.interval.text = mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
 				
 				if(crane){	// failsafe to ensure that the crane exists.
