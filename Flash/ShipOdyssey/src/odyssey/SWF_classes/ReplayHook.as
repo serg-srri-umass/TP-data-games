@@ -4,14 +4,14 @@
 	import flash.events.Event;
 	
 	public class ReplayHook extends MovieClip{
-		
+		public static var HOOK_SIZE:int = 1;
 		private const HOOK_Y:Number = -56.75;	// the Y value at which to attach hooks.
 		private var _label:String;
 		
 		public function ReplayHook(position:Number = 0, treasure:Boolean = false, junk:String = null) {
 			x = position;
 			y = HOOK_Y;
-			
+						
 			_label = (treasure ? "hit" : "miss");
 			gotoAndStop(_label);
 			
@@ -35,6 +35,10 @@
 		
 		public function get treasure():Boolean{
 			return _label == "hit";
+		}
+		
+		public static function setHookSize(arg:int):void{
+			HOOK_SIZE = arg;
 		}
 	}
 	

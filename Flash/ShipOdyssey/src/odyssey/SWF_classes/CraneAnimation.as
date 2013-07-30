@@ -154,5 +154,10 @@
 			Crane_mc.scale.addEventListener(MouseEvent.MOUSE_OVER, showPopUp);
 			Crane_mc.scale.addEventListener(MouseEvent.MOUSE_OUT, hidePopUp);
 		}
+		
+		public function setHookSize(arg:int):void{
+			Crane_mc.mHook.gotoAndStop(arg);
+			Crane_mc.DropHook.gotoAndStop(arg);
+		}
 	}
 }

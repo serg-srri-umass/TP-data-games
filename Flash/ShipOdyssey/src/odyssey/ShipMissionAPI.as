@@ -22,10 +22,10 @@ package odyssey
 			setGameTitle = setGTitle;
 		}
 		
-		public function startHunt(num:int, e:Event = null, autoStart:Boolean = false):void {
+		public function startHunt(num:int, e:Event = null, clearPreviousData:Boolean = false):void {
 			var md:MissionData = Missions.getMission(num);
 			var stripBtnListeners:Boolean = (e ? true : false);
-			beginMission(md, stripBtnListeners, autoStart);
+			beginMission(md, stripBtnListeners, clearPreviousData);
 		}
 	}
 }

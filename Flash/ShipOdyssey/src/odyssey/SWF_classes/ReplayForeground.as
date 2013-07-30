@@ -16,7 +16,7 @@
 		private var recycleArray:Array;	//is used to loop the animation.
 		private var removalArray:Array = new Array(); // used in unloading the movieclips.
 		
-		var startTimer:Timer = new Timer(1000, 1);
+		var startTimer:Timer = new Timer(2500, 1);
 		var interTimer:Timer = new Timer(500, 1);
 		var completeTimer:Timer = new Timer(2000, 1);
 		
@@ -62,6 +62,8 @@
 		}
 		
 		public function startReplay():void{
+			var q:ReplayWindow = parent as ReplayWindow;
+			q.replayText.gotoAndPlay(1);
 			startTimer.reset();
 			startTimer.start();
 			dispatchEvent(new Event("replayStart"));

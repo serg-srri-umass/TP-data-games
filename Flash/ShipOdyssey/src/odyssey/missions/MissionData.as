@@ -1,8 +1,13 @@
 package odyssey.missions
 {
+	import mx.graphics.LinearGradient;
+
 	public class MissionData
 	{
-		import mx.graphics.LinearGradient;
+		public static const REGULAR_HOOK:int = 1;
+		public static const SMALL_HOOK:int = 2;
+		public static const kStdDeviationClear:Number = 10;// Standard deviation of rat results in clear water.
+		public static const kStdDeviationDeep:Number = 15;// Standard deviation of rat results in deep water.
 		
 		private static var _missionCounter:int = 1;
 		private static var _missionArray:Array = new Array();
@@ -13,19 +18,19 @@ package odyssey.missions
 		public var instructions:String;	
 		public var title:String;
 		
-		// money variables:
-		public var treasureValue:int; 	// the value of a treasure here.
-		public var goal:int; 			// the goal loot amount.
-		public var startingLoot:int; 	// the ammount of $ you start the mission with.
-		public var variableTreasures:Boolean = false; // if there is only ever 1 treasure here, set this to false.
+		// rat & hook variables:
+		public var startingRats:int; 	// the ammount of $ you start the mission with.
+		public var missesAllowed:int;
+		public var variableTreasures:Boolean = false; // if true, player cannot change the rat stepper.
+		public var fixedRats:Boolean = false;		//if > 0, only this many rats can be sent on a level.
+		public var ratsInStepper:int; 	// how many rats start in the stepper.
+		public var ratCost:int = 1; 	// how many $ each rat costs here
 		
-		// rat variables:
-		public var minRats:int = 0;		// the minimum # of rats that the stepper can go to at this level
-		public var startingRats:int; 	// how many rats start in the stepper.
-		public var ratCost:int = 0; 	// how many $ each rat costs here
+		public var hookSize:int = REGULAR_HOOK; // what frame to show the hook at.
+		public var hookRadius:int = 2; // how big in units the hook is (multiply this by 2 for the full interval)
 		
 		// math variables:
-		public var stdDeviation:Number;	// the standard deviation of rats here
+		public var stdDeviation:Number = kStdDeviationClear;	// the standard deviation of rats here
 		
 		// visual variables:
 		public var skyGradient:LinearGradient;

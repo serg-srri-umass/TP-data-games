@@ -24,6 +24,7 @@
 		private var _changeFunction:Function = emptyFunction; // this function is called whenever the stepper changes.
 		
 		private var _enabled:Boolean = true;
+		private var _locked:Boolean = false; // when the stepper is locked, it cannot be ajusted. (But it is not grayed out)
 		
 		public function StepperMVC(){
 			//add event listeners to the stepper:
@@ -93,10 +94,11 @@
 		// turn on or off the stepper.
 		override public function set enabled(arg:Boolean):void{
 			_enabled = arg;
-			if(_enabled){
+			if(_enabled && !_locked){
 				alpha = 1;
 				up.mouseEnabled = true;
 				down.mouseEnabled = true;
+				
 				valueWrapper.valueField.selectable = true;
 				valueWrapper.valueField.type = TextFieldType.INPUT;
 			}else{
@@ -176,6 +178,14 @@
 		private function setPrecision(number:Number, precision_in:int) {
 			precision_in = Math.pow(10, precision_in);
 			return (Math.round(number * precision_in)/precision_in);
+		}
+		
+		public function set locked(arg:Boolean):void{
+			_locked = arg;
+		}
+		
+		public function get locked():Boolean{
+			return _locked;
 		}
 	}
 	
