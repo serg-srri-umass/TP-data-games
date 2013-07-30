@@ -799,7 +799,7 @@
 				mSoundHandler.setMouseEnabled(true);
 				
 				dynamicLog1.enabled = true;
-				if (mGameLevel >= kFreeCutLevel){
+				if (mGameLevel >= kFreeCutLevel){ //this is always true. if we delete practice level, remove 'if'
 					dynamicLog2.enabled = true;
 					dynamicLog3.enabled = true;
 					dynamicLog4.enabled = true;
