@@ -9,16 +9,16 @@ package odyssey
 	public class ShipMissionAPI
 	{
 		private var beginMission:Function;
-		public var getHuntMission:Function;
+		//public var getHuntMission:Function; // OBSOLETE, same as GetCurrentMission()
 		public var getCurrentMission:Function;
 		public var restartMission:Function;
 		public var setGameTitle:Function;
 		
-		public function ShipMissionAPI (begin:Function, restart:Function, cm:Function, hm:Function, setGTitle:Function) {
+		public function ShipMissionAPI (begin:Function, restart:Function, cm:Function, /*hm:Function,*/ setGTitle:Function) {
 			beginMission = begin;
 			restartMission = restart;
 			getCurrentMission = cm;
-			getHuntMission = hm;
+			//getHuntMission = hm;
 			setGameTitle = setGTitle;
 		}
 		
