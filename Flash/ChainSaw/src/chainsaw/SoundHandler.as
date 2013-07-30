@@ -77,7 +77,7 @@ package chainsaw{
 		private var loopRunSound:Boolean = false;
 		private var loopLoadSound:Boolean = false;
 		
-		private var mouseEnabled:Boolean = true; //used to disable functions that listen to mouse events. 
+		private var mouseEnabled:Boolean = false; //used to disable functions that listen to mouse events. 
 		
 		//fade time constants, in milliseconds
 		private static const runLoopFadeTime:Number = 100;
