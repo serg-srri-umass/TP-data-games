@@ -1126,7 +1126,7 @@
 				if(VersionChecker.isDebug && DEBUG_MODE){
 					shipControlsMVC.enableHookButton();
 				} else {
-					if(mRatsSent > 0)
+					if(mRatsSent > 0 || bootyMeter.rats == 0)
 						shipControlsMVC.enableHookButton();
 				}
 				if(crane)//failsafe for crane loading
