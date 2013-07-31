@@ -6,17 +6,17 @@
 <!-- Released under the MIT License http://www.opensource.org/licenses/mit-license.php -->
 <!-- Keep Calm and Chive On -->
 <!-- Terminology:
-		Ship Odyssey - The name of this game/program.
-		Goal -  The goal of this game is to hunt for treasure, by sending down diving rats and dropping hooks.
-		Mission - Each game is called a "mission".
-		Mission Level - There are multiple levels of difficulty, called 'Mission Levels" (internally, numbered 1-5 for 5 levels).
+		Ship Odyssey - The name of this game/program. The goal of this game is to hunt for treasure,
+			by sending down diving rats and dropping hooks.
+		Game - Each game visits sites, finding treasure or not, until out of rats or out of hooks.
+		Mission - There are multiple levels of difficulty, called 'Missions" (internally, numbered 1-5 for 5 levels).
 		Mission Title - Each level has a distinct title ("Hundreds o' rats", etc.)
 		Site - Each mission has multiple 'Sites' to search for the treasure.
         Treasures - There are 0-2 treasures per site (1 treasure per site for most levels), and treasures have different names.
 		Hook / Hook Drop - Drop a hook to find treasure at the current site.
 		Rat / Send Rats - Send down rats to locate the treasure (they come up at the treasure location plus some random error (with a fixed standard deviation for that level).
 		Game Data -  Data is sent to Data Games (DG), 
-		Game Cases - each mission has Game Case Data (date about the current mission, generating one case per mission),
+		Game Cases - each game has a Game Case (date about the current game),
 		Event Cases - each event case has data about the dropped rat.
   -->
 
@@ -50,17 +50,13 @@
 			
 			import odyssey.events.*;
 			import odyssey.missions.*;
-
-			// BUILD FOR TinkerPlots or DG. Export the DG version to ./bin-release, export the TinkerPlots version to ./bin-release-tp
-			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPLots 2.0-compatible data interface
+			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const DEBUG_MODE:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
 			
-			public static const VERSION:String = "v.2013.07.29";
-			public static const TP_suffix:String = "(fl-tp)" // edition: flash for TinkerPlots
-			public static const DG_suffix:String = "(fl-dg)" // edition: flash for DG
+			public static const VERSION:String = "v.2013.07.31";
 			private function getVersion():String {
-				return( VERSION + (kUseDataGamesInterface ? DG_suffix : TP_suffix ));
+				return( VERSION );
 			}
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
@@ -80,16 +76,9 @@
 			public static const kEventsCollectionName:String = "Events";
 			public static const kGamesCollectionName:String = "Games";
 			
-			//-- Public Variables
-			public static var mHookRadius:uint= 2;			// Radius of grappling hook area.
-			public var mNumTreasures:uint = 1;				// Number of treasures to find at the current location
-			
 			//-- Private variables
-			private var mCurrentLevel:int = 1;				// Game level of difficulty, 1+: corresponds to different mission names
+			private var mCurrMissionNum:int = 1;			// Game level of difficulty, 1+: corresponds to different mission names
 			private var mStdDeviation:Number;				// Standard deviation of rat results.
-			//private var mMissionNum:uint	= 1;			// which mission, as a number 1+
-			//public static var mMaxRatsToSend:uint	= 500;	// Maximum allowable number of rats to send at a time
-			//public static var mMinRatsToSend:uint	= 1;	// Minimum allowable number of rats to send at a time.
 			private var mRatsToSend:uint	= 10;			// Rats to send at one time: should match current stepper value.
 			private var mCostPerRat:uint	= 1;			// Cost per rat in dollars.
 			private var mRandomNormal:ParkMiller;			// Class that creates a normal distribution.
@@ -97,12 +86,16 @@
 			private var mCenterPosition:Number= kInitCenter;	// Center position of grappling hook.
 			private var mMinHookRange:Number	= mCenterPosition - mHookRadius;	// Left edge of hook's grasp.
 			private var mMaxHookRange:Number	= mCenterPosition + mHookRadius;	// Right edge of hook's grasp.
+			private static var mHookRadius:uint= 2;			// Radius of grappling hook area.
+			private var mNumTreasures:uint = 1;				// Number of treasures to find at the current location
 			private var mCurrentTreasureNum:uint = 0;		// Starting treasure in zero-based array.
-			private var mTreasuresFound:uint= 0;			// Treasures found so far in current game.
-			private var mTreasureValueSoFar:uint = 0;		// Cumulative value of treasures found in current game.
+			private var mTreasuresFoundThisSite:uint= 0;	// Treasures found so far in current site (see BootyBarMVC.as for
+			//private var mTreasureValueSoFar:uint = 0;		// Cumulative value of treasures found in current game.
 			private var mRatCostSoFar:uint = 0;				// Cumulative value of rat cost in current game.
-			private var mEventNumber:uint	= 0;			// Number of current event in current game (rat(s) sent or hook dropped), begining with 1.
-			private var mGameNumber:uint	= 0;			// Number of current game, begining with 1.
+			private var mSitesVisitedThisGame:uint = 0;		// Number of sites visited in current game.
+			//private var mEventSerialNum:uint	= 0;		// Serial number of current event in current game (rat(s) sent or hook dropped), begining with 1.
+			private var mSiteSerialNum:uint	= 0;			// Serial number of current site, beginning with 1 (does not reset for new game).
+			private var mGameSerialNum:uint	= 0;			// Serial number of current game, beginning with 1
 			private var mRatsSent:uint		= 0;			// Number of rats already sent in current game.
 			private var mHooksDropped:uint	= 0;			// Number of hooks already dropped in current game.
 			private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet?
@@ -133,19 +126,19 @@
 			private var mTreasurePrint:Array = new Array(2);
 			
 			//booty meter
-			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
-			private var haveTreasure:Boolean = false; //whether you pulled up a treasure or not.
+			private var haveTreasure:Boolean = false; // whether you pulled up a treasure or not on your last hook drop
 			
 			//TreasureNamePicker. Make new obj to reset name iteration. 
 			private var mNamePicker:TreasureNamePicker = new TreasureNamePicker();
 			
+			private function getCurrentMission():int{ return mCurrMissionNum; }
+			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle);	
+			
 			//variables for holding loaded MovieClips
-			private function getCurrentMission():int{ return mCurrentLevel; }
-			//private function getHuntMission():uint{ return mCurrentLevel; }
-			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( beginMission, restartMission, getCurrentMission, /* getHuntMission,*/ setGameTitle);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
 			private var topBarMVC:TopBarMVC = new TopBarMVC();
 			private var shipControlsMVC:ShipControlsMVC = new ShipControlsMVC();
+			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
 			
 			//timer when your money hits zero, waits before showing lose screen
 			private var endTimer:Timer;
@@ -213,7 +206,7 @@
 				else
 					popUpScreen.showLoading();
 				
-				mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
+				//mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
 			}
 			
 			// set the rat stepper values and mRatsToSend.
@@ -247,79 +240,52 @@
 				result = ScriptInterface.doCommand( doCommandString );
 			}
 			
-			// Set up the game data to send to DG or TinkerPlots.  The collections are the tables of cases and attributes.
+			// Send the Game-level and Event-level structure to DG, if connected to DG.  
+			// The collections are the tables of cases and attributes.
 			private	function sendCollectionData( ):void	{
 				var	result:String;
 				
-				if( kUseDataGamesInterface ) 
-				{	// use the DG-compatible data interface for extra functionality; not compatible with TinkerPlots 2.0 Research Edition	
-					var initGameObj:Object = {
-						action: "initGame",
-						args: {
-							name: "ShipOdyssey",
-							dimensions: { width: this.width, height: this.height },
-							collections: [
-								{
-									name: kGamesCollectionName,
-									attrs:[
-										{name: "Site", type: "nominal", precision: 0, description: "Site number"   } , 
-										{name: "Mission", type: "nominal", description: "Game level"   } ,	
-										{name: "RatsSent", type: "numeric", precision: 0, description: "Total number of rats sent during game"   } ,	
-										{name: "Drops", type: "numeric", precision: 0, description: "Number of times hook was dropped during game"   } , 
-										{name: "TreasuresFound", type: "numeric", precision: 0, description: "Number of treasures found during game"   } , 
-										{name: "Loot", type: "numeric", precision: 0, description: "dollar balance including tresures found minus costs"   }	
-									] ,
-									childAttrName: "Events_Record"
+				var initGameObj:Object = {
+					action: "initGame",
+					args: {
+						name: "ShipOdyssey",
+						dimensions: { width: this.width, height: this.height },
+						collections: [
+							{
+								name: kGamesCollectionName,
+								attrs:[
+									{name: "GameNumber", type: "numeric", description: "Sequential Game Number" },//NEW
+									{name: "MissionName", type: "nominal", description: "Game level"   } ,	
+									{name: "TreasuresFound", type: "numeric", precision: 0, description: "Number of treasures found during game"   } , 
+									{name: "SitesVisited", type: "numeric", precision: 0, description: "Number of sites visited during game"   }
+									//{name: "RatsSent", type: "numeric", precision: 0, description: "Total number of rats sent during game"   } ,	
+									//{name: "Drops", type: "numeric", precision: 0, description: "Number of times hook was dropped during game"   } , 
+								] ,
+								childAttrName: "Events_Record"
+							},
+							{
+								name: kEventsCollectionName,
+								attrs:	[
+									{ name: "Site", type: "nominal", description: "Site number"   } ,
+									{ name: "RatNumber", type: "numeric", precision: 0, description: "Rats sent so far in game"   } , 
+									{ name: "RatReading", type: "numeric", precision: 1, description: "Location estimate provided by rat"  }
+								],
+								labels: {
+									singleCase: "rat sent",
+									pluralCase: "rats sent",
+									singleCaseWithArticle: "a rat reading",
+									setOfCases: "events",
+									setOfCasesWithArticle: "events"
 								},
-								{
-									name: kEventsCollectionName,
-									attrs:	[
-										{ name: "Site", type: "nominal", description: "Site number"   } ,
-										{ name: "RatNumber", type: "numeric", precision: 0, description: "Rats sent so far in game"   } , 
-										{ name: "RatReading", type: "numeric", precision: 1, description: "Location estimate provided by rat"  }
-									],
-									labels: {
-										singleCase: "rat sent",
-										pluralCase: "rats sent",
-										singleCaseWithArticle: "a rat reading",
-										setOfCases: "events",
-										setOfCasesWithArticle: "events"
-									},
-									defaults: { xAttr: "RatReading", yAttr: "Site" }
-								}
-							] // collections
-						} // args
-					}; //initGameObj
-					var	initGameString:String = JSON.encode( initGameObj );
-					result = ScriptInterface.doCommand( initGameString ); // note: as of 2013-07-23 initGame always returns null
-					this.parentCaseID = -1; // change from -2 to -1 to indicate game data sent (for error detection only)
-					trace( "DG interface: initGame" );
-				}
-				else {
-					// use the old data interface compatible with TinkerPlots 2.0 Research Edition; 
-					// works less well with DG, does not give game dimensions, does not identify numeric/categorical type of attributes, etc.
-					// Create rat collection. 
-					ScriptInterface.NewCollectionWithAttributes(
-						kEventsCollectionName,
-						[
-							"Site",				// Treasure hunt game number starting with 1 since launch of application.
-							"RatNumber",		// Rats sent so far in current game.
-							"RatReading"		// Location estimate provided by rat.
-						]
-					);
-					// Create game collection.
-					ScriptInterface.NewCollectionWithAttributes(
-						kGamesCollectionName,
-						[
-							"Site",				// Treasure hunt game number starting with 1 since launch of application.
-							"Mission",			// Clear or murky, based on hunt level chosen.
-							"RatsSent",			// Total number of rats sent during current game.
-							"Drops",			// Number of times hook was dropped during current game.
-							"TreasuresFound",	// Number of treasures found during current game.
-							"Loot"				// Value of (treasures found) minus (crew/ship costs and rat costs).
-						]
-					);
-				}
+								defaults: { xAttr: "RatReading", yAttr: "Site" }
+							}
+						] // collections
+					} // args
+				}; //initGameObj
+				var	initGameString:String = JSON.encode( initGameObj );
+				result = ScriptInterface.doCommand( initGameString ); // note: as of 2013-07-23 initGame always returns null
+				this.parentCaseID = -1; // change from -2 to -1 to indicate game data sent (for error detection only)
+				trace( "DG interface: initGame" );
 			}
 			
 			// switchToTreasureHunt() sets the current state to the Treasure Hunt game
@@ -339,7 +305,7 @@
 			protected function initializeTreasureHunt():void
 			{
 				disableAllButtons();
-				mEventNumber			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
+				//mEventSerialNum			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
 				mRatsSent				= 0;	// Reset number of rats sent.
 				mHooksDropped			= 0;	// Reset number of hooks dropped.
 				mCurrentGameComplete	= false;// Game is in play.
@@ -361,7 +327,7 @@
 				
 				//instead of choosing treasure randomly, chooses based on which level you are on.
 				//Choose treasure name from matching level pool. Iterates through names linearly. 
-				mCurrentTreasureNum = mCurrentLevel - 1;
+				mCurrentTreasureNum = mCurrMissionNum - 1;
 				if( mCurrentTreasureNum < 0 || mCurrentTreasureNum > 4 )
 					throw new Error("invalid index to mTreasureArray");
 				
@@ -371,7 +337,7 @@
 				mTreasure3[kItem] = mNamePicker.poolShift(4);
 				mTreasure4[kItem] = mNamePicker.poolShift(5);
 
-				mTreasuresFound				= 0;	// No treasures found yet.
+				mTreasuresFoundThisSite		= 0;	// No treasures found yet.
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
 				
 				// sync the rat stepper with the current level if needed
@@ -395,24 +361,18 @@
 			
 			
 			private function updateGameTitle():void{
-				setGameTitle(Missions.getMissionTitle(mCurrentLevel)+ ", Site " + mGameNumber);
+				setGameTitle(Missions.getMissionTitle( mCurrMissionNum)+ ", Site " + mSiteSerialNum);
 			}
 			
-			// begin a mission. This may or may not be at the same mission level as the previous mission.
-			private function beginMission( mission:MissionData, stripBtnListeners:Boolean, clearPreviousData:Boolean):void{
+			// start a new game.
+			private function newGame( mission:MissionData, stripBtnListeners:Boolean, clearPreviousData:Boolean):void{
 				updateGameTitle();
 				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();
 				
-				if( clearPreviousData )  { // TO-DO: only do this after sendGameDataClose(), if user requests it.
-					if( this.parentCaseID >=0 ) {
-						trace( "DG interface: unexpected open game case " );
-					}
-					trace( "DG interface: deleting all game cases" );
-					sendDeleteAllCaseDatatoDG();
-				}
-				
-				mCurrentLevel = mission.number;
+				mGameSerialNum += 1;
+				mCurrMissionNum = mission.number;
+				mSitesVisitedThisGame = 0;
 				mStdDeviation = mission.stdDeviation;
 				mHookRadius = mission.hookRadius;
 				
@@ -440,6 +400,16 @@
 				ReplayHook.setHookSize( mission.hookSize);
 				
 				shipControlsMVC.ratStepper.locked = mission.fixedRats;
+				
+				// start a new Game case in DG
+				if( this.parentCaseID >=0 ) {
+					trace( "DG interface: unexpected open game case " );
+				}
+				if( clearPreviousData )  {
+					trace( "DG interface: deleting all game cases" );
+					sendDeleteAllCaseDatatoDG();
+				}
+				sendGameDataOpen();
 			}
 						
 			// randomLocation() creates a new location on the ocean floor based on a uniform
@@ -460,18 +430,18 @@
 				}
 				
 				//mNumTreasures: the number of treasures to find at the current location
-				//mTreasuresFound: the number of treasures the player found
+				//mTreasuresFoundThisSite: the number of treasures the player found
 				switch(mNumTreasures)
 				{
 					case 0:
 						return "There were no treasures here.";
 					case 1:
-						if(mTreasuresFound == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + printLocations();
+						if(mTreasuresFoundThisSite == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + printLocations();
 						else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + printLocations();
-						//if(mTreasuresFound == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
+						//if(mTreasuresFoundThisSite == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
 						//else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
 					case 2:
-						switch(mTreasuresFound)
+						switch(mTreasuresFoundThisSite)
 						{
 							//these really long strings format the info for the two treasures on two tabular lines
 							case 0: return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You missed " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " at " + Math.round(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10;
@@ -482,7 +452,7 @@
 							case 2: return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You found " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " at " + String(int(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10);
 							//case 2: return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You found " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10);
 						}
-					default: return "You found " + mTreasuresFound + " of the " + mNumTreasures + " treasures!";
+					default: return "You found " + mTreasuresFoundThisSite + " of the " + mNumTreasures + " treasures!";
 				}
 			}
 			
@@ -637,7 +607,7 @@
 					transitionTimer.start();
 				}else{
 					// Clear hint text next to pirate head.
-					mEventNumber 	+= 1; // Dropping a hook counts as an event.
+					//mEventSerialNum 	+= 1; // Dropping a hook counts as an event.
 					mHooksDropped 	+= 1; // Increment counter of hooks dropped.
 					
 					// Check if we snagged any treasures
@@ -666,7 +636,7 @@
 			}
 			
 			//called from the PopUpMVC when the game needs to be restarted
-			private function restartMission(startNextMission:Boolean = true):void{
+			/*private function restartMission(startNextMission:Boolean = true):void{
 				finishSite();
 				
 				if(startNextMission){
@@ -677,6 +647,7 @@
 				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
 			}
+			*/
 			
 			//wait and check timer routine for when the hook is moving before a drop
 			private function waitOnCraneMove(e:TimerEvent):void{
@@ -718,13 +689,13 @@
 					
 					// Tell the player which treasure was found and how much it is worth.					
 					
-					if( Missions.getMission( mCurrentLevel).variableTreasures) // if on level 2
+					if( Missions.getMission( mCurrMissionNum).variableTreasures) // if on level 2
 					{
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.isGameOver){	// if you're out of $, or won. $WIP
 							haveTreasure = true;
 							onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
-						}/* else if(mTreasuresFound == 1){
+						}/* else if(mTreasuresFoundThisSite == 1){
 							popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
 							//popUpScreen.displayTreasure(treasuresFoundString(), hideScrollThenSail, true);
 						} */ else {
@@ -737,7 +708,7 @@
 						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
 						onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
 					}
-					mTreasuresFound++;
+					mTreasuresFoundThisSite++;
 				}
 				else // Treasure was not found at drop location.
 				{
@@ -758,8 +729,8 @@
 					//sendEventData("Hook", getEventDataValues( "Miss" )); --Disabled
 				}
 				
-				// send updated [mHooksDropped, mTreasuresFound, profitSoFar] to DG game case
-				sendGameDataUpdate();
+				// send updated [mHooksDropped, mTreasuresFoundThisSite, profitSoFar] to DG game case
+				sendGameDataUpdate(); // TO-DO: remove this call if nothing changes here.
 			}
 			private function hideScroll(e:Event):void{
 				popUpScreen.hide(e);
@@ -788,7 +759,6 @@
 			// If you click 'end mission', this method isn't called because you don't want a replay.
 			// this function was previously named exitGame
 			private function finishSite(iEvent:Event = null):void{
-				sendGameDataClose();
 				
 				//clean up everything so it is back in initial state for start of next game
 				crane.visible = false;
@@ -801,7 +771,7 @@
 						haveTreasure = false;
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.isGameOver){
-							popUpScreen.displayTreasure(treasuresFoundString(), popUpScreen.finishMission, false, true);
+							popUpScreen.displayTreasure(treasuresFoundString(), popUpScreen.finishGame, false, true);
 						}else{
 							popUpScreen.displayTreasure(treasuresFoundString(), newSite);
 						}
@@ -820,31 +790,33 @@
 				popUpScreen.rating = getRating();
 			}
 			
-			// previously 'loseGame'
-			private function finishMission(e:Event = null):void{
+			// things to do when the game has ended (user misses the 2nd hook drop), see also newGame(), endGame()
+			private function finishGame(e:Event = null):void{
 				popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
-				popUpScreen.displayRecap(treasuresFoundString(), popUpScreen.finishMission, true);	
+				popUpScreen.displayRecap(treasuresFoundString(), popUpScreen.finishGame, true);	
 				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
-				popUpScreen.rating = getRating();	
+				popUpScreen.rating = getRating();
+				
+				if( this.parentCaseID >= 0 ) {
+					sendGameDataClose();
+				}
 			}
 			
-			private function getRating():int{		//TO-DO Rename this to 'getRating'. 
+			private function getRating():int{
 				return Missions.getMission(mCurrentLevel).getRating(bootyMeter.treasuresFound);
 			}
 			
-			private function newSite(iEvent:Event = null):void{
+			// set up our game for a new site.
+			private function newSite(iEvent:Event = null):void {
 				popUpScreen.visible = false;
 				readyToZoomIn();
 				disableAllButtons();
-				mGameNumber += 1;
-				switchToTreasureHunt(iEvent); //start a new game
-				if( this.parentCaseID >=0 ) {
-					trace( "DG interface: closing old parent case (ID="+this.parentCaseID+" before starting new mission" );
-					sendGameDataClose();
-				}
-				
-				sendGameDataOpen();
-			//	bootyMeter.readyNewLocation();
+				mSiteSerialNum += 1;
+				mSitesVisitedThisGame += 1;
+				switchToTreasureHunt(iEvent); //start a new game TO-DO: site-specific initialization out of switchToTreasureHunt() and don't call here.
+
+				sendGameDataUpdate(); // send updated SitesVisited to DG
+
 				updateRatLimit();
 				updateGameTitle();
 			}
@@ -871,34 +843,29 @@
 			// send the Game-level data to TinkerPlots or DG.
 			// this creates and opens the game case, see also sendGameDataClose()
 			private function sendGameDataOpen():void{
-				if( kUseDataGamesInterface ) { // if DG
-					var openGameCaseObj:Object = {
+				var openGameCaseObj:Object = {
 						action: "openCase",
 						args: { 
 							collection: kGamesCollectionName,
 							values: [
-								mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
-								Missions.getMissionTitle( mCurrentLevel),	 // game level string
-								"",
-								"",
-								""
+								mGameSerialNum,
+								Missions.getMissionTitle( mCurrMissionNum),
+								bootyMeter.treasuresFound,
+								mSitesVisitedThisGame
 							]
 						} 	
-					}
-						
-					if( this.parentCaseID >= 0 ) {
-						trace( "DG interface error: openCase without closing previous parent case ID ("+this.parentCaseID+")" );
-					} else {
-						var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
-						var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
-						this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
-						if(VersionChecker.isDebug && DEBUG_MODE && this.parentCaseID == -1 ) {
-							trace("DG interface: simulating openCase with parentCaseID 0 (debug only)");
-							this.parentCaseID = 0; // fake a valid case ID for validating sendGameDataUpdate() when not connected to DG
-						}
-					}
+					}; // openGameCaseObj
+					
+				if( this.parentCaseID >= 0 ) {
+					trace( "DG interface error: openCase without closing previous parent case ID ("+this.parentCaseID+")" );
 				} else {
-					// else do nothing for TinkerPlots; old game API wants nothing for start of game
+					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
+					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+					this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
+					if(VersionChecker.isDebug && DEBUG_MODE && this.parentCaseID == -1 ) {
+						trace("DG interface: simulating openCase with parentCaseID 0 (debug only)");
+						this.parentCaseID = 0; // fake a valid case ID for validating sendGameDataUpdate() when not connected to DG
+					}
 				}
 			}
 			
@@ -908,105 +875,66 @@
 				sendGameDataUpdate( true );
 			}
 			
-			// send the Game-level data to TinkerPlots or DG.
+			// send the Game-level data to DG, if connected to DG
 			// this updates and optionally closes the game case created by sendGameDataOpen()
 			private function sendGameDataUpdate( wantCaseClosed:Boolean = false ):void{
-				if( kUseDataGamesInterface ) {
-					// send data to close a case in Game collection to DG
-					var	whichAction:String = (wantCaseClosed ? "closeCase" : "updateCase" ),
-						closeGameCaseObj:Object = { 
-							action: whichAction,
-							args: { 
-								collection: kGamesCollectionName,
-								caseID: this.parentCaseID,
-									values: [
-										mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
-										Missions.getMissionTitle( mCurrentLevel),	 // game level string
-										mRatsSent,			 // Total number of rats sent during current game.
-										mHooksDropped,		 // Number of times hook was dropped during current game.
-										mTreasuresFound, 	 // Number of treasures found during current game.
-										bootyMeter.rats  // Value of (treasures found) minus (crew/ship costs and rat costs).
-									]
-								}
-							};
-					if( this.parentCaseID >= 0 )
-						ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
-					else
-						trace( "DG interface error: "+whichAction+" with invalid parent case ID ("+this.parentCaseID+")" );
-					
-					if( wantCaseClosed )
-						this.parentCaseID = -1;	// set to invalid ID after close so we can detect errors
-
-					
-				} else if (wantCaseClosed) { // do nothing if just updating (not in TinkerPlots game data API)
-					// TinkerPlots 2.0 Research Edition interface
-					ScriptInterface.AddCaseToCollectionWithValues(
-						kGamesCollectionName,
-						[
-							mGameNumber,		 // Treasure hunt game number starting with 1 since launch of application.
-							Missions.getMissionTitle( mCurrentLevel),	 // game level string
-							mRatsSent,			 // Total number of rats sent during current game.
-							mHooksDropped,		 // Number of times hook was dropped during current game.
-							mTreasuresFound, 	 // Number of treasures found during current game.
-							bootyMeter.rats		 // Value of (treasures found) minus (crew/ship costs and rat costs).
-						]
-					);
-				}
+				var	whichAction:String = (wantCaseClosed ? "closeCase" : "updateCase" ),
+					closeGameCaseObj:Object = { 
+						action: whichAction,
+						args: { 
+							collection: kGamesCollectionName,
+							caseID: this.parentCaseID,
+								values: [
+									mGameSerialNum,		 // Game number starting with 1 since launch of application.
+									Missions.getMissionTitle( mCurrMissionNum),
+									bootyMeter.treasuresFound,
+									mSitesVisitedThisGame
+									// Rating
+									// ending type
+									//mRatsSent,			 // Total number of rats sent during current game.
+									//mHooksDropped,		 // Number of times hook was dropped during current game.
+									//bootyMeter.rats  // Value of (treasures found) minus (crew/ship costs and rat costs).
+								]
+							}
+						};
+				if( this.parentCaseID >= 0 )
+					ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
+				else
+					trace( "DG interface error: "+whichAction+" with invalid parent case ID ("+this.parentCaseID+")" );
 				
+				if( wantCaseClosed )
+					this.parentCaseID = -1;	// set to invalid ID after close so we can detect errors
 			}
 			
 			// get the event data to send to Tinkerplots/DG, 
 			// returned as an array for use by sendEventData()
 			private function getEventDataValues( val:Number ):Array {
 				return [
-					mGameNumber, // Game number (1-n)
+					mSiteSerialNum, // Game number (1-n)
 					mRatsSent, // Rat number (1-n)
 					val // Location estimate provided by rat.
 				];
 			}
 			
-			// send Event data to TinkerPlots or DG
+			// Send event case data to DG, if connected to DG.
 			// Event data are "Rat Sent" events (one rat sending per case); we no longer send "Hook dropped" events
 			private function sendEventData(type:String, valArrays:Array):void{
-				var numEvents:int = valArrays.length,
-					i:int;
 				
-				if( kUseDataGamesInterface ) { // DG interface
-					var createEventCaseObj:Object = {
-						action: "createCases",
-						args: {
-							collection: kEventsCollectionName,
-							parent: this.parentCaseID,
+				var createEventCaseObj:Object = 
+						{
+							action: "createCases",
+							args: {
+								collection: kEventsCollectionName,
+								parent: this.parentCaseID,
 								values: valArrays
-						}
-					};				
-					
-					if( this.parentCaseID >= 0 )
-						ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
-					else
-						trace( "DG interface error: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
-				}
-				else { // TinkerPlots interface
-					for( i = 0; i<numEvents; ++i ) {
-						ScriptInterface.AddCaseToCollectionWithValues(
-							kEventsCollectionName,
-							valArrays[i]
-						);
-					}
-				}
-			}
-		
-			
-			/* private function sailThenZoomIn():void{
-				trace("sailThenZoomIn");
-				if(true)
-					transitionTimer = new Timer(0, 1);
-				else
-					transitionTimer = new Timer(4000, 1);
+							}
+						};				
 				
-				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, readyToZoomIn);
-				transitionTimer.start();
-			} */
+				if( this.parentCaseID >= 0 )
+					ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
+				else
+					trace( "DG interface error: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
+			}
 			
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
 			//(decouples visual with state and play so a broken animation doesn't stop play)
@@ -1041,7 +969,7 @@
 			private function zoomInTimerFinish(e:TimerEvent):void{
 				mTreasureLocArr = new Array();
 				mTreasureLocArrLocked = new Array();
-				if(Missions.getMission(mCurrentLevel).variableTreasures) //'Treasure or Not' can have 0, 1, or 2 treasures
+				if(Missions.getMission( mCurrMissionNum).variableTreasures) //'Treasure or Not' can have 0, 1, or 2 treasures
 				{
 					mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
 					
@@ -1250,7 +1178,7 @@
 			private function initVisualElements():void{	
 				bootyMeterContainer.addChild(bootyMeter);
 				bootyMeter.nextSiteFunction = onClickExitNewGame;
-				bootyMeter.endMissionFunction = quitMission;
+				bootyMeter.endMissionFunction = endGame;
 				
 				popUpContainer.addChild(shipControlsMVC);
 				shipControlsMVC.x = 7;
@@ -1280,24 +1208,26 @@
 					this.setFocus();
 			}
 
-			// the 'map' / quit button needs to be pressable during normal gameplay. That means resetting the sailing animation when its clicked.
-			private function quitMission(e:Event = null):void{
-				popUpScreen.confirmAction(quitMissionConfirmed);
+			// the user has clicked the End Game button, we must confirm that next.
+			private function endGame(e:Event = null):void{
+				popUpScreen.confirmAction(endGameConfirmed);
 			}
 			
-			private function quitMissionConfirmed(e:Event = null):void{								
+			// the user has confirmed that they want to end the game, now we show them their score.
+			// see also finishGame(), newGame().
+			private function endGameConfirmed(e:Event = null):void{								
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
 				sailingMovie.visible = true;
 				topBarMVC.disableHelpButton();
 				crane.visible = false;
 				shipControlsMVC.hookStepper.value = 100;
-				onChangeCenterPosition(new Event("Stepper"));		
-				sendGameDataClose();
+				onChangeCenterPosition(new Event("Stepper"));
+				if( this.parentCaseID >= 0 )
+					sendGameDataClose();
 				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
 				popUpScreen.rating = getRating();
 				
-				popUpScreen.finishMission();
-				//popUpScreen.chooseHuntLevel();
+				popUpScreen.finishGame();
 			}
 			
 		]]>

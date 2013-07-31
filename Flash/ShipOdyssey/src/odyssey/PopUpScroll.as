@@ -60,9 +60,9 @@ package odyssey
 			_treasuresFound = arg;
 		}
 		
-		public function finishMission(e:Event = null):void{
+		public function finishGame(e:Event = null):void{
 			visible = true;
-			gotoAndStop("finishMission");
+			gotoAndStop("finishMission"); // TO-DO: rename this to finishGame
 			//delayTimer = new Timer(700, 1);
 			mainBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
 			
@@ -146,32 +146,32 @@ package odyssey
 		}
 		
 		private function displayMission1(e:MouseEvent):void {
-			body.text = Missions.mission1.instructions;
-			selectedLevel = Missions.mission1.number;
+			body.text = Missions.getMission(1).instructions;
+			selectedLevel = Missions.getMission(1).number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		
 		private function displayMission2(e:MouseEvent):void {
-			body.text = Missions.mission2.instructions;
-			selectedLevel = Missions.mission2.number;
+			body.text = Missions.getMission(2).instructions;
+			selectedLevel = Missions.getMission(2).number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		
 		private function displayMission3(e:MouseEvent):void {
-			body.text = Missions.mission3.instructions;
-			selectedLevel = Missions.mission3.number;
+			body.text = Missions.getMission(3).instructions;
+			selectedLevel = Missions.getMission(3).number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		
 		private function displayMission4(e:MouseEvent):void {
-			body.text = Missions.mission4.instructions;
-			selectedLevel = Missions.mission4.number;
+			body.text = Missions.getMission(4).instructions;
+			selectedLevel = Missions.getMission(4).number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		
 		private function displayMission5(e:MouseEvent):void {
-			body.text = Missions.mission5.instructions;
-			selectedLevel = Missions.mission5.number;
+			body.text = Missions.getMission(5).instructions;
+			selectedLevel = Missions.getMission(5).number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		
