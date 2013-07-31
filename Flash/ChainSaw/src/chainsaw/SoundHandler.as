@@ -110,6 +110,11 @@ package chainsaw{
 			//mouseEnabled = true; 
 		}
 		
+		//fades the startUp sound out so that we can cancel it when someone presses 'stop' during countdown 
+		public function cancelStart():void{
+			mStartUpSound.fadeOut(100);
+		}
+		
 		public function onGameEnd():void{
 			//trace("onGameEnd");
 			//all these 'ifs' check if sounds are playing, and fade them out if they are
