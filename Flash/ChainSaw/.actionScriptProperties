@@ -11,6 +11,7 @@
       <libraryPathEntry kind="1" linkType="1" path="libs"/>
       <libraryPathEntry kind="3" linkType="1" path="../KCPTCommonLibrary/bin/KCPTCommonLibrary.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="/SRRICommonLibrary/bin/SRRICommonLibrary.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/countdown.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
