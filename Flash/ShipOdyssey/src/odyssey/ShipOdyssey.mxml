@@ -822,7 +822,7 @@
 			}
 			
 			private function getRating():int{		//TO-DO Rename this to 'getRating'. 
-				return 3;
+				return Missions.getMission(mCurrentLevel).getRating(bootyMeter.treasuresFound);
 			}
 			
 			private function newSite(iEvent:Event = null):void{

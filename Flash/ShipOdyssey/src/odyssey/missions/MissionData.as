@@ -37,6 +37,8 @@ package odyssey.missions
 		public var waterGradient:LinearGradient;
 		public var cloudPattern:Array;
 		
+		public var ratingArray:Array = new Array(0,0,0,0);	// in order: 2 stars, 3 stars, 4 stars, 5 stars minimum requirement
+		
 		// when a missionData is created, it's automatically enumerated.
 		public function MissionData(){
 			this._number = _missionCounter++;
@@ -53,6 +55,19 @@ package odyssey.missions
 			if(arg < 0 || arg > _missionArray.length)
 				throw new Error("requested mission does not exist");
 			return _missionArray[arg];
+		}
+		
+		public function getRating(arg:int):int{
+			if(arg >= ratingArray[3])
+				return 5;
+			if(arg >= ratingArray[2])
+				return 4;
+			if(arg >= ratingArray[1])
+				return 3;
+			if(arg >= ratingArray[0])
+				return 2;
+			
+			return 1;
 		}
 	}
 }
