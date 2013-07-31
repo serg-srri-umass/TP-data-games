@@ -803,7 +803,7 @@
 			}
 			
 			private function getRating():int{
-				return Missions.getMission(mCurrentLevel).getRating(bootyMeter.treasuresFound);
+				return Missions.getMission(mCurrMissionNum).getRating(bootyMeter.treasuresFound);
 			}
 			
 			// set up our game for a new site.
