@@ -80,23 +80,24 @@ package chainsaw{
 		private var mouseEnabled:Boolean = false; //used to disable functions that listen to mouse events. 
 		
 		//fade time constants, in milliseconds
-		private static const runLoopFadeTime:Number = 100;
-		private static const loadLoopFadeTime:Number = 100;
-		private static const idleLoopFadeTime:Number = 100;
-		private static const startToIdleFadeTime:Number = 100;
-		private static const idleToRunFadeTime:Number = 100;
-		private static const runToIdleFadeTime:Number = 100;
-		private static const runToLoadFadeTime:Number = 100;
-		private static const loadToRunFadeTime:Number = 100;
-		private static const revToRunTransFadeTime:Number = 100;
-		private static const revToIdleTransFadeTime:Number = 100;
-		private static const loadToRunTransFadeTime:Number = 100;
-		private static const runToLoadTransFadeTime:Number = 100;
-		private static const revUpToLoadDownTransFadeTime:Number = 100;
-		private static const revUpToRevDownTransFadeTime:Number = 100;
-		private static const revDownToRevUpTransFadeTime:Number = 100;
-		private static const loadDownToLoadUpTransFadeTime:Number = 100;
-		private static const loadUpToLoadDownTransFadeTime:Number = 100;
+		private static const runLoopFadeTime:Number 				= 100;
+		private static const loadLoopFadeTime:Number 				= 100;
+		private static const idleLoopFadeTime:Number 				= 100;
+		private static const startToIdleFadeTime:Number 			= 100;
+		private static const idleToRunFadeTime:Number 				= 100;
+		private static const runToIdleFadeTime:Number 				= 100;
+		private static const runToLoadFadeTime:Number 				= 100;
+		private static const loadToRunFadeTime:Number 				= 100;
+		private static const revToRunTransFadeTime:Number 			= 100;
+		private static const revToIdleTransFadeTime:Number 			= 100;
+		private static const loadToRunTransFadeTime:Number 			= 100;
+		private static const runToLoadTransFadeTime:Number 			= 100;
+		private static const revUpToLoadDownTransFadeTime:Number 	= 100;
+		private static const revUpToRevDownTransFadeTime:Number	    = 100;
+		private static const revDownToRevUpTransFadeTime:Number 	= 100;
+		private static const loadDownToLoadUpTransFadeTime:Number   = 100;
+		private static const loadUpToLoadDownTransFadeTime:Number   = 100;
+		private static const startUpToRunFadeTime:Number 			= 100;
 		
 		public function setMouseEnabled(bool:Boolean):void{
 			mouseEnabled = bool;
@@ -108,6 +109,11 @@ package chainsaw{
 			mStartUpSound.doOnPercentPlayed(0.9, startToIdle);
 			mStartUpSound.play();
 			//mouseEnabled = true; 
+		}
+		
+		//fades the startUp sound out so that we can cancel it when someone presses 'stop' during countdown 
+		public function cancelStart():void{
+			mStartUpSound.fadeOut(100);
 		}
 		
 		public function onGameEnd():void{
@@ -160,6 +166,8 @@ package chainsaw{
 				//trace("mouseDown");
 				if(mRevDownSound.isPlaying() && !mRevUpSound.isPlaying()){
 					revDownToRevUpTrans();
+				}else if(mStartUpSound && mStartUpSound.isPlaying()){
+					startUpToRun();
 				}else{
 					idleToRun();
 				}
@@ -245,6 +253,13 @@ package chainsaw{
 				mIdleSound2.fadeOut(idleToRunFadeTime);
 			}
 			mRevUpSound.fadeIn(idleToRunFadeTime);
+		}
+		
+		//triggered when mouseDown is pressed during startUpSound 
+		private function startUpToRun():void{
+			//trace("startToRun");
+			mStartUpSound.fadeOut(startUpToRunFadeTime);
+			mRevUpSound.fadeIn(startUpToRunFadeTime);
 		}
 			
 		private function runToIdle():void{
