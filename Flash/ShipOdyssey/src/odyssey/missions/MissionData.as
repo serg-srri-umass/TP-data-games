@@ -35,7 +35,7 @@ package odyssey.missions
 		public var waterGradient:LinearGradient;
 		public var cloudPattern:Array;
 		
-		public var ratingArray:Array = new Array(0,0,0,0);	// in order: 2 stars, 3 stars, 4 stars, 5 stars minimum requirement
+		public var ratingArray:Array = new Array(0,0,0,0);	// rating minimum requirements: in order: 2 stars, 3 stars, 4 stars, 5 stars 
 		
 		// when a missionData is created, it's automatically enumerated.
 		public function MissionData( num:int ){

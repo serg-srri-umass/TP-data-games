@@ -25,7 +25,7 @@ package odyssey {
 			"the Jade Elephant", "the Viscount's Helmet",
 			"the Opal Locket", "the Gilded Mirror",
 			"the Silken Tapestry", "Assorted Meats", 
-			"the Pearl necklace", "a chest of Doubloons");
+			"the Pearl Necklace", "a chest of Doubloons");
 		
 		private var pool5Arr:Array = new Array(
 			"the Sacred Scrolls", "Shakespeare’s Quill",

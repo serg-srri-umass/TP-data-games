@@ -815,8 +815,10 @@
 				mSitesVisitedThisGame += 1;
 				switchToTreasureHunt(iEvent); //start a new game TO-DO: site-specific initialization out of switchToTreasureHunt() and don't call here.
 
-				sendGameDataUpdate(); // send updated SitesVisited to DG
-
+				if( mSitesVisitedThisGame >= 2){
+					sendGameDataUpdate(); // send updated SitesVisited to DG
+				}
+				
 				updateRatLimit();
 				updateGameTitle();
 			}

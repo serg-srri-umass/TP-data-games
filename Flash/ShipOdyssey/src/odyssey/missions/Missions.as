@@ -59,13 +59,13 @@ package odyssey.missions
 					m.missesAllowed = 2;
 					m.variableTreasures = true;
 					
-					m.ratsInStepper = 100;
+					m.ratsInStepper = 5;
 					
 					m.skyGradient = VisualVariables.daylight;
 					m.waterGradient = VisualVariables.clearWater;
 					m.cloudPattern = VisualVariables.grayClouds;
 					
-					m.instructions = "You start this mission with 600 rats.  But there may be 0, 1, or even 2 treasures at each site.  Click the next site button when you think there are no more treasures.";
+					m.instructions = "You start this mission with 600 rats.  But there may be 0, 1, or even 2 treasures at each site.  Click the Next Site button when you think there are no more treasures.";
 					m.ratingArray = new Array(2, 3, 4, 5);
 					break;
 			
@@ -92,7 +92,7 @@ package odyssey.missions
 					m.startingRats = 1000;
 					m.missesAllowed = 2;
 				
-					m.ratsInStepper = 100;
+					m.ratsInStepper = 5;
 					m.hookSize = MissionData.SMALL_HOOK;
 					m.hookRadius = 1;
 				
@@ -100,7 +100,7 @@ package odyssey.missions
 					m.waterGradient = VisualVariables.clearWater;
 					m.cloudPattern = VisualVariables.fluffyClouds;
 				
-					m.instructions = "You start this mission with 1000 rats.  But your hook is only two units wide rather than 4.  The mission is over when you miss twice with the hook.";
+					m.instructions = "You start this mission with 1000 rats.  But your hook is only 2 units wide rather than 4.  The mission is over when you miss twice with the hook.";
 					m.ratingArray = new Array(2, 3, 4, 5);
 					break;
 				}
