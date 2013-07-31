@@ -802,8 +802,8 @@
 				}
 			}
 			
-			private function getRating():int {
-				return 3;
+			private function getRating():int{
+				return Missions.getMission(mCurrMissionNum).getRating(bootyMeter.treasuresFound);
 			}
 			
 			// set up our game for a new site.
@@ -1054,7 +1054,7 @@
 				if(VersionChecker.isDebug && DEBUG_MODE){
 					shipControlsMVC.enableHookButton();
 				} else {
-					if(mRatsSent > 0)
+					if(mRatsSent > 0 || bootyMeter.rats == 0)
 						shipControlsMVC.enableHookButton();
 				}
 				if(crane)//failsafe for crane loading

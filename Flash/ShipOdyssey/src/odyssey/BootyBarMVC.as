@@ -59,6 +59,7 @@ package odyssey
 			return _isGameOver;
 		}
 		
+		
 		// when a hook drop finishes, this method runs. 
 		public function finishTreasureDrop(success:Boolean):void{
 			if( success){
