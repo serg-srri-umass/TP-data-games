@@ -54,7 +54,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const DEBUG_MODE:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
 			
-			public static const VERSION:String = "v.2013.08.01";
+			public static const VERSION:String = "v.2013.08.01.c";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -368,6 +368,17 @@
 			
 			// start a new game.
 			private function newGame( mission:MissionData, stripBtnListeners:Boolean, clearPreviousData:Boolean):void{
+				
+				// first update/close/delete old game case in DG, before we update mGameSerialNum, etc. for new game
+				if( this.parentCaseID >=0 ) {
+					trace( "DG interface ****ERROR****: unexpected open game case " );
+					sendGameDataClose();
+				}
+				if( clearPreviousData && false )  {  //TO-DO: re-enable deleting data when we finish debugging delete/case connection problems
+					trace( "DG interface: deleting all game cases" );
+					sendDeleteAllCaseDatatoDG();
+				}
+				
 				updateGameTitle();
 				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();
@@ -410,13 +421,6 @@
 					shipControlsMVC.useRatStepper();
 				
 				// start a new Game case in DG
-				if( this.parentCaseID >=0 ) {
-					trace( "DG interface: unexpected open game case " );
-				}
-				if( clearPreviousData )  {
-					trace( "DG interface: deleting all game cases" );
-					sendDeleteAllCaseDatatoDG();
-				}
 				sendGameDataOpen();
 			}
 						
@@ -807,6 +811,7 @@
 				popUpScreen.rating = getRating();
 				
 				if( this.parentCaseID >= 0 ) {
+					trace( "DG Interface: about to close case from finishGame()");
 					sendGameDataClose();
 				}
 			}
@@ -868,14 +873,16 @@
 					}; // openGameCaseObj
 					
 				if( this.parentCaseID >= 0 ) {
-					trace( "DG interface error: openCase without closing previous parent case ID ("+this.parentCaseID+")" );
+					trace( "DG interface ERROR: openCase without closing previous parent case ID ("+this.parentCaseID+")" );
 				} else {
 					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
 					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
 					this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
 					if(VersionChecker.isDebug && DEBUG_MODE && this.parentCaseID == -1 ) {
-						trace("DG interface: simulating openCase with parentCaseID 0 (debug only)");
-						this.parentCaseID = 0; // fake a valid case ID for validating sendGameDataUpdate() when not connected to DG
+						this.parentCaseID = mGameSerialNum; // fake a valid case ID for validating sendGameDataUpdate() when not connected to DG
+						trace("DG interface: simulating openCase with parentCaseID "+this.parentCaseID+" (debug only)");
+					} else {
+						trace( "DG interface: openCase with parent case ID "+this.parentCaseID );
 					}
 				}
 			}
@@ -908,10 +915,11 @@
 								]
 							}
 						};
-				if( this.parentCaseID >= 0 )
+				if( this.parentCaseID >= 0 ) {
+					trace( "DG interface: "+whichAction+" with parent case ID "+this.parentCaseID );
 					ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
-				else
-					trace( "DG interface error: "+whichAction+" with invalid parent case ID ("+this.parentCaseID+")" );
+				} else
+					trace( "DG interface ERROR: "+whichAction+" with invalid parent case ID ("+this.parentCaseID+")" );
 				
 				if( wantCaseClosed )
 					this.parentCaseID = -1;	// set to invalid ID after close so we can detect errors
@@ -941,10 +949,11 @@
 							}
 						};				
 				
-				if( this.parentCaseID >= 0 )
+				if( this.parentCaseID >= 0 ) {
+					trace( "DG interface: createCases ("+valArrays.length+") with parent case ID "+this.parentCaseID );
 					ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
-				else
-					trace( "DG interface error: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
+				} else
+					trace( "DG interface ERROR: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
 			}
 			
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
@@ -1238,8 +1247,10 @@
 				crane.visible = false;
 				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
-				if( this.parentCaseID >= 0 )
+				if( this.parentCaseID >= 0 ) {
+					trace( "DG Interface: about to close case from endGameConfirmed()");
 					sendGameDataClose();
+				}
 				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
 				popUpScreen.rating = getRating();
 				
