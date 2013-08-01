@@ -466,8 +466,8 @@
 					case 0:
 						return "There were no treasures here.";
 					case 1:
-						if(mTreasuresFound == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + printLocations();
-						else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + printLocations();
+						if(mTreasuresFound == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10);
+						else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10);
 						//if(mTreasuresFound == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
 						//else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
 					case 2:
