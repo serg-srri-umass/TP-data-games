@@ -54,7 +54,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const DEBUG_MODE:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
 			
-			public static const VERSION:String = "v.2013.07.31";
+			public static const VERSION:String = "v.2013.08.01";
 			private function getVersion():String {
 				return( VERSION );
 			}
