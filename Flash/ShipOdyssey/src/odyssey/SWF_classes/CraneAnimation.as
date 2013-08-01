@@ -41,7 +41,7 @@
 		public const SCALE_START:Number = 65;
 		public const SCALE_END:Number = 334;
 		
-		public var canDrag:Boolean = true; 
+		public var _canDrag:Boolean; 
 		public var isDragging:Boolean = false;
 		public var lastPos:int;
 		public var downPos:int;
@@ -55,15 +55,25 @@
 			return Crane_mc.currentFrame;
 		}
 		
+		public function get canDrag():Boolean{
+			return _canDrag;
+		}
+		
+		public function set canDrag(arg:Boolean):void{
+			_canDrag = arg;
+			grabby.buttonMode = _canDrag;
+			Crane_mc.scale.mouseEnabled = _canDrag;
+		}
+		
 		public function highlightArrows(e:Event):void{
-			if(canDrag){
+			if(_canDrag){
 				Crane_mc.glowingArrows.visible = true;	
 				Crane_mc.glowingArrows.gotoAndStop("hover");	
 			}
 		}
 		
 		public function startDragging(e:MouseEvent):void{
-			if(canDrag){
+			if(_canDrag){
 				lastPos = Crane_mc.currentFrame;
 				grabby.startDrag();
 				runTo(lastPos);
@@ -85,7 +95,7 @@
 			}
 			if(e.type != MouseEvent.MOUSE_UP)
 				Crane_mc.glowingArrows.visible = false;	
-			else if(canDrag)
+			else if(_canDrag)
 				Crane_mc.glowingArrows.gotoAndStop("hover");
 		}
 		
@@ -113,7 +123,7 @@
 		
 		
 		public function gotoPoint(e:MouseEvent):void {
-			if(canDrag){
+			if(_canDrag){
 				snappingPoint = limit(calcMousePosition());
 				runTo(snappingPoint);	
 				dispatchEvent(new Event("scaleClicked"));
@@ -121,7 +131,7 @@
 		}
 		
 		public function showPopUp(e:MouseEvent):void {
-			if(canDrag)
+			if(_canDrag)
 				Crane_mc.position.visible = true;
 		}
 		
@@ -136,13 +146,12 @@
 		
 		public function CraneAnimation(){
 			toFrame(100);
-			
+			canDrag = true;
 			grabbyX = grabby.x;
 			grabbyY = grabby.y;
 			
 			Crane_mc.glowingArrows.visible = false;	
 			
-			grabby.buttonMode = true;
 			grabby.addEventListener(MouseEvent.MOUSE_OVER, highlightArrows);
 			grabby.addEventListener(MouseEvent.MOUSE_OUT, stopDragging);
 			grabby.addEventListener(MouseEvent.MOUSE_DOWN, startDragging);

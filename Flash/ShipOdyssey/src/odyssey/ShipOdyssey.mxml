@@ -217,11 +217,8 @@
 			// set the rat stepper values and mRatsToSend.
 			private function setRatsToSend( iCurrentRatsToSend:uint):void
 			{
-				
-				// save values
-				mRatsToSend	= iCurrentRatsToSend;
 				// sync stepper
-				shipControlsMVC.ratStepper.value = mRatsToSend;
+				shipControlsMVC.ratStepper.value = iCurrentRatsToSend;
 			}
 			
 			// ask DG to create a Graph object, for viewing Site+Rat data.  It should ignore this request if a Graph already exists.
@@ -346,7 +343,7 @@
 				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
 				
 				// sync the rat stepper with the current level if needed
-				setRatsToSend( mRatsToSend);
+				//setRatsToSend( mRatsToSend);
 				
 				// Move hook to center of treasure area.
 				mCenterPosition						= 100;	
@@ -387,7 +384,6 @@
 				cHerder.init( mission.cloudPattern);
 				cHerder.startClouds();
 				
-				setRatsToSend( mission.ratsInStepper);
 				mCostPerRat	= mission.ratCost;	// Cost per rat in dollars.	
 				mAutoSailOnAfterFoundTreasure = !mission.variableTreasures;
 
@@ -399,12 +395,19 @@
 					bootyMeter.nextSiteBtn.visible = false;
 				
 				newSite();
+				setRatsToSend( mission.ratsInStepper);	// moving this down fixed a bug where the stepper did not properly take the starting # of rats in the stepper. (a very series issue for Mission 1)
 				
 				crane.setHookSize( mission.hookSize);
 				sailingMovie.setHookSize( mission.hookSize);
 				ReplayHook.setHookSize( mission.hookSize);
 				
 				shipControlsMVC.ratStepper.locked = mission.fixedRats;
+
+				// if this mission has a fixed # of rats, use the big button instead of the stepper.
+				if(mission.fixedRats)
+					shipControlsMVC.useLargeRatButton();
+				else
+					shipControlsMVC.useRatStepper();
 				
 				// start a new Game case in DG
 				if( this.parentCaseID >=0 ) {
@@ -537,7 +540,13 @@
 			
 			// when a rat animation finishes, put the data on DG.
 			private function finishRatDive(e:RatEvent):void {
-				enableRatButton(e);
+				enableRatsButton(e);
+				//popUpScreen.displayMessage("You're out of Rats!", "Use the data you've collected to make your final hook drops. This will be the last site of your game.");
+				enableHookButton(e);
+
+				// when the rat drop finishes, update the stepper if N is bigger than the # of rats you have left.
+				updateRatLimit();
+				shipControlsMVC.ratStepper.validate();
 				pushRatDataToDG(e);
 			}
 			
@@ -695,14 +704,10 @@
 					if( Missions.getMission( mCurrMissionNum).variableTreasures) // if on level 2
 					{
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
-						if(bootyMeter.isGameOver){	// if you're out of $, or won. $WIP
+						if(bootyMeter.isOutOfHooks){
 							haveTreasure = true;
 							onClickExitNewGame(new MouseEvent("click")); // simulate pressing 'end game'
-						}/* else if(mTreasuresFoundThisSite == 1){
-							popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
-							//popUpScreen.displayTreasure(treasuresFoundString(), hideScrollThenSail, true);
-						} */ else {
-							//popUpScreen.displayTreasure(treasuresFoundString(), hideScroll, true);
+						} else {
 							enableAllButtons();
 						}
 					} else // on levels 1,3,4
@@ -716,12 +721,12 @@
 				else // Treasure was not found at drop location.
 				{
 					//bootyMeter.pay(kCostPerHookDrop);	//pay, if only on misses.
-					updateRatLimit();
+					//updateRatLimit();
 					haveTreasure = false;
 					bootyMeter.finishTreasureDrop(false);
+					//updateRatLimit();
 					mPopSound.play();
-					updateRatLimit();
-					if(!bootyMeter.isGameOver){
+					if(!bootyMeter.isOutOfHooks){
 						enableAllButtons();
 					}else{
 						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
@@ -771,10 +776,10 @@
 				mCurrentGameComplete = true;// Game is now complete.	
 				
 				if(!popUpScreen.visible){
-					if(haveTreasure || bootyMeter.isGameOver){
+					if(haveTreasure || bootyMeter.isOutOfHooks || bootyMeter.isOutOfRats){
 						haveTreasure = false;
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
-						if(bootyMeter.isGameOver){
+						if(bootyMeter.isOutOfHooks || bootyMeter.isOutOfRats){
 							popUpScreen.displayTreasure(treasuresFoundString(), popUpScreen.finishGame, false, true);
 						}else{
 							popUpScreen.displayTreasure(treasuresFoundString(), newSite);
@@ -1057,29 +1062,34 @@
 				bootyMeter.enableNextSiteButton();
 				bootyMeter.enableEndMissionButton();
 
-				if(VersionChecker.isDebug && DEBUG_MODE){
-					shipControlsMVC.enableHookButton();
-				} else {
-					if(mRatsSent > 0 || bootyMeter.rats == 0)
-						shipControlsMVC.enableHookButton();
-				}
+				enableHookButton(); // this function ensures that the hook button SHOULD be enabled before doing it.
 				if(crane)//failsafe for crane loading
 					crane.canDrag = true;
 			}
 			
-			private function disableRatButton(e:RatEvent = null):void{
+			private function disableRatHookButton(e:RatEvent = null):void{
 				shipControlsMVC.disableRatsButton();
+				shipControlsMVC.ratStepper.enabled = false;
 				shipControlsMVC.disableHookButton();
+				shipControlsMVC.hookStepper.enabled = false;
+				//if(crane)
+					//crane.canDrag = false;
 			}
 			
-			private function enableRatButton(e:RatEvent = null):void{
-				shipControlsMVC.enableRatsButton();
-				
-				if(VersionChecker.isDebug && DEBUG_MODE){
+			// turns on the rat button & stepper, assuming you have any rats.
+			private function enableRatsButton(e:Event = null):void{
+				if(!bootyMeter.isOutOfRats){
+					shipControlsMVC.ratStepper.enabled = true;
+					shipControlsMVC.enableRatsButton();
+				}
+			}
+			
+			private function enableHookButton(e:Event = null):void{
+				if( (VersionChecker.isDebug && DEBUG_MODE) || mRatsSent > 0){
 					shipControlsMVC.enableHookButton();
-				} else {
-					if(mRatsSent > 0)
-						shipControlsMVC.enableHookButton();
+					shipControlsMVC.hookStepper.enabled = true;
+					if(crane)
+						crane.canDrag = true;
 				}
 			}
 			
@@ -1176,7 +1186,7 @@
 			
 			// This function is called when the game starts. These objects will have the following listeners for the entirety of the play session:
 			private function initListeners():void{
-				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatButton);
+				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatHookButton);
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, finishRatDive);
 			}
 		
