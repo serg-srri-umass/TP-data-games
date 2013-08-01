@@ -91,9 +91,8 @@
 			public static const kRejectLongString:String	= "No-Long";
 			public static const kRemnantString:String		= "Remnant";
 			
-			// Minimum accepted cut length in pixels.
+			// Min and max accepted cut length in pixels.
 			public static const kMinCutLength:Number	= kReferenceLength * (1.0 - (kPercentAllowance / 100));	
-			// Maximum accepted cut length in pixels.
 			public static const kMaxCutLength:Number	= kReferenceLength * (1.0 + (kPercentAllowance / 100));	
 			
 			// Create a timer to update the fuel level display and game duration.
@@ -155,7 +154,11 @@
 			//conrols playback of dynamic sounds. recieves events from mxml
 			private var mSoundHandler:SoundHandler = new SoundHandler();
 			
+			//coundown movieclip for starting countdown
 			private var mCountDownMVC:MovieClip = new CountDownMVC();
+			
+			//keeps track of whether mouse is down for mouse enabling and disabling purposes. 
+			private var mMouseIsDown:Boolean = false;
 			
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
@@ -186,7 +189,6 @@
 			[Bindable]
 			private var mCutLeftArrow:Class;
 
-			
 			// Embed volume icon
 			[Embed(source="../embedded_assets/Volume.png")]
 			[Bindable]
@@ -792,11 +794,30 @@
 					mSoundHandler.onStart();
 					addEventListener(MouseEvent.MOUSE_DOWN, mSoundHandler.onMouseDown);
 					addEventListener(MouseEvent.MOUSE_UP, mSoundHandler.onMouseUp);
+					addEventListener(MouseEvent.MOUSE_DOWN, mouseIsDown);
+					addEventListener(MouseEvent.MOUSE_UP, mouseIsUp);
 				}
 			}
 			
 			private function startGameMouseEnabler(e:TimerEvent):void{
 				trace("startGameMouseEnabler!");
+				if(!mMouseIsDown){
+					mSoundHandler.setMouseEnabled(true);
+					
+					dynamicLog1.enabled = true;
+					if (mGameLevel >= kFreeCutLevel){ //this is always true. if we delete practice level, remove 'if'
+						dynamicLog2.enabled = true;
+						dynamicLog3.enabled = true;
+						dynamicLog4.enabled = true;
+						mArrowSprite.visible = false;
+					}
+				}
+				else{
+					addEventListener(MouseEvent.MOUSE_UP, earlyMouseDownCaseHandler);
+				}
+			}
+			
+			private function earlyMouseDownCaseHandler(e:Event):void{
 				mSoundHandler.setMouseEnabled(true);
 				
 				dynamicLog1.enabled = true;
@@ -806,6 +827,14 @@
 					dynamicLog4.enabled = true;
 					mArrowSprite.visible = false;
 				}	
+			}
+			
+			private  function mouseIsDown(e:MouseEvent):void{
+				mMouseIsDown = true;
+			}
+			
+			private function mouseIsUp(e:MouseEvent):void{
+				mMouseIsDown = false;
 			}
 			
 			//endGame() performs all operations necessary when game is complete.
