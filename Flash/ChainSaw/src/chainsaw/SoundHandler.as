@@ -18,7 +18,7 @@ package chainsaw{
 		functions that respond to events in the game: onStart, onGameEnd, onMouseDown, onMouseUp, 
 		onMouseOverLog, and onMouseOutLog. These functions trigger all necessary fades and transition 
 		for the chainsaw to behave according to these events. The calls to the public event functions 
-		can all be found in Chainsaw.mxml */
+		can all be found in Chainsaw.mxml Author: Russell Phelan, russ.phelan@gmail.com */
 		
 		//begin sound embeds
 		//looped sounds
@@ -72,42 +72,45 @@ package chainsaw{
 		private var mIdleSound2:AdvancedSound; //references the new instance of idle sound that we fade into when looping idle sound
 		private var mRunSound2:AdvancedSound;
 		private var mLoadSound2:AdvancedSound;
-		
-		private var loopIdleSound:Boolean = false;
-		private var loopRunSound:Boolean = false;
-		private var loopLoadSound:Boolean = false;
-		
-		private var mouseEnabled:Boolean = false; //used to disable functions that listen to mouse events. 
-		
+		private var loopIdleSound:Boolean 	= false;
+		private var loopRunSound:Boolean 	= false;
+		private var loopLoadSound:Boolean 	= false;
+		private var mouseEnabled:Boolean 	= false; //used to disable functions that listen to mouse events. 
+	
 		//fade time constants, in milliseconds
-		private static const runLoopFadeTime:Number = 100;
-		private static const loadLoopFadeTime:Number = 100;
-		private static const idleLoopFadeTime:Number = 100;
-		private static const startToIdleFadeTime:Number = 100;
-		private static const idleToRunFadeTime:Number = 100;
-		private static const runToIdleFadeTime:Number = 100;
-		private static const runToLoadFadeTime:Number = 100;
-		private static const loadToRunFadeTime:Number = 100;
-		private static const revToRunTransFadeTime:Number = 100;
-		private static const revToIdleTransFadeTime:Number = 100;
-		private static const loadToRunTransFadeTime:Number = 100;
-		private static const runToLoadTransFadeTime:Number = 100;
-		private static const revUpToLoadDownTransFadeTime:Number = 100;
-		private static const revUpToRevDownTransFadeTime:Number = 100;
-		private static const revDownToRevUpTransFadeTime:Number = 100;
-		private static const loadDownToLoadUpTransFadeTime:Number = 100;
-		private static const loadUpToLoadDownTransFadeTime:Number = 100;
+		private static const runLoopFadeTime:Number 				= 100;
+		private static const loadLoopFadeTime:Number 				= 100;
+		private static const idleLoopFadeTime:Number 				= 100;
+		private static const startToIdleFadeTime:Number 			= 100;
+		private static const idleToRunFadeTime:Number 				= 100;
+		private static const runToIdleFadeTime:Number 				= 100;
+		private static const runToLoadFadeTime:Number 				= 100;
+		private static const loadToRunFadeTime:Number 				= 100;
+		private static const revToRunTransFadeTime:Number 			= 100;
+		private static const revToIdleTransFadeTime:Number 			= 100;
+		private static const loadToRunTransFadeTime:Number 			= 100;
+		private static const runToLoadTransFadeTime:Number 			= 100;
+		private static const revUpToLoadDownTransFadeTime:Number 	= 100;
+		private static const revUpToRevDownTransFadeTime:Number	    = 100;
+		private static const revDownToRevUpTransFadeTime:Number 	= 100;
+		private static const loadDownToLoadUpTransFadeTime:Number   = 100;
+		private static const loadUpToLoadDownTransFadeTime:Number   = 100;
+		private static const startUpToRunFadeTime:Number 			= 100;
 		
+		//public functions
 		public function setMouseEnabled(bool:Boolean):void{
 			mouseEnabled = bool;
 		}
 		
-		//public functions
 		//start and end event handlers
 		public function onStart():void{
 			mStartUpSound.doOnPercentPlayed(0.9, startToIdle);
 			mStartUpSound.play();
-			//mouseEnabled = true; 
+		}
+		
+		//fades the startUp sound out so that we can cancel it when someone presses 'stop' during countdown 
+		public function cancelStart():void{
+			mStartUpSound.fadeOut(100);
 		}
 		
 		public function onGameEnd():void{
@@ -160,6 +163,8 @@ package chainsaw{
 				//trace("mouseDown");
 				if(mRevDownSound.isPlaying() && !mRevUpSound.isPlaying()){
 					revDownToRevUpTrans();
+				}else if(mStartUpSound && mStartUpSound.isPlaying()){
+					startUpToRun();
 				}else{
 					idleToRun();
 				}
@@ -245,6 +250,13 @@ package chainsaw{
 				mIdleSound2.fadeOut(idleToRunFadeTime);
 			}
 			mRevUpSound.fadeIn(idleToRunFadeTime);
+		}
+		
+		//triggered when mouseDown is pressed during startUpSound 
+		private function startUpToRun():void{
+			//trace("startToRun");
+			mStartUpSound.fadeOut(startUpToRunFadeTime);
+			mRevUpSound.fadeIn(startUpToRunFadeTime);
 		}
 			
 		private function runToIdle():void{
