@@ -6,10 +6,10 @@
 <!-- Released under the MIT License http://www.opensource.org/licenses/mit-license.php -->
 <!-- Keep Calm and Chive On -->
 <!-- Terminology:
-		Ship Odyssey - The name of this game/program. The goal of this game is to hunt for treasure,
-			by sending down diving rats and dropping hooks.
-		Game - Each game visits sites, finding treasure or not, until out of rats or out of hooks.
-		Mission - There are multiple levels of difficulty, called 'Missions" (internally, numbered 1-5 for 5 levels).
+		Ship Odyssey - The name of this game/program.
+		Goal -  The goal of this game is to hunt for treasure, by sending down diving rats and dropping hooks.
+		Mission - Each game is called a "mission".
+		Mission Level - There are multiple levels of difficulty, called 'Mission Levels" (internally, numbered 1-5 for 5 levels).
 		Mission Title - Each level has a distinct title ("Hundreds o' rats", etc.)
 		Site - Each mission has multiple 'Sites' to search for the treasure.
         Treasures - There are 0-2 treasures per site (1 treasure per site for most levels), and treasures have different names.
@@ -165,6 +165,11 @@
 			[Embed(source="../embedded_assets/91924-benboncan-till-with-bell.mp3")]
 			private var CashMP3:Class;
 			private var mCashSound:AdvancedSound = new AdvancedSound(new CashMP3() as Sound);
+			
+			//front fresound.org, liscenced under Creative Commons. Author: HerbertBoland
+			[Embed(source="../embedded_assets/popSound.mp3")]
+			private var popSoundMP3:Class;
+			private var mPopSound:AdvancedSound = new AdvancedSound(new popSoundMP3() as Sound);
 			
 			// Embed the rat squeal sound in the Treasure Hunt game.
 			// The link from which the sound came no longer exists as of 10/28/2011. The larger
@@ -436,10 +441,8 @@
 					case 0:
 						return "There were no treasures here.";
 					case 1:
-						if(mTreasuresFoundThisSite == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + printLocations();
-						else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + printLocations();
-						//if(mTreasuresFoundThisSite == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
-						//else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + printLocations();
+						if(mTreasuresFoundThisSite == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10);
+						else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10);
 					case 2:
 						switch(mTreasuresFoundThisSite)
 						{
@@ -716,6 +719,7 @@
 					updateRatLimit();
 					haveTreasure = false;
 					bootyMeter.finishTreasureDrop(false);
+					mPopSound.play();
 					updateRatLimit();
 					if(!bootyMeter.isGameOver){
 						enableAllButtons();
