@@ -4,9 +4,7 @@ package odyssey
 	
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	//import flash.events.TimerEvent;
 	import flash.text.TextFormat;
-	//import flash.utils.Timer;
 	
 	import odyssey.missions.Missions;
 	
@@ -28,19 +26,6 @@ package odyssey
 			visible = true;
 			gotoAndStop("load");
 		}
-		
-		/*public function loseGame(e:Event = null):void {
-			visible = true;
-			gotoAndStop("lose");
-			mainBtn.addEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
-			chooseLevelBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
-		}
-		
-		public function winGame(e:Event = null):void {
-			visible = true;
-			gotoAndStop("win");
-			mainBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
-		}*/
 		
 		private var printedTreasures:int = 0; // how many treasures it says you have.
 		private var _treasuresFound:int = 0; // how many treasures you found this mission.
@@ -95,27 +80,11 @@ package odyssey
 			ratingMVC.rating.gotoAndStop(_rating);
 		}
 		
-		// click the 'choose level' button
-		/*private function chooseLevelButtonHandler(e:MouseEvent):void{
-			game.restartMission(false);
-			chooseLevelBtn.removeEventListener(MouseEvent.CLICK, chooseLevelButtonHandler);
-			chooseHuntLevel();
-		}*/
-		
-		
 		// the 'continue' button, for when you've won the game.
 		private function chooseLevelButtonHandlerNext(e:MouseEvent):void{
 			mainBtn.removeEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
 			chooseHuntLevel(true);
 		}
-		
-		// click the 'retry' button
-		/*private function replayLevelButtonHandler(e:MouseEvent):void{
-			mainBtn.removeEventListener(MouseEvent.CLICK, replayLevelButtonHandler);
-			var mHuntLevel:int = game.getHuntMission();
-			game.startHunt(mHuntLevel);
-			game.restartMission();
-		}*/
 		
 		// select what level will be played.
 		public function chooseHuntLevel(sailToNext:Boolean = false, skipAnimation:Boolean = true):void 
@@ -126,11 +95,17 @@ package odyssey
 			gotoAndStop("level");
 			displayMissionInstructions(null, skipAnimation);
 			
-			missions.mission1.addEventListener(MouseEvent.MOUSE_UP, displayMission1);
-			missions.mission2.addEventListener(MouseEvent.MOUSE_UP, displayMission2);
-			missions.mission3.addEventListener(MouseEvent.MOUSE_UP, displayMission3);
-			missions.mission4.addEventListener(MouseEvent.MOUSE_UP, displayMission4);
-			missions.mission5.addEventListener(MouseEvent.MOUSE_UP, displayMission5);
+			//missions.mission1.addEventListener(MouseEvent.MOUSE_UP, displayMission1);
+			//missions.mission2.addEventListener(MouseEvent.MOUSE_UP, displayMission2);
+			//missions.mission3.addEventListener(MouseEvent.MOUSE_UP, displayMission3);
+			//missions.mission4.addEventListener(MouseEvent.MOUSE_UP, displayMission4);
+			//missions.mission5.addEventListener(MouseEvent.MOUSE_UP, displayMission5);
+			
+			for(var i:int = 1; i <= 5; i++){
+				missions["mission"+i].buttonMode = true; // turns the cursor into a hand on mouse over.
+				missions["mission"+i].addEventListener(MouseEvent.MOUSE_UP, this["displayMission"+i]);
+			}
+			
 			playBtn.addEventListener(MouseEvent.CLICK, startGame);
 		}
 		
@@ -178,11 +153,16 @@ package odyssey
 		//remove all listeners from the level chooser window & close it.
 		public function stripMissionButtonListeners():void {
 			visible = false;
+			for(var i:int = 1; i <= 5; i++){
+				missions["mission"+i].removeEventListener(MouseEvent.MOUSE_UP, this["displayMission"+i]);
+			}
+			/*
 			missions.mission1.removeEventListener(MouseEvent.MOUSE_UP, displayMission1);
 			missions.mission2.removeEventListener(MouseEvent.MOUSE_UP, displayMission2);
 			missions.mission3.removeEventListener(MouseEvent.MOUSE_UP, displayMission3);
 			missions.mission4.removeEventListener(MouseEvent.MOUSE_UP, displayMission4);
-			missions.mission5.removeEventListener(MouseEvent.MOUSE_UP, displayMission5);
+			missions.mission5.removeEventListener(MouseEvent.MOUSE_UP, displayMission5);*/
+			
 			playBtn.removeEventListener(MouseEvent.CLICK, startGame);
 		}
 		
@@ -226,6 +206,14 @@ package odyssey
 			gotoAndStop("help");
 			title.text = getCurrentLevelTitle();
 			body.text = getCurrentLevelDescription();
+			okayBtn.addEventListener(MouseEvent.CLICK, hide);
+		}
+		
+		public function displayMessage(title:String, message:String):void{
+			visible = true;
+			gotoAndStop("help");
+			this.title.text = title;
+			body.text = message;
 			okayBtn.addEventListener(MouseEvent.CLICK, hide);
 		}
 		

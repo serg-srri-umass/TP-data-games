@@ -10,7 +10,6 @@ package odyssey
 	
 	public class BootyBarMVC extends BootyMeter
 	{		
-		private var _isGameOver:Boolean = false; // whether or not the game is over.
 		private var _dispatcher:BootyEventDispatcher = new BootyEventDispatcher(); // object that dispatches booty events		
 		
 		private var _treasuresFound:int; // how many treasures the player has
@@ -55,9 +54,13 @@ package odyssey
 			return _treasuresFound;
 		}
 		
-		public function get isGameOver():Boolean{
-			return _isGameOver;
+		public function get isOutOfHooks():Boolean{
+			return _misses >= _missesAllowed;
 		}
+		public function get isOutOfRats():Boolean{
+			return _rats <= 0;
+		}
+	
 		
 		
 		// when a hook drop finishes, this method runs. 
@@ -65,7 +68,7 @@ package odyssey
 			if( success){
 				getTreasure();
 			} else{
-				_isGameOver = missHook();
+				missHook();
 				_dispatcher.dispatchEmpty();
 			}
 		}
@@ -81,7 +84,6 @@ package odyssey
 		public function initialize(startingRats:int, missesAllowed:int):void
 		{
 			// first, set all the numbers:
-			_isGameOver = false;
 			_startingRats = startingRats;
 			_rats = startingRats;
 			
@@ -191,14 +193,9 @@ package odyssey
 		}
 		
 		// this method is called when a hook misses. It updates the UI, and returns whether or not the game is over
-		public function missHook():Boolean{
+		public function missHook():void{
 			_misses++;
 			hooks["hook"+_misses].gotoAndPlay(1);
-			if(_misses >= _missesAllowed){
-				return true;
-			}else{
-				return false;
-			}
 		}
 	}
 }
