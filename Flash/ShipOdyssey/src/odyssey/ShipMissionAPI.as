@@ -1,6 +1,5 @@
 package odyssey
 {
-	import flash.display.SimpleButton;
 	import flash.events.Event;
 	import odyssey.missions.Missions;
 	import odyssey.missions.MissionData;
@@ -8,24 +7,24 @@ package odyssey
 	
 	public class ShipMissionAPI
 	{
-		private var beginMission:Function;
+		private var beginGame:Function;
 		//public var getHuntMission:Function; // OBSOLETE, same as GetCurrentMission()
 		public var getCurrentMission:Function;
-		public var restartMission:Function;
+		//public var restartMission:Function;
 		public var setGameTitle:Function;
 		
-		public function ShipMissionAPI (begin:Function, restart:Function, cm:Function, /*hm:Function,*/ setGTitle:Function) {
-			beginMission = begin;
-			restartMission = restart;
-			getCurrentMission = cm;
+		public function ShipMissionAPI( beginFunc:Function, /*restart:Function,*/ currentGameFunc:Function, /*hm:Function,*/ setTitleFunc:Function) {
+			beginGame = beginFunc;
+			//restartMission = restart;
+			getCurrentMission = currentGameFunc;
 			//getHuntMission = hm;
-			setGameTitle = setGTitle;
+			setGameTitle = setTitleFunc;
 		}
 		
-		public function startHunt(num:int, e:Event = null, clearPreviousData:Boolean = false):void {
-			var md:MissionData = Missions.getMission(num);
+		public function startHunt( missionNum:int, e:Event = null, clearPreviousData:Boolean = false):void {
+			var md:MissionData = Missions.getMission( missionNum);
 			var stripBtnListeners:Boolean = (e ? true : false);
-			beginMission(md, stripBtnListeners, clearPreviousData);
+			beginGame( md, stripBtnListeners, clearPreviousData);
 		}
 	}
 }

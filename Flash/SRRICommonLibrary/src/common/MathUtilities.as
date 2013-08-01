@@ -24,5 +24,34 @@ package common
 			iPrecision = Math.pow(10, iPrecision);
 			return (Math.round(iNumber * iPrecision)/iPrecision);
 		}
+		// end code from stack overflow
+		
+		// give this method an array and it will shuffle it, based on the given start and end index
+		public static function shuffleArray(targetArray:Array, startIndex:int = 0, endIndex:int = int.MAX_VALUE):void{
+			if(endIndex > targetArray.length - 1)
+				endIndex = targetArray.length - 1; // if no end index is given, assume the entirety of the array is to be shuffled.
+			// first, ensure the parameters are valid:
+			if(startIndex > targetArray.length || startIndex < 0)
+				throw new Error("invalid start index.");
+			if(endIndex < startIndex)
+				throw new Error("invalid end index.");
+			
+			// if the end and start index are identical, there's nothing to do.
+			if(endIndex == startIndex)
+				return;
+			
+			var startingPosition:int = startIndex; 
+			while(startingPosition < endIndex){
+				var range:int = endIndex - startingPosition + 1; 
+				var randomPosition:int = Math.random()*range + startingPosition;
+				
+				//make the swap:
+				var swapHolder:* = targetArray[randomPosition];
+				targetArray[randomPosition] = targetArray[startingPosition];
+				targetArray[startingPosition] = swapHolder;
+				
+				startingPosition++;
+			}
+		}
 	}
 }
