@@ -729,7 +729,7 @@
 					haveTreasure = false;
 					bootyMeter.finishTreasureDrop(false);
 					//updateRatLimit();
-					mPopSound.play();
+					mPopSound.play(0, 0, (new SoundTransform(.5, 0)));
 					if(!bootyMeter.isOutOfHooks){
 						enableAllButtons();
 					}else{
