@@ -143,7 +143,7 @@
 			//TreasureNamePicker. Make new obj to reset name iteration. 
 			
 			//variables for holding loaded MovieClips
-			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle);	
+			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle, closeGame);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
 			private var topBarMVC:TopBarMVC = new TopBarMVC();
 			private var shipControlsMVC:ShipControlsMVC = new ShipControlsMVC();
@@ -216,7 +216,7 @@
 				currentState='TreasureHunt'; // TO-DO: Take out these states, if they're no longer being used.
 				
 				if(allAssetsLoaded)
-					popUpScreen.chooseHuntLevel(); // show level selection on start up and start the game (true = start game after level selection)
+					popUpScreen.displayMissionMap(); // show level selection on start up and start the game (true = start game after level selection)
 				else
 					popUpScreen.showLoading();
 			}
@@ -775,13 +775,13 @@
 						haveTreasure = false;
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.isOutOfHooks || bootyMeter.isOutOfRats){
-							popUpScreen.displayTreasure(treasuresFoundString(), popUpScreen.finishGame, false, true);
+							popUpScreen.displayInstantReplay(treasuresFoundString(), popUpScreen.displayGameOver, true);
 						}else{
-							popUpScreen.displayTreasure(treasuresFoundString(), newSite);
+							popUpScreen.displayInstantReplay(treasuresFoundString(), newSite);
 						}
 					}else{
 						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
-						popUpScreen.displayRecap(treasuresFoundString(), newSite);
+						popUpScreen.displayInstantReplay(treasuresFoundString(), newSite);
 					}
 				}
 
@@ -794,16 +794,12 @@
 				popUpScreen.rating = getRating();
 			}
 			
-			// things to do when the game has ended (user misses the 2nd hook drop), see also newGame(), endGame()
-			private function finishGame(e:Event = null):void{
-				popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
-				popUpScreen.displayRecap(treasuresFoundString(), popUpScreen.finishGame, true);	
-				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
-				popUpScreen.rating = getRating();
-				
+			// this method is called when the user clicks 'okay' on the "Game Over" popup. It closes the game in DG. 
+			private function closeGame(e:Event = null):void{
 				if( this.parentCaseID >= 0 ) {
-					trace( "DG Interface: about to close case from finishGame()");
 					sendGameDataClose();
+				}else{
+					throw new Error("DG Interface error: attempting to close a game with parent ID < 0");
 				}
 			}
 			
@@ -1181,7 +1177,7 @@
 			private function checkSWFLoaders():void{
 				if(crane && cHerder && sailingMovie) {
 					allAssetsLoaded = true;
-					popUpScreen.chooseHuntLevel(); // show level selection on start up and start the game (true = start game after level selection)
+					popUpScreen.displayMissionMap(); // show level selection on start up and start the game (true = start game after level selection)
 				}
 			}
 			
@@ -1239,7 +1235,7 @@
 			}
 			
 			// the user has confirmed that they want to end the game, now we show them their score.
-			// see also finishGame(), newGame().
+			// see also newGame().
 			private function endGameConfirmed(e:Event = null):void{								
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
 				sailingMovie.visible = true;
@@ -1247,16 +1243,12 @@
 				crane.visible = false;
 				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
-				if( this.parentCaseID >= 0 ) {
-					trace( "DG Interface: about to close case from endGameConfirmed()");
-					sendGameDataClose();
-				}
 				DivingRatDirector.abortDive();	//if any rats are being animated, this takes care of them.
 
 				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
 				popUpScreen.rating = getRating();
 				
-				popUpScreen.finishGame();
+				popUpScreen.displayGameOver();
 			}
 			
 		]]>

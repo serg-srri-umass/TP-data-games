@@ -11,14 +11,16 @@ package odyssey
 	public class PopUpScroll extends popUps
 	{
 		private var game:ShipMissionAPI;	//reference to the main. Allows this class to directly interact with the application.
-				
 		private var selectedLevel:int = 1;
-		//private var delayTimer:Timer; //used to animate 'fade out'. The dely before the screen disappears.
+		
+		private var printedTreasures:int = 0; // how many treasures it says you have.
+		private var _treasuresFound:int = 0; // how many treasures you found this mission.
+		private var _rating:int = 1;	
+		
 		private var okayFunc:Function = emptyFunction;	// the funciton that's assigned to the okay button
+		private function emptyFunction():void{}
 		
-		private function emptyFunction():void{	trace("EMPTY FUNCTION");	}
-		
-		public function PopUpScroll(api:* = null) {
+		public function PopUpScroll(api:ShipMissionAPI = null) {
 			game = api;
 		}
 		
@@ -27,29 +29,28 @@ package odyssey
 			gotoAndStop("load");
 		}
 		
-		private var printedTreasures:int = 0; // how many treasures it says you have.
-		private var _treasuresFound:int = 0; // how many treasures you found this mission.
-		private var _rating:int = 1;	//TO-DO rename this rating.
-		
 		public function set rating(arg:int):void{
 			if(arg < 1 || arg > 5)
 				throw new Error("rating must range from 1-5");
 			_rating = arg;
 		}
+		
 		public function get rating():int{
 			return _rating;
 		}
+		
 		public function set treasuresFound(arg:int):void{
 			if(arg < 0)
-				throw new Error("rating must be positive");
+				throw new Error("treasuresFound must be positive");
 			_treasuresFound = arg;
 		}
 		
-		public function finishGame(e:Event = null):void{
+		// this shows the final screen (how many treasures you got, your star rating, etc).
+		public function displayGameOver(e:Event = null):void{
 			visible = true;
-			gotoAndStop("finishMission"); // TO-DO: rename this to finishGame
+			gotoAndStop("finishMission"); // TO-DO: rename this to gameOver
 			//delayTimer = new Timer(700, 1);
-			mainBtn.addEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
+			mainBtn.addEventListener(MouseEvent.CLICK, okayGameOver);
 			
 			var tf:TextFormat = new TextFormat();
 			tf.bold = true;
@@ -81,25 +82,19 @@ package odyssey
 		}
 		
 		// the 'continue' button, for when you've won the game.
-		private function chooseLevelButtonHandlerNext(e:MouseEvent):void{
-			mainBtn.removeEventListener(MouseEvent.CLICK, chooseLevelButtonHandlerNext);
-			chooseHuntLevel(true);
+		private function okayGameOver(e:MouseEvent):void{
+			mainBtn.removeEventListener(MouseEvent.CLICK, okayGameOver);
+			game.closeGame();
+			displayMissionMap(true);
 		}
 		
 		// select what level will be played.
-		public function chooseHuntLevel(sailToNext:Boolean = false, skipAnimation:Boolean = true):void 
-		{
+		public function displayMissionMap(skipAnimation:Boolean = true):void {
 			game.setGameTitle("Choose a Mission");
 			
 			visible = true;
 			gotoAndStop("level");
 			displayMissionInstructions(null, skipAnimation);
-			
-			//missions.mission1.addEventListener(MouseEvent.MOUSE_UP, displayMission1);
-			//missions.mission2.addEventListener(MouseEvent.MOUSE_UP, displayMission2);
-			//missions.mission3.addEventListener(MouseEvent.MOUSE_UP, displayMission3);
-			//missions.mission4.addEventListener(MouseEvent.MOUSE_UP, displayMission4);
-			//missions.mission5.addEventListener(MouseEvent.MOUSE_UP, displayMission5);
 			
 			for(var i:int = 1; i <= 5; i++){
 				missions["mission"+i].buttonMode = true; // turns the cursor into a hand on mouse over.
@@ -156,36 +151,13 @@ package odyssey
 			for(var i:int = 1; i <= 5; i++){
 				missions["mission"+i].removeEventListener(MouseEvent.MOUSE_UP, this["displayMission"+i]);
 			}
-			/*
-			missions.mission1.removeEventListener(MouseEvent.MOUSE_UP, displayMission1);
-			missions.mission2.removeEventListener(MouseEvent.MOUSE_UP, displayMission2);
-			missions.mission3.removeEventListener(MouseEvent.MOUSE_UP, displayMission3);
-			missions.mission4.removeEventListener(MouseEvent.MOUSE_UP, displayMission4);
-			missions.mission5.removeEventListener(MouseEvent.MOUSE_UP, displayMission5);*/
-			
+		
 			playBtn.removeEventListener(MouseEvent.CLICK, startGame);
 		}
 		
-		// display the prompt that comes up when you find a treasure
-		public function displayTreasure(text:String, func:Function, mini:Boolean = false, okay:Boolean = false):void { 
-			visible = true;
-			okayFunc = func;
-			
-			if(mini){
-				gotoAndStop("treasureMini");
-				nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
-			}else{
-				gotoAndStop("recap");
-				okayBtn.visible = okay;
-				nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
-				okayBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
-				doReplayPrivate();
-			}
-			body.text = text;
-		}
 		
-		// display the prompt that comes up when you pull anchor
-		public function displayRecap(arg:String, func:Function, okay:Boolean = false):void {
+		// display the instant replay.
+		public function displayInstantReplay(arg:String, func:Function, okay:Boolean = false):void {
 			visible = true;
 			gotoAndStop("recap");
 			okayFunc = func;
