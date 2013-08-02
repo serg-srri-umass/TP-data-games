@@ -371,7 +371,8 @@
 				
 				// first update/close/delete old game case in DG, before we update mGameSerialNum, etc. for new game
 				if( this.parentCaseID >=0 ) {
-					trace( "DG interface ****ERROR****: unexpected open game case " );
+					throw new Error("DG interface error: unexpected open game case");
+					//trace( "DG interface ****ERROR****: unexpected open game case " );
 					sendGameDataClose();
 				}
 				if( clearPreviousData && false )  {  //TO-DO: re-enable deleting data when we finish debugging delete/case connection problems
@@ -551,13 +552,14 @@
 				// when the rat drop finishes, update the stepper if N is bigger than the # of rats you have left.
 				updateRatLimit();
 				shipControlsMVC.ratStepper.validate();
+				
 				pushRatDataToDG(e);
 			}
 			
 			// put the rat data on DG, when the animation finishes
 			private function pushRatDataToDG(e:RatEvent):void{
+				trace(DivingRatDirector.dataArray.length);
 				for(var i:int = 0; i < DivingRatDirector.dataArray.length; i++){
-					//trace(DivingRatDirector.dataArray[i]);
 					sendEventData("Rat",  DivingRatDirector.dataArray[i]);	
 				}
 				DivingRatDirector.clearDataArray();
@@ -873,7 +875,8 @@
 					}; // openGameCaseObj
 					
 				if( this.parentCaseID >= 0 ) {
-					trace( "DG interface ERROR: openCase without closing previous parent case ID ("+this.parentCaseID+")" );
+					throw new Error("DG interface error: openCase without closing previous parent case ID (" + this.parentCaseID + ")" );
+					//trace( "DG interface ERROR: openCase without closing previous parent case ID ("+this.parentCaseID+")" );
 				} else {
 					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
 					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
@@ -918,8 +921,10 @@
 				if( this.parentCaseID >= 0 ) {
 					trace( "DG interface: "+whichAction+" with parent case ID "+this.parentCaseID );
 					ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
-				} else
-					trace( "DG interface ERROR: "+whichAction+" with invalid parent case ID ("+this.parentCaseID+")" );
+				} else {
+					throw new Error("DG interface error: " + whichAction + " with invalid parent case ID (" + this.parentCaseID + ")" );
+					//trace( "DG interface ERROR: "+whichAction+" with invalid parent case ID ("+this.parentCaseID+")" );
+				}
 				
 				if( wantCaseClosed )
 					this.parentCaseID = -1;	// set to invalid ID after close so we can detect errors
@@ -952,8 +957,10 @@
 				if( this.parentCaseID >= 0 ) {
 					trace( "DG interface: createCases ("+valArrays.length+") with parent case ID "+this.parentCaseID );
 					ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
-				} else
-					trace( "DG interface ERROR: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
+				} else {
+					throw new Error("DG interface error: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
+					//trace( "DG interface ERROR: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
+				}
 			}
 			
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
@@ -965,7 +972,7 @@
 				cHerder.setCloudSpeed(-.5);
 				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
-				DivingRatDirector.abortDive();	//when you click end game, if any rats are being animated, this takes care of them.
+				DivingRatDirector.abortDive();	//when you click next site, if any rats are being animated, this takes care of them.
 
 				transitionTimer = new Timer(1900, 1); //timer is in milliseconds
 				transitionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, finishSite);
@@ -1251,6 +1258,8 @@
 					trace( "DG Interface: about to close case from endGameConfirmed()");
 					sendGameDataClose();
 				}
+				DivingRatDirector.abortDive();	//if any rats are being animated, this takes care of them.
+
 				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
 				popUpScreen.rating = getRating();
 				
