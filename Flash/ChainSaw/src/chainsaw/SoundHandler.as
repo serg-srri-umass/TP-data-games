@@ -223,7 +223,7 @@ package chainsaw{
 		private function initSounds():void{
 			mIdleSound.doOnPercentPlayed(.92, idleLoop);
 			mRevUpSound.doOnPercentPlayed(.92, revToRunTrans);
-			mRevDownSound.doOnPercentPlayed(.92, revToIdleTrans);
+			mRevDownSound.doOnPercentPlayed(.95, revToIdleTrans);
 			mRunSound.doOnPercentPlayed(.92, runLoop);		
 			mLoadDownSound.doOnPercentPlayed(.92, runToLoadTrans);
 			mLoadUpSound.doOnPercentPlayed(.85, loadToRunTrans);
