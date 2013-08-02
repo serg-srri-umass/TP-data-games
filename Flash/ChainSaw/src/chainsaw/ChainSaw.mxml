@@ -827,6 +827,7 @@
 					dynamicLog4.enabled = true;
 					mArrowSprite.visible = false;
 				}	
+				removeEventListener(MouseEvent.MOUSE_UP, earlyMouseDownCaseHandler);
 			}
 			
 			private  function mouseIsDown(e:MouseEvent):void{
