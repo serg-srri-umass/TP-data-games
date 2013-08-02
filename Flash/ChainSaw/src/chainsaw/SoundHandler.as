@@ -5,7 +5,6 @@ package chainsaw{
 		import common.AdvancedSound;
 		import common.AdvancedSoundEvent;
 		
-		//flash imports
 		import flash.events.Event;
 		import flash.media.*;
 		
@@ -177,9 +176,17 @@ package chainsaw{
 				//trace("mouseUp");
 				if(mRevUpSound.isPlaying() && !mRevDownSound.isPlaying()){
 					revUpToRevDownTrans();
-				}
-				else{
+				}else{
 					runToIdle();
+				}
+				if(mLoadSound && mLoadSound.isPlaying()){
+					mLoadSound.fadeOut(100);
+				}
+				if(mLoadDownSound && mLoadDownSound.isPlaying()){
+					mLoadDownSound.fadeOut(100);
+				}
+				if(mLoadUpSound && mLoadUpSound.isPlaying()){
+					mLoadUpSound.fadeOut(100);
 				}
 			}
 			return;
