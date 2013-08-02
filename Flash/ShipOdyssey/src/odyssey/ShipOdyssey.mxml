@@ -51,62 +51,77 @@
 			import odyssey.events.*;
 			import odyssey.missions.*;
 			
-			private static const MINIMUM_REQUIREMENTS:Number = 11.6;	// the oldest version of flash player you can play this game on.
-			private static const DEBUG_MODE:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			
-			public static const VERSION:String = "v.2013.08.01.c";
-			private function getVersion():String {
-				return( VERSION );
-			}
+			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
+			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
+			private static const kVersion:String = "v.2013.08.02";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
+			//-- Obsolete Variables
+			//public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
+			//public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
+			//public static const kCostPerHookDrop:int = 50; // Cost each time you drop a hook		
+			//private var mCurrMissionNum:int = 1;			// Game level of difficulty, 1+: corresponds to different mission names
+			//private var mStdDeviation:Number;				// Standard deviation of rat results.
+			//private var mCostPerRat:uint	= 1;			// Cost per rat in dollars.
+			//private static var mHookRadius:uint= 2;		// Radius of grappling hook area.
+			//private var mTreasureValueSoFar:uint = 0;		// Cumulative value of treasures found in current game.
+			//private var mEventSerialNum:uint	= 0;		// Serial number of current event in current game (rat(s) sent or hook dropped), begining with 1.
+			//private var mMathUtils:MathUtilities = new MathUtilities();			// Class that uses SRRI math functions.
+			//private var endTimer:Timer;	//timer when your money hits zero, waits before showing lose screen
+			//private var mRatCostSoFar:uint = 0;				// Cumulative value of rat cost in current game.
+			//private var mNamePicker:TreasureNamePicker = new TreasureNamePicker();	// this has been moved to static. (There's no reason to ever have 2 treasure pickers.)
+			//private var mHooksDropped:uint	= 0;			// Number of hooks already dropped in current game.	
+			//private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet? bootyMeter.isOutOfHooks and bootyMeter.isOutOfRats should be used instead.
+			
+			
+			
 			//-- Public Constants
-			public static const kCostPerHookDrop:int = 50; // Cost each time you drop a hook		
-			public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
-			public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
+			public static const kEventsCollectionName:String = "Events";
+			public static const kGamesCollectionName:String = "Games";
 			
 			public static const kLocation:uint= 1;	// Array position of treasure location.
 			public static const kValue:uint		= 2;	// Array position of treasure value.
 			public static const kItem:uint		= 3;	// Array position of treasure item.
 			public static const kMinLocation:Number = 0;	// Leftmost treasure location.
 			public static const kMaxLocation:Number = 100;	// Rightmost treasure location.
-			public static const kMaxRatsToSend:int = 500; // the most rats that can be sent.
-			
-			public static const kEventsCollectionName:String = "Events";
-			public static const kGamesCollectionName:String = "Games";
+			public static const kMaxRatsToSend:int = 500; // the most rats that can be sent.			
 			
 			//-- Private variables
-			private var mCurrMissionNum:int = 1;			// Game level of difficulty, 1+: corresponds to different mission names
-			private var mStdDeviation:Number;				// Standard deviation of rat results.
+			private var mCurrentMission:MissionData;			// The current game mission.  
+			
 			private var mRatsToSend:uint	= 10;			// Rats to send at one time: should match current stepper value.
-			private var mCostPerRat:uint	= 1;			// Cost per rat in dollars.
 			private var mRandomNormal:ParkMiller;			// Class that creates a normal distribution.
-			private var mMathUtils:MathUtilities = new MathUtilities();			// Class that uses SRRI math functions.
-			private var mCenterPosition:Number= kInitCenter;	// Center position of grappling hook.
-			private var mMinHookRange:Number	= mCenterPosition - mHookRadius;	// Left edge of hook's grasp.
-			private var mMaxHookRange:Number	= mCenterPosition + mHookRadius;	// Right edge of hook's grasp.
-			private static var mHookRadius:uint= 2;			// Radius of grappling hook area.
+			private var mCenterPosition:Number;				// Center position of grappling hook.
+			private var mMinHookRange:Number;				// Left edge of hook's grasp.
+			private var mMaxHookRange:Number;				// Right edge of hook's grasp.
 			private var mNumTreasures:uint = 1;				// Number of treasures to find at the current location
 			private var mCurrentTreasureNum:uint = 0;		// Starting treasure in zero-based array.
 			private var mTreasuresFoundThisSite:uint= 0;	// Treasures found so far in current site (see BootyBarMVC.as for
-			//private var mTreasureValueSoFar:uint = 0;		// Cumulative value of treasures found in current game.
-			private var mRatCostSoFar:uint = 0;				// Cumulative value of rat cost in current game.
 			private var mSitesVisitedThisGame:uint = 0;		// Number of sites visited in current game.
-			//private var mEventSerialNum:uint	= 0;		// Serial number of current event in current game (rat(s) sent or hook dropped), begining with 1.
 			private var mSiteSerialNum:uint	= 0;			// Serial number of current site, beginning with 1 (does not reset for new game).
 			private var mGameSerialNum:uint	= 0;			// Serial number of current game, beginning with 1
-			private var mRatsSent:uint		= 0;			// Number of rats already sent in current game.
-			private var mHooksDropped:uint	= 0;			// Number of hooks already dropped in current game.
-			private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet?
+			private var mRatsSent:uint		= 0;			// Number of rats sent at the current site. Used to lock down the drop hook button.
 			private var mFoundTreasure:Boolean = false; 	// Has the current hook drop found this treasure?
 			private	var	parentCaseID:int = -2;				// parent (game-level) case ID for DG; -2 means DG data not yet initialized, -1 means that no game case is open, 0+ is valid ID
+			private var hooksDroppedArray:Array; 			// Array of hooks dropped at a site, where they were dropped, and what they pulled up. Used for replay window.
+
+			/* TO-DO: Clean up treasure logic
+			
+				-A site needs to know how many treasures it has.
+				-A treasure has a name, and a location. But really, ShipOdyssey only needs to know the location. The name can be generated when the treasure is pulled up.
+				-So all the site needs is an array of numbers, that represent its treasure's locations.
+			*/
+			
+			private var treasureArray:Array;
+			private var treasureArrayLocked:Array;		// lik
 			
 			private var mTreasuresAtLocArr:Array;			//Used for new multi-treasure aspect - tells how many treasures are at the current loc
 			private var mTreasureLocArr:Array;				//location of each treasure at current loc, treasures are removed as found
 			private var mTreasureLocArrLocked:Array;		// like the other array, but treasures aren't removed when they're found.
 			private var mAutoSailOnAfterFoundTreasure:Boolean; //Added for lvl 2 where the user must choose when to sail on because there can be 0, 1, or 2 treasures
 			private var mLocationFound:Number;					// for storing the location of a found treasure across timer steps
+			private var haveTreasure:Boolean = false; // whether you pulled up a treasure or not on your last hook drop
 			
 			// These arrays store the details of individual treasures.
 			private var mTreasure0:Array;
@@ -119,29 +134,21 @@
 			// Array of treasures (zero-based).
 			private var mTreasureArray:Array;
 			
-			// Array of hooks dropped at a site.
-			private var hooksDroppedArray:Array;
 			
 			//stores treasure locations for printing in Achor Pulled! dialog 
 			private var mTreasurePrint:Array = new Array(2);
 			
 			//booty meter
-			private var haveTreasure:Boolean = false; // whether you pulled up a treasure or not on your last hook drop
 			
 			//TreasureNamePicker. Make new obj to reset name iteration. 
-			private var mNamePicker:TreasureNamePicker = new TreasureNamePicker();
-			
-			private function getCurrentMission():int{ return mCurrMissionNum; }
-			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle);	
 			
 			//variables for holding loaded MovieClips
+			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
 			private var topBarMVC:TopBarMVC = new TopBarMVC();
 			private var shipControlsMVC:ShipControlsMVC = new ShipControlsMVC();
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
 			
-			//timer when your money hits zero, waits before showing lose screen
-			private var endTimer:Timer;
 			
 			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
 			
@@ -185,7 +192,7 @@
 			
 			// test flash player makes sure the player is meeting the minimum requirements.
 			private function testFlashPlayer():void {
-				if( VersionChecker.isValid(MINIMUM_REQUIREMENTS)) {
+				if( VersionChecker.isValid(kMinimumRequiredVersion)) {
 					startUp();
 				} else {
 					BrickWall.visible = true;
@@ -198,6 +205,7 @@
 			{
 				BrickWall.visible = false;
 				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
+				
 				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
 				this.sendCreateGraphRequestToDG();		// create a Graph view in DG, if not present already
 				
@@ -205,18 +213,16 @@
 				initVisualElements(); // any visual elements of .swc format are init'd here
 				DivingRatDirector.init( ratContainer);	// pass the DivingRatDirector the container it's going to draw into.
 				
-				this.switchToTreasureHunt(new MouseEvent("click"));
+				currentState='TreasureHunt'; // TO-DO: Take out these states, if they're no longer being used.
+				
 				if(allAssetsLoaded)
 					popUpScreen.chooseHuntLevel(); // show level selection on start up and start the game (true = start game after level selection)
 				else
 					popUpScreen.showLoading();
-				
-				//mTreasureValueSoFar			= 0;	// No value earned until treasures are found.
 			}
 			
 			// set the rat stepper values and mRatsToSend.
-			private function setRatsToSend( iCurrentRatsToSend:uint):void
-			{
+			private function setRatsToSend( iCurrentRatsToSend:uint):void {
 				// sync stepper
 				shipControlsMVC.ratStepper.value = iCurrentRatsToSend;
 			}
@@ -290,27 +296,23 @@
 				trace( "DG interface: initGame" );
 			}
 			
-			// switchToTreasureHunt() sets the current state to the Treasure Hunt game
-			// screen and initializes the game.
-			protected function switchToTreasureHunt(iEvent:Event):void
-			{
-				currentState='TreasureHunt';	// Switch to Treasure Hunt screen.
-				// Create a  game level modal dialog.
-				// Listen for clicks on level buttons in dialog.
-				initializeTreasureHunt();
-			}
-			
 			// ********** TREASURE HUNT FUNCTIONS **********
 			
+			// currently called every site. TO-DO: Rename this, or more its functionality to a better named function.
 			// initializeTreasureHunt() sets the Treasure Hunt game to initial values
 			// and prepares the game for play.
 			protected function initializeTreasureHunt():void
 			{
+				/*
+				if(!mCurrentMission){	// if the current mission is undefined, set it. 
+					mCurrentMission = Missions.getMission(1);
+				}*/
+				
 				disableAllButtons();
 				//mEventSerialNum			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
 				mRatsSent				= 0;	// Reset number of rats sent.
-				mHooksDropped			= 0;	// Reset number of hooks dropped.
-				mCurrentGameComplete	= false;// Game is in play.
+				//mHooksDropped			= 0;	// Reset number of hooks dropped.
+				//mCurrentGameComplete	= false;// Game is in play.
 				
 				//reset the TreasureNamePicker
 				//mNamePicker = new TreasureNamePicker();
@@ -329,18 +331,20 @@
 				
 				//instead of choosing treasure randomly, chooses based on which level you are on.
 				//Choose treasure name from matching level pool. Iterates through names linearly. 
-				mCurrentTreasureNum = mCurrMissionNum - 1;
+				
+				mCurrentTreasureNum = mCurrentMission.number - 1;
+				
 				if( mCurrentTreasureNum < 0 || mCurrentTreasureNum > 4 )
 					throw new Error("invalid index to mTreasureArray");
 				
-				mTreasure0[kItem] = mNamePicker.poolShift(1);
-				mTreasure1[kItem] = mNamePicker.poolShift(2);
-				mTreasure2[kItem] = mNamePicker.poolShift(3);
-				mTreasure3[kItem] = mNamePicker.poolShift(4);
-				mTreasure4[kItem] = mNamePicker.poolShift(5);
+				mTreasure0[kItem] = TreasureNamePicker.poolShift(1);
+				mTreasure1[kItem] = TreasureNamePicker.poolShift(2);
+				mTreasure2[kItem] = TreasureNamePicker.poolShift(3);
+				mTreasure3[kItem] = TreasureNamePicker.poolShift(4);
+				mTreasure4[kItem] = TreasureNamePicker.poolShift(5);
 
 				mTreasuresFoundThisSite		= 0;	// No treasures found yet.
-				mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
+				//mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
 				
 				// sync the rat stepper with the current level if needed
 				//setRatsToSend( mRatsToSend);
@@ -349,8 +353,8 @@
 				mCenterPosition						= 100;	
 				shipControlsMVC.hookStepper.value	= mCenterPosition;					// Set stepper to center position.
 				
-				mMinHookRange						= mCenterPosition - mHookRadius;	// Left edge of hook's grasp.
-				mMaxHookRange						= mCenterPosition + mHookRadius;	// Right edge of hook's grasp.
+				mMinHookRange						= mCenterPosition - mCurrentMission.hookRadius;	// Left edge of hook's grasp.
+				mMaxHookRange						= mCenterPosition + mCurrentMission.hookRadius; //mHookRadius;	// Right edge of hook's grasp.
 				shipControlsMVC.interval.text		= mMinHookRange.toFixed(1) + " – " + mMaxHookRange.toFixed(1);
 				
 				// Hide all parchment announcements until they are needed.OLD STUFF 6/19/13
@@ -363,11 +367,14 @@
 			
 			
 			private function updateGameTitle():void{
-				setGameTitle(Missions.getMissionTitle( mCurrMissionNum)+ ", Site " + mSiteSerialNum);
+				setGameTitle( mCurrentMission.title + ", Site " + mSiteSerialNum);
+				//setGameTitle(Missions.getMissionTitle( mCurrentMission.number)+ ", Site " + mSiteSerialNum);
 			}
 			
 			// start a new game.
 			private function newGame( mission:MissionData, stripBtnListeners:Boolean, clearPreviousData:Boolean):void{
+				
+				mCurrentMission = mission;
 				
 				// first update/close/delete old game case in DG, before we update mGameSerialNum, etc. for new game
 				if( this.parentCaseID >=0 ) {
@@ -375,6 +382,7 @@
 					//trace( "DG interface ****ERROR****: unexpected open game case " );
 					sendGameDataClose();
 				}
+				
 				if( clearPreviousData && false )  {  //TO-DO: re-enable deleting data when we finish debugging delete/case connection problems
 					trace( "DG interface: deleting all game cases" );
 					sendDeleteAllCaseDatatoDG();
@@ -385,10 +393,7 @@
 					popUpScreen.stripMissionButtonListeners();
 				
 				mGameSerialNum += 1;
-				mCurrMissionNum = mission.number;
 				mSitesVisitedThisGame = 0;
-				mStdDeviation = mission.stdDeviation;
-				mHookRadius = mission.hookRadius;
 				
 				Water.fill = mission.waterGradient;
 				Sky.backgroundFill = mission.skyGradient;
@@ -396,7 +401,6 @@
 				cHerder.init( mission.cloudPattern);
 				cHerder.startClouds();
 				
-				mCostPerRat	= mission.ratCost;	// Cost per rat in dollars.	
 				mAutoSailOnAfterFoundTreasure = !mission.variableTreasures;
 
 				bootyMeter.initialize( mission.startingRats, mission.missesAllowed);
@@ -487,7 +491,7 @@
 
 			// this function sets the max # of rats your stepper goes up to, based on how much $ you have.
 			private function updateRatLimit():void{
-				var maxRats:int = (mCostPerRat == 0 ? kMaxRatsToSend : Math.max(bootyMeter.rats/mCostPerRat, 0));
+				var maxRats:int = (mCurrentMission.ratCost == 0 ? kMaxRatsToSend : Math.max(bootyMeter.rats/mCurrentMission.ratCost, 0));
 				if(maxRats > kMaxRatsToSend)
 					maxRats = kMaxRatsToSend;
 				shipControlsMVC.ratStepper.maxValue = maxRats;
@@ -497,11 +501,11 @@
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent = null):void{
 				if(shipControlsMVC.ratStepper.validate()){ // check if the stepper is valid #, based on how much $ you have.
-					if(mCostPerRat >= bootyMeter.rats){
+					if(mCurrentMission.ratCost >= bootyMeter.rats){
 						shipControlsMVC.ratStepper.gotoAndPlay("blink"); // make the stepper flash red if you can afford 0 rats.
 					}else{
-						if(mCostPerRat > 0){ // pay if rats cost $
-							bootyMeter.pay(mCostPerRat * mRatsToSend);
+						if(mCurrentMission.ratCost > 0){ // pay if rats cost $
+							bootyMeter.pay(mCurrentMission.ratCost * mRatsToSend);
 							updateRatLimit();
 						}
 						//				mRatSound.play(); // Play rat sound.
@@ -518,13 +522,13 @@
 							mRatsSent +=1; // Increment rat counter.
 							if(numTreasuresHere == 1){
 								// Generate a noisy result based on the current treasure's location.
-								noisyLocation = (mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[0]; // Display nothing after decimal point.		
+								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + mTreasureLocArr[0]; // Display nothing after decimal point.		
 							} else if(numTreasuresHere == 0){
 								//get random normal values from the entire range
 								noisyLocation = randomLocation();
 							} else if(numTreasuresHere == 2) {
 								//do swap back and forth for two locations if they have 2 left
-								noisyLocation = (mRandomNormal.standardNormal() * mStdDeviation) + mTreasureLocArr[evenOdd];
+								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + mTreasureLocArr[evenOdd];
 							}
 							
 							
@@ -575,8 +579,8 @@
 				var prevCP:int = mCenterPosition;
 				mCenterPosition			= shipControlsMVC.hookStepper.value; //mCenterPositionStepper.value;
 				
-				mMinHookRange			= mCenterPosition - mHookRadius;	// Left edge of hook's grasp.
-				mMaxHookRange			= mCenterPosition + mHookRadius;	// Right edge of hook's grasp.
+				mMinHookRange			= mCenterPosition - mCurrentMission.hookRadius;	// Left edge of hook's grasp.
+				mMaxHookRange			= mCenterPosition + mCurrentMission.hookRadius;	// Right edge of hook's grasp.
 				
 				shipControlsMVC.interval.text = mMinHookRange.toFixed(1) + " - " + mMaxHookRange.toFixed(1);
 				
@@ -626,7 +630,7 @@
 				}else{
 					// Clear hint text next to pirate head.
 					//mEventSerialNum 	+= 1; // Dropping a hook counts as an event.
-					mHooksDropped 	+= 1; // Increment counter of hooks dropped.
+					//mHooksDropped 	+= 1; // Increment counter of hooks dropped.
 					
 					// Check if we snagged any treasures
 					var numTreasuresHere:int = mTreasureLocArr.length;
@@ -652,20 +656,6 @@
 					dropHook();
 				}
 			}
-			
-			//called from the PopUpMVC when the game needs to be restarted
-			/*private function restartMission(startNextMission:Boolean = true):void{
-				finishSite();
-				
-				if(startNextMission){
-					initializeTreasureHunt();
-					newSite();
-				}
-				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
-				shipControlsMVC.hookStepper.value = 100;
-				onChangeCenterPosition(new Event("Stepper"));
-			}
-			*/
 			
 			//wait and check timer routine for when the hook is moving before a drop
 			private function waitOnCraneMove(e:TimerEvent):void{
@@ -707,8 +697,7 @@
 					
 					// Tell the player which treasure was found and how much it is worth.					
 					
-					if( Missions.getMission( mCurrMissionNum).variableTreasures) // if on level 2
-					{
+					if(mCurrentMission.variableTreasures) {	// if on "Treasure or Not"
 						var valueInDollars:String = TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.isOutOfHooks){
 							haveTreasure = true;
@@ -779,7 +768,7 @@
 				crane.visible = false;
 				sailingMovie.visible = true;
 				sailingMovie.reset();
-				mCurrentGameComplete = true;// Game is now complete.	
+				//mCurrentGameComplete = true;// Game is now complete.	
 				
 				if(!popUpScreen.visible){
 					if(haveTreasure || bootyMeter.isOutOfHooks || bootyMeter.isOutOfRats){
@@ -819,7 +808,7 @@
 			}
 			
 			private function getRating():int{
-				return Missions.getMission(mCurrMissionNum).getRating(bootyMeter.treasuresFound);
+				return mCurrentMission.getRating(bootyMeter.treasuresFound);
 			}
 			
 			// set up our game for a new site.
@@ -829,7 +818,7 @@
 				disableAllButtons();
 				mSiteSerialNum += 1;
 				mSitesVisitedThisGame += 1;
-				switchToTreasureHunt(iEvent); //start a new game TO-DO: site-specific initialization out of switchToTreasureHunt() and don't call here.
+				initializeTreasureHunt(); //start a new game TO-DO: site-specific initialization out of switchToTreasureHunt() and don't call here.
 
 				if( mSitesVisitedThisGame >= 2){
 					sendGameDataUpdate(); // send updated SitesVisited to DG
@@ -867,7 +856,7 @@
 							collection: kGamesCollectionName,
 							values: [
 								mGameSerialNum,
-								Missions.getMissionTitle( mCurrMissionNum),
+								mCurrentMission.title,
 								bootyMeter.treasuresFound,
 								mSitesVisitedThisGame
 							]
@@ -881,7 +870,7 @@
 					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
 					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
 					this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
-					if(VersionChecker.isDebug && DEBUG_MODE && this.parentCaseID == -1 ) {
+					if(VersionChecker.isDebug && kDebugMode && this.parentCaseID == -1 ) {
 						this.parentCaseID = mGameSerialNum; // fake a valid case ID for validating sendGameDataUpdate() when not connected to DG
 						trace("DG interface: simulating openCase with parentCaseID "+this.parentCaseID+" (debug only)");
 					} else {
@@ -907,7 +896,7 @@
 							caseID: this.parentCaseID,
 								values: [
 									mGameSerialNum,		 // Game number starting with 1 since launch of application.
-									Missions.getMissionTitle( mCurrMissionNum),
+									mCurrentMission.title,
 									bootyMeter.treasuresFound,
 									mSitesVisitedThisGame
 									// Rating
@@ -996,8 +985,8 @@
 			private function zoomInTimerFinish(e:TimerEvent):void{
 				mTreasureLocArr = new Array();
 				mTreasureLocArrLocked = new Array();
-				if(Missions.getMission( mCurrMissionNum).variableTreasures) //'Treasure or Not' can have 0, 1, or 2 treasures
-				{
+				
+				if(mCurrentMission.variableTreasures){ //'Treasure or Not' can have 0, 1, or 2 treasures
 					mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
 					
 					try
@@ -1026,7 +1015,7 @@
 				}
 				
 				
-				if(VersionChecker.isDebug && DEBUG_MODE)
+				if(VersionChecker.isDebug && kDebugMode)
 				{
 					if(mNumTreasures == 0)
 					{
@@ -1101,7 +1090,7 @@
 			}
 			
 			private function enableHookButton(e:Event = null):void{
-				if( (VersionChecker.isDebug && DEBUG_MODE) || mRatsSent > 0){
+				if( (VersionChecker.isDebug && kDebugMode) || mRatsSent > 0){
 					shipControlsMVC.enableHookButton();
 					shipControlsMVC.hookStepper.enabled = true;
 					if(crane)
@@ -1200,6 +1189,10 @@
 				topBarMVC.setTitle(arg);
 			}
 			
+			private function getCurrentMission():int{ 
+				return mCurrentMission.number; 
+			}
+
 			// This function is called when the game starts. These objects will have the following listeners for the entirety of the play session:
 			private function initListeners():void{
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatHookButton);
@@ -1224,7 +1217,7 @@
 				popUpScreen.visible = false;
 
 				popUpContainer.addChild(topBarMVC);
-				topBarMVC.setVersion(getVersion());
+				topBarMVC.setVersion(kVersion);
 				topBarMVC.setStage(this.systemManager.stage);
 				topBarMVC.helpFunction = onClickHelpButton;
 				
@@ -1314,7 +1307,7 @@
 				 text="You are using an outdated version of Adobe Flash Player." textAlign="center"/>
 		<s:Label id="midLabelError" x="0" y="160" width="{GameScreen.TOTAL_SCREEN_WIDTH}"
 				 color="0xffffff" fontFamily="Georgia" fontSize="15"
-				 text="{'Ship Odyssey requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}"
+				 text="{'Ship Odyssey requires Flash Player '+ kMinimumRequiredVersion +' or later.'}"
 				 textAlign="center"/>
 		<s:Label id="midLabel2Error" x="0" y="180" width="{GameScreen.TOTAL_SCREEN_WIDTH}"
 				 color="0xffffff" fontFamily="Georgia" fontSize="15"

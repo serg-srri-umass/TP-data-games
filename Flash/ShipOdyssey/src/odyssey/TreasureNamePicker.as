@@ -2,38 +2,38 @@ package odyssey {
 	public class TreasureNamePicker{
 		
 		//arrays split into pools of names for selection on each level 
-		private var pool1Arr:Array = new Array( 
+		private static var pool1Arr:Array = new Array( 
 			"the Dud",
 			"the Tsar's Ring", "the Ardabil Carpet",
 			"the Diamond Tiara", "the Sword with Ebony Handle",
 			"the Jewel Crown", "the Shah's Silver Set",
 			"the Platinum Breastplate", "the Silver Goblet");
 		
-		private var pool2Arr:Array = new Array( 
+		private static var pool2Arr:Array = new Array( 
 			"the Black Pearl", "the Ivory Candelabra",
 			"the Golden Ganesha", "the Gilded Scepter",
 			"a Case of Gold Bars", "the Rosewood Jaguar",
 			"the Garnet Bracelet", "the Emerald amulet");
 		
-		private var pool3Arr:Array = new Array( 
+		private static var pool3Arr:Array = new Array( 
 			"the Cloisonné Teapot", "the Porcelain Mask",
 			"the Crystal Chandelier", "the Crimson Grail",
 			"the Glass Slippers", "a Chest of Spanish Coins",
 			"King Arthur’s Sword (Reproduction)");
 		
-		private var pool4Arr:Array = new Array( 
+		private static var pool4Arr:Array = new Array( 
 			"the Jade Elephant", "the Viscount's Helmet",
 			"the Opal Locket", "the Gilded Mirror",
 			"the Silken Tapestry", "Assorted Meats", 
 			"the Pearl Necklace", "a chest of Doubloons");
 		
-		private var pool5Arr:Array = new Array(
+		private static var pool5Arr:Array = new Array(
 			"the Sacred Scrolls", "Shakespeare’s Quill",
 			"the Kinnara Statue", "Captain Kidd's Pistol",
 			"Blackbeard's Cape", "a Dinner with Johnny Depp",
 			"the Brass Chalice", "the Star of India");
 		
-		private var reserveArr:Array = new Array( 
+		private static var reserveArr:Array = new Array( 
 			"the Opal Locket", "the Egret Vase",
 			"some Discount Coupons", "the Ruby Choker",
 			"the Sleeping Buddha", "the Trunk O' Cash",
@@ -46,7 +46,7 @@ package odyssey {
 		
 		//returns next String available in pool specified by @param poolNum. 
 		//Puts the returned String back at the end of the pool. 
-		public function poolShift(poolNum:int):String{
+		public static function poolShift(poolNum:int):String{
 			var outString:String = "";
 			switch(poolNum){
 				case 1:
