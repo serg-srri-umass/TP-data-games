@@ -226,6 +226,11 @@ package chainsaw{
 			return;
 		}
 		
+		//used to cause a mouseUp when player leaves the stage with the chainsaw revved up 
+		public function onMouseOutStage(e:Event):void{
+			onMouseUp(e);
+		}
+		
 		//initialization 
 		private function initSounds():void{
 			//doOnPercentPlayeds
