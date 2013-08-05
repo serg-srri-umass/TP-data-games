@@ -19,6 +19,7 @@ package odyssey
 		
 		private var okayFunc:Function = emptyFunction;	// the funciton that's assigned to the okay button
 		private function emptyFunction():void{}
+		private var deleteData:Boolean = true;
 		
 		public function PopUpScroll(api:ShipMissionAPI = null) {
 			game = api;
@@ -101,11 +102,17 @@ package odyssey
 				missions["mission"+i].addEventListener(MouseEvent.MOUSE_UP, this["displayMission"+i]);
 			}
 			
+			deleteDataBox.checked = deleteData;
+			deleteDataBox.addEventListener(MouseEvent.CLICK, toggleDeletion);
 			playBtn.addEventListener(MouseEvent.CLICK, startGame);
 		}
 		
+		private function toggleDeletion(e:MouseEvent):void{
+			deleteData = deleteDataBox.checked;	
+		}
+		
 		private function startGame(e:MouseEvent):void {
-			var clearPreviousData:Boolean = deleteDataBox.checked; // whether or not the 'clear all data' box is checked.
+			var clearPreviousData:Boolean = deleteData; // whether or not the 'clear all data' box is checked.
 			game.startHunt(selectedLevel, e, clearPreviousData);
 		}
 		
@@ -216,6 +223,9 @@ package odyssey
 			visible = false;
 		}
 		
+		
+		// REPLAY CODE:
+		
 		private var replayArray:Array = new Array();
 		private var treasuresArray:Vector.<Treasure>;
 		
@@ -245,6 +255,8 @@ package odyssey
 				replayWindow.foreground.startReplay();
 			}
 		}
+		
+		// CONFIRM ACTION
 		
 		// this function brings up the confirm dialog. If you click 'okay', it will perform arg. If you cancel, nothing will happen. 
 		public function confirmAction(arg:Function):void{

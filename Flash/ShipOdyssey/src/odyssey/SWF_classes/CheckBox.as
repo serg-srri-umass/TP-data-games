@@ -20,21 +20,26 @@
 			return _checked;
 		}
 		
-		public function select(e:MouseEvent):void{
+		public function set checked(arg:Boolean):void{
+			_checked = arg;
+			deselect();
+		}
+		
+		private function select(e:MouseEvent = null):void{
 			if(_checked)
 				gotoAndStop(2);
 			else
 				gotoAndStop(5);
 		}
 		
-		public function deselect(e:MouseEvent):void{
+		private function deselect(e:MouseEvent = null):void{
 			if(_checked)
 				gotoAndStop(1);
 			else
 				gotoAndStop(4);
 		}
 		
-		public function click(e:MouseEvent):void{
+		private function click(e:MouseEvent = null):void{
 			if(_checked)
 				gotoAndStop(3);
 			else
