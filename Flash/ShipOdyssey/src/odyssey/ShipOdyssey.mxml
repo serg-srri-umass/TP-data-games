@@ -464,7 +464,9 @@
 			// retrieve treasure at the specified location.
 			protected function onClickDropHookButton(event:MouseEvent = null):void
 			{		
-				shipControlsMVC.disableHookButton();
+				disableAllButtons(); // this makes the next site button invisible
+				bootyMeter.disableNextSiteButton(false);  // this makes the next site button visible, but disabled.
+				
 				crane.canDrag = false;
 				
 				shipControlsMVC.hookStepper.validate();
@@ -502,9 +504,6 @@
 			
 			//call the animation, disable all buttons during animation, and start a timer
 			private function dropHook():void{
-				disableAllButtons(); // this makes the next site button invisible
-				bootyMeter.disableNextSiteButton(false);  // this makes the next site button visible, but disabled.
-				
 				var hookDropTime:Number = 1;
 				var hookRaiseTime:Number = 2.75;
 				
@@ -1109,10 +1108,10 @@
 				 text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}"
 				 textAlign="center"/>
 		<s:Button id="upgradeButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}" y="250" width="350"
-				  height="50" label="Upgrade Flash Player" click="VersionChecker.openAdobeWebsite()"
+				  height="50" fontFamily="Georgia" label="Upgrade Flash Player" click="VersionChecker.openAdobeWebsite()"
 				  enabled="true" fontSize="25"/>
 		<s:Button id="ignoreButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}" y="310" width="350"
-				  height="30" label="Ignore Warning" click="startUp()" enabled="true" fontSize="12"/>
+				  height="30" fontFamily="Georgia" label="Ignore Warning" click="startUp()" enabled="true" fontSize="12"/>
 	
 	</s:BorderContainer>
 	
