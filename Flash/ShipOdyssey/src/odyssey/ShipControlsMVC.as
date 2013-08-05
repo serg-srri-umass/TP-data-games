@@ -12,19 +12,24 @@ package odyssey
 			hookStepper.precision = 1;
 		}
 		
-		public function useRatStepper():void{
-			sendRatsBtnLarge.visible = false;
-			ratStepper.visible = true;
-			sendRatsBtn.visible = true;
-			buttonBacker.gotoAndStop(1);
+		public function get useLargeRatButton():Boolean{
+			return sendRatsBtnLarge.visible;
 		}
 		
-		public function useLargeRatButton():void{
-			sendRatsBtnLarge.visible = true;
-			ratStepper.visible = false;
-			sendRatsBtn.visible = false;
-			buttonBacker.gotoAndStop(2);
-			
+		// when true, the large 'Send 100 Rats' button is visible. Otherwise, the stepper is.
+		public function set useLargeRatButton( useLargeButton:Boolean):void{
+			ratStepper.locked = useLargeButton;
+			if(useLargeButton){
+				sendRatsBtnLarge.visible = true;
+				ratStepper.visible = false;
+				sendRatsBtn.visible = false;
+				buttonBacker.gotoAndStop(2);
+			} else {
+				sendRatsBtnLarge.visible = false;
+				ratStepper.visible = true;
+				sendRatsBtn.visible = true;
+				buttonBacker.gotoAndStop(1);
+			}
 		}
 		
 		public function disableRatsButton():void{

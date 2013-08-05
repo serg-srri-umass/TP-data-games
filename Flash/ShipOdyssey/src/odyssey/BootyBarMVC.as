@@ -21,6 +21,8 @@ package odyssey
 
 		private var _startingRats:int; // how much gold the player started the mission with.
 		private var targetHeight:Number; // the height that the booty bar is trying to animate to.
+
+		private var _nextSiteFunc:Function;
 		
 		public function BootyBarMVC()
 		{
@@ -144,13 +146,15 @@ package odyssey
 			_endMissionFunc(e);
 		}
 		
-		private var _nextSiteFunc:Function;
+		
 		public function set nextSiteFunction(arg:Function):void{
 			_nextSiteFunc = arg;
 		}
+		
 		public function get nextSiteFunction():Function{
 			return _nextSiteFunc;
 		}
+		
 		private function donextSiteFunc(e:Event):void{
 			_nextSiteFunc(e);
 		}
