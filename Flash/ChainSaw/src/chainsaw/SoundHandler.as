@@ -197,8 +197,7 @@ package chainsaw{
 				//trace("mouseOverLog");
 				if(mLoadUpSound.isPlaying() && !mLoadDownSound.isPlaying()){
 					loadUpToLoadDownTrans();
-				}
-				if(mRunSound && mRunSound.isPlaying()){
+				}else if(mRunSound && mRunSound.isPlaying()){
 					runToLoad();
 				}else if(mRunSound2 && mRunSound2.isPlaying()){
 					runToLoad();
