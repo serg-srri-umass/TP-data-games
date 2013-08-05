@@ -217,9 +217,9 @@ package odyssey
 		}
 		
 		private var replayArray:Array = new Array();
-		private var treasuresArray:Array = new Array();
+		private var treasuresArray:Vector.<Treasure>;
 		
-		public function doReplay(arg:Array, treasuresArg:Array):void{
+		public function doReplay(arg:Array, treasuresArg:Vector.<Treasure>):void{
 			replayArray = arg;
 			treasuresArray = treasuresArg;
 		}
@@ -230,10 +230,10 @@ package odyssey
 			var t2:Number = -1;
 			
 			if(treasuresArray.length == 1){
-				t1 = treasuresArray[0];
+				t1 = treasuresArray[0].location;
 			} else if(treasuresArray.length == 2) {
-				t1 = treasuresArray[0];
-				t2 = treasuresArray[1];
+				t1 = treasuresArray[0].location;
+				t2 = treasuresArray[1].location;
 			}
 			
 			replayWindow.foreground.placeTreasure(t1, t2);

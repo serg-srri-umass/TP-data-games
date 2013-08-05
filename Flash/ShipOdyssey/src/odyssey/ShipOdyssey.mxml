@@ -57,25 +57,6 @@
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
-			//-- Obsolete Variables
-			//public static const kInitCenter:Number = 50;// Starting center position of grappling hook.
-			//public static const kHookCenterPrecision:int = 2;// Number of digits past the decimal to which center is rounded.
-			//public static const kCostPerHookDrop:int = 50; // Cost each time you drop a hook		
-			//private var mCurrMissionNum:int = 1;			// Game level of difficulty, 1+: corresponds to different mission names
-			//private var mStdDeviation:Number;				// Standard deviation of rat results.
-			//private var mCostPerRat:uint	= 1;			// Cost per rat in dollars.
-			//private static var mHookRadius:uint= 2;		// Radius of grappling hook area.
-			//private var mTreasureValueSoFar:uint = 0;		// Cumulative value of treasures found in current game.
-			//private var mEventSerialNum:uint	= 0;		// Serial number of current event in current game (rat(s) sent or hook dropped), begining with 1.
-			//private var mMathUtils:MathUtilities = new MathUtilities();			// Class that uses SRRI math functions.
-			//private var endTimer:Timer;	//timer when your money hits zero, waits before showing lose screen
-			//private var mRatCostSoFar:uint = 0;				// Cumulative value of rat cost in current game.
-			//private var mNamePicker:TreasureNamePicker = new TreasureNamePicker();	// this has been moved to static. (There's no reason to ever have 2 treasure pickers.)
-			//private var mHooksDropped:uint	= 0;			// Number of hooks already dropped in current game.	
-			//private var mCurrentGameComplete:Boolean = false;// Has current game been won or lost yet? bootyMeter.isOutOfHooks and bootyMeter.isOutOfRats should be used instead.
-			//private var mAutoSailOnAfterFoundTreasure:Boolean; //Added for lvl 2 where the user must choose when to sail on because there can be 0, 1, or 2 treasures
-			
-			
 			//-- Public Constants
 			public static const kEventsCollectionName:String = "Events";
 			public static const kGamesCollectionName:String = "Games";
@@ -105,35 +86,11 @@
 			private var mFoundTreasure:Boolean = false; 	// Has the current hook drop found this treasure?
 			private	var	parentCaseID:int = -2;				// parent (game-level) case ID for DG; -2 means DG data not yet initialized, -1 means that no game case is open, 0+ is valid ID
 			private var hooksDroppedArray:Array; 			// Array of hooks dropped at a site, where they were dropped, and what they pulled up. Used for replay window.
-
-			// these two arrays control the # of treasures found per site on Variable treasure missions.
 			private const variableTreasureSeedArray:Array = new Array(2, 0, 1, 2, 0, 1);	// this array is used on 'Treasure or Not', as the starting, unshuffled value.
 			private var variableTreasureArray:Array = new Array(); // this holds the actual, shuffled array that is generated from the seed.
-			
-			/* TO-DO: Clean up treasure logic
-			
-				-A site needs to know how many treasures it has.
-				-A treasure has a name, and a location. But really, ShipOdyssey only needs to know the location. The name can be generated when the treasure is pulled up.
-				-So all the site needs is an array of numbers, that represent its treasure's locations.
-			*/
-			
 			private var haveTreasure:Boolean = false; // whether you pulled up a treasure or not on your last hook drop.
+			private var treasureArray:Vector.<Treasure>;
 			
-			private var mTreasuresAtLocArr:Array;			//Used for new multi-treasure aspect - tells how many treasures are at the current loc
-			private var mTreasureLocArr:Array;				//location of each treasure at current loc, treasures are removed as found
-			private var mTreasureLocArrLocked:Array;		// like the other array, but treasures aren't removed when they're found.
-			private var mLocationFound:Number;					// for storing the location of a found treasure across timer steps
-			
-			// These arrays store the details of individual treasures.
-			private var mTreasure0:Array;
-			private var mTreasure1:Array;
-			private var mTreasure2:Array;
-			private var mTreasure3:Array;
-			private var mTreasure4:Array;
-			private var mTreasure5:Array;
-			
-			// Array of treasures (zero-based).
-			private var mTreasureArray:Array;
 			
 			//variables for holding loaded MovieClips
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle, closeGame);	
@@ -145,19 +102,7 @@
 			
 			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
 			
-			// Embed the start screen pirate ship graphic.
-			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010.
-			// Cursor details are at: http://www.rw-designer.com/cursor-detail/2222
-			//   "Published on August 14th 2007 by The Sword of the Heart."
-			//   "Released under the Attribution Required (CC by) license."
-			//   "Creative Commons - Attribution" see http://www.rw-designer.com/licenses
-			// Converted from .eps format to .jpg.
-			//[Embed(source="../odysseyAssets/Pirate Ship 515 x 410.png")]
-			//[Bindable]
-			//private var mPirateShipImage:Class;
-			
 			// ********** TREASURE HUNT SOUNDS ********
-			
 			// Embed the cash earned sound in the Treasure Hunt game.
 			// New Cash register sound by Benboncan (only modification is converted to MP3)
 			// Downloaded from http://www.freesound.org/people/Benboncan/sounds/91924/ on Feb 7, 2012
@@ -290,75 +235,7 @@
 				trace( "DG interface: initGame" );
 			}
 			
-			// ********** TREASURE HUNT FUNCTIONS **********
-			
-			// currently called every site. TO-DO: Rename this, or more its functionality to a better named function.
-			// initializeTreasureHunt() sets the Treasure Hunt game to initial values
-			// and prepares the game for play.
-			protected function initializeTreasureHunt():void
-			{
-				/*
-				if(!mCurrentMission){	// if the current mission is undefined, set it. 
-					mCurrentMission = Missions.getMission(1);
-				}*/
-				
-				disableAllButtons();
-				//mEventSerialNum			= 0;	// Don't count events until they occur (rat(s) sent or hook dropped).	
-				mRatsSent				= 0;	// Reset number of rats sent.
-				//mHooksDropped			= 0;	// Reset number of hooks dropped.
-				//mCurrentGameComplete	= false;// Game is in play.
-				
-				//reset the TreasureNamePicker
-				//mNamePicker = new TreasureNamePicker();
-				
-				// Set up the treasure number, location, value, and item 
-				//(set as an empty string until it is set in the level switch below)
-				mTreasure0 = new Array("1st", randomLocation(), 0, "");	//$WIP.
-				mTreasure1 = new Array("2nd", randomLocation(), 0, "");
-				mTreasure2 = new Array("3rd", randomLocation(), 0, "");
-				mTreasure3 = new Array("4th", randomLocation(), 0, "");
-				mTreasure4 = new Array("5th", randomLocation(), 0, "");
-				
-				// Create new treasure array and add treasures to array.
-				mTreasureArray = new Array(	mTreasure0, mTreasure1, mTreasure2, 
-					mTreasure3, mTreasure4 );
-				
-				//instead of choosing treasure randomly, chooses based on which level you are on.
-				//Choose treasure name from matching level pool. Iterates through names linearly. 
-				
-				mCurrentTreasureNum = mCurrentMission.number - 1;
-				
-				if( mCurrentTreasureNum < 0 || mCurrentTreasureNum > 4 )
-					throw new Error("invalid index to mTreasureArray");
-				
-				mTreasure0[kItem] = TreasureNamePicker.poolShift(1);
-				mTreasure1[kItem] = TreasureNamePicker.poolShift(2);
-				mTreasure2[kItem] = TreasureNamePicker.poolShift(3);
-				mTreasure3[kItem] = TreasureNamePicker.poolShift(4);
-				mTreasure4[kItem] = TreasureNamePicker.poolShift(5);
-
-				mTreasuresFoundThisSite		= 0;	// No treasures found yet.
-				//mRatCostSoFar				= 0;	// No rats have been used yet, so no cost yet.
-				
-				// sync the rat stepper with the current level if needed
-				//setRatsToSend( mRatsToSend);
-				
-				// Move hook to center of treasure area.
-				mCenterPosition						= 100;	
-				shipControlsMVC.hookStepper.value	= mCenterPosition;					// Set stepper to center position.
-				
-				mMinHookRange						= mCenterPosition - mCurrentMission.hookRadius;	// Left edge of hook's grasp.
-				mMaxHookRange						= mCenterPosition + mCurrentMission.hookRadius; //mHookRadius;	// Right edge of hook's grasp.
-				shipControlsMVC.interval.text		= mMinHookRange.toFixed(1) + " – " + mMaxHookRange.toFixed(1);
-				
-				// Hide all parchment announcements until they are needed.OLD STUFF 6/19/13
-				//mAllTreasuresFoundAlert.visible	= false;
-				//mTimeRanOutAlert.visible		= false;
-				//mCongratulationsAlert.visible	= false;
-				//mTreasuresFoundLabel.visible	= false;
-			}
-			
-			
+			// ********** TREASURE HUNT FUNCTIONS **********\			
 			
 			private function updateGameTitle():void{
 				setGameTitle( mCurrentMission.title + ", Site " + mSiteSerialNum);
@@ -421,35 +298,12 @@
 			// of the total number of treasures available.
 			protected function treasuresFoundString():String
 			{
-				//if you've only found 1 of 2 treaures, this determines which one you found, and which you missed
-				var foundFirstOf2:Boolean = false; 
-				if(mLocationFound == mTreasureArray[mCurrentTreasureNum][kLocation]){
-					foundFirstOf2 = true; 
-				}
+				if( treasureArray.length == 1)
+					return treasureArray[0].toString();
+				else if( treasureArray.length == 2)
+					return treasureArray[0].toString() + "\n" + treasureArray[1].toString();
 				
-				//mNumTreasures: the number of treasures to find at the current location
-				//mTreasuresFoundThisSite: the number of treasures the player found
-				switch(mNumTreasures)
-				{
-					case 0:
-						return "There were no treasures here.";
-					case 1:
-						if(mTreasuresFoundThisSite == 1) return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10);
-						else return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] +" at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10);
-					case 2:
-						switch(mTreasuresFoundThisSite)
-						{
-							//these really long strings format the info for the two treasures on two tabular lines
-							case 0: return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You missed " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " at " + Math.round(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10;
-							//case 0: return "You missed " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You missed " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue]) + " at " + Math.round(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10;
-							//the really long string is there to format the message based on which of the two treasures you found, and which you missed 	
-							case 1: return "You found " + ((foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " at " + ((foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10)) + "\n" + "You missed " + ((!foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " at " + ((!foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10));
-							//case 1: return "You found " + ((foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " worth " + ((foundFirstOf2) ? TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) : TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue])) + " at " + ((foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10)) + "\n" + "You missed " + ((!foundFirstOf2) ? (mTreasureArray[mCurrentTreasureNum][kItem]) : (mTreasureArray[mCurrentTreasureNum + 1][kItem])) + " worth " + ((!foundFirstOf2) ? TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) : TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue])) + " at " + ((!foundFirstOf2) ? String(int((mTreasureArray[mCurrentTreasureNum][kLocation] * 10)) / 10) : String(int((mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10)) / 10));
-							case 2: return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You found " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " at " + String(int(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10);
-							//case 2: return "You found " + mTreasureArray[mCurrentTreasureNum][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum][kLocation] * 10) / 10) + "\n" + "You found " + mTreasureArray[mCurrentTreasureNum + 1][kItem] + " worth " + TextFormatter.toCash(mTreasureArray[mCurrentTreasureNum + 1][kValue]) + " at " + String(int(mTreasureArray[mCurrentTreasureNum + 1][kLocation] * 10) / 10);
-						}
-					default: return "You found " + mTreasuresFoundThisSite + " of the " + mNumTreasures + " treasures!";
-				}
+				return "There were no treasures here.";
 			}
 			
 			// this method returns an array of treasures-per-site, used in Mission "Treasures or Not".
@@ -501,35 +355,43 @@
 						//				mRatSound.play(); // Play rat sound.
 						
 						// For every rat sent, update Results text and send Rat data to TinkerPlots/DG
-						var	numTreasuresHere:int = mTreasureLocArr.length,
-							noisyLocation:Number, 
-							ratNum:int, //init vars that are used in all 3 forks
-							evenOdd:int = 0,
-							eventsAtATime:int = Math.max( 1, Math.round( mRatsToSend / 10 )),
-							eventArray:Array = [];
-						//trace("rats to send: " + mRatsToSend);
-						for(ratNum = 0; ratNum < mRatsToSend; ++ratNum){
+						
+						var treasurePositions:Array = new Array(); // this array holds the position of each un-found treasure.
+						for(var i:int = 0; i < treasureArray.length; i++){
+							if(!treasureArray[i].found){
+								treasurePositions.push(treasureArray[i].location);
+							}
+						}
+						
+						var	numTreasuresHere:int = treasurePositions.length;
+						var	noisyLocation:Number;
+						var	evenOdd:int = 0;
+						var	eventsAtATime:int = Math.max( 1, Math.round( mRatsToSend / 10 ));
+						var	eventArray:Array = [];
+						
+						for( var ratNum:int = 0; ratNum < mRatsToSend; ++ratNum){
 							mRatsSent +=1; // Increment rat counter.
+							
 							if(numTreasuresHere == 1){
 								// Generate a noisy result based on the current treasure's location.
-								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + mTreasureLocArr[0]; // Display nothing after decimal point.		
+								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + treasurePositions[0]; // Display nothing after decimal point.		
 							} else if(numTreasuresHere == 0){
 								//get random normal values from the entire range
 								noisyLocation = randomLocation();
 							} else if(numTreasuresHere == 2) {
 								//do swap back and forth for two locations if they have 2 left
-								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + mTreasureLocArr[evenOdd];
+								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + treasurePositions[evenOdd];
 							}
 							
-							
 							eventArray.push( getEventDataValues( noisyLocation ));
-							if( (ratNum+1==mRatsToSend) || (eventArray.length >= eventsAtATime )){
+							
+							if( (ratNum + 1 == mRatsToSend) || (eventArray.length >= eventsAtATime )){
 								DivingRatDirector.addRat( noisyLocation, eventArray);
 								eventArray = []; // clear values already sent
 							}else{
 								DivingRatDirector.addRat( noisyLocation);					
 							}
-							evenOdd = (evenOdd+1)%2;
+							evenOdd = (evenOdd + 1) % 2;
 						}
 						if(mRatsToSend > 0)
 							DivingRatDirector.releaseRats();
@@ -616,31 +478,18 @@
 					transitionTimer = new Timer(500, 0);
 					transitionTimer.addEventListener(TimerEvent.TIMER,waitOnCraneMove);
 					transitionTimer.start();
-				}else{
+				} else {
 					// Clear hint text next to pirate head.
 					//mEventSerialNum 	+= 1; // Dropping a hook counts as an event.
 					//mHooksDropped 	+= 1; // Increment counter of hooks dropped.
 					
 					// Check if we snagged any treasures
-					var numTreasuresHere:int = mTreasureLocArr.length;
-					var loc1:Number, loc2:Number; //use 2 locs since we have a max of 2 treasures at each spot
-					if(numTreasuresHere == 0){
-						loc1 = loc2 = -1000; //make the number unreachable
-					}else if(numTreasuresHere == 1){
-						loc1 = loc2 = mTreasureLocArr[0]; // both go to the same loc;
-					}else if(numTreasuresHere == 2){
-						loc1 = mTreasureLocArr[0];
-						loc2 = mTreasureLocArr[1];
-					}
 					mFoundTreasure = false;
-					if(loc1 >= mMinHookRange && loc1 <= mMaxHookRange){
-						mFoundTreasure = true; //sets that we found the treasure
-						mLocationFound = loc1; //gives us the loc for displaying in the feedback panel
-						mTreasureLocArr.shift();
-					}else if(loc2 >= mMinHookRange && loc2 <= mMaxHookRange){
-						mFoundTreasure = true; //same as above
-						mLocationFound = loc2;
-						mTreasureLocArr.splice(-1,1);
+					for( var i:int = 0; i < treasureArray.length; i++){
+						if( !treasureArray[i].found && treasureArray[i].location >= mMinHookRange && treasureArray[i].location <= mMaxHookRange){
+							mFoundTreasure = true;
+							treasureArray[i].found = true;
+						}
 					}
 					dropHook();
 				}
@@ -696,7 +545,7 @@
 						}
 					} else { // on levels 1,3,4
 						haveTreasure = true;
-						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
+						popUpScreen.doReplay(hooksDroppedArray, treasureArray);
 						zoomOutAndSail();
 					}
 					mTreasuresFoundThisSite++;
@@ -712,7 +561,7 @@
 					if(!bootyMeter.isOutOfHooks){
 						enableAllButtons();
 					}else{
-						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
+						popUpScreen.doReplay(hooksDroppedArray, treasureArray);
 						zoomOutAndSail();
 					}
 						
@@ -753,7 +602,7 @@
 							popUpScreen.displayInstantReplay(treasuresFoundString(), newSite);
 						}
 					}else{
-						popUpScreen.doReplay(hooksDroppedArray, mTreasureLocArrLocked);
+						popUpScreen.doReplay(hooksDroppedArray, treasureArray);
 						popUpScreen.displayInstantReplay(treasuresFoundString(), newSite);
 					}
 				}
@@ -785,9 +634,31 @@
 				popUpScreen.visible = false;
 				readyToZoomIn();
 				disableAllButtons();
-				mSiteSerialNum += 1;
-				mSitesVisitedThisGame += 1;
-				initializeTreasureHunt(); //start a new game TO-DO: site-specific initialization out of switchToTreasureHunt() and don't call here.
+				
+				mSiteSerialNum			+= 1;
+				mSitesVisitedThisGame 	+= 1;
+				mTreasuresFoundThisSite	= 0;	// No treasures found yet.
+				mRatsSent				= 0;	// Reset number of rats sent.
+				//mHooksDropped			= 0;	// Reset number of hooks dropped.
+				
+				var treasuresThisSite:int = getTreasuresThisSite();
+				treasureArray = new Vector.<Treasure>();
+				for( var i:int = 0; i < treasuresThisSite; i++)
+					treasureArray.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), randomLocation()));
+				
+				if(treasureArray.length == 2){
+					// this while loop ensures that the two treasures are sufficiently far apart.
+					while(Math.abs( treasureArray[0].location - treasureArray[1].location) < 30)
+						treasureArray[0].location = randomLocation();
+				}
+				
+				// Move hook to center of treasure area.
+				mCenterPosition						= 100;	
+				shipControlsMVC.hookStepper.value	= mCenterPosition;					// Set stepper to center position.
+				mMinHookRange						= mCenterPosition - mCurrentMission.hookRadius;	// Left edge of hook's grasp.
+				mMaxHookRange						= mCenterPosition + mCurrentMission.hookRadius; //mHookRadius;	// Right edge of hook's grasp.
+				shipControlsMVC.interval.text		= mMinHookRange.toFixed(1) + " – " + mMaxHookRange.toFixed(1);
+				hooksDroppedArray = new Array();
 
 				if( mSitesVisitedThisGame >= 2){
 					sendGameDataUpdate(); // send updated SitesVisited to DG
@@ -795,6 +666,21 @@
 				
 				updateRatLimit();
 				updateGameTitle();
+				
+				if(VersionChecker.isDebug && kDebugMode)
+				{
+					trace(treasuresFoundString());
+				}
+			}
+			
+			private function getTreasuresThisSite():int{
+				if(mCurrentMission.variableTreasures){
+					if(variableTreasureArray.length)
+						return variableTreasureArray.shift();
+					else 
+						return Math.random()*3;	// when the pseduo-random array is depleted, use real random.
+				}
+				return 1;
 			}
 			
 			// Toggles the Instructions scroll
@@ -952,61 +838,9 @@
 			}
 			
 			private function zoomInTimerFinish(e:TimerEvent):void{
-				mTreasureLocArr = new Array();
-				mTreasureLocArrLocked = new Array();
-				
-				if(mCurrentMission.variableTreasures){ //'Treasure or Not' can have 0, 1, or 2 treasures
-					//mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
-					if(variableTreasureArray.length){
-						mNumTreasures = variableTreasureArray.shift();
-					} else {
-						mNumTreasures = Math.random()*3;
-					}
-					
-					try
-					{
-						// Make sure the next two treasures are not too close together.
-						var loc1:Number = mTreasureArray[mCurrentTreasureNum][kLocation];
-						var loc2:Number = mTreasureArray[mCurrentTreasureNum+1][kLocation];
-					}
-					catch(e:Error)
-					{
-						trace(e);
-					}
-					while(Math.abs(loc1-loc2) < 30){
-						loc2 = mTreasureArray[mCurrentTreasureNum+1][kLocation] = randomLocation();
-					}
-				}
-				else
-				{
-					mNumTreasures = 1;	//only 1 treasure for levels 1, 3, & 4
-				}
-				
-				for(var i:int=0; i<mNumTreasures; i++)
-				{
-					mTreasureLocArr.push(mTreasureArray[mCurrentTreasureNum+i][kLocation]);
-					mTreasureLocArrLocked.push(mTreasureArray[mCurrentTreasureNum+i][kLocation]);
-				}
-				
-				
-				if(VersionChecker.isDebug && kDebugMode)
-				{
-					if(mNumTreasures == 0)
-					{
-						trace("No treasures at this location");
-					}
-					for(var j:int=0; mTreasureLocArr[j]; j++)
-					{
-						var treasure:Array = mTreasureArray[mCurrentTreasureNum+j];
-						trace("Treasure "+j+": " + treasure[kItem] + " at " + treasure[kLocation]);
-					}
-				}
-				
 				crane.visible = true;
 				sailingMovie.visible = false;
 				enableAllButtons();
-				
-				hooksDroppedArray = new Array();
 			}
 			
 			//currently unused since there are no rat drop sounds or anims

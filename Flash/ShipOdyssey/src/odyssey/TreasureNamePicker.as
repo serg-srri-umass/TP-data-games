@@ -3,7 +3,6 @@ package odyssey {
 		
 		//arrays split into pools of names for selection on each level 
 		private static var pool1Arr:Array = new Array( 
-			"the Dud",
 			"the Tsar's Ring", "the Ardabil Carpet",
 			"the Diamond Tiara", "the Sword with Ebony Handle",
 			"the Jewel Crown", "the Shah's Silver Set",
@@ -13,7 +12,7 @@ package odyssey {
 			"the Black Pearl", "the Ivory Candelabra",
 			"the Golden Ganesha", "the Gilded Scepter",
 			"a Case of Gold Bars", "the Rosewood Jaguar",
-			"the Garnet Bracelet", "the Emerald amulet");
+			"the Garnet Bracelet", "the Emerald Amulet");
 		
 		private static var pool3Arr:Array = new Array( 
 			"the Cloisonné Teapot", "the Porcelain Mask",
@@ -25,7 +24,7 @@ package odyssey {
 			"the Jade Elephant", "the Viscount's Helmet",
 			"the Opal Locket", "the Gilded Mirror",
 			"the Silken Tapestry", "Assorted Meats", 
-			"the Pearl Necklace", "a chest of Doubloons");
+			"the Pearl Necklace", "a Chest of Doubloons");
 		
 		private static var pool5Arr:Array = new Array(
 			"the Sacred Scrolls", "Shakespeare’s Quill",
