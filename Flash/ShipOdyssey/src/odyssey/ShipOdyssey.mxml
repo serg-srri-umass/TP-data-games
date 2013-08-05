@@ -60,13 +60,10 @@
 			//-- Public Constants
 			public static const kEventsCollectionName:String = "Events";
 			public static const kGamesCollectionName:String = "Games";
-			
-			public static const kLocation:uint= 1;	// Array position of treasure location.
-			public static const kValue:uint		= 2;	// Array position of treasure value.
-			public static const kItem:uint		= 3;	// Array position of treasure item.
 			public static const kMinLocation:Number = 0;	// Leftmost treasure location.
 			public static const kMaxLocation:Number = 100;	// Rightmost treasure location.
-			public static const kMaxRatsToSend:int = 500; // the most rats that can be sent.			
+			public static const kMaxRatsToSend:int = 500; // the most rats that can be sent.
+			public static const variableTreasureSeedArray:Array = new Array(2, 0, 1, 2, 0, 1);	// this array is used on 'Treasure or Not', as the starting, unshuffled value.
 			
 			//-- Private variables
 			private var mCurrentMission:MissionData;			// The current game mission.  
@@ -86,10 +83,9 @@
 			private var mFoundTreasure:Boolean = false; 	// Has the current hook drop found this treasure?
 			private	var	parentCaseID:int = -2;				// parent (game-level) case ID for DG; -2 means DG data not yet initialized, -1 means that no game case is open, 0+ is valid ID
 			private var hooksDroppedArray:Array; 			// Array of hooks dropped at a site, where they were dropped, and what they pulled up. Used for replay window.
-			private const variableTreasureSeedArray:Array = new Array(2, 0, 1, 2, 0, 1);	// this array is used on 'Treasure or Not', as the starting, unshuffled value.
 			private var variableTreasureArray:Array = new Array(); // this holds the actual, shuffled array that is generated from the seed.
 			private var haveTreasure:Boolean = false; // whether you pulled up a treasure or not on your last hook drop.
-			private var treasureArray:Vector.<Treasure>;
+			private var mTreasureArray:Vector.<Treasure>;
 			
 			
 			//variables for holding loaded MovieClips
@@ -298,10 +294,10 @@
 			// of the total number of treasures available.
 			protected function treasuresFoundString():String
 			{
-				if( treasureArray.length == 1)
-					return treasureArray[0].toString();
-				else if( treasureArray.length == 2)
-					return treasureArray[0].toString() + "\n" + treasureArray[1].toString();
+				if( mTreasureArray.length == 1)
+					return mTreasureArray[0].toString();
+				else if( mTreasureArray.length == 2)
+					return mTreasureArray[0].toString() + "\n" + mTreasureArray[1].toString();
 				
 				return "There were no treasures here.";
 			}
@@ -357,9 +353,9 @@
 						// For every rat sent, update Results text and send Rat data to TinkerPlots/DG
 						
 						var treasurePositions:Array = new Array(); // this array holds the position of each un-found treasure.
-						for(var i:int = 0; i < treasureArray.length; i++){
-							if(!treasureArray[i].found){
-								treasurePositions.push(treasureArray[i].location);
+						for(var i:int = 0; i < mTreasureArray.length; i++){
+							if(!mTreasureArray[i].found){
+								treasurePositions.push(mTreasureArray[i].location);
 							}
 						}
 						
@@ -485,10 +481,10 @@
 					
 					// Check if we snagged any treasures
 					mFoundTreasure = false;
-					for( var i:int = 0; i < treasureArray.length; i++){
-						if( !treasureArray[i].found && treasureArray[i].location >= mMinHookRange && treasureArray[i].location <= mMaxHookRange){
+					for( var i:int = 0; i < mTreasureArray.length; i++){
+						if( !mTreasureArray[i].found && mTreasureArray[i].location >= mMinHookRange && mTreasureArray[i].location <= mMaxHookRange){
 							mFoundTreasure = true;
-							treasureArray[i].found = true;
+							mTreasureArray[i].found = true;
 						}
 					}
 					dropHook();
@@ -545,7 +541,7 @@
 						}
 					} else { // on levels 1,3,4
 						haveTreasure = true;
-						popUpScreen.doReplay(hooksDroppedArray, treasureArray);
+						popUpScreen.doReplay(hooksDroppedArray, mTreasureArray);
 						zoomOutAndSail();
 					}
 					mTreasuresFoundThisSite++;
@@ -561,7 +557,7 @@
 					if(!bootyMeter.isOutOfHooks){
 						enableAllButtons();
 					}else{
-						popUpScreen.doReplay(hooksDroppedArray, treasureArray);
+						popUpScreen.doReplay(hooksDroppedArray, mTreasureArray);
 						zoomOutAndSail();
 					}
 						
@@ -602,7 +598,7 @@
 							popUpScreen.displayInstantReplay(treasuresFoundString(), newSite);
 						}
 					}else{
-						popUpScreen.doReplay(hooksDroppedArray, treasureArray);
+						popUpScreen.doReplay(hooksDroppedArray, mTreasureArray);
 						popUpScreen.displayInstantReplay(treasuresFoundString(), newSite);
 					}
 				}
@@ -642,14 +638,14 @@
 				//mHooksDropped			= 0;	// Reset number of hooks dropped.
 				
 				var treasuresThisSite:int = getTreasuresThisSite();
-				treasureArray = new Vector.<Treasure>();
+				mTreasureArray = new Vector.<Treasure>();
 				for( var i:int = 0; i < treasuresThisSite; i++)
-					treasureArray.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), randomLocation()));
+					mTreasureArray.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), randomLocation()));
 				
-				if(treasureArray.length == 2){
+				if(mTreasureArray.length == 2){
 					// this while loop ensures that the two treasures are sufficiently far apart.
-					while(Math.abs( treasureArray[0].location - treasureArray[1].location) < 30)
-						treasureArray[0].location = randomLocation();
+					while(Math.abs( mTreasureArray[0].location - mTreasureArray[1].location) < 30)
+						mTreasureArray[0].location = randomLocation();
 				}
 				
 				// Move hook to center of treasure area.
