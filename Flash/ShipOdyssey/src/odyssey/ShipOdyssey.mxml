@@ -134,14 +134,11 @@
 			// Array of treasures (zero-based).
 			private var mTreasureArray:Array;
 			
-			
 			//stores treasure locations for printing in Achor Pulled! dialog 
 			private var mTreasurePrint:Array = new Array(2);
-			
-			//booty meter
-			
-			//TreasureNamePicker. Make new obj to reset name iteration. 
-			
+			private const variableTreasureSeedArray:Array = new Array(2, 0, 1, 2, 0, 1);	// this array is used on 'Treasure or Not', as the starting, unshuffled value.
+			private var variableTreasureArray:Array = new Array(); // this holds the actual, shuffled array that is generated from the seed.
+						
 			//variables for holding loaded MovieClips
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle, closeGame);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
@@ -373,6 +370,8 @@
 			
 			// start a new game.
 			private function newGame( mission:MissionData, stripBtnListeners:Boolean, clearPreviousData:Boolean):void{
+				if(stripBtnListeners)
+					popUpScreen.stripMissionButtonListeners();	// if this is being called from the pop-up screen, strip the button listeners. 
 				
 				mCurrentMission = mission;
 				
@@ -383,15 +382,12 @@
 					sendGameDataClose();
 				}
 				
-				if( clearPreviousData && false )  {  //TO-DO: re-enable deleting data when we finish debugging delete/case connection problems
+				if( clearPreviousData)  {  //TO-DO: re-enable deleting data when we finish debugging delete/case connection problems
 					trace( "DG interface: deleting all game cases" );
 					sendDeleteAllCaseDatatoDG();
 				}
 				
-				updateGameTitle();
-				if(stripBtnListeners)
-					popUpScreen.stripMissionButtonListeners();
-				
+				//updateGameTitle(); // update the mission name and site number.				
 				mGameSerialNum += 1;
 				mSitesVisitedThisGame = 0;
 				
@@ -401,29 +397,27 @@
 				cHerder.init( mission.cloudPattern);
 				cHerder.startClouds();
 				
+				bootyMeter.nextSiteBtn.visible = mission.variableTreasures;
 				mAutoSailOnAfterFoundTreasure = !mission.variableTreasures;
-
+				if(mission.variableTreasures){
+					variableTreasureArray = shuffleTreasuresPerSite();
+					trace(variableTreasureArray);
+				}
+				
+				
 				bootyMeter.initialize( mission.startingRats, mission.missesAllowed);
-				
-				if( mission.variableTreasures)
-					bootyMeter.nextSiteBtn.visible = true;
-				else
-					bootyMeter.nextSiteBtn.visible = false;
-				
+			
 				newSite();
 				setRatsToSend( mission.ratsInStepper);	// moving this down fixed a bug where the stepper did not properly take the starting # of rats in the stepper. (a very series issue for Mission 1)
 				
-				crane.setHookSize( mission.hookSize);
-				sailingMovie.setHookSize( mission.hookSize);
-				ReplayHook.setHookSize( mission.hookSize);
+				setHookSizes(mission.hookSize);
 				
-				shipControlsMVC.ratStepper.locked = mission.fixedRats;
-
 				// if this mission has a fixed # of rats, use the big button instead of the stepper.
 				if(mission.fixedRats)
 					shipControlsMVC.useLargeRatButton();
 				else
 					shipControlsMVC.useRatStepper();
+				shipControlsMVC.ratStepper.locked = mission.fixedRats;
 				
 				// start a new Game case in DG
 				sendGameDataOpen();
@@ -469,6 +463,24 @@
 						}
 					default: return "You found " + mTreasuresFoundThisSite + " of the " + mNumTreasures + " treasures!";
 				}
+			}
+			
+			// this method returns an array of treasures-per-site, used in Mission "Treasures or Not".
+			private function shuffleTreasuresPerSite():Array{
+				// the # of treasures at a variable treasure site is pseudo-random.
+				var newArray:Array = new Array();
+				for(var i:int = 0; i < variableTreasureSeedArray.length; i++)
+					newArray.push(variableTreasureSeedArray[i]);
+				MathUtilities.shuffleArray(newArray, 1, 2);
+				MathUtilities.shuffleArray(newArray, 3, 5);
+				return newArray;
+			}
+			
+			// sends all hook movie clips to the passed frame. (1 = normal, 2 = small hook).
+			private function setHookSizes(arg:int):void{
+				crane.setHookSize( arg);
+				sailingMovie.setHookSize( arg);
+				ReplayHook.setHookSize( arg);
 			}
 			
 			//prints any number of treasure locations based on how many treasures are in the water
@@ -983,7 +995,12 @@
 				mTreasureLocArrLocked = new Array();
 				
 				if(mCurrentMission.variableTreasures){ //'Treasure or Not' can have 0, 1, or 2 treasures
-					mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
+					//mNumTreasures = Math.round(Math.random()*2);	//random int in set {0,1,2}
+					if(variableTreasureArray.length){
+						mNumTreasures = variableTreasureArray.shift();
+					} else {
+						mNumTreasures = Math.random()*3;
+					}
 					
 					try
 					{
