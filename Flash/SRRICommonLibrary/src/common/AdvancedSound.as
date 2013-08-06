@@ -30,6 +30,9 @@
 											 //changed every time a fadeIn is called; if no start position 
 											 //is passed to fadeIn, gets set to 0. 
 		
+		private var isFadingOut:Boolean = false; //to keep track of state of fades, to throw errors
+		private var isFadingIn:Boolean = false; 
+
 		//constructor
 		public function AdvancedSound(s:Sound){
 			sound = s;
@@ -82,10 +85,16 @@
 		
 		//fades sound in linearly over a given millisecond duration
 		public function fadeOut(duration:Number = 1000):void{
+			if(isFadingOut){
+				return; //if sound is already fading out, return without doing anything
+			}
+			
 			trace("fadeOut ID:" + soundID + " Sound:" + sound.toString());
-			if(duration < 1)
+			
+			if(duration < 1){
 				throw new Error("fade duration must be longer than 1 millisecond.");
-				
+			}
+			
 			ticksToComplete = Math.ceil(duration/40);
 			
 			ticker = ticksToComplete;
@@ -93,20 +102,27 @@
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeOut);
 			fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeOut);
 			fadeTimer.start();
+			isFadingOut = true; 
 		}
 		
 		//takes number of times you want to loop the sound after fading, and startPosition if you want 
 		//to fade in part-way through the sound. fades sound in linearly over a given millisecond duration. 
 		public function fadeIn(duration:Number = 1000, numLoops:int = 0, startPos:Number = 0):void{
+			if(isFadingIn){
+				return; //if sound is already fading in, return without doing anything. 
+			}
+			
 			trace("fadeIn ID:" + soundID + " Sound:" + sound.toString());
+			
 			
 			if(startPos != 0){
 				trace("start position: " + startPos); // for debugging
 			}
 			
-			if(duration < 1)
+			if(duration < 1){
 				throw new Error("fade duration must be longer than 1 millisecond.");
-				
+			}
+			
 			ticksToComplete = Math.ceil(duration/40);
 			
 			ticker = 0;
@@ -114,6 +130,7 @@
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeIn);
 			fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeIn);
 			fadeTimer.start();
+			isFadingIn = true; 
 			
 			_volume = 0;
 			startPosition = startPos; 
@@ -158,6 +175,7 @@
 			fadeTimer.removeEventListener(TimerEvent.TIMER, cleanFadeOut);	
 			_volume = 0;
 			stop();
+			isFadingOut = false;
 		}
 		
 		//ticks through slices of the sound to split volume changes into small increments to 
@@ -174,6 +192,7 @@
 			fadeTimer.removeEventListener(TimerEvent.TIMER, cleanFadeIn);
 			_volume = 1;
 			dispatchEvent(new AdvancedSoundEvent(AdvancedSoundEvent.FULL_VOL));
+			isFadingIn = false; 
 		}
 		
 		// sets the volume based on ticker & ticksToComplete
