@@ -53,7 +53,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.08.02";
+			private static const kVersion:String = "v.2013.08.07";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -174,10 +174,14 @@
 				result = ScriptInterface.doCommand( doCommandString );
 			}
 			
-			// ask DG to delete cases from completed missions (which exist at the game and event levels in the Table and Graph of the current DG document, if any)
+			// ask DG to delete "rat reading" (event-level) cases of finished games
+			//		This helps keep the Graph clutter-free.
 			private function sendDeleteAllCaseDatatoDG():void {
 				var result:String,
-					doCommandObj:Object = {  action: "deleteAllCaseData" },
+					doCommandObj:Object = {  
+						action: "deleteAllCaseData", // delete all closed cases
+						args: { preserveGameCollectionCases: true } // except for game collection cases (but not children of game collection cases)
+					},
 					doCommandString:String = JSON.encode( doCommandObj );
 				
 				result = ScriptInterface.doCommand( doCommandString );
@@ -251,8 +255,7 @@
 					//trace( "DG interface ****ERROR****: unexpected open game case " );
 					sendGameDataClose();
 				}
-				
-				if( clearPreviousData)  {  //TO-DO: re-enable deleting data when we finish debugging delete/case connection problems
+				if( clearPreviousData )  {
 					trace( "DG interface: deleting all game cases" );
 					sendDeleteAllCaseDatatoDG();
 				}
