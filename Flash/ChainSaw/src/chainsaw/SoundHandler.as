@@ -238,7 +238,7 @@ package chainsaw{
 			mRevDownSound.doOnPercentPlayed(.95, revToIdleTrans);
 			mRunSound.doOnPercentPlayed(.92, runLoop);		
 			mLoadDownSound.doOnPercentPlayed(.92, runToLoadTrans);
-			mLoadUpSound.doOnPercentPlayed(.85, loadToRunTrans);
+			mLoadUpSound.doOnPercentPlayed(.92, loadToRunTrans);
 			mLoadSound.doOnPercentPlayed(.92, loadLoop);
 		}
 		
@@ -375,29 +375,41 @@ package chainsaw{
 		private function loadDownToLoadUpTrans():void{
 			//trace("loadDownToLoadUpTrans");
 			loopRunSound = false; 
-			mRunSound.fadeOut(loadDownToLoadUpTransFadeTime);
-			mIdleSound.fadeOut(loadDownToLoadUpTransFadeTime);
+			
+			if(mRunSound && mRunSound.isPlaying()){
+				mRunSound.fadeOut(loadUpToLoadDownTransFadeTime);
+			}
+			if(mIdleSound && mIdleSound.isPlaying()){
+				mIdleSound.fadeOut(loadUpToLoadDownTransFadeTime);
+			}
 			if(mRunSound2 && mRunSound2.isPlaying()){
 				mRunSound2.fadeOut(loadDownToLoadUpTransFadeTime);
 			}
 			if(mIdleSound2 && mIdleSound2.isPlaying()){
 				mIdleSound2.fadeOut(loadDownToLoadUpTransFadeTime);
 			}
+			
 			mLoadDownSound.fadeOut(loadDownToLoadUpTransFadeTime);
 			mLoadUpSound.fadeIn(loadDownToLoadUpTransFadeTime);
 		}
 		
 		private function loadUpToLoadDownTrans():void{
-			//trace("loadUpToLoadDownFadeTime");
+			//trace("loadUpToLoadDownTrans");
 			loopRunSound = false; 
-			mRunSound.fadeOut(loadUpToLoadDownTransFadeTime);
-			mIdleSound.fadeOut(loadUpToLoadDownTransFadeTime);
+			
+			if(mRunSound && mRunSound.isPlaying()){
+				mRunSound.fadeOut(loadUpToLoadDownTransFadeTime);
+			}
+			if(mIdleSound && mIdleSound.isPlaying()){
+				mIdleSound.fadeOut(loadUpToLoadDownTransFadeTime);
+			}
 			if(mRunSound2 && mRunSound2.isPlaying()){
 				mRunSound2.fadeOut(loadUpToLoadDownTransFadeTime);
 			}
 			if(mIdleSound2 && mIdleSound2.isPlaying()){
 				mIdleSound2.fadeOut(loadUpToLoadDownTransFadeTime);
 			}
+			
 			mLoadUpSound.fadeOut(loadUpToLoadDownTransFadeTime);
 			mLoadDownSound.fadeIn(loadUpToLoadDownTransFadeTime);
 		}
