@@ -16,6 +16,7 @@
 	<fx:Script>
 		<![CDATA[
 			import chainsaw.GameLevelWindow;
+			import chainsaw.events.*;
 			
 			import com.adobe.serialization.json.JSON;
 			import com.kcpt.scriptInterface.ScriptInterface;
@@ -44,7 +45,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2013.08.01";
+			public static const VERSION:String   = "Chainsaw v.2013.08.05";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -791,11 +792,38 @@
 						// send data to open a case in Game collection to TinkerPlots/Fathom
 						// (Nothing to do)
 					}
+					
+					//reset SoundHandler completely in case anything has broken during the round
+					mSoundHandler = new SoundHandler(); 
+					
+					//triggering onStart, simulates an onStart event by just directly calling the method 
 					mSoundHandler.onStart();
+					
+					//sending mouseDown, mouseUp, and mouseOutWindow to SoundHandler
 					addEventListener(MouseEvent.MOUSE_DOWN, mSoundHandler.onMouseDown);
 					addEventListener(MouseEvent.MOUSE_UP, mSoundHandler.onMouseUp);
-					addEventListener(MouseEvent.MOUSE_DOWN, mouseIsDown);
-					addEventListener(MouseEvent.MOUSE_UP, mouseIsUp);
+					addEventListener(MouseEvent.MOUSE_DOWN, mouseIsDown); //for setting boolean
+					addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
+					addEventListener(MouseEvent.MOUSE_UP, mouseIsUp); //for setting boolean
+					stage.addEventListener(ChainsawEvent.MOUSE_OUT_WINDOW, mSoundHandler.onMouseOutStage);
+				}
+			}
+			
+			//when mouse is down, start tracking the position for exiting stage
+			private function mouseDownHandler(e:Event):void{
+				stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+			}
+			
+			//when we mouse back up, remove the listener that tracks mouseMoves
+			private function mouseUpHandler(e:Event):void{
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+			}
+			
+			//if the mouseMove events show exiting stage, dispatch Chainsaw.MOUSE_OUT_WINDOW
+			private function mouseMoveHandler(e:MouseEvent):void{
+				if(e.stageX<0 || e.stageX>stage.stageWidth || e.stageY<0 || e.stageY>stage.stageHeight){
+					stage.dispatchEvent(new Event(ChainsawEvent.MOUSE_OUT_WINDOW));
+					stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
 				}
 			}
 			

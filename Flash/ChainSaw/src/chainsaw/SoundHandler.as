@@ -5,7 +5,6 @@ package chainsaw{
 		import common.AdvancedSound;
 		import common.AdvancedSoundEvent;
 		
-		//flash imports
 		import flash.events.Event;
 		import flash.media.*;
 		
@@ -177,9 +176,17 @@ package chainsaw{
 				//trace("mouseUp");
 				if(mRevUpSound.isPlaying() && !mRevDownSound.isPlaying()){
 					revUpToRevDownTrans();
-				}
-				else{
+				}else{
 					runToIdle();
+				}
+				if(mLoadSound && mLoadSound.isPlaying()){
+					mLoadSound.fadeOut(100);
+				}
+				if(mLoadDownSound && mLoadDownSound.isPlaying()){
+					mLoadDownSound.fadeOut(100);
+				}
+				if(mLoadUpSound && mLoadUpSound.isPlaying()){
+					mLoadUpSound.fadeOut(100);
 				}
 			}
 			return;
@@ -190,8 +197,7 @@ package chainsaw{
 				//trace("mouseOverLog");
 				if(mLoadUpSound.isPlaying() && !mLoadDownSound.isPlaying()){
 					loadUpToLoadDownTrans();
-				}
-				if(mRunSound && mRunSound.isPlaying()){
+				}else if(mRunSound && mRunSound.isPlaying()){
 					runToLoad();
 				}else if(mRunSound2 && mRunSound2.isPlaying()){
 					runToLoad();
@@ -219,8 +225,14 @@ package chainsaw{
 			return;
 		}
 		
+		//used to cause a mouseUp when player leaves the stage with the chainsaw revved up 
+		public function onMouseOutStage(e:Event):void{
+			onMouseUp(e);
+		}
+		
 		//initialization 
 		private function initSounds():void{
+			//doOnPercentPlayeds
 			mIdleSound.doOnPercentPlayed(.92, idleLoop);
 			mRevUpSound.doOnPercentPlayed(.92, revToRunTrans);
 			mRevDownSound.doOnPercentPlayed(.95, revToIdleTrans);
