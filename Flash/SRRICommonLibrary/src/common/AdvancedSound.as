@@ -96,6 +96,11 @@
 			if(isFadingOut){
 				return; //if sound is already fading out, return without doing anything
 			}
+			if(isFadingIn){
+				cleanFadeIn(new Event("e"));
+				fadeOut(duration);
+				return;
+			}
 			var date:Date = new Date();
 			
 			trace("fadeOut ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
@@ -119,6 +124,11 @@
 		public function fadeIn(duration:Number = 1000, numLoops:int = 0, startPos:Number = 0):void{
 			if(isFadingIn){
 				return; //if sound is already fading in, return without doing anything. 
+			}
+			if(isFadingOut){
+				cleanFadeOut(new Event("e"));
+				fadeIn(duration);
+				return;
 			}
 			
 			var date:Date = new Date();
@@ -195,7 +205,7 @@
 		//the rest of the way to 0. Also stops the sound. 
 		private function cleanFadeOut(e:Event):void{
 			fadeTimer.removeEventListener(TimerEvent.TIMER, tickFadeOut);
-			fadeTimer.removeEventListener(TimerEvent.TIMER, cleanFadeOut);	
+			fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeOut);	
 			_volume = 0;
 			stop();
 			isFadingOut = false;
@@ -212,8 +222,14 @@
 		//rest of the way to 0. Also stops sound. 
 		private function cleanFadeIn(e:Event):void{
 			fadeTimer.removeEventListener(TimerEvent.TIMER, tickFadeIn);
-			fadeTimer.removeEventListener(TimerEvent.TIMER, cleanFadeIn);
+			fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeIn);
 			_volume = 1;
+			
+			//setting actual soundChannel volume 
+			var st:SoundTransform = _channel.soundTransform;
+			st.volume = _volume;
+			_channel.soundTransform = st;
+			
 			dispatchEvent(new AdvancedSoundEvent(AdvancedSoundEvent.FULL_VOL));
 			isFadingIn = false; 
 		}
