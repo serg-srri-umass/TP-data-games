@@ -4,6 +4,7 @@
 	import flash.media.SoundChannel;
 	import flash.media.SoundTransform;
 	import flash.utils.Timer;
+	import flash.utils.describeType;
 
 	/* AdvancedSound adds functionality to the AS3 Sound class. Each AdvancedSound contains 
 	a regular Flash sound. This class adds the ability to fade sounds in and out based on a
@@ -32,10 +33,17 @@
 		
 		private var isFadingOut:Boolean = false; //to keep track of state of fades, to throw errors
 		private var isFadingIn:Boolean = false; 
+		
 
 		//constructor
-		public function AdvancedSound(s:Sound){
+		public function AdvancedSound(s:Sound, traceEveryFrame:Boolean = false){
 			sound = s;
+			if(traceEveryFrame){
+				var timer:Timer = new Timer(46, 0);
+				timer.addEventListener(TimerEvent.TIMER, onEnterFrameHandler);
+				timer.start();
+			}
+			
 			soundID = String(Math.round(Math.random()*1000)/1000) //random ID truncated to .000 places
 		}
 		
@@ -88,8 +96,9 @@
 			if(isFadingOut){
 				return; //if sound is already fading out, return without doing anything
 			}
+			var date:Date = new Date();
 			
-			trace("fadeOut ID:" + soundID + " Sound:" + sound.toString());
+			trace("fadeOut ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
 			
 			if(duration < 1){
 				throw new Error("fade duration must be longer than 1 millisecond.");
@@ -112,7 +121,7 @@
 				return; //if sound is already fading in, return without doing anything. 
 			}
 			
-			trace("fadeIn ID:" + soundID + " Sound:" + sound.toString());
+			var date:Date = new Date();
 			
 			
 			if(startPos != 0){
@@ -135,6 +144,8 @@
 			_volume = 0;
 			startPosition = startPos; 
 			_channel = play(startPos, numLoops, null);
+			trace("fadeIn ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
+
 		}
 		
 		private var _toDoFunction:Function = function():void{};
@@ -155,6 +166,18 @@
 			_toDoFunction = func;
 			percentageCounter.addEventListener(TimerEvent.TIMER_COMPLETE, onPercentPlayedHandler);
 		}		
+		
+		private function onEnterFrameHandler(e:Event):void{
+			trace("Name: " + sound.toString(), "Position: " + (_channel.position/sound.length)*100, "Volume: " + _volume);
+		}
+			
+		public function removeDoOnPercentPlayed():void{
+			percentageCounter.removeEventListener(TimerEvent.TIMER_COMPLETE, onPercentPlayedHandler);
+		}
+		
+		public function restoreDoOnPercentPlayed():void{			
+			percentageCounter.addEventListener(TimerEvent.TIMER_COMPLETE, onPercentPlayedHandler);
+		}
 		
 		//trigger the function you want to doOnPercentPlayed
 		private function onPercentPlayedHandler(e:Event):void{
