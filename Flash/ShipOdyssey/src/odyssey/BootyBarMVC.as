@@ -16,10 +16,10 @@ package odyssey
 		private var _missesAllowed:int;
 		private var _misses:int;
 		
-		private var _rats:int; // how much gold the player has to spend.
+		private var _rats:int; // how many rats the player has to send.
 		private var ratText:int; // what the display says.
 
-		private var _startingRats:int; // how much gold the player started the mission with.
+		private var _startingRats:int; // how many rats the player started the mission with.
 		private var targetHeight:Number; // the height that the booty bar is trying to animate to.
 
 		private var _nextSiteFunc:Function;
@@ -62,8 +62,10 @@ package odyssey
 		public function get isOutOfRats():Boolean{
 			return _rats <= 0;
 		}
-	
 		
+		public function getNumRatsDropped():int {
+			return _startingRats - _rats;
+		}
 		
 		// when a hook drop finishes, this method runs. 
 		public function finishTreasureDrop(success:Boolean):void{
@@ -97,7 +99,7 @@ package odyssey
 			treasureDisplay.treasure.treasures.text = String(_treasuresFound);	// write the # of treasures you have at the top.
 			
 			ratText = _rats;
-			ratMeter.rats.text = ratText;		// write how much gold you have in the bar.
+			ratMeter.rats.text = ratText;		// write how many rats you have in the bar.
 			
 			hooks.gotoAndStop(missesAllowed);
 			for(var i:int = 0; i<missesAllowed; i++)

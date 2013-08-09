@@ -53,7 +53,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.08.07";
+			private static const kVersion:String = "v.2013.08.09";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -201,12 +201,12 @@
 							{
 								name: kGamesCollectionName,
 								attrs:[
-									{name: "GameNumber", type: "numeric", description: "Sequential Game Number" },//NEW
-									{name: "MissionName", type: "nominal", description: "Game level"   } ,	
-									{name: "TreasuresFound", type: "numeric", precision: 0, description: "Number of treasures found during game"   } , 
-									{name: "SitesVisited", type: "numeric", precision: 0, description: "Number of sites visited during game"   }
-									//{name: "RatsSent", type: "numeric", precision: 0, description: "Total number of rats sent during game"   } ,	
-									//{name: "Drops", type: "numeric", precision: 0, description: "Number of times hook was dropped during game"   } , 
+									{name: "GameNumber", type: "numeric", description: "Sequential Game Number" },
+									{name: "MissionName", type: "nominal", description: "Which mission? (objective and level of difficulty)" },
+									{name: "Rating", type: "numeric", description: "Game play rating from 1 (worst) to 5 (best)" },
+									{name: "TreasuresFound", type: "numeric", precision: 0, description: "Number of treasures found during game" }, 
+									{name: "SitesVisited", type: "numeric", precision: 0, description: "Number of sites visited during game" },
+									{name: "RatsSent", type: "numeric", precision: 0, description: "Number of rats sent during game" }	
 								] ,
 								childAttrName: "Events_Record"
 							},
@@ -711,8 +711,10 @@
 							values: [
 								mGameSerialNum,
 								mCurrentMission.title,
+								null, // Rating
 								bootyMeter.treasuresFound,
-								mSitesVisitedThisGame
+								mSitesVisitedThisGame,
+								null // Rats sent
 							]
 						} 	
 					}; // openGameCaseObj
@@ -751,13 +753,10 @@
 								values: [
 									mGameSerialNum,		 // Game number starting with 1 since launch of application.
 									mCurrentMission.title,
+									(wantCaseClosed ? mCurrentMission.getRating( bootyMeter.treasuresFound ) : null ),
 									bootyMeter.treasuresFound,
-									mSitesVisitedThisGame
-									// Rating
-									// ending type
-									//mRatsSentThisSite,			 // Total number of rats sent during current game.
-									//mHooksDropped,		 // Number of times hook was dropped during current game.
-									//bootyMeter.rats  // Value of (treasures found) minus (crew/ship costs and rat costs).
+									mSitesVisitedThisGame,
+									bootyMeter.getNumRatsDropped()
 								]
 							}
 						};

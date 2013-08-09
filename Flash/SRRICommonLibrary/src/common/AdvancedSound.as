@@ -101,7 +101,7 @@
 				fadeOut(duration);
 				return;
 			}
-			var date:Date = new Date();
+			//var date:Date = new Date(); UNUSED
 			
 			trace("fadeOut ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
 			
@@ -130,9 +130,7 @@
 				fadeIn(duration);
 				return;
 			}
-			
-			var date:Date = new Date();
-			
+			//var date:Date = new Date(); UNUSED
 			
 			if(startPos != 0){
 				trace("start position: " + startPos); // for debugging
@@ -155,7 +153,6 @@
 			startPosition = startPos; 
 			_channel = play(startPos, numLoops, null);
 			trace("fadeIn ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
-
 		}
 		
 		private var _toDoFunction:Function = function():void{};
