@@ -53,7 +53,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.08.09";
+			private static const kVersion:String = "v.2013.08.13";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -164,27 +164,38 @@
 			
 			// ask DG to create a Graph object, for viewing Site+Rat data.  It should ignore this request if a Graph already exists.
 			private function sendCreateGraphRequestToDG():void {
-				var result:String,
-					doCommandObj:Object = {
-							action: "createComponent",
-							args: { type: "DG.GraphView" }
-						},
-					doCommandString:String = JSON.encode( doCommandObj );
-
-				result = ScriptInterface.doCommand( doCommandString );
+				var doCommandObj:Object = {
+						action: "createComponent",
+						args: { type: "DG.GraphView" }
+					};
+				var result:String = ScriptInterface.doCommand( JSON.encode( doCommandObj ));
+				if( VersionChecker.isDebug && kDebugMode) 
+					trace( "DG interface: createComponent type:DG.GraphView" );
 			}
 			
-			// ask DG to delete "rat reading" (event-level) cases of finished games
-			//		This helps keep the Graph clutter-free.
+			// ask DG to delete "rat reading" (event-level) cases of finished games. This helps keep the Graph clutter-free.
 			private function sendDeleteAllCaseDatatoDG():void {
-				var result:String,
-					doCommandObj:Object = {  
+				var doCommandObj:Object = {  
 						action: "deleteAllCaseData", // delete all closed cases
 						args: { preserveGameCollectionCases: true } // except for game collection cases (but not children of game collection cases)
-					},
-					doCommandString:String = JSON.encode( doCommandObj );
-				
-				result = ScriptInterface.doCommand( doCommandString );
+					};
+				var result:String = ScriptInterface.doCommand( JSON.encode( doCommandObj ));
+				if( VersionChecker.isDebug && kDebugMode) 
+					trace( "DG interface: deleteAllCaseData preserveGameCollectionCases:true" );
+			}
+			
+			// send a statement to DG's log of user actions; used to record actions like "Dropped hook at 56.7" in DG.
+			public function sendLogStringToDG( logStatment:String, stringParameters:Array = null ):void {
+				var doCommandObj:Object = {  
+						action: "logAction", // delete all closed cases
+						args: { 
+							formatStr: logStatment + " in ShipOdyssey", // the statement string, with optional use of %@
+							replaceArgs: stringParameters // optional array of values to replace %@ with
+						}
+					};
+				var result:String = ScriptInterface.doCommand( JSON.encode( doCommandObj ));
+				if( VersionChecker.isDebug && kDebugMode) 
+					trace( "DG interface: log <"+doCommandObj.args.formatStr+">" );
 			}
 			
 			// Send the Game-level and Event-level structure to DG, if connected to DG.  
@@ -232,7 +243,8 @@
 				var	initGameString:String = JSON.encode( initGameObj );
 				result = ScriptInterface.doCommand( initGameString ); // note: as of 2013-07-23 initGame always returns null
 				this.parentCaseID = -1; // change from -2 to -1 to indicate game data sent (for error detection only)
-				trace( "DG interface: initGame" );
+				if( VersionChecker.isDebug && kDebugMode) 
+					trace( "DG interface: initGame" );
 			}
 			
 			// ********** TREASURE HUNT FUNCTIONS **********\			
@@ -252,11 +264,9 @@
 				// first update/close/delete old game case in DG, before we update mGameSerialNum, etc. for new game
 				if( this.parentCaseID >=0 ) {
 					throw new Error("DG interface error: unexpected open game case");
-					//trace( "DG interface ****ERROR****: unexpected open game case " );
 					sendGameDataClose();
 				}
 				if( clearPreviousData )  {
-					trace( "DG interface: deleting all game cases" );
 					sendDeleteAllCaseDatatoDG();
 				}
 				
@@ -276,6 +286,7 @@
 				
 				bootyMeter.initialize( mission.startingRats, mission.missesAllowed);
 			
+				sendLogStringToDG( "newGame: "+mGameSerialNum+" Mission='"+mCurrentMission.title+"'" );
 				newSite();
 				
 				setRatsToSend( mission.ratsInStepper);	// moving this down fixed a bug where the stepper did not properly take the starting # of rats in the stepper. (a very series issue for Mission 1)
@@ -351,6 +362,8 @@
 							bootyMeter.pay(mCurrentMission.ratCost * mRatsToSend);
 							updateRatLimit();
 						}
+						sendLogStringToDG( "sendRats: "+mRatsToSend );
+						
 						//				mRatSound.play(); // Play rat sound.
 						
 						// For every rat sent, update Results text and send Rat data to TinkerPlots/DG
@@ -494,6 +507,7 @@
 					}
 					dropHook();
 				}
+				sendLogStringToDG( "hookDropped: "+mCenterPosition+" TreasureFound="+haveTreasure );
 			}
 			
 			//wait and check timer routine for when the hook is moving before a drop
@@ -604,6 +618,7 @@
 						popUpScreen.displayInstantReplay(treasuresFoundString(), newSite);
 					}
 				}
+				sendLogStringToDG( "treasureMessage: '"+treasuresFoundString()+"'");
 
 				shipControlsMVC.disableRatsButton();
 				shipControlsMVC.disableHookButton();
@@ -658,6 +673,8 @@
 				shipControlsMVC.interval.text		= mMinHookRange.toFixed(1) + " – " + mMaxHookRange.toFixed(1);
 				hooksDroppedArray = new Array();
 
+				sendLogStringToDG( "newSite: "+mSiteSerialNum+" SitesVisited="+mSitesVisitedThisGame+" for this game" );
+				
 				if( mSitesVisitedThisGame >= 2){
 					sendGameDataUpdate(); // send updated SitesVisited to DG
 				}
@@ -721,12 +738,11 @@
 					
 				if( this.parentCaseID >= 0 ) {
 					throw new Error("DG interface error: openCase without closing previous parent case ID (" + this.parentCaseID + ")" );
-					//trace( "DG interface ERROR: openCase without closing previous parent case ID ("+this.parentCaseID+")" );
 				} else {
 					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
 					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
 					this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
-					if(VersionChecker.isDebug && kDebugMode && this.parentCaseID == -1 ) {
+					if( VersionChecker.isDebug && kDebugMode && this.parentCaseID == -1 ) {
 						this.parentCaseID = mGameSerialNum; // fake a valid case ID for validating sendGameDataUpdate() when not connected to DG
 						trace("DG interface: simulating openCase with parentCaseID "+this.parentCaseID+" (debug only)");
 					} else {
@@ -765,7 +781,6 @@
 					ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
 				} else {
 					throw new Error("DG interface error: " + whichAction + " with invalid parent case ID (" + this.parentCaseID + ")" );
-					//trace( "DG interface ERROR: "+whichAction+" with invalid parent case ID ("+this.parentCaseID+")" );
 				}
 				
 				if( wantCaseClosed )
@@ -801,7 +816,6 @@
 					ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
 				} else {
 					throw new Error("DG interface error: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
-					//trace( "DG interface ERROR: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
 				}
 			}
 			
