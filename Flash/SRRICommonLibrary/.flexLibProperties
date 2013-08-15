@@ -4,6 +4,7 @@
     <classEntry path="common.ParkMiller"/>
     <classEntry path="common.TextFormatter"/>
     <classEntry path="common.AdvancedSoundEvent"/>
+    <classEntry path="common.DGInterface"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
