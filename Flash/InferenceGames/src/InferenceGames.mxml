@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   width="575" height="325"
+			   creationComplete="testFlashPlayer()" 
+			   pageTitle="Inference Games"
+			   backgroundColor="#CCCCCC">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import common.*;
+			
+			import embedded_asset_classes.*;
+			
+			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
+			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
+			private static const kVersion:String = "v.2013.08.11";
+			
+			private var controls:ControlsSWC = new ControlsSWC();
+			private var results:ResultsSWC = new ResultsSWC();
+			private var bottomBar:BottomBarSWC = new BottomBarSWC();
+			private var dataCannon:DataCannonSWC = new DataCannonSWC();
+			private var player:UserPlayerSWC = new UserPlayerSWC();
+			private var bot:BotPlayerSWC = new BotPlayerSWC();
+			
+			// this method ensures that the flash player is a recent enough version to work.
+			private function testFlashPlayer():void {
+				if( VersionChecker.isValid(kMinimumRequiredVersion))
+					startUp();
+				 else
+					BrickWall.visible = true;
+				
+			}
+			
+			private function startUp():void{
+				BrickWall.visible = false;
+				initVisualElements();
+			}
+			
+			
+			private function initVisualElements():void{	
+				gameContainer.addChild(controls);
+				controls.x = 293.1;
+				controls.y = 173.4;
+				
+				gameContainer.addChild(results);
+				results.x = 286.85;
+				results.y = 163.5;
+								
+				gameContainer.addChild(bottomBar);
+				bottomBar.x = 287.55;
+				bottomBar.y = 324.95;
+				
+				gameContainer.addChild(player);
+				gameContainer.addChild(bot);
+				bot.x = 575;
+				
+				gameContainer.addChild(dataCannon);
+
+				controls.show();
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	
+	<!-- the game's background -->
+	<s:BorderContainer id="background" y="36" width="575" height="255">
+		<s:backgroundFill>
+			<s:RadialGradient scaleX="1000" scaleY="1000">
+				<s:GradientEntry color="0xE5C1D1"/>
+				<s:GradientEntry color="0x8C7A8B"/>
+			</s:RadialGradient>
+		</s:backgroundFill>
+	</s:BorderContainer>
+	
+	<!-- the UI component that holds all the game's SWC's -->
+	<mx:UIComponent id="gameContainer" x="0" y="0"/>
+
+
+	<!-- Error message for bad version of flash player -->	
+	<s:BorderContainer id="BrickWall" visible="false" x="0" y="0"
+					   width="575"
+					   height="327" depth="999">
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0x13B3C2"/>
+				<s:GradientEntry color="0x1E5B77"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		
+		<s:Label id="topLabelError" x="0" y="30" width="575"
+				 color="0xffffff" fontFamily="Georgia" fontSize="20" fontWeight="bold"
+				 text="You are using an outdated version of Adobe Flash Player." textAlign="center"/>
+		<s:Label id="midLabelError" x="0" y="100" width="575"
+				 color="0xffffff" fontFamily="Georgia" fontSize="15"
+				 text="{'Inference Games requires Flash Player '+ kMinimumRequiredVersion +' or later.'}"
+				 textAlign="center"/>
+		<s:Label id="midLabel2Error" x="0" y="120" width="575"
+				 color="0xffffff" fontFamily="Georgia" fontSize="15"
+				 text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}"
+				 textAlign="center"/>
+		<s:Button id="upgradeButton" x="{(575-350)/2}" y="190" width="350"
+				  height="50" fontFamily="Georgia" label="Upgrade Flash Player" click="VersionChecker.openAdobeWebsite()"
+				  enabled="true" fontSize="25"/>
+		<s:Button id="ignoreButton" x="{(575-350)/2}" y="250" width="350"
+				  height="30" fontFamily="Georgia" label="Ignore Warning" click="startUp()" enabled="true" fontSize="12"/>
+		
+	</s:BorderContainer>
+
+</s:Application>

@@ -1,5 +1,7 @@
 package common
 {
+	import flash.text.TextFormat;
+	
 	public class TextFormatter
 	{
 		public static function toCash(arg:int):String{
@@ -21,5 +23,8 @@ package common
 			
 			return outputString;
 		}
+		
+		public static const BOLD:TextFormat = new TextFormat();
+		BOLD.bold = true;
 	}
 }

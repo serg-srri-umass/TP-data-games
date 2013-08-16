@@ -53,5 +53,40 @@ package common
 				startingPosition++;
 			}
 		}
+		
+		//https://gist.github.com/robinhouston/6200770
+		// from Robin Huston
+		private static function integrate_one_slice(f:Function, a:Number, b:Number):Number {
+			return (b-a) * ( f(a) + 4*f((a+b)/2) + f(b)) / 6;
+		}
+		
+		public static function integrate(f:Function, a:Number, b:Number, DELTA:Number):Number {
+			var x:Number = a;
+			var integral:Number = 0;
+			while (x < b) {
+				integral += integrate_one_slice(f, x, Math.min(x+DELTA, b));
+				x += DELTA;
+			}
+			return integral;
+		}
+		
+		//
+		private static function calculateZ( intervalWidth:Number, n:Number, SD:Number):Number{
+			var top:Number =  intervalWidth * Math.sqrt(n);
+			var bottom:Number = 2 * SD;
+			return top / bottom;
+		}
+		
+		private static function bellCurveFormula( mean:Number):Number{
+			var first:Number = 1 / (Math.sqrt( 2 * Math.PI));
+			var exponent:Number = -1 * (mean*mean) / 2;
+			var second:Number = Math.pow( Math.E, exponent);
+			return first * second;
+		}
+		
+		public static function calculateAreaUnderBellCurve(intervalWidth:Number, n:Number, SD:Number):Number{
+			var z:Number = calculateZ(intervalWidth, n, SD);
+			return integrate(bellCurveFormula, -z, z, 0.01);
+		}
 	}
 }
