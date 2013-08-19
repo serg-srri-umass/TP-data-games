@@ -2,7 +2,7 @@
 // import com.kcpt.scriptInterface.ScriptInterface;
 
 
-package com.kcpt.scriptInterface {
+package common {
 
 	import flash.external.ExternalInterface;
 	

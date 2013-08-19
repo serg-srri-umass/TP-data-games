@@ -9,7 +9,6 @@
         </excludedEntries>
       </libraryPathEntry>
       <libraryPathEntry kind="3" linkType="1" path="/Users/cmiller/code/TP-dg-cdmiller/Flash/as3corelib-.93/lib/as3corelib.swc" useDefaultLinkType="false"/>
-      <libraryPathEntry kind="3" linkType="1" path="/Users/cmiller/code/TP-dg-cdmiller/Flash/KCPTCommonLibrary/bin/KCPTCommonLibrary.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>

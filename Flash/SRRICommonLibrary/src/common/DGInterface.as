@@ -1,7 +1,6 @@
 package common
 {
 	import com.adobe.serialization.json.JSON;
-	import com.kcpt.scriptInterface.ScriptInterface;
 	
 	/*	Data Games (DG) Interface Class
 	   	A singleton object that extends the KCPT Script Interface,
@@ -11,30 +10,31 @@ package common
 	*/
 	public class DGInterface
 	{
-		private var mDebugMode:Boolean = true;		// set to false to suppress debugging code
+		private const kSuppressDGTraceStatments:Boolean = false;		// set to false to suppress debugging code for this class only
+		
+		private var mDebugMode:Boolean = false;		// if true we do extra trace and error checking
 		private var mDebugNumCases:int = 0;			// count number of game-level cases for debugging only
 		private	var	mParentCaseID:int = -2;			// parent (game-level) case ID for DG; -2 means DG data not yet initialized, -1 means that no game case is open, 0+ is valid ID
 
 		
 		// constructor
-		public function DGInterface( inDebugMode:Boolean = false )
+		public function DGInterface( inDebugMode:Boolean )
 		{
-			this.mDebugMode = this.mDebugMode && inDebugMode;
+			this.mDebugMode = inDebugMode && ! kSuppressDGTraceStatments;
 		}
 		
 		//--------- Collection and Case Data ---------
 		
 		// Send the Game-level and Event-level structure to DG, if connected to DG.  
 		// 		The collections are the tables of cases and attributes.
-		public function initGame( iInitGameArgs:Object ):void	{
+		public function initGame( iInitGameArgs:Object ):void {
 			var doCommandObj:Object = {
 					action: "initGame",
 					args: iInitGameArgs
 				};
 			var result:String = ScriptInterface.doCommand( JSON.encode( doCommandObj ) ); // note: as of 2013-07-23 initGame always returns null
 			mParentCaseID = -1; // change from -2 to -1 to indicate game data sent (for error detection only)
-			if( mDebugMode ) 
-				debugTrace( "DG interface: initGame" );
+			debugTrace( "DG interface: initGame" );
 		}
 		
 		// open a game case data to DG, if connected to DG.
@@ -58,9 +58,9 @@ package common
 				this.mParentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
 				if( mDebugMode && this.mParentCaseID == -1 ) {
 					this.mParentCaseID = ++mDebugNumCases; // fake a valid case ID for validating sendGameDataUpdate() when not connected to DG
-					trace("DG interface: simulating openCase with parent case ID "+this.mParentCaseID+" (debug only)");
+					debugTrace("DG interface: simulating openCase with parent case ID "+this.mParentCaseID+" (debug only)");
 				} else {
-					trace( "DG interface: openCase with parent case ID "+this.mParentCaseID );
+					debugTrace( "DG interface: openCase with parent case ID "+this.mParentCaseID );
 				}
 			}
 		}
@@ -70,7 +70,7 @@ package common
 		// 		iCollectionName is the name corresponding to the Event collection
 		// 		iCaseValueArray is an array of case-attribute values for that case 
 		//			(corresponding to the game attributes previously sent)
-		public function updateOrCloseGameCase( iCollectionName:String, iCaseValueArray:Array, iWantCaseClosed:Boolean = false ):void{
+		public function updateOrCloseGameCase( iCollectionName:String, iCaseValueArray:Array, iWantCaseClosed:Boolean = false ):void {
 			var	whichAction:String = (iWantCaseClosed ? "closeCase" : "updateCase" ),
 				doCommandObj:Object = { 
 					action: whichAction,
@@ -89,6 +89,10 @@ package common
 			
 			if( iWantCaseClosed )
 				this.mParentCaseID = -1;	// set to invalid ID after close so we can detect errors
+		}
+		
+		public function isGameCaseOpen():Boolean {
+			return( this.mParentCaseID >= 0);
 		}
 		
 		// Send event case data to DG, if connected to DG.
@@ -123,12 +127,12 @@ package common
 			var doCommandObj:Object = {  
 				action: "logAction", // delete all closed cases
 				args: { 
-					formatStr: logStatment + " [fl-dg]", // the statement string, with optional use of %@
+					formatStr: logStatment + " [flash]", // the statement string, with optional use of %@
 						replaceArgs: stringParameters // optional array of values to replace %@ with
 				}
 			};
 			var result:String = ScriptInterface.doCommand( JSON.encode( doCommandObj ));
-			debugTrace( "DG interface log: <"+doCommandObj.args.formatStr+">" );
+			debugTrace( "DG interface: log "+doCommandObj.args.formatStr );
 		}
 		
 		// ask DG to create a Graph object.  It should ignore this request if a Graph already exists.
