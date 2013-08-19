@@ -8,7 +8,6 @@
 	|- stopControlsMVC
 	|	|- stopStartBtn	[labels: "ready", "user", "bot"]
 	|	|	|- pauseBtn [looks: stop(0), start(1)]
-	|	|		*this is currently a simplebutton. it should be made into a togglebutton.
 	|	|
 	|	|- currentSampleMedianMVC
 	|		|- currentSampleMedianTxt
@@ -23,8 +22,9 @@
 
 package embedded_asset_classes
 {
-	import flash.events.MouseEvent;
+	import common.TextFormatter;
 	import flash.events.Event;
+	import flash.events.MouseEvent;
 	
 	public class ControlsSWC extends controlsSWC
 	{
@@ -52,12 +52,13 @@ package embedded_asset_classes
 			
 			visible = false;
 			addEventListener(AnimationEvent.COMPLETE_HIDE, onCompleteHide); // handler for when hide animation is complete.
-			stopControlsMVC.stopStartBtn.pauseBtn.addEventListener(MouseEvent.CLICK, stopFunction); // handler for when 'stop' button is clicked.
+			stopControlsMVC.stopStartBtn.pauseBtn.setClickFunctions(stopFunction, startFunction); // the stop/start button uses these methods on click.
 		}
 		
 		// starts the show animation, making this MovieClip visible.
 		public function show( e:Event = null):void{
 			visible = true;
+			stopControlsMVC.stopStartBtn.pauseBtn.look = 1; // set the button to 'start'
 			stopControlsMVC.stopStartBtn.gotoAndStop( "ready");
 			gotoAndPlay("show");
 		}
@@ -67,6 +68,31 @@ package embedded_asset_classes
 			gotoAndPlay("hide");
 		}
 		
+		// sets the text field that says 'current sample median'.
+		// note: this is just a display. Changing this does not change the calculations.
+		public function set currentSampleMedian( median:Number):void{
+			stopControlsMVC.currentSampleMedianMVC.currentSampleMedianTxt.text = median.toFixed(1);
+			stopControlsMVC.currentSampleMedianMVC.currentSampleMedianTxt.setTextFormat(TextFormatter.BOLD);
+		}
+		
+		// sets the text on the IQR shield.
+		// note: this is just a display. Changing this does not change the calculations.
+		public function set IQR( param_iqr:Number):void{
+			shieldsMVC.deviationMVC.deviationTxt.text = param_iqr.toFixed(0);
+			shieldsMVC.deviationMVC.deviationTxt.setTextFormat(TextFormatter.BOLD);
+		}
+		
+		// sets the text on the interval shield.
+		// note: this is just a display. Changing this does not change the calculations.
+		public function set interval( param_interval:Number):void{
+			shieldsMVC.intervalMVC.intervalTxt.text = param_interval.toFixed(0);
+			shieldsMVC.intervalMVC.intervalTxt.setTextFormat(TextFormatter.BOLD);
+			
+			if(param_interval >= 10) // bump over the +- sign if the interval is 2 digits.
+				shieldsMVC.intervalMVC.gotoAndStop("doubleDigit");
+			else
+				shieldsMVC.intervalMVC.gotoAndStop("singleDigit");
+		}
 		
 		// -----------------------
 		// --- PRIVATE SECTION ---
@@ -74,8 +100,13 @@ package embedded_asset_classes
 		
 		// this method is called when the player hits the stop button. 
 		private function stopFunction( e:MouseEvent):void{
-			hide();
-			stopControlsMVC.stopStartBtn.gotoAndStop( "player");
+			InferenceGames.hitBuzzer();
+		}
+		
+		// called when the player hits the start button.
+		private function startFunction( e:MouseEvent):void{
+			stopControlsMVC.stopStartBtn.pauseBtn.look = 0;
+			DataCannonSWC.DATA_CANNON.startCannon();			
 		}
 		
 		// when the ControlsSWC finishes hiding itself, this method is called. It turns on the results.

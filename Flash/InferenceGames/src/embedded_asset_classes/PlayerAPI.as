@@ -16,5 +16,7 @@ package embedded_asset_classes
 {
 	public interface PlayerAPI
 	{
+		function show():void;
+		function hide():void;
 	}
 }

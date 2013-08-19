@@ -60,10 +60,51 @@
 				bot.x = 575;
 				
 				gameContainer.addChild(dataCannon);
-
+				
 				controls.show();
+				startNewRound();
+				
+				trace(MathUtilities.calculateAreaUnderBellCurve(2, 52, MathUtilities.IQR_to_SD(7)));
 			}
 			
+			public static function startNewRound():void{
+				
+				// if one of the two player avatars is hidden, show it.
+				if(Round.currentRound){
+					if(Round.currentRound.lastBuzzer == UserPlayerSWC.PLAYER){
+						BotPlayerSWC.BOT.show();
+						UserPlayerSWC.PLAYER.gotoAndStop(1);
+					}else if(Round.currentRound.lastBuzzer == BotPlayerSWC.BOT){
+						UserPlayerSWC.PLAYER.show();
+						BotPlayerSWC.BOT.gotoAndStop(1); // fixes a bug where the bot disappears.
+					}
+				}
+				
+				var randomInterval:int = 1 + Math.random()*15;
+				var randomIQR:int = 1 + Math.random()*50;
+				var boringRound:Round = new Round( 2, 5);
+				
+				ControlsSWC.CONTROLS.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
+				
+				trace( MathUtilities.IQR_to_SD(5));
+			}
+			
+			// hit the buzzer, to bring up the recap.
+			public static function hitBuzzer( user:Boolean = true):void{
+				ControlsSWC.CONTROLS.hide();
+				DataCannonSWC.DATA_CANNON.stopCannon();
+				ControlsSWC.CONTROLS.stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
+				
+				if( user){
+					ControlsSWC.CONTROLS.stopControlsMVC.stopStartBtn.gotoAndStop( "user");
+					BotPlayerSWC.BOT.hide();
+					Round.currentRound.lastBuzzer = UserPlayerSWC.PLAYER;
+				} else {
+					ControlsSWC.CONTROLS.stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
+					UserPlayerSWC.PLAYER.hide();
+					Round.currentRound.lastBuzzer = BotPlayerSWC.BOT;
+				}
+			}
 			
 		]]>
 	</fx:Script>

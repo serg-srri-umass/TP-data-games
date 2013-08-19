@@ -30,5 +30,13 @@ package embedded_asset_classes
 			else
 				throw new Error("BotSWC has already been created.");
 		}
+		
+		public function hide():void{
+			gotoAndPlay("hide");
+		}
+		
+		public function show():void{
+			gotoAndPlay("show");
+		}
 	}
 }

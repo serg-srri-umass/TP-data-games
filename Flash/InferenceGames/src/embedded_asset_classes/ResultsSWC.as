@@ -53,11 +53,16 @@ package embedded_asset_classes
 		public function show( e:Event = null):void{
 			visible = true;
 			gotoAndPlay("show");
+			
+			setActivePlayer(Round.currentRound.lastBuzzer == UserPlayerSWC.PLAYER)
+			setBounds( (Round.currentRound.guess - Round.currentRound.interval), (Round.currentRound.guess + Round.currentRound.interval));
+			setAccuracy( Round.currentRound.accuracy);
 		}
 		
 		// starts the hide animation. When it finishes, this MovieClip becomes invisible.
 		public function hide( e:Event = null):void{
 			gotoAndPlay("hide");
+			BotPlayerSWC.BOT.show();
 		}
 		
 		// -----------------------

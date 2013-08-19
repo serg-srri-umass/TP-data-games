@@ -84,9 +84,18 @@ package common
 			return first * second;
 		}
 		
+		// bell curve is a normal curve. 
 		public static function calculateAreaUnderBellCurve(intervalWidth:Number, n:Number, SD:Number):Number{
 			var z:Number = calculateZ(intervalWidth, n, SD);
 			return integrate(bellCurveFormula, -z, z, 0.01);
+		}
+		
+		public static function SD_to_IQR(SD:Number):Number{
+			return SD * 1.34896;
+		}
+		
+		public static function IQR_to_SD(IQR:Number):Number{
+			return IQR / 1.34896;
 		}
 	}
 }
