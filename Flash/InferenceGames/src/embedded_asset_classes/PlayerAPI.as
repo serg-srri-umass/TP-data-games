@@ -14,9 +14,9 @@
 
 package embedded_asset_classes
 {
-	public interface PlayerAPI
+	public interface PlayerAPI extends ShowHideAPI
 	{
-		function show():void;
-		function hide():void;
+		function earnPoint():void;
+		function get score():int;
 	}
 }

@@ -16,16 +16,22 @@
 			
 			import embedded_asset_classes.*;
 			
+			// ----------------------
+			// --- PRIVATE SECTION ---
+			// ----------------------
+						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
 			private static const kVersion:String = "v.2013.08.11";
 			
-			private var controls:ControlsSWC = new ControlsSWC();
-			private var results:ResultsSWC = new ResultsSWC();
-			private var bottomBar:BottomBarSWC = new BottomBarSWC();
-			private var dataCannon:DataCannonSWC = new DataCannonSWC();
-			private var player:UserPlayerSWC = new UserPlayerSWC();
-			private var bot:BotPlayerSWC = new BotPlayerSWC();
+			private static var staticStage:Stage; // a reference to the stage of this MXML file.
+
+			private static var sControls:ControlsSWC;
+			private static var sResults:ResultsSWC;
+			private static var sBottomBar:BottomBarSWC;
+			private static var sDataCannon:DataCannonSWC;
+			private static var sUserPlayer:UserPlayerSWC;
+			private static var sBotPlayer:BotPlayerSWC;
 			
 			// this method ensures that the flash player is a recent enough version to work.
 			private function testFlashPlayer():void {
@@ -33,7 +39,6 @@
 					startUp();
 				 else
 					BrickWall.visible = true;
-				
 			}
 			
 			private function startUp():void{
@@ -43,28 +48,42 @@
 			
 			
 			private function initVisualElements():void{	
-				gameContainer.addChild(controls);
-				controls.x = 293.1;
-				controls.y = 173.4;
+				staticStage = systemManager.stage;
 				
-				gameContainer.addChild(results);
-				results.x = 286.85;
-				results.y = 163.5;
-								
-				gameContainer.addChild(bottomBar);
-				bottomBar.x = 287.55;
-				bottomBar.y = 324.95;
+				sControls = new ControlsSWC();
+				gameContainer.addChild(sControls);
+				sControls.x = 293.1;
+				sControls.y = 173.4;
 				
-				gameContainer.addChild(player);
-				gameContainer.addChild(bot);
-				bot.x = 575;
+				sResults = new ResultsSWC();
+				gameContainer.addChild(sResults);
+				sResults.x = 286.85;
+				sResults.y = 163.5;
 				
-				gameContainer.addChild(dataCannon);
+				sBottomBar = new BottomBarSWC();
+				gameContainer.addChild(sBottomBar);
+				sBottomBar.x = 287.55;
+				sBottomBar.y = 324.95;
 				
-				controls.show();
+				sUserPlayer = new UserPlayerSWC();
+				sBotPlayer = new BotPlayerSWC();
+				gameContainer.addChild(sUserPlayer);
+				gameContainer.addChild(sBotPlayer);
+				sBotPlayer.x = 575;
+				
+				sDataCannon = new DataCannonSWC();
+				gameContainer.addChild(sDataCannon);
+				
+				sControls.show();
 				startNewRound();
-				
-				trace(MathUtilities.calculateAreaUnderBellCurve(2, 52, MathUtilities.IQR_to_SD(7)));
+			}
+			
+			// ----------------------
+			// --- PUBLIC SECTION ---
+			// ----------------------
+			
+			public static function get stage():Stage{
+				return staticStage;
 			}
 			
 			public static function startNewRound():void{
@@ -72,36 +91,33 @@
 				// if one of the two player avatars is hidden, show it.
 				if(Round.currentRound){
 					if(Round.currentRound.lastBuzzer == UserPlayerSWC.PLAYER){
-						BotPlayerSWC.BOT.show();
-						UserPlayerSWC.PLAYER.gotoAndStop(1);
+						sBotPlayer.show();
+						sUserPlayer.gotoAndStop(1);
 					}else if(Round.currentRound.lastBuzzer == BotPlayerSWC.BOT){
-						UserPlayerSWC.PLAYER.show();
-						BotPlayerSWC.BOT.gotoAndStop(1); // fixes a bug where the bot disappears.
+						sUserPlayer.show();
+						sBotPlayer.gotoAndStop(1); // fixes a bug where the bot disappears.
 					}
 				}
 				
-				var randomInterval:int = 1 + Math.random()*15;
-				var randomIQR:int = 1 + Math.random()*50;
 				var boringRound:Round = new Round( 2, 5);
+				sDataCannon.speed = .25;
 				
-				ControlsSWC.CONTROLS.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
-				
-				trace( MathUtilities.IQR_to_SD(5));
+				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
 			}
 			
 			// hit the buzzer, to bring up the recap.
 			public static function hitBuzzer( user:Boolean = true):void{
-				ControlsSWC.CONTROLS.hide();
-				DataCannonSWC.DATA_CANNON.stopCannon();
-				ControlsSWC.CONTROLS.stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
+				sControls.hide();
+				sDataCannon.stopCannon();
+				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
 				
 				if( user){
-					ControlsSWC.CONTROLS.stopControlsMVC.stopStartBtn.gotoAndStop( "user");
-					BotPlayerSWC.BOT.hide();
+					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "user");
+					sBotPlayer.hide();
 					Round.currentRound.lastBuzzer = UserPlayerSWC.PLAYER;
 				} else {
-					ControlsSWC.CONTROLS.stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
-					UserPlayerSWC.PLAYER.hide();
+					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
+					sUserPlayer.hide();
 					Round.currentRound.lastBuzzer = BotPlayerSWC.BOT;
 				}
 			}

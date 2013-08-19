@@ -8,7 +8,7 @@ package{
 	{
 		public static const COMPLETE_HIDE:String = "ctoff";
 		public static const COMPLETE_SHOW:String = "cton";
-		public static const UNLOAD:String = "unld";
+		public static const PUSH_DATA:String = "unld";
 		
 		public function AnimationEvent(type:String, bubbles:Boolean=false, cancelable:Boolean=false)
 		{

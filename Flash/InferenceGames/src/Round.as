@@ -1,4 +1,4 @@
-// this class holds all data on the current round.
+// this class holds information describing the current round.
 
 package
 {
@@ -12,30 +12,44 @@ package
 		// --- STATIC SECTION ---
 		// ----------------------
 		
-		public static var currentRound:Round;
+		public static const WINNING_SCORE:int = 6; 	// how many points a player needs to win the game.
+		public static const WIN_POINTS:int = 1; 	// how many points you get for guessing correctly.
+		public static const MISS_POINTS:int = 2; 	// how many points the opponent gets when you miss.
+
+		public static const IS_PLAYER:Boolean = true;
+		public static const IS_BOT:Boolean = false;
+		
+		public static var currentRound:Round; // the round object we're currently playing.
 		
 		// ----------------------
 		// --- PUBLIC SECTION ---
 		// ----------------------
 		
-		private var _numDataSoFar:int = 0;
+		private var _numDataSoFar:int = 0; // the number of dots that have been sent so far
 		
+		private var _median:int; 
 		private var _interval:Number;
 		private var _IQR:Number; 		
 		
 		private var _guess:Number = 0;	// the auto-generated guess, based on the sample size.
+										// currently, the user & the bot use the auto-generated guess.
+										
 		private var _accuracy:int; 		// the chances of guessing correctly at the current sample size.
 		
-		public var lastBuzzer:PlayerAPI;
+		public var lastBuzzer:PlayerAPI; // the player who buzzed in this round.
 		
+		// constructor
 		public function Round(param_interval:Number, param_IQR:Number){
 			Round.currentRound = this;
+			
 			
 			_interval = param_interval;
 			_IQR = param_IQR;
 			
 			ControlsSWC.CONTROLS.interval = param_interval; // update the GUI.
 			ControlsSWC.CONTROLS.IQR = param_IQR; // update the GUI.
+			
+			ExpertAI.newRound(); // prepare the AI for the new round.
 		}
 		
 		// a point of data has been added.
@@ -45,9 +59,8 @@ package
 			_accuracy = calculateAccuracy();
 			trace("count: ", numDataSoFar, " accuracy: ", _accuracy);
 			
-			if(_accuracy > 85){
-				InferenceGames.hitBuzzer(false); // PROXY. TO-DO: Real bot answering.
-			}
+			if(_accuracy > ExpertAI.guessPercent)		// when the accuracy goes above the expert's guessPercent, he guesses.
+				InferenceGames.hitBuzzer( IS_BOT); 
 		}
 		
 		public function get numDataSoFar():int{

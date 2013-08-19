@@ -20,7 +20,7 @@ package embedded_asset_classes
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	
-	public class ResultsSWC extends resultsSWC
+	public class ResultsSWC extends resultsSWC implements ShowHideAPI
 	{
 		// ----------------------
 		// --- STATIC SECTION ---
@@ -69,13 +69,14 @@ package embedded_asset_classes
 		// --- PRIVATE SECTION ---
 		// -----------------------
 		
-		private function onCompleteHide( e:AnimationEvent):void{
+		private function onCompleteHide( triggerEvent:AnimationEvent):void{
 			visible = false;
 			ControlsSWC.CONTROLS.show();
 		}
 		
-		private function onCompleteShow( e:AnimationEvent):void{
-			BottomBarSWC.BOTTOM_BAR.enableNextRoundBtn(); // TO-DO: Move this functionality to the main.
+		private function onCompleteShow( triggerEvent:AnimationEvent):void{
+			BottomBarSWC.BOTTOM_BAR.enableNextRoundBtn(); 
+			Round.currentRound.lastBuzzer.earnPoint();		// the last player to buzz in earns a point. TO-DO: add the miss-hit functionality.
 		}
 		
 		// sets which player buzzed in: either the user or the bot. 

@@ -23,10 +23,11 @@
 package embedded_asset_classes
 {
 	import common.TextFormatter;
+	
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	
-	public class ControlsSWC extends controlsSWC
+	public class ControlsSWC extends controlsSWC implements ShowHideAPI
 	{
 		// ----------------------
 		// --- STATIC SECTION ---
@@ -56,7 +57,7 @@ package embedded_asset_classes
 		}
 		
 		// starts the show animation, making this MovieClip visible.
-		public function show( e:Event = null):void{
+		public function show( triggerEvent:Event = null):void{
 			visible = true;
 			stopControlsMVC.stopStartBtn.pauseBtn.look = 1; // set the button to 'start'
 			stopControlsMVC.stopStartBtn.gotoAndStop( "ready");
@@ -64,7 +65,7 @@ package embedded_asset_classes
 		}
 		
 		// starts the hide animation. When it finishes, this MovieClip becomes invisible.
-		public function hide( e:Event = null):void{
+		public function hide( triggerEvent:Event = null):void{
 			gotoAndPlay("hide");
 		}
 		

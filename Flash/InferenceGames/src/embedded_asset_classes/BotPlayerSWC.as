@@ -5,6 +5,8 @@
 
 package embedded_asset_classes
 {
+	import flash.events.Event;
+
 	public class BotPlayerSWC extends botSWC implements PlayerAPI
 	{
 		// ----------------------
@@ -21,6 +23,7 @@ package embedded_asset_classes
 		// --- PUBLIC SECTION ---
 		// ----------------------
 		
+		// constructor
 		public function BotPlayerSWC()
 		{
 			super();
@@ -31,12 +34,31 @@ package embedded_asset_classes
 				throw new Error("BotSWC has already been created.");
 		}
 		
-		public function hide():void{
+		public function hide( triggerEvent:Event = null):void{
 			gotoAndPlay("hide");
 		}
 		
-		public function show():void{
+		public function show( triggerEvent:Event = null):void{
 			gotoAndPlay("show");
 		}
+		
+		// call this to earn a point for the BotPlayer.
+		public function earnPoint():void{
+			_score++;
+			if(_score <= Round.WINNING_SCORE){
+				scoreMVC["point" + _score + "MVC"].gotoAndPlay("show");
+				scoreMVC.capMVC.gotoAndStop(_score + 1);
+			}
+		}
+				
+		public function get score():int{
+			return _score;
+		}
+		
+		// -----------------------
+		// --- PRIVATE SECTION ---
+		// -----------------------
+		
+		private var _score:int = 0;
 	}
 }
