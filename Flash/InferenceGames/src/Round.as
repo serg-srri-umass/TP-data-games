@@ -4,7 +4,8 @@ package
 {
 	import common.MathUtilities;
 	
-	import embedded_asset_classes.*;
+	import embedded_asset_classes.ControlsSWC;
+	import embedded_asset_classes.PlayerAPI;
 	
 	public class Round
 	{
@@ -26,6 +27,7 @@ package
 		// ----------------------
 		
 		private var _numDataSoFar:int = 0; // the number of dots that have been sent so far
+		private static var _roundID:int = 0;		// ID number for this round
 		
 		private var _median:int; 
 		private var _interval:Number;
@@ -42,7 +44,7 @@ package
 		public function Round(param_interval:Number, param_IQR:Number){
 			Round.currentRound = this;
 			
-			
+			++_roundID;
 			_interval = param_interval;
 			_IQR = param_IQR;
 			
@@ -54,14 +56,23 @@ package
 		
 		// a point of data has been added.
 		public function addData( value:Number = 0):void{
+			
+			value = Math.random() * 100; //TODO: generate data according to game parameters.
+			
 			_numDataSoFar++;
 			ControlsSWC.CONTROLS.currentSampleMedian = calculateGuess(); // based on the data so far, calculate the best guess.
 			_accuracy = calculateAccuracy();
 			trace("count: ", numDataSoFar, " accuracy: ", _accuracy);
 			
+			InferenceGames.instance.sendEventData( [[ _roundID, value ]] );
+			
 			if(_accuracy > ExpertAI.guessPercent)		// when the accuracy goes above the expert's guessPercent, he guesses.
-				InferenceGames.hitBuzzer( IS_BOT); 
+				InferenceGames.instance.hitBuzzer( IS_BOT);
 		}
+		
+		public function get roundID():int{
+			return _roundID;
+		}		
 		
 		public function get numDataSoFar():int{
 			return _numDataSoFar;

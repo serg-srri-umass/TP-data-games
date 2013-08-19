@@ -101,7 +101,7 @@ package embedded_asset_classes
 		
 		// this method is called when the player hits the stop button. 
 		private function stopFunction( e:MouseEvent):void{
-			InferenceGames.hitBuzzer();
+			InferenceGames.instance.hitBuzzer();
 		}
 		
 		// called when the player hits the start button.

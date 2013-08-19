@@ -5,6 +5,8 @@
 			   width="575" height="325"
 			   creationComplete="testFlashPlayer()" 
 			   pageTitle="Inference Games"
+			   activate="ScriptInterface.signalActivation()" 
+			   deactivate="ScriptInterface.signalDeactivation()"
 			   backgroundColor="#CCCCCC">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -12,9 +14,16 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import common.*;
+			import common.DGInterface;
+			import common.ScriptInterface;
+			import common.VersionChecker;
 			
-			import embedded_asset_classes.*;
+			import embedded_asset_classes.BotPlayerSWC;
+			import embedded_asset_classes.BottomBarSWC;
+			import embedded_asset_classes.ControlsSWC;
+			import embedded_asset_classes.DataCannonSWC;
+			import embedded_asset_classes.ResultsSWC;
+			import embedded_asset_classes.UserPlayerSWC;
 			
 			// ----------------------
 			// --- PRIVATE SECTION ---
@@ -23,15 +32,22 @@
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
 			private static const kVersion:String = "v.2013.08.11";
+			private static const kEventsCollectionName:String = "Events";
+			private static const kGamesCollectionName:String = "Games";
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
-			private static var sControls:ControlsSWC;
-			private static var sResults:ResultsSWC;
-			private static var sBottomBar:BottomBarSWC;
-			private static var sDataCannon:DataCannonSWC;
-			private static var sUserPlayer:UserPlayerSWC;
-			private static var sBotPlayer:BotPlayerSWC;
+			private var sControls:ControlsSWC;
+			private var sResults:ResultsSWC;
+			private var sBottomBar:BottomBarSWC;
+			private var sDataCannon:DataCannonSWC;
+			private var sUserPlayer:UserPlayerSWC;
+			private var sBotPlayer:BotPlayerSWC;
+
+			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
+			private var mGameSerialNum:int = 0;
+			
+			public static var instance:InferenceGames = null;
 			
 			// this method ensures that the flash player is a recent enough version to work.
 			private function testFlashPlayer():void {
@@ -42,10 +58,84 @@
 			}
 			
 			private function startUp():void{
+				if( instance == null )
+					instance = this;
+				
 				BrickWall.visible = false;
+
+				mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
+				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
+				mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
+				
 				initVisualElements();
+				
+				newGame();
 			}
 			
+			private function newGame():void {
+				++mGameSerialNum;
+				startNewRound();
+			}
+			
+			// Send the Game-level and Event-level structure to DG, if connected to DG.  
+			// 		The collections are the tables of cases and attributes.
+			private function sendCollectionData( ):void	{
+				var initGameArgs:Object = 
+					{
+						name: "InferenceGames",
+						dimensions: { width: this.width, height: this.height },
+						collections: [
+							{
+								name: kGamesCollectionName,
+								attrs:[
+									{name: "WhichGame", type: "numeric", description: "Sequential Game Number" },
+									{name: "WhichRound", type: "numeric", description: "Sequential Round Number" },
+									//{name: "MissionName", type: "nominal", description: "Which mission? (objective and level of difficulty)" },
+									{name: "Interval", type: "numeric", description: "How close a guess has to be to the true value" },
+									{name: "IQR", type: "numeric", precision: 0, description: "Inter-Quartile Range (IQR) of distribution" }, 
+									{name: "NumPoints", type: "numeric", precision: 0, description: "Number of data points generated during round" },
+								] ,
+								childAttrName: "Events_Record"
+							},
+							{
+								name: kEventsCollectionName,
+								attrs:	[
+									{ name: "Round", type: "nominal", description: "Which round of the current game"   } ,
+									{ name: "Value", type: "numeric", precision: 0, description: "Value of data point generated"   }
+								],
+								labels: {
+									singleCase: "value sent",
+									pluralCase: "values sent",
+									singleCaseWithArticle: "a value sent",
+									setOfCases: "events",
+									setOfCasesWithArticle: "events"
+								},
+								defaults: { xAttr: "Value", yAttr: "Round" }
+							}
+						] // collections
+					};
+				this.mDGInterface.initGame( initGameArgs );
+			}
+			
+			
+			// get the game case data to send to DG, 
+			// returned as an array for use by sendGameDataOpen(),..Update(),...Close().
+			public function getGameCaseValues( iIsGameOver:Boolean ):Array {
+				return [
+					mGameSerialNum,		 // Game number starting with 1 since launch of application.
+					Round.currentRound.roundID,
+					Round.currentRound.interval,
+					Round.currentRound.IQR,
+					Round.currentRound.numDataSoFar
+				];
+			}
+
+			// Send event case data to DG, if connected to DG.
+			// 		Event data "data point generated" events, with one array value per Event attribute
+			// 		caseValueArrays is an array of cases, and each case is a array of attribute values for that case (corresponding to the attributes previously sent)
+			public function sendEventData( caseValueArrays:Array ):void {
+				this.mDGInterface.createEventCases( kEventsCollectionName, caseValueArrays );
+			}
 			
 			private function initVisualElements():void{	
 				staticStage = systemManager.stage;
@@ -75,7 +165,6 @@
 				gameContainer.addChild(sDataCannon);
 				
 				sControls.show();
-				startNewRound();
 			}
 			
 			// ----------------------
@@ -86,27 +175,42 @@
 				return staticStage;
 			}
 			
-			public static function startNewRound():void{
+			// start a new round as requested
+			public function startNewRound():void{
 				
-				// if one of the two player avatars is hidden, show it.
+				// end the old round if there was one
 				if(Round.currentRound){
-					if(Round.currentRound.lastBuzzer == UserPlayerSWC.PLAYER){
-						sBotPlayer.show();
-						sUserPlayer.gotoAndStop(1);
-					}else if(Round.currentRound.lastBuzzer == BotPlayerSWC.BOT){
-						sUserPlayer.show();
-						sBotPlayer.gotoAndStop(1); // fixes a bug where the bot disappears.
-					}
+					endOldRound();
 				}
-				
-				var boringRound:Round = new Round( 2, 5);
+
+				// create the new round
+				var boringRound:Round = new Round( 2, 5 );
 				sDataCannon.speed = .25;
+				
+				var closeCase:Boolean = false;  // open and send the new round data to DG
+				mDGInterface.openGameCase( kGamesCollectionName, getGameCaseValues( closeCase ));
 				
 				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
 			}
 			
+			// when the old round ends, we clean up here
+			public function endOldRound():void{
+				
+				var closeCase:Boolean = true; // update and close the old round data in DG
+				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
+				
+				// if one of the two player avatars is hidden, show it.
+				if(Round.currentRound.lastBuzzer == UserPlayerSWC.PLAYER){
+					sBotPlayer.show();
+					sUserPlayer.gotoAndStop(1);
+				}else if(Round.currentRound.lastBuzzer == BotPlayerSWC.BOT){
+					sUserPlayer.show();
+					sBotPlayer.gotoAndStop(1); // fixes a bug where the bot disappears.
+				}
+			}			
+			
 			// hit the buzzer, to bring up the recap.
-			public static function hitBuzzer( user:Boolean = true):void{
+			public function hitBuzzer( user:Boolean = true):void{
 				sControls.hide();
 				sDataCannon.stopCannon();
 				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;

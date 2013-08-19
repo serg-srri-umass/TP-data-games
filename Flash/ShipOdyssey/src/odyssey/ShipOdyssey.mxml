@@ -696,8 +696,8 @@
 				this.mDGInterface.initGame( initGameArgs );
 			}
 			
-			// get the event data to send to Tinkerplots/DG, 
-			// returned as an array for use by sendEventData()
+			// get the game case data to send to Tinkerplots/DG, 
+			// returned as an array for use by sendGameDataOpen(),..Update(),...Close().
 			private function getGameCaseValues( iIsGameOver:Boolean ):Array {
 				return [
 					mGameSerialNum,		 // Game number starting with 1 since launch of application.
