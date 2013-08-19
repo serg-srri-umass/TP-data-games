@@ -4,6 +4,7 @@
 	import flash.media.SoundChannel;
 	import flash.media.SoundTransform;
 	import flash.utils.Timer;
+	import flash.utils.describeType;
 
 	/* AdvancedSound adds functionality to the AS3 Sound class. Each AdvancedSound contains 
 	a regular Flash sound. This class adds the ability to fade sounds in and out based on a
@@ -32,10 +33,17 @@
 		
 		private var isFadingOut:Boolean = false; //to keep track of state of fades, to throw errors
 		private var isFadingIn:Boolean = false; 
+		
 
 		//constructor
-		public function AdvancedSound(s:Sound){
+		public function AdvancedSound(s:Sound, traceEveryFrame:Boolean = false){
 			sound = s;
+			if(traceEveryFrame){
+				var timer:Timer = new Timer(46, 0);
+				timer.addEventListener(TimerEvent.TIMER, onEnterFrameHandler);
+				timer.start();
+			}
+			
 			soundID = String(Math.round(Math.random()*1000)/1000) //random ID truncated to .000 places
 		}
 		
@@ -88,8 +96,14 @@
 			if(isFadingOut){
 				return; //if sound is already fading out, return without doing anything
 			}
+			if(isFadingIn){
+				cleanFadeIn(new Event("e"));
+				fadeOut(duration);
+				return;
+			}
+			//var date:Date = new Date(); UNUSED
 			
-			trace("fadeOut ID:" + soundID + " Sound:" + sound.toString());
+			trace("fadeOut ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
 			
 			if(duration < 1){
 				throw new Error("fade duration must be longer than 1 millisecond.");
@@ -111,9 +125,12 @@
 			if(isFadingIn){
 				return; //if sound is already fading in, return without doing anything. 
 			}
-			
-			trace("fadeIn ID:" + soundID + " Sound:" + sound.toString());
-			
+			if(isFadingOut){
+				cleanFadeOut(new Event("e"));
+				fadeIn(duration);
+				return;
+			}
+			//var date:Date = new Date(); UNUSED
 			
 			if(startPos != 0){
 				trace("start position: " + startPos); // for debugging
@@ -135,6 +152,7 @@
 			_volume = 0;
 			startPosition = startPos; 
 			_channel = play(startPos, numLoops, null);
+			trace("fadeIn ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
 		}
 		
 		private var _toDoFunction:Function = function():void{};
@@ -156,6 +174,18 @@
 			percentageCounter.addEventListener(TimerEvent.TIMER_COMPLETE, onPercentPlayedHandler);
 		}		
 		
+		private function onEnterFrameHandler(e:Event):void{
+			trace("Name: " + sound.toString(), "Position: " + (_channel.position/sound.length)*100, "Volume: " + _volume);
+		}
+			
+		public function removeDoOnPercentPlayed():void{
+			percentageCounter.removeEventListener(TimerEvent.TIMER_COMPLETE, onPercentPlayedHandler);
+		}
+		
+		public function restoreDoOnPercentPlayed():void{			
+			percentageCounter.addEventListener(TimerEvent.TIMER_COMPLETE, onPercentPlayedHandler);
+		}
+		
 		//trigger the function you want to doOnPercentPlayed
 		private function onPercentPlayedHandler(e:Event):void{
 			_toDoFunction(e);
@@ -172,7 +202,7 @@
 		//the rest of the way to 0. Also stops the sound. 
 		private function cleanFadeOut(e:Event):void{
 			fadeTimer.removeEventListener(TimerEvent.TIMER, tickFadeOut);
-			fadeTimer.removeEventListener(TimerEvent.TIMER, cleanFadeOut);	
+			fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeOut);	
 			_volume = 0;
 			stop();
 			isFadingOut = false;
@@ -189,8 +219,14 @@
 		//rest of the way to 0. Also stops sound. 
 		private function cleanFadeIn(e:Event):void{
 			fadeTimer.removeEventListener(TimerEvent.TIMER, tickFadeIn);
-			fadeTimer.removeEventListener(TimerEvent.TIMER, cleanFadeIn);
+			fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeIn);
 			_volume = 1;
+			
+			//setting actual soundChannel volume 
+			var st:SoundTransform = _channel.soundTransform;
+			st.volume = _volume;
+			_channel.soundTransform = st;
+			
 			dispatchEvent(new AdvancedSoundEvent(AdvancedSoundEvent.FULL_VOL));
 			isFadingIn = false; 
 		}

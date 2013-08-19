@@ -35,9 +35,6 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import com.adobe.serialization.json.JSON;
-			import com.kcpt.scriptInterface.ScriptInterface;
-			
 			import common.*;
 			
 			import flash.display.*;
@@ -53,7 +50,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.08.02";
+			private static const kVersion:String = "v.2013.08.19";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -81,12 +78,12 @@
 			private var mGameSerialNum:uint	= 0;			// Serial number of current game, beginning with 1
 			private var mRatsSentThisSite:uint	= 0;		// Number of rats sent at the current site. Used to lock down the drop hook button.
 			private var mFoundTreasure:Boolean = false; 	// Has the current hook drop found this treasure?
-			private	var	parentCaseID:int = -2;				// parent (game-level) case ID for DG; -2 means DG data not yet initialized, -1 means that no game case is open, 0+ is valid ID
+			//private	var	parentCaseID:int = -2;				// parent (game-level) case ID for DG; -2 means DG data not yet initialized, -1 means that no game case is open, 0+ is valid ID
 			private var hooksDroppedArray:Array; 			// Array of hooks dropped at a site, where they were dropped, and what they pulled up. Used for replay window.
 			private var numTreasuresPerSite:Array = new Array(); // this will hold how many treasures are at each site in Treasure or Not, for the first 6 sites.
 			private var haveTreasure:Boolean = false; // whether you pulled up a treasure or not on your last hook drop.
 			private var mTreasuresThisSite:Vector.<Treasure>;
-			
+			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)		
 			
 			//variables for holding loaded MovieClips
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle, closeGame);	
@@ -141,8 +138,9 @@
 				topBarMVC.disableHelpButton();			// disable the info button, it won't be enabled until arriving at a site.
 				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
 				
+				mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
 				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
-				this.sendCreateGraphRequestToDG();		// create a Graph view in DG, if not present already
+				mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
 				
 				initListeners();	// adds event listeners that exist for the entirety of the game.
 				initVisualElements(); // any visual elements of .swc format are init'd here
@@ -162,75 +160,6 @@
 				shipControlsMVC.ratStepper.value = iCurrentRatsToSend;
 			}
 			
-			// ask DG to create a Graph object, for viewing Site+Rat data.  It should ignore this request if a Graph already exists.
-			private function sendCreateGraphRequestToDG():void {
-				var result:String,
-					doCommandObj:Object = {
-							action: "createComponent",
-							args: { type: "DG.GraphView" }
-						},
-					doCommandString:String = JSON.encode( doCommandObj );
-
-				result = ScriptInterface.doCommand( doCommandString );
-			}
-			
-			// ask DG to delete cases from completed missions (which exist at the game and event levels in the Table and Graph of the current DG document, if any)
-			private function sendDeleteAllCaseDatatoDG():void {
-				var result:String,
-					doCommandObj:Object = {  action: "deleteAllCaseData" },
-					doCommandString:String = JSON.encode( doCommandObj );
-				
-				result = ScriptInterface.doCommand( doCommandString );
-			}
-			
-			// Send the Game-level and Event-level structure to DG, if connected to DG.  
-			// The collections are the tables of cases and attributes.
-			private	function sendCollectionData( ):void	{
-				var	result:String;
-				
-				var initGameObj:Object = {
-					action: "initGame",
-					args: {
-						name: "ShipOdyssey",
-						dimensions: { width: this.width, height: this.height },
-						collections: [
-							{
-								name: kGamesCollectionName,
-								attrs:[
-									{name: "GameNumber", type: "numeric", description: "Sequential Game Number" },//NEW
-									{name: "MissionName", type: "nominal", description: "Game level"   } ,	
-									{name: "TreasuresFound", type: "numeric", precision: 0, description: "Number of treasures found during game"   } , 
-									{name: "SitesVisited", type: "numeric", precision: 0, description: "Number of sites visited during game"   }
-									//{name: "RatsSent", type: "numeric", precision: 0, description: "Total number of rats sent during game"   } ,	
-									//{name: "Drops", type: "numeric", precision: 0, description: "Number of times hook was dropped during game"   } , 
-								] ,
-								childAttrName: "Events_Record"
-							},
-							{
-								name: kEventsCollectionName,
-								attrs:	[
-									{ name: "Site", type: "nominal", description: "Site number"   } ,
-									{ name: "RatNumber", type: "numeric", precision: 0, description: "Rats sent so far in game"   } , 
-									{ name: "RatReading", type: "numeric", precision: 1, description: "Location estimate provided by rat"  }
-								],
-								labels: {
-									singleCase: "rat sent",
-									pluralCase: "rats sent",
-									singleCaseWithArticle: "a rat reading",
-									setOfCases: "events",
-									setOfCasesWithArticle: "events"
-								},
-								defaults: { xAttr: "RatReading", yAttr: "Site" }
-							}
-						] // collections
-					} // args
-				}; //initGameObj
-				var	initGameString:String = JSON.encode( initGameObj );
-				result = ScriptInterface.doCommand( initGameString ); // note: as of 2013-07-23 initGame always returns null
-				this.parentCaseID = -1; // change from -2 to -1 to indicate game data sent (for error detection only)
-				trace( "DG interface: initGame" );
-			}
-			
 			// ********** TREASURE HUNT FUNCTIONS **********\			
 			
 			private function updateGameTitle():void{
@@ -239,22 +168,18 @@
 			}
 			
 			// start a new game.
-			private function newGame( mission:MissionData, stripBtnListeners:Boolean, clearPreviousData:Boolean):void{
+			private function newGame( mission:MissionData, stripBtnListeners:Boolean, deletePreviousData:Boolean):void{
 				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();	// if this is being called from the pop-up screen, strip the button listeners. 
 				
 				mCurrentMission = mission;
 				
 				// first update/close/delete old game case in DG, before we update mGameSerialNum, etc. for new game
-				if( this.parentCaseID >=0 ) {
-					throw new Error("DG interface error: unexpected open game case");
-					//trace( "DG interface ****ERROR****: unexpected open game case " );
+				if( mDGInterface.isGameCaseOpen()) {
 					sendGameDataClose();
 				}
-				
-				if( clearPreviousData)  {  //TO-DO: re-enable deleting data when we finish debugging delete/case connection problems
-					trace( "DG interface: deleting all game cases" );
-					sendDeleteAllCaseDatatoDG();
+				if( deletePreviousData )  {
+					mDGInterface.deletePreviousCaseData();
 				}
 				
 				//updateGameTitle(); // update the mission name and site number.				
@@ -273,6 +198,7 @@
 				
 				bootyMeter.initialize( mission.startingRats, mission.missesAllowed);
 			
+				mDGInterface.sendLog( "newGame: GameNumber="+mGameSerialNum+" Mission='"+mCurrentMission.title+"'" );
 				newSite();
 				
 				setRatsToSend( mission.ratsInStepper);	// moving this down fixed a bug where the stepper did not properly take the starting # of rats in the stepper. (a very series issue for Mission 1)
@@ -348,6 +274,8 @@
 							bootyMeter.pay(mCurrentMission.ratCost * mRatsToSend);
 							updateRatLimit();
 						}
+						mDGInterface.sendLog( "sendRats: "+mRatsToSend );
+						
 						//				mRatSound.play(); // Play rat sound.
 						
 						// For every rat sent, update Results text and send Rat data to TinkerPlots/DG
@@ -379,7 +307,7 @@
 								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + treasurePositions[evenOdd];
 							}
 							
-							eventArray.push( getEventDataValues( noisyLocation ));
+							eventArray.push( getEventCaseValues( noisyLocation ));
 							
 							if( (ratNum + 1 == mRatsToSend) || (eventArray.length >= eventsAtATime )){
 								DivingRatDirector.addRat( noisyLocation, eventArray);
@@ -411,7 +339,7 @@
 			// put the rat data on DG, when the animation finishes
 			private function pushRatDataToDG(e:RatEvent):void{
 				for(var i:int = 0; i < DivingRatDirector.dataArray.length; i++){
-					sendEventData("Rat",  DivingRatDirector.dataArray[i]);	
+					sendEventData( /*"Rat",*/  DivingRatDirector.dataArray[i]);	
 				}
 				DivingRatDirector.clearDataArray();
 				sendGameDataUpdate();
@@ -520,6 +448,7 @@
 				transitionTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, hookDropTimerFinish);				
 				
 				hooksDroppedArray.push(new Array(mCenterPosition, mFoundTreasure, lastHookItem));
+				mDGInterface.sendLog( "hookDropped: Center="+mCenterPosition+" TreasureFound="+mFoundTreasure ); // note: mCenterPosition may be changed below, so log now.
 				
 				if( mFoundTreasure)
 				{
@@ -562,11 +491,11 @@
 						
 					
 					// Send event data to TinkerPlots / Fathom.
-					//sendEventData("Hook", getEventDataValues( "Miss" )); --Disabled
+					//sendEventData("Hook", getEventCaseValues( "Miss" )); --Disabled
 				}
 				
-				// send updated [mHooksDropped, mTreasuresFoundThisSite, profitSoFar] to DG game case
-				sendGameDataUpdate(); // TO-DO: remove this call if nothing changes here. Mike: The # of hooks dropped changes.
+				// send updated # of hooks dropped to DG game case
+				sendGameDataUpdate();
 			}
 			
 			//instead of incrementing mCurrentTreasureNum by 1 for each location, pick a random treasure so there is no limit.
@@ -601,6 +530,7 @@
 						popUpScreen.displayInstantReplay(treasuresFoundString(), newSite);
 					}
 				}
+				mDGInterface.sendLog( "treasureMessage: '"+treasuresFoundString()+"'");
 
 				shipControlsMVC.disableRatsButton();
 				shipControlsMVC.disableHookButton();
@@ -613,11 +543,7 @@
 			
 			// this method is called when the user clicks 'okay' on the "Game Over" popup. It closes the game in DG. 
 			private function closeGame(e:Event = null):void{
-				if( this.parentCaseID >= 0 ) {
-					sendGameDataClose();
-				}else{
-					throw new Error("DG Interface error: attempting to close a game with parent ID < 0");
-				}
+				sendGameDataClose();
 			}
 			
 			private function getRating():int{
@@ -655,6 +581,8 @@
 				shipControlsMVC.interval.text		= mMinHookRange.toFixed(1) + " – " + mMaxHookRange.toFixed(1);
 				hooksDroppedArray = new Array();
 
+				mDGInterface.sendLog( "newSite: Site="+mSiteSerialNum+" SitesVisited="+mSitesVisitedThisGame );
+				
 				if( mSitesVisitedThisGame >= 2){
 					sendGameDataUpdate(); // send updated SitesVisited to DG
 				}
@@ -700,107 +628,95 @@
 			
 			// send the Game-level data to TinkerPlots or DG.
 			// this creates and opens the game case, see also sendGameDataClose()
-			private function sendGameDataOpen():void{
-				var openGameCaseObj:Object = {
-						action: "openCase",
-						args: { 
-							collection: kGamesCollectionName,
-							values: [
-								mGameSerialNum,
-								mCurrentMission.title,
-								bootyMeter.treasuresFound,
-								mSitesVisitedThisGame
-							]
-						} 	
-					}; // openGameCaseObj
-					
-				if( this.parentCaseID >= 0 ) {
-					throw new Error("DG interface error: openCase without closing previous parent case ID (" + this.parentCaseID + ")" );
-					//trace( "DG interface ERROR: openCase without closing previous parent case ID ("+this.parentCaseID+")" );
-				} else {
-					var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
-					var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
-					this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
-					if(VersionChecker.isDebug && kDebugMode && this.parentCaseID == -1 ) {
-						this.parentCaseID = mGameSerialNum; // fake a valid case ID for validating sendGameDataUpdate() when not connected to DG
-						trace("DG interface: simulating openCase with parentCaseID "+this.parentCaseID+" (debug only)");
-					} else {
-						trace( "DG interface: openCase with parent case ID "+this.parentCaseID );
-					}
-				}
+			private function sendGameDataOpen():void {
+				var closeCase:Boolean = false;
+				this.mDGInterface.openGameCase( kGamesCollectionName, getGameCaseValues( closeCase ));
 			}
 			
-			// send the Game-level data to TinkerPlots or DG.
-			// this updates and closes the game case created by sendGameDataOpen()
+			// if connected to DG, updates and closes the game-level case data created by sendGameDataOpen()
 			private function sendGameDataClose():void{
-				sendGameDataUpdate( true );
+				var closeCase:Boolean = true,
+					numTreasures:int = bootyMeter.treasuresFound,
+					ratingNum:int = mCurrentMission.getRating( numTreasures );
+				this.mDGInterface.sendLog( "gameOver: Rating="+ratingNum+" TreasuresFound="+numTreasures );
+				this.mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
 			}
 			
-			// send the Game-level data to DG, if connected to DG
-			// this updates and optionally closes the game case created by sendGameDataOpen()
-			private function sendGameDataUpdate( wantCaseClosed:Boolean = false ):void{
-				var	whichAction:String = (wantCaseClosed ? "closeCase" : "updateCase" ),
-					closeGameCaseObj:Object = { 
-						action: whichAction,
-						args: { 
-							collection: kGamesCollectionName,
-							caseID: this.parentCaseID,
-								values: [
-									mGameSerialNum,		 // Game number starting with 1 since launch of application.
-									mCurrentMission.title,
-									bootyMeter.treasuresFound,
-									mSitesVisitedThisGame
-									// Rating
-									// ending type
-									//mRatsSentThisSite,			 // Total number of rats sent during current game.
-									//mHooksDropped,		 // Number of times hook was dropped during current game.
-									//bootyMeter.rats  // Value of (treasures found) minus (crew/ship costs and rat costs).
-								]
+			// if connected to DG, updates the game-level case data created by sendGameDataOpen()
+			private function sendGameDataUpdate():void {
+				var closeCase:Boolean = false;
+				this.mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
+			}
+			
+			// Send event case data to DG, if connected to DG.
+			// 		Event data are "Rat Sent" events (one rat sending per case); we no longer send "Hook dropped" events
+			// 		caseValueArrays is an array of cases, and each case is a array of attribute values for that case (corresponding to the attributes previously sent)
+			private function sendEventData( caseValueArrays:Array ):void {
+				this.mDGInterface.createEventCases( kEventsCollectionName, caseValueArrays );
+			}
+			
+			// Send the Game-level and Event-level structure to DG, if connected to DG.  
+			// 		The collections are the tables of cases and attributes.
+			private	function sendCollectionData( ):void	{
+				var initGameArgs:Object = 
+					{
+						name: "ShipOdyssey",
+						dimensions: { width: this.width, height: this.height },
+						collections: [
+							{
+								name: kGamesCollectionName,
+								attrs:[
+									{name: "GameNumber", type: "numeric", description: "Sequential Game Number" },
+									{name: "MissionName", type: "nominal", description: "Which mission? (objective and level of difficulty)" },
+									{name: "Rating", type: "numeric", description: "Game play rating from 1 (worst) to 5 (best)" },
+									{name: "TreasuresFound", type: "numeric", precision: 0, description: "Number of treasures found during game" }, 
+									{name: "SitesVisited", type: "numeric", precision: 0, description: "Number of sites visited during game" },
+									{name: "RatsSent", type: "numeric", precision: 0, description: "Number of rats sent during game" }	
+								] ,
+								childAttrName: "Events_Record"
+							},
+							{
+								name: kEventsCollectionName,
+								attrs:	[
+									{ name: "Site", type: "nominal", description: "Site number"   } ,
+									{ name: "RatNumber", type: "numeric", precision: 0, description: "Rats sent so far in game"   } , 
+									{ name: "RatReading", type: "numeric", precision: 1, description: "Location estimate provided by rat"  }
+								],
+								labels: {
+									singleCase: "rat sent",
+									pluralCase: "rats sent",
+									singleCaseWithArticle: "a rat reading",
+									setOfCases: "events",
+									setOfCasesWithArticle: "events"
+								},
+								defaults: { xAttr: "RatReading", yAttr: "Site" }
 							}
-						};
-				if( this.parentCaseID >= 0 ) {
-					trace( "DG interface: "+whichAction+" with parent case ID "+this.parentCaseID );
-					ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
-				} else {
-					throw new Error("DG interface error: " + whichAction + " with invalid parent case ID (" + this.parentCaseID + ")" );
-					//trace( "DG interface ERROR: "+whichAction+" with invalid parent case ID ("+this.parentCaseID+")" );
-				}
-				
-				if( wantCaseClosed )
-					this.parentCaseID = -1;	// set to invalid ID after close so we can detect errors
+						] // collections
+					};
+				this.mDGInterface.initGame( initGameArgs );
 			}
 			
 			// get the event data to send to Tinkerplots/DG, 
 			// returned as an array for use by sendEventData()
-			private function getEventDataValues( val:Number ):Array {
+			private function getGameCaseValues( iIsGameOver:Boolean ):Array {
 				return [
-					mSiteSerialNum, // Game number (1-n)
-					mRatsSentThisSite, // Rat number (1-n)
-					val // Location estimate provided by rat.
+					mGameSerialNum,		 // Game number starting with 1 since launch of application.
+					mCurrentMission.title,
+					(iIsGameOver ? mCurrentMission.getRating( bootyMeter.treasuresFound ) : null ),
+					bootyMeter.treasuresFound,
+					mSitesVisitedThisGame,
+					bootyMeter.getNumRatsDropped()
 				];
 			}
 			
-			// Send event case data to DG, if connected to DG.
-			// Event data are "Rat Sent" events (one rat sending per case); we no longer send "Hook dropped" events
-			private function sendEventData(type:String, valArrays:Array):void{
-				
-				var createEventCaseObj:Object = 
-						{
-							action: "createCases",
-							args: {
-								collection: kEventsCollectionName,
-								parent: this.parentCaseID,
-								values: valArrays
-							}
-						};				
-				
-				if( this.parentCaseID >= 0 ) {
-					trace( "DG interface: createCases ("+valArrays.length+") with parent case ID "+this.parentCaseID );
-					ScriptInterface.doCommand( JSON.encode( createEventCaseObj ));
-				} else {
-					throw new Error("DG interface error: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
-					//trace( "DG interface ERROR: createCases (Event level) with invalid parent case ID ("+this.parentCaseID+")" );
-				}
+			// get the event data to send to Tinkerplots/DG, 
+			// returned as an array for use by sendEventData()
+			private function getEventCaseValues( iRatReading:Number ):Array {
+				return [
+					mSiteSerialNum, // Game number (1-n)
+					mRatsSentThisSite, // Rat number (1-n)
+					iRatReading // Location estimate provided by rat.
+				];
 			}
 			
 			//timer response functions for running the game (will inline them near where they go as it makes sense)
@@ -1054,6 +970,8 @@
 				popUpScreen.rating = getRating();
 				
 				popUpScreen.displayGameOver();
+				
+				mDGInterface.sendLog( "endGameButtonPress:" );
 			}
 			
 		]]>

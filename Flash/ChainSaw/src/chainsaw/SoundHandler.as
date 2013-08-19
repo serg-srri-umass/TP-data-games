@@ -60,7 +60,7 @@ package chainsaw{
 		//loadUpSound. Played when you mouseOut from a log. Transitions from loadSound to runSound. Chainsaw is revving back up, but is still loaded. 
 		[Embed("../src/embedded_assets/loadUpSound.mp3")]
 		private var loadUpSoundMP3:Class;
-		private var mLoadUpSound:AdvancedSound = new AdvancedSound(new loadUpSoundMP3() as Sound);
+		private var mLoadUpSound:AdvancedSound = new AdvancedSound(new loadUpSoundMP3() as Sound, false);
 		
 		//loadDownSound. Played when you mouseOver a log, with mouseDown. Sound of chainsaw loading down into log, decreasing rpms. 
 		[Embed("../src/embedded_assets/loadDownSound.mp3")]
@@ -72,10 +72,13 @@ package chainsaw{
 		private var mRunSound2:AdvancedSound;
 		private var mLoadSound2:AdvancedSound;
 		private var loopIdleSound:Boolean 	= false;
-		private var loopRunSound:Boolean 	= false;
+		private var loopRunSound:Boolean 	= true;
 		private var loopLoadSound:Boolean 	= false;
 		private var mouseEnabled:Boolean 	= false; //used to disable functions that listen to mouse events. 
-	
+		private var doNotRun:Boolean 		= false; /*used to keep loadUpSound from triggering loadToRunTrans if we have already 
+													 initiated a loadUpToLoadDownTrans()*/
+		private var inLog:Boolean			= false;  //keeps trackof whether we are in a log, which determines whether or not we should be hearing load sounds.
+		
 		//fade time constants, in milliseconds
 		private static const runLoopFadeTime:Number 				= 100;
 		private static const loadLoopFadeTime:Number 				= 100;
@@ -113,7 +116,7 @@ package chainsaw{
 		}
 		
 		public function onGameEnd():void{
-			//trace("onGameEnd");
+			trace("onGameEnd");
 			//all these 'ifs' check if sounds are playing, and fade them out if they are
 			if(mRunSound && mRunSound.isPlaying()){
 				mRunSound.fadeOut(100);
@@ -159,7 +162,7 @@ package chainsaw{
 		//MouseEvent handling functions
 		public function onMouseDown(e:Event):void{
 			if(mouseEnabled){
-				//trace("mouseDown");
+				trace("mouseDown");
 				if(mRevDownSound.isPlaying() && !mRevUpSound.isPlaying()){
 					revDownToRevUpTrans();
 				}else if(mStartUpSound && mStartUpSound.isPlaying()){
@@ -173,7 +176,7 @@ package chainsaw{
 		
 		public function onMouseUp(e:Event):void{
 			if(mouseEnabled){
-				//trace("mouseUp");
+				trace("mouseUp");
 				if(mRevUpSound.isPlaying() && !mRevDownSound.isPlaying()){
 					revUpToRevDownTrans();
 				}else{
@@ -194,8 +197,9 @@ package chainsaw{
 		
 		public function onMouseOverLog(e:Event):void{
 			if(mouseEnabled){
-				//trace("mouseOverLog");
-				if(mLoadUpSound.isPlaying() && !mLoadDownSound.isPlaying()){
+				inLog = true;
+				trace("mouseOverLog");
+				if(mLoadSound && mLoadUpSound.isPlaying()){
 					loadUpToLoadDownTrans();
 				}else if(mRunSound && mRunSound.isPlaying()){
 					runToLoad();
@@ -211,9 +215,10 @@ package chainsaw{
 		
 		public function onMouseOutLog(e:Event):void{
 			if(mouseEnabled){
-				//trace("mouseOutLog");
+				inLog = false;
+				trace("mouseOutLog");
 				loopLoadSound = false;
-				if(mLoadDownSound.isPlaying() && !mLoadUpSound.isPlaying()){
+				if(mLoadDownSound && mLoadDownSound.isPlaying()){
 					loadDownToLoadUpTrans();
 				}
 				if(mLoadSound && mLoadSound.isPlaying()){
@@ -242,22 +247,21 @@ package chainsaw{
 			mLoadSound.doOnPercentPlayed(.92, loadLoop);
 		}
 		
-		private function cleanSounds():void{
-			
-		}
-		
 		//fade handling
 		private function startToIdle(e:Event):void{
-			//trace("startToIdle");
+			trace("startToIdle");
 			mStartUpSound.fadeOut(startToIdleFadeTime);
 			mIdleSound.fadeIn(startToIdleFadeTime);
 			loopIdleSound = true;
 		}
 		
 		private function idleToRun():void{
-			//trace("idleToRun");
+			trace("idleToRun");
 			loopIdleSound = false; 
 			mIdleSound.fadeOut(idleToRunFadeTime);
+			
+			//to fade out all things that shouldn't be playing in case they are. checks to see 
+			//if they exist first. 
 			if(mIdleSound2 && mIdleSound2.isPlaying()){
 				mIdleSound2.fadeOut(idleToRunFadeTime);
 			}
@@ -266,15 +270,18 @@ package chainsaw{
 		
 		//triggered when mouseDown is pressed during startUpSound 
 		private function startUpToRun():void{
-			//trace("startToRun");
+			trace("startUpToRun");
 			mStartUpSound.fadeOut(startUpToRunFadeTime);
 			mRevUpSound.fadeIn(startUpToRunFadeTime);
 		}
 			
 		private function runToIdle():void{
-			//trace("runToIdle");
+			trace("runToIdle");
 			loopRunSound = false; 
 			mRunSound.fadeOut(runToIdleFadeTime);
+			
+			//to fade out all things that shouldn't be playing in case they are. checks to see 
+			//if they exist first. 
 			if( mRunSound2 && mRunSound2.isPlaying()){
 				mRunSound2.fadeOut(runToIdleFadeTime);
 			}
@@ -282,67 +289,105 @@ package chainsaw{
 		}
 		
 		private function runToLoad():void{
-			//trace("runToLoad");
+			trace("runToLoad");
+			if(inLog){
 			mRunSound.fadeOut(runToLoadFadeTime);
 			loopRunSound = false;
+			
+			//mLoadUpSound.restoreDoOnPercentPlayed();
+			
+			//to fade out all things that shouldn't be playing in case they are. checks to see 
+			//if they exist first. 
 			if(mRunSound2 && mRunSound2.isPlaying()){
 				mRunSound2.fadeOut(runToLoadFadeTime);
 			}
-			
 			mLoadDownSound.fadeIn(runToLoadFadeTime);
+			}else{
+				return;
+			}
 		}
 		
 		private function loadToRun():void{
-			//trace("loadToRun");
+			trace("loadToRun");
 			loopLoadSound = false; 
-			mLoadSound.fadeOut(loadToRunFadeTime);
+
+			
+			//to fade out all things that shouldn't be playing in case they are. checks to see 
+			//if they exist first. 
 			if( mLoadSound2 && mLoadSound2.isPlaying()){
 				mLoadSound2.fadeOut(loadToRunFadeTime);
+			}
+			if(mLoadSound && mLoadSound.isPlaying()){
+				mLoadSound.fadeOut(loadToRunFadeTime);
 			}
 			mLoadUpSound.fadeIn(loadToRunFadeTime);
 		}
 		
 		//transition clip handling
 		private function revToRunTrans(e:Event = null):void{
-			//trace("revToRunTrans");
-			//mIdleSound.stop();
-			mRevUpSound.fadeOut(revToRunTransFadeTime);
-			mRunSound.fadeIn(revToRunTransFadeTime);
-			loopRunSound = true;
+			if(!inLog){
+				trace("revToRunTrans");
+				mRevUpSound.fadeOut(revToRunTransFadeTime);
+				mRunSound.fadeIn(revToRunTransFadeTime);
+				loopRunSound = true;
+			}else{
+				return;
+			}
 		}
 		
 		private function revToIdleTrans(e:Event = null):void{
-			//trace("revToIdleTrans");
+			trace("revToIdleTrans");
 			mRevDownSound.fadeOut(revToIdleTransFadeTime);
 			mIdleSound.fadeIn(revToIdleTransFadeTime);
 			loopIdleSound = true;
 		}
 		
 		private function loadToRunTrans(e:Event = null):void{
-			//trace("loadToRunTrans");
+			
+			//skips this function if we've already initiated a loadUpToLoadDownTrans()
+			if(doNotRun){
+				trace("loadToRunTrans SKIPPED");
+				return;
+			}
+			
+			//trace with time information, in ms since 1970
+			var date:Date = new Date()
+			trace("loadToRunTrans" + String(date.time));
+			
 			mLoadUpSound.fadeOut(loadToRunTransFadeTime);
 			mRunSound.fadeIn(loadToRunTransFadeTime);
 			loopRunSound = true;
 		}
 		
 		private function runToLoadTrans(e:Event = null):void{
-			//trace("runToLoadTrans");
-			mLoadDownSound.fadeOut(runToLoadTransFadeTime);
-			mLoadSound.fadeIn(runToLoadTransFadeTime);
-			loopLoadSound = true;
+			trace("runToLoadTrans");
+			if(inLog){
+				mLoadDownSound.fadeOut(runToLoadTransFadeTime);
+				mLoadSound.fadeIn(runToLoadTransFadeTime);
+				loopLoadSound = true;
+			}else{
+				return;
+			}
 		}
 		
 		private function revUpToLoadDownTrans():void{
-			//trace("revUpToLoadDownTrans");
-			mRevUpSound.fadeOut(revUpToLoadDownTransFadeTime);
-			mLoadDownSound.fadeIn(revUpToLoadDownTransFadeTime);
+			trace("revUpToLoadDownTrans");
+			if(inLog){
+				mRevUpSound.fadeOut(revUpToLoadDownTransFadeTime);
+				mLoadDownSound.fadeIn(revUpToLoadDownTransFadeTime);
+			}else{
+				return;
+			}
 		}
 		
 		private function revUpToRevDownTrans():void{
-			//trace("revUpToRevDownTransFadeTime");
+			trace("revUpToRevDownTrans");
 			loopRunSound = false; 
 			mRunSound.fadeOut(revUpToRevDownTransFadeTime);
 			mIdleSound.fadeOut(revUpToRevDownTransFadeTime);
+			
+			//to fade out all things that shouldn't be playing in case they are. checks to see 
+			//if they exist first. 
 			if(mRunSound2 && mRunSound2.isPlaying()){
 				mRunSound2.fadeOut(revUpToRevDownTransFadeTime);
 			}
@@ -356,10 +401,13 @@ package chainsaw{
 		}
 		
 		private function revDownToRevUpTrans():void{
-			//trace("revDownToRevUpTrans");
+			trace("revDownToRevUpTrans");
 			loopRunSound = false; 
 			mRunSound.fadeOut(revDownToRevUpTransFadeTime);
 			mIdleSound.fadeOut(revDownToRevUpTransFadeTime);
+			
+			//to fade out all things that shouldn't be playing in case they are. checks to see 
+			//if they exist first. 
 			if(mRunSound2 && mRunSound2.isPlaying()){
 				mRunSound2.fadeOut(revDownToRevUpTransFadeTime);
 			}
@@ -373,9 +421,17 @@ package chainsaw{
 		}
 		
 		private function loadDownToLoadUpTrans():void{
-			//trace("loadDownToLoadUpTrans");
+			
+			//trace with time information, in ms since 1970
+			var date:Date = new Date()
+			trace("loadDownToLoadUpTrans" + String(date.time-1375884900000));
+			
+			doNotRun = false; 
+			
 			loopRunSound = false; 
 			
+			//to fade out all things that shouldn't be playing in case they are. checks to see 
+			//if they exist first. 
 			if(mRunSound && mRunSound.isPlaying()){
 				mRunSound.fadeOut(loadUpToLoadDownTransFadeTime);
 			}
@@ -388,15 +444,26 @@ package chainsaw{
 			if(mIdleSound2 && mIdleSound2.isPlaying()){
 				mIdleSound2.fadeOut(loadDownToLoadUpTransFadeTime);
 			}
-			
 			mLoadDownSound.fadeOut(loadDownToLoadUpTransFadeTime);
 			mLoadUpSound.fadeIn(loadDownToLoadUpTransFadeTime);
 		}
 		
 		private function loadUpToLoadDownTrans():void{
-			//trace("loadUpToLoadDownTrans");
+			
+			//trace with time information, in ms since 1970
+			var date:Date = new Date()
+			trace("loadUpToLoadDownTrans" + String(date.time-1375884900000));
+			
+			doNotRun = true; //keeps loadToRunTrans from being called if we have already called this function. 
+			
 			loopRunSound = false; 
 			
+			//removes the OnPercentPlayed to keep it from triggering loadUpToRunTrans after we've 
+			//already called this transition instead
+			//mLoadUpSound.removeDoOnPercentPlayed(); 
+			
+			//to fade out all things that shouldn't be playing in case they are. checks to see 
+			//if they exist first. 
 			if(mRunSound && mRunSound.isPlaying()){
 				mRunSound.fadeOut(loadUpToLoadDownTransFadeTime);
 			}
@@ -409,7 +476,6 @@ package chainsaw{
 			if(mIdleSound2 && mIdleSound2.isPlaying()){
 				mIdleSound2.fadeOut(loadUpToLoadDownTransFadeTime);
 			}
-			
 			mLoadUpSound.fadeOut(loadUpToLoadDownTransFadeTime);
 			mLoadDownSound.fadeIn(loadUpToLoadDownTransFadeTime);
 		}
@@ -420,7 +486,7 @@ package chainsaw{
 		idleLoop again to crossfade into a new instance of the sound. 
 		this applies to all of the loop functions below. */
 		private function idleLoop(e:Event = null):void{
-			//trace("idleLoop");
+			trace("idleLoop");
 			if(loopIdleSound){
 				mIdleSound2 = new AdvancedSound(new idleSoundMP3() as Sound); //making a new idle instance to fade to
 				mIdleSound2.addEventListener(AdvancedSoundEvent.FULL_VOL, switchIdleReferences); //when the second idle instance has reached full vol, switch references
@@ -433,7 +499,7 @@ package chainsaw{
 		}
 		
 		private function runLoop(e:Event = null):void{
-			//trace("runLoop");
+			trace("runLoop");
 			if(loopRunSound){
 				mRunSound2 = new AdvancedSound(new runSoundMP3() as Sound); //making a new Run instance to fade to
 				mRunSound2.addEventListener(AdvancedSoundEvent.FULL_VOL, switchRunReferences); //when the second Run instance has reached full vol, switch references
@@ -446,7 +512,7 @@ package chainsaw{
 		}
 		
 		private function loadLoop(e:Event = null):void{
-			//trace("loadLoop");
+			trace("loadLoop");
 			if(loopLoadSound){
 				loopRunSound = false; 
 				if(mRunSound && mRunSound.isPlaying()){
@@ -468,17 +534,17 @@ package chainsaw{
 		mIdleSound2 has reached full volume.
 		this applies to all switchReferences functions below. */ 
 		private function switchIdleReferences(e:AdvancedSoundEvent):void{
-			//trace("switchIdleReferences");
+			trace("switchIdleReferences");
 			mIdleSound = mIdleSound2;
 		}
 		
 		private function switchRunReferences(e:AdvancedSoundEvent):void{
-			//trace("switchRunReferences");
+			trace("switchRunReferences");
 			mRunSound = mRunSound2;
 		}
 		
 		private function switchLoadReferences(e:AdvancedSoundEvent):void{
-			//trace("switchLoadReferences");
+			trace("switchLoadReferences");
 			mLoadSound = mLoadSound2;
 		}
 		
