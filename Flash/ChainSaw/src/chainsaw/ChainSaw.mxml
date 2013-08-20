@@ -21,8 +21,8 @@
 			import com.adobe.serialization.json.JSON;
 			
 			import common.ScriptInterface;
-			import common.AdvancedSound;
 			import common.VersionChecker;
+			import chainsaw.sound.SoundDebug;
 			
 			import flash.media.Sound;
 			import flash.media.SoundMixer;

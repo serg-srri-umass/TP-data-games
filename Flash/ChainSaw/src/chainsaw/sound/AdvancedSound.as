@@ -1,4 +1,5 @@
-﻿package common{
+﻿package chainsaw.sound{
+	
 	import flash.events.*;
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
@@ -13,7 +14,7 @@
 	like 'is this sound playing?' (_isPlaying:Boolean) */
 	public class AdvancedSound extends EventDispatcher{
 		
-		private static const TICK_TIME:int = 40; //40 miliseconds between each timer tick on fade out. Roughly equivolent to 24fps.
+		private static const TICK_TIME:int = 40; //40 milliseconds between each timer tick on fade out. Roughly equivolent to 24fps.
 		
 		private var sound:Sound;	// the sound file.
 		
@@ -23,7 +24,8 @@
 		private var ticker:int;	// counts for fading.
 		private var ticksToComplete:int; // how many ticks must elapse to meet a certain duration. 
 		private var soundID:String; //randomly generated ID for debugging multiple instances of this class 
-
+		private var name:String;
+		
 		private var _isPlaying:Boolean = false;		
 		private var percentageCounter:Timer = new Timer(1, 1); // used to dispatch events based on percentage reached
 		
@@ -33,17 +35,24 @@
 		
 		private var isFadingOut:Boolean = false; //to keep track of state of fades, to throw errors
 		private var isFadingIn:Boolean = false; 
-		
+	
+		public static var debug:SoundDebug = new SoundDebug(); //static instance of SoundDebug for all AdvancedSounds
+
 
 		//constructor
 		public function AdvancedSound(s:Sound, traceEveryFrame:Boolean = false){
 			sound = s;
+			name = sound.toString();
+			name = name.slice(21); //trim out unnecessary information 
+			
+			//adds entry for this sound to the stateList in SoundDebug
+			debug.addEntry(new AdvancedSoundState(name, _isPlaying, isFadingIn, isFadingOut));
+
 			if(traceEveryFrame){
 				var timer:Timer = new Timer(46, 0);
 				timer.addEventListener(TimerEvent.TIMER, onEnterFrameHandler);
 				timer.start();
 			}
-			
 			soundID = String(Math.round(Math.random()*1000)/1000) //random ID truncated to .000 places
 		}
 		
@@ -73,13 +82,17 @@
 			percentageCounter.stop();
 		}
 		
+		public function getDebug():SoundDebug{
+			return debug;
+		}
+		
 		//works exactly like sound.play
 		public function play(startTime:Number = 0, loops:int = 0, sndTransform:SoundTransform = null):SoundChannel{
 			_channel.stop();
 			_channel = sound.play(startTime, loops, sndTransform);
 			percentageCounter.reset();
 			percentageCounter.start();
-			_isPlaying = true;
+			debug.stateList[name].setIsPlaying(true);
 			return _channel;
 		}
 		
@@ -87,7 +100,7 @@
 		public function stop():SoundChannel{
 			_channel.stop();	
 			percentageCounter.stop();
-			_isPlaying = false;
+			debug.stateList[name].setIsPlaying(false);
 			return _channel;
 		}
 		
@@ -103,7 +116,7 @@
 			}
 			//var date:Date = new Date(); UNUSED
 			
-			trace("fadeOut ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
+			//trace("fadeOut ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
 			
 			if(duration < 1){
 				throw new Error("fade duration must be longer than 1 millisecond.");
@@ -116,7 +129,7 @@
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeOut);
 			fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeOut);
 			fadeTimer.start();
-			isFadingOut = true; 
+			debug.stateList[name].setIsFadingOut(true);
 		}
 		
 		//takes number of times you want to loop the sound after fading, and startPosition if you want 
@@ -133,7 +146,7 @@
 			//var date:Date = new Date(); UNUSED
 			
 			if(startPos != 0){
-				trace("start position: " + startPos); // for debugging
+				//trace("start position: " + startPos); // for debugging
 			}
 			
 			if(duration < 1){
@@ -147,12 +160,12 @@
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeIn);
 			fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeIn);
 			fadeTimer.start();
-			isFadingIn = true; 
-			
+			debug.stateList[name].setIsFadingIn(true);
+
 			_volume = 0;
 			startPosition = startPos; 
 			_channel = play(startPos, numLoops, null);
-			trace("fadeIn ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
+			//trace("fadeIn ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
 		}
 		
 		private var _toDoFunction:Function = function():void{};
@@ -175,7 +188,7 @@
 		}		
 		
 		private function onEnterFrameHandler(e:Event):void{
-			trace("Name: " + sound.toString(), "Position: " + (_channel.position/sound.length)*100, "Volume: " + _volume);
+			//trace("Name: " + sound.toString(), "Position: " + (_channel.position/sound.length)*100, "Volume: " + _volume);
 		}
 			
 		public function removeDoOnPercentPlayed():void{
@@ -201,11 +214,13 @@
 		//disconnects the fadeOut ticking function from the fade timer, and sets its volume 
 		//the rest of the way to 0. Also stops the sound. 
 		private function cleanFadeOut(e:Event):void{
+			//dispatches event for sound having finished fading out
+			dispatchEvent(new AdvancedSoundEvent(AdvancedSoundEvent.FADED_OUT));
 			fadeTimer.removeEventListener(TimerEvent.TIMER, tickFadeOut);
 			fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeOut);	
 			_volume = 0;
 			stop();
-			isFadingOut = false;
+			debug.stateList[name].setIsFadingOut(false);
 		}
 		
 		//ticks through slices of the sound to split volume changes into small increments to 
@@ -218,6 +233,8 @@
 		//disconnects the fadeIn ticking function from the fade timer, and sets its volume the 
 		//rest of the way to 0. Also stops sound. 
 		private function cleanFadeIn(e:Event):void{
+			//dispatches event for sound having finished fading in
+			dispatchEvent(new AdvancedSoundEvent(AdvancedSoundEvent.FADED_IN));
 			fadeTimer.removeEventListener(TimerEvent.TIMER, tickFadeIn);
 			fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeIn);
 			_volume = 1;
@@ -226,9 +243,7 @@
 			var st:SoundTransform = _channel.soundTransform;
 			st.volume = _volume;
 			_channel.soundTransform = st;
-			
-			dispatchEvent(new AdvancedSoundEvent(AdvancedSoundEvent.FULL_VOL));
-			isFadingIn = false; 
+			debug.stateList[name].setIsFadingIn(false);
 		}
 		
 		// sets the volume based on ticker & ticksToComplete

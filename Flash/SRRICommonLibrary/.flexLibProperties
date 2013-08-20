@@ -3,7 +3,6 @@
   <includeClasses>
     <classEntry path="common.ParkMiller"/>
     <classEntry path="common.TextFormatter"/>
-    <classEntry path="common.AdvancedSoundEvent"/>
     <classEntry path="common.DGInterface"/>
     <classEntry path="common.ScriptInterface"/>
   </includeClasses>
