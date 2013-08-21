@@ -92,6 +92,7 @@
 			_channel = sound.play(startTime, loops, sndTransform);
 			percentageCounter.reset();
 			percentageCounter.start();
+			_isPlaying = true; 
 			debug.stateList[name].setIsPlaying(true);
 			return _channel;
 		}
@@ -100,6 +101,7 @@
 		public function stop():SoundChannel{
 			_channel.stop();	
 			percentageCounter.stop();
+			_isPlaying = false; 
 			debug.stateList[name].setIsPlaying(false);
 			return _channel;
 		}
@@ -129,6 +131,7 @@
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeOut);
 			fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeOut);
 			fadeTimer.start();
+			isFadingOut = true; 
 			debug.stateList[name].setIsFadingOut(true);
 		}
 		
@@ -160,6 +163,7 @@
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeIn);
 			fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeIn);
 			fadeTimer.start();
+			isFadingIn = true; 
 			debug.stateList[name].setIsFadingIn(true);
 
 			_volume = 0;
@@ -220,6 +224,7 @@
 			fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeOut);	
 			_volume = 0;
 			stop();
+			isFadingOut = false; 
 			debug.stateList[name].setIsFadingOut(false);
 		}
 		
@@ -243,6 +248,7 @@
 			var st:SoundTransform = _channel.soundTransform;
 			st.volume = _volume;
 			_channel.soundTransform = st;
+			isFadingIn = false; 
 			debug.stateList[name].setIsFadingIn(false);
 		}
 		
