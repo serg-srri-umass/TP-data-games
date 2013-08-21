@@ -15,6 +15,7 @@
 	<fx:Script>
 		<![CDATA[
 			import common.DGInterface;
+			import common.ParkMiller;
 			import common.ScriptInterface;
 			import common.VersionChecker;
 			
@@ -31,7 +32,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.08.11";
+			private static const kVersion:String = "v.2013.08.21";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			
@@ -48,6 +49,7 @@
 			private var mGameSerialNum:int = 0;
 			
 			public static var instance:InferenceGames = null;
+			public var randomizer:ParkMiller = null;
 			
 			// this method ensures that the flash player is a recent enough version to work.
 			private function testFlashPlayer():void {
@@ -61,6 +63,7 @@
 				if( instance == null )
 					instance = this;
 				
+				this.randomizer = new ParkMiller(); // must instantiate just once to set random seed according to current date-time.
 				BrickWall.visible = false;
 
 				mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
@@ -88,12 +91,13 @@
 							{
 								name: kGamesCollectionName,
 								attrs:[
-									{name: "WhichGame", type: "numeric", description: "Sequential Game Number" },
-									{name: "WhichRound", type: "numeric", description: "Sequential Round Number" },
-									//{name: "MissionName", type: "nominal", description: "Which mission? (objective and level of difficulty)" },
-									{name: "Interval", type: "numeric", description: "How close a guess has to be to the true value" },
-									{name: "IQR", type: "numeric", precision: 0, description: "Inter-Quartile Range (IQR) of distribution" }, 
-									{name: "NumPoints", type: "numeric", precision: 0, description: "Number of data points generated during round" },
+									{ name: "Game", type: "numeric", precision: 0, description: "Sequential Game Number" },
+									{ name: "Round", type: "numeric", precision: 0, description: "Sequential Round Number" },
+									{ name: "Interval", type: "numeric", precision: 0, description: "How close a guess has to be to the true value" },
+									{ name: "IQR", type: "numeric", precision: 0, description: "Inter-Quartile Range (IQR) of distribution" }, 
+									{ name: "SampleSize", type: "numeric", precision: 0, description: "Number of data values generated (sampled) during the round" },
+									{ name: "Result", type: "nominal", description: "Who guessed and whether they won or lost." },
+									{ name: "ProbWin", type: "numeric", precision: 0, description: "Probability of winning"}
 								] ,
 								childAttrName: "Events_Record"
 							},
@@ -122,11 +126,13 @@
 			// returned as an array for use by sendGameDataOpen(),..Update(),...Close().
 			public function getGameCaseValues( iIsGameOver:Boolean ):Array {
 				return [
-					mGameSerialNum,		 // Game number starting with 1 since launch of application.
+					mGameSerialNum, // Game number starting with 1 since launch of application.
 					Round.currentRound.roundID,
 					Round.currentRound.interval,
 					Round.currentRound.IQR,
-					Round.currentRound.numDataSoFar
+					Round.currentRound.numDataSoFar,
+					(iIsGameOver ? Round.currentRound.getResultsString() : ""), // Result string
+					"" // TO-DO: add ProbWin value
 				];
 			}
 
@@ -134,7 +140,9 @@
 			// 		Event data "data point generated" events, with one array value per Event attribute
 			// 		caseValueArrays is an array of cases, and each case is a array of attribute values for that case (corresponding to the attributes previously sent)
 			public function sendEventData( caseValueArrays:Array ):void {
-				this.mDGInterface.createEventCases( kEventsCollectionName, caseValueArrays );
+				mDGInterface.createEventCases( kEventsCollectionName, caseValueArrays );
+				var closeCase:Boolean = false; // update number of events in game case
+				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
 			}
 			
 			private function initVisualElements():void{	
@@ -184,12 +192,14 @@
 				}
 
 				// create the new round
-				var boringRound:Round = new Round( 2, 5 );
+				const kGameInterval:Number = 1; // +/-1 so range of correct estimates is actually 2.
+				const kGameIQR:Number = 7;
+				var   kGameMedian:Number = randomizer.uniformNtoM( 0, 100 );
 				sDataCannon.speed = .25;
 				
+				var boringRound:Round = new Round( kGameInterval, kGameIQR, kGameMedian );
 				var closeCase:Boolean = false;  // open and send the new round data to DG
 				mDGInterface.openGameCase( kGamesCollectionName, getGameCaseValues( closeCase ));
-				
 				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
 			}
 			
@@ -224,6 +234,8 @@
 					sUserPlayer.hide();
 					Round.currentRound.lastBuzzer = BotPlayerSWC.BOT;
 				}
+				// show result in DG
+				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( true ), false );
 			}
 			
 		]]>

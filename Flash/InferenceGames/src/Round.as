@@ -4,8 +4,10 @@ package
 {
 	import common.MathUtilities;
 	
+	import embedded_asset_classes.BotPlayerSWC;
 	import embedded_asset_classes.ControlsSWC;
 	import embedded_asset_classes.PlayerAPI;
+	import embedded_asset_classes.UserPlayerSWC;
 	
 	public class Round
 	{
@@ -41,12 +43,13 @@ package
 		public var lastBuzzer:PlayerAPI; // the player who buzzed in this round.
 		
 		// constructor
-		public function Round(param_interval:Number, param_IQR:Number){
+		public function Round( param_interval:Number, param_IQR:Number, param_Median:Number ) {
 			Round.currentRound = this;
 			
 			++_roundID;
 			_interval = param_interval;
 			_IQR = param_IQR;
+			_median = param_Median;
 			
 			ControlsSWC.CONTROLS.interval = param_interval; // update the GUI.
 			ControlsSWC.CONTROLS.IQR = param_IQR; // update the GUI.
@@ -55,9 +58,10 @@ package
 		}
 		
 		// a point of data has been added.
-		public function addData( value:Number = 0):void{
+		public function addData( value:Number = 0):void {
 			
-			value = Math.random() * 100; //TODO: generate data according to game parameters.
+			// generate random data value; note that mean and median are interchangable for an symmetrical normal curve.
+			value = InferenceGames.instance.randomizer.normalWithMeanIQR( _median, _IQR );
 			
 			_numDataSoFar++;
 			ControlsSWC.CONTROLS.currentSampleMedian = calculateGuess(); // based on the data so far, calculate the best guess.
@@ -70,30 +74,41 @@ package
 				InferenceGames.instance.hitBuzzer( IS_BOT);
 		}
 		
-		public function get roundID():int{
+		public function get roundID():int {
 			return _roundID;
 		}		
 		
-		public function get numDataSoFar():int{
+		public function get numDataSoFar():int {
 			return _numDataSoFar;
 		}
 		
-		public function get interval():Number{
+		public function get interval():Number {
 			return _interval;
 		}
 		
-		public function get IQR():Number{
+		public function get IQR():Number {
 			return _IQR;
 		}
 		
 		// get the automatically generated guess, based on the median of the sample data.
-		public function get guess():Number{
+		public function get guess():Number {
 			return _guess;
 		}
 		
 		// get the accuracy of the current guess, based on the sample size:
-		public function get accuracy():Number{
+		public function get accuracy():Number {
 			return _accuracy;
+		}
+		
+		// get the result string showing who won or lost for this round
+		public function getResultsString():String {
+			if( lastBuzzer == UserPlayerSWC.PLAYER ){
+				return("You guessed"); // TODO: change to "you won" or "you lost" result
+			} else if( Round.currentRound.lastBuzzer == BotPlayerSWC.BOT ){
+				return("Expert guessed"); // TODO: change to "expert won" or "expert lost" result
+			} else {
+				return("");
+			}
 		}
 		
 		// -----------------------
@@ -101,12 +116,12 @@ package
 		// -----------------------
 		
 		// auto-generate a guess based on the median of the current sample.
-		private function calculateGuess():Number{
+		private function calculateGuess():Number {
 			return 0; // Proxy. TO-DO: Take the mean of the data.
 		}
 		
 		// generates an accuracy %, based on the sample size.
-		private function calculateAccuracy():Number{
+		private function calculateAccuracy():Number {
 			return MathUtilities.calculateAreaUnderBellCurve( interval, numDataSoFar, MathUtilities.IQR_to_SD(IQR)) * 100;
 		}
 	}
