@@ -1,6 +1,10 @@
 package chainsaw.sound{
+	
 	import flash.utils.Dictionary;
 	
+		/*Provides secondary debug functionality to check on sounds manipulated in SoundHandler. 
+		Stores entries of AdvancedSoundStates, can print information from these states. Possible 
+		uses are printing states of sounds when an error occurs, regular intervals of state checking, etc. */
 		public class SoundDebug{
 		
 		
@@ -33,6 +37,8 @@ package chainsaw.sound{
 			return count;
 		}
 		
+		/*returns an Array with information about what sounds are playing, not playing, fading in, and fading out. 
+		key is as follows: [0]=numSoundsPlaying, [1]=numSoundsFadingIn, [2]=numSoundsFadingOut, [3]=numSoundsNotPlaying*/
 		public function getNumSoundsPlaying():Array{
 			var outputArray:Array = [0, 0, 0, 0];
 			for each(var entry:AdvancedSoundState in stateList){

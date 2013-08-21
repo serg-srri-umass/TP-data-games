@@ -102,6 +102,7 @@ package chainsaw{
 		private static const loadUpToLoadDownTransFadeTime:Number   = 100;
 		private static const startUpToRunFadeTime:Number 			= 100;
 		
+		//when called, frees up all resources that any of the sounds manipulated by SoundHandler are using
 		public function shutDown():void {
 			if(mIdleSound2){
 				mIdleSound2.shutDown();
@@ -112,6 +113,7 @@ package chainsaw{
 			if(mLoadSound2){
 				mLoadSound2.shutDown();
 			}
+			mIdleSound.shutDown();
 			mLoadSound.shutDown();
 			mRunSound.shutDown();
 			mLoadUpSound.shutDown();
@@ -187,6 +189,10 @@ package chainsaw{
 			if(mLoadSound && mLoadSound.isPlaying()){
 				mLoadSound.fadeOut(100);
 				mLoadSound.stopOnPercentPlayedTimer();
+			}
+			if(mLoadSound2 && mLoadSound2.isPlaying()){
+				mLoadSound2.fadeOut(100);
+				mLoadSound2.stopOnPercentPlayedTimer();
 			}
 			//bring in the shutdown sound 
 			mShutDownSound.fadeIn(100);
@@ -277,7 +283,7 @@ package chainsaw{
 			mRevDownSound.doOnPercentPlayed(.95, revToIdleTrans);
 			mRunSound.doOnPercentPlayed(.92, runLoop);		
 			mLoadDownSound.doOnPercentPlayed(.92, runToLoadTrans);
-			mLoadUpSound.doOnPercentPlayed(.92, loadToRunTrans);
+			mLoadUpSound.doOnPercentPlayed(.60, loadToRunTrans);
 			mLoadSound.doOnPercentPlayed(.92, loadLoop);
 		}
 		
@@ -345,7 +351,6 @@ package chainsaw{
 			//trace("loadToRun");
 			loopLoadSound = false; 
 
-			
 			//to fade out all things that shouldn't be playing in case they are. checks to see 
 			//if they exist first. 
 			if( mLoadSound2 && mLoadSound2.isPlaying()){
@@ -569,16 +574,20 @@ package chainsaw{
 		this applies to all switchReferences functions below. */ 
 		private function switchIdleReferences(e:AdvancedSoundEvent):void{
 			//trace("switchIdleReferences");
+			mIdleSound.shutDown();
 			mIdleSound = mIdleSound2;
+			
 		}
 		
 		private function switchRunReferences(e:AdvancedSoundEvent):void{
 			//trace("switchRunReferences");
+			mRunSound.shutDown();
 			mRunSound = mRunSound2;
 		}
 		
 		private function switchLoadReferences(e:AdvancedSoundEvent):void{
 			//trace("switchLoadReferences");
+			mLoadSound.shutDown();
 			mLoadSound = mLoadSound2;
 		}
 		
