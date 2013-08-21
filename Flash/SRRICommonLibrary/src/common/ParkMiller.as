@@ -33,8 +33,18 @@ package common
 			return ( ( s = ( s * 16807 ) % 2147483647 ) / 2147483647 );
 		}
 		
+		/** Returns a random number with range (0-N) and uniform distribution. */
+		public function uniformToN( iLowEnd:Number, iHighEnd:Number ):Number {
+			return( iLowEnd + (uniform() * (iHighEnd - iLowEnd)));
+		}
+		
+		/** Returns a random number with range (N-M) and uniform distribution. */
+		public function uniformNtoM( iLowEnd:Number, iHighEnd:Number ):Number {
+			return( iLowEnd + (uniform() * (iHighEnd - iLowEnd)));
+		}
+		
 		/**
-		 *	Returns a Number ~ N(0,1);
+		 *	Returns a Number ~ N(-1,1);
 		 */
 		private var ready : Boolean;
 		private var cache : Number;
@@ -62,6 +72,22 @@ package common
 			ready = true;
 			cache = x * w;			//  Cache one of the outputs
 			return y * w;			//  and return the other.
+		}
+		
+		/**
+		 *	Return a random Number with Normal distribution and the given Mean and Standard Deviation.
+		 */
+		public function normalWithMeanSD( iMean:Number=0, iSD:Number=1 ):Number {
+			DebugUtilities.assert( iSD > 0, "invalid Standard Deviation" );
+			return(( standardNormal() * iSD ) + iMean );
+		}
+		
+		/**
+		 *	Return a random Number with Normal distribution and the given Mean and InterQuartileRange.
+		 */
+		public function normalWithMeanIQR( iMean:Number=0, iIQR:Number=1 ):Number {
+			DebugUtilities.assert( iIQR > 0, "Invalid IQR" );
+			return(( standardNormal() * MathUtilities.IQR_to_SD( iIQR )) + iMean );
 		}
 	}
 }

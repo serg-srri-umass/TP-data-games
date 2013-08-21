@@ -6,6 +6,7 @@
     <classEntry path="common.AdvancedSoundEvent"/>
     <classEntry path="common.DGInterface"/>
     <classEntry path="common.ScriptInterface"/>
+    <classEntry path="common.DebugUtilities"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
