@@ -4,7 +4,7 @@ package chainsaw.sound{
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
 	import flash.media.SoundTransform;
-	import flash.utils.Timer;
+	import common.SafeTimer;
 	import flash.utils.describeType;
 
 	/* AdvancedSound adds functionality to the AS3 Sound class. Each AdvancedSound contains 
@@ -20,14 +20,14 @@ package chainsaw.sound{
 		
 		private var _channel:SoundChannel = new SoundChannel();
 		private var _volume:Number = 1;
-		private var fadeTimer:Timer = new Timer(1,1); // used to fade out the sound
+		private var fadeTimer:SafeTimer = new SafeTimer(1,1); // used to fade out the sound
 		private var ticker:int;	// counts for fading.
 		private var ticksToComplete:int; // how many ticks must elapse to meet a certain duration. 
 		private var soundID:int; //serially generated ID for debugging multiple instances of this class 
 		private var name:String;
 		
 		private var _isPlaying:Boolean = false;		
-		private var percentageCounter:Timer = new Timer(1,1); // used to dispatch events based on percentage reached
+		private var percentageCounter:SafeTimer = new SafeTimer(1,1); // used to dispatch events based on percentage reached
 		
 		private var startPosition:Number = 0; //records the starting positon in ms for fading in this sound. 
 											 //changed every time a fadeIn is called; if no start position 
@@ -53,13 +53,13 @@ package chainsaw.sound{
 			//adds entry for this sound to the stateList in SoundDebug
 			debug.addEntry(new AdvancedSoundState(name, soundID, _isPlaying, isFadingIn, isFadingOut));
 
-			checkSounds("AdancedSound constructor ID "+soundID);
+			checkSounds("AdvancedSound constructor ID "+soundID);
 			
-			if(traceEveryFrame){
-				var timer:Timer = new Timer(46, 0);
+			/*if(traceEveryFrame){
+				var timer:SafeTimer = new SafeTimer(46, 0);
 				timer.addEventListener(TimerEvent.TIMER, onEnterFrameHandler);
 				timer.start();
-			}
+			}old debug code*/
 			
 			//soundID = String(Math.round(Math.random()*1000)/1000) //random ID truncated to .000 places
 		}
@@ -68,14 +68,11 @@ package chainsaw.sound{
 		public function shutDown():void {
 			if(fadeTimer){ //if it exists, stop it 
 				fadeTimer.stop();
-				fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeIn);
-				fadeTimer.removeEventListener(TimerEvent.TIMER, tickFadeIn);
-				fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeOut);	
-				fadeTimer.removeEventListener(TimerEvent.TIMER, tickFadeOut);
+				fadeTimer.clean();
 			}
 			if(percentageCounter){ //if it exists, stop it 
 				percentageCounter.stop();
-				percentageCounter.removeEventListener(TimerEvent.TIMER_COMPLETE, onPercentPlayedHandler);
+				percentageCounter.clean();
 			}
 				
 			if(_channel){
@@ -172,7 +169,8 @@ package chainsaw.sound{
 			
 			ticker = ticksToComplete;
 			fadeTimer.stop();
-			fadeTimer = new Timer(TICK_TIME, ticksToComplete);
+			fadeTimer.clean();
+			fadeTimer = new SafeTimer(TICK_TIME, ticksToComplete);
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeOut);
 			fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeOut);
 			fadeTimer.start();
@@ -205,7 +203,8 @@ package chainsaw.sound{
 			
 			ticker = 0;
 			fadeTimer.stop();
-			fadeTimer = new Timer(TICK_TIME, ticksToComplete);
+			fadeTimer.clean();
+			fadeTimer = new SafeTimer(TICK_TIME, ticksToComplete);
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeIn);
 			fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeIn);
 			fadeTimer.start();
@@ -226,12 +225,13 @@ package chainsaw.sound{
 			if(arg < 0 || arg > 1)
 				throw new Error("Percent must range from 0 to 1.");
 			
-			var percentLength:int = arg * (sound.length-startPosition); //accounting for start position in timer length
+			var percentLength:int = arg * (sound.length-startPosition); //accounting for start position in SafeTimer length
 			
 			if(_isPlaying){
 					throw new Error("Cannot add function to an already playing sound.");
 			}
-			percentageCounter = new Timer(percentLength, 1);
+			percentageCounter.clean();
+			percentageCounter = new SafeTimer(percentLength, 1);
 			
 			_toDoFunction = func;
 			percentageCounter.addEventListener(TimerEvent.TIMER_COMPLETE, onPercentPlayedHandler);

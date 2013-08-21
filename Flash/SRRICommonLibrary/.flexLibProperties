@@ -5,6 +5,7 @@
     <classEntry path="common.TextFormatter"/>
     <classEntry path="common.DGInterface"/>
     <classEntry path="common.ScriptInterface"/>
+    <classEntry path="common.SafeTimer"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

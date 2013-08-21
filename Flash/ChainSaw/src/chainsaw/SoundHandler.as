@@ -131,19 +131,8 @@ package chainsaw{
 		
 		//start and end event handlers
 		public function onStart():void{
-			
-			var timer:Timer = new Timer(15000, 1);
-			timer.addEventListener(TimerEvent.TIMER_COMPLETE, triggerPrintStateHandler);
-			timer.start();
-			
 			mStartUpSound.doOnPercentPlayed(0.9, startToIdle);
 			mStartUpSound.play();
-		}
-		
-		//triggering debug state for testing
-		private function triggerPrintStateHandler(e:TimerEvent):void{
-			var debug:SoundDebug = mStartUpSound.getDebug();
-			debug.printState();
 		}
 		
 		//fades the startUp sound out so that we can cancel it when someone presses 'stop' during countdown 
