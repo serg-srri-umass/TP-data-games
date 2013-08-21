@@ -794,6 +794,7 @@
 					}
 					
 					//reset SoundHandler completely in case anything has broken during the round
+					mSoundHandler.shutDown();
 					mSoundHandler = new SoundHandler(); 
 					
 					//triggering onStart, simulates an onStart event by just directly calling the method 

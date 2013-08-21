@@ -102,6 +102,26 @@ package chainsaw{
 		private static const loadUpToLoadDownTransFadeTime:Number   = 100;
 		private static const startUpToRunFadeTime:Number 			= 100;
 		
+		public function shutDown():void {
+			if(mIdleSound2){
+				mIdleSound2.shutDown();
+			}
+			if(mRunSound2){
+				mRunSound2.shutDown();
+			}
+			if(mLoadSound2){
+				mLoadSound2.shutDown();
+			}
+			mLoadSound.shutDown();
+			mRunSound.shutDown();
+			mLoadUpSound.shutDown();
+			mLoadDownSound.shutDown();
+			mRevUpSound.shutDown();
+			mRevDownSound.shutDown();
+			mStartUpSound.shutDown();
+			mShutDownSound.shutDown();
+		}
+		
 		//public functions
 		public function setMouseEnabled(bool:Boolean):void{
 			mouseEnabled = bool;
@@ -120,8 +140,8 @@ package chainsaw{
 		
 		//triggering debug state for testing
 		private function triggerPrintStateHandler(e:TimerEvent):void{
-			var debug:SoundDebug = mStartUpSound.getDebug()
-				debug.printState();
+			var debug:SoundDebug = mStartUpSound.getDebug();
+			debug.printState();
 		}
 		
 		//fades the startUp sound out so that we can cancel it when someone presses 'stop' during countdown 
