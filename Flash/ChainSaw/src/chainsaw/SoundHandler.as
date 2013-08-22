@@ -79,6 +79,7 @@ package chainsaw{
 		private var doNotRun:Boolean 		= false; /*used to keep loadUpSound from triggering loadToRunTrans if we have already 
 													 initiated a loadUpToLoadDownTrans()*/
 		private var inLog:Boolean			= false;  //keeps trackof whether we are in a log, which determines whether or not we should be hearing load sounds.
+		private var mouseIsDown:Boolean 	= false; //tracking whether mouse is down to know when to skip Run sounds when mouseOutLog'ing
 		
 		private var debug:SoundDebug = new SoundDebug();
 		
@@ -190,6 +191,7 @@ package chainsaw{
 		
 		//MouseEvent handling functions
 		public function onMouseDown(e:Event):void{
+			mouseIsDown = true;
 			if(mouseEnabled){
 				//trace("mouseDown");
 				if(mRevDownSound.isPlaying() && !mRevUpSound.isPlaying()){
@@ -204,6 +206,7 @@ package chainsaw{
 		}
 		
 		public function onMouseUp(e:Event):void{
+			mouseIsDown = false; 
 			if(mouseEnabled){
 				//trace("mouseUp");
 				if(mRevUpSound.isPlaying() && !mRevDownSound.isPlaying()){
@@ -227,15 +230,18 @@ package chainsaw{
 		public function onMouseOverLog(e:Event):void{
 			if(mouseEnabled){
 				inLog = true;
-				//trace("mouseOverLog");
-				if(mLoadSound && mLoadUpSound.isPlaying()){
-					loadUpToLoadDownTrans();
-				}else if(mRunSound && mRunSound.isPlaying()){
-					runToLoad();
-				}else if(mRunSound2 && mRunSound2.isPlaying()){
-					runToLoad();
-				}else if(mRevUpSound && mRevUpSound.isPlaying()){
-					revUpToLoadDownTrans();
+				if(mouseIsDown){
+					//trace("mouseOverLog");
+					if(mLoadSound && mLoadUpSound.isPlaying()){
+						loadUpToLoadDownTrans();
+					}else if(mRunSound && mRunSound.isPlaying()){
+						runToLoad();
+					}else if(mRunSound2 && mRunSound2.isPlaying()){
+						runToLoad();
+					}else if(mRevUpSound && mRevUpSound.isPlaying()){
+						revUpToLoadDownTrans();
+					}
+					return;
 				}
 				return;
 			}
@@ -245,16 +251,19 @@ package chainsaw{
 		public function onMouseOutLog(e:Event):void{
 			if(mouseEnabled){
 				inLog = false;
-				//trace("mouseOutLog");
-				loopLoadSound = false;
-				if(mLoadDownSound && mLoadDownSound.isPlaying()){
-					loadDownToLoadUpTrans();
+				if(mouseIsDown){
+					//trace("mouseOutLog");
+					loopLoadSound = false;
+					if(mLoadDownSound && mLoadDownSound.isPlaying()){
+						loadDownToLoadUpTrans();
+					}
+					if(mLoadSound && mLoadSound.isPlaying()){
+						loadToRun();
+					}else if(mLoadSound2 && mLoadSound2.isPlaying()){
+						loadToRun();
+					}
 				}
-				if(mLoadSound && mLoadSound.isPlaying()){
-					loadToRun();
-				}else if(mLoadSound2 && mLoadSound2.isPlaying()){
-					loadToRun();
-				}
+				return;
 			}
 			return;
 		}
@@ -339,7 +348,10 @@ package chainsaw{
 		private function loadToRun():void{
 			//trace("loadToRun");
 			loopLoadSound = false; 
-
+			if(doNotRun){
+				return;
+			}
+			
 			//to fade out all things that shouldn't be playing in case they are. checks to see 
 			//if they exist first. 
 			if( mLoadSound2 && mLoadSound2.isPlaying()){
@@ -374,8 +386,10 @@ package chainsaw{
 			
 			//skips this function if we've already initiated a loadUpToLoadDownTrans()
 			if(doNotRun){
-				//trace("loadToRunTrans SKIPPED");
-				return;
+				return; //skips this function if we've already entered a loadUpToLoadDown phase into another log
+			}
+			if(!mouseIsDown){
+				return; //skips this function if the mouse is up, because if it is, the chainsaw should be revving down
 			}
 			
 			//trace with time information, in ms since 1970

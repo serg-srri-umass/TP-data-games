@@ -306,19 +306,22 @@ package chainsaw.sound{
 			_volume = 1;
 			
 			//setting actual soundChannel volume 
+			if(_channel){
 			var st:SoundTransform = _channel.soundTransform;
 			st.volume = _volume;
 			_channel.soundTransform = st;
+			}
 			isFadingIn = false;
 			debug.stateList[soundID].setIsFadingIn(false);
 		}
 		
 		// sets the volume based on ticker & ticksToComplete
 		private function volumeChanger():void{
-			_volume = ticker/ticksToComplete;
-			var st:SoundTransform = _channel.soundTransform;
-			st.volume = _volume;
-			_channel.soundTransform = st;
+			if(_channel){_volume = ticker/ticksToComplete;
+				var st:SoundTransform = _channel.soundTransform;
+				st.volume = _volume;
+				_channel.soundTransform = st;
+			}
 		}
 	}
 }
