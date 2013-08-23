@@ -102,12 +102,12 @@
 			// Licensed under the attribution license (http://creativecommons.org/licenses/by/3.0/)
 			[Embed(source="../embedded_assets/91924-benboncan-till-with-bell.mp3")]
 			private var CashMP3:Class;
-			private var mCashSound:AdvancedSound = new AdvancedSound(new CashMP3() as Sound);
+			private var mCashSound:Sound = new CashMP3() as Sound;
 			
 			//front fresound.org, liscenced under Creative Commons. Author: HerbertBoland
 			[Embed(source="../embedded_assets/popSound.mp3")]
 			private var popSoundMP3:Class;
-			private var mPopSound:AdvancedSound = new AdvancedSound(new popSoundMP3() as Sound);
+			private var mPopSound:Sound = new popSoundMP3() as Sound;
 			
 			// Embed the rat squeal sound in the Treasure Hunt game.
 			// The link from which the sound came no longer exists as of 10/28/2011. The larger
