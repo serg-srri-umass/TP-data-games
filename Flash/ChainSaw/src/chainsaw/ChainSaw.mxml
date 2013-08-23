@@ -21,8 +21,8 @@
 			import com.adobe.serialization.json.JSON;
 			
 			import common.ScriptInterface;
-			import common.AdvancedSound;
 			import common.VersionChecker;
+			import chainsaw.sound.SoundDebug;
 			
 			import flash.media.Sound;
 			import flash.media.SoundMixer;
@@ -45,7 +45,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2013.08.08";
+			public static const VERSION:String   = "Chainsaw v.2013.08.22";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -794,6 +794,7 @@
 					}
 					
 					//reset SoundHandler completely in case anything has broken during the round
+					mSoundHandler.shutDown();
 					mSoundHandler = new SoundHandler(); 
 					
 					//triggering onStart, simulates an onStart event by just directly calling the method 

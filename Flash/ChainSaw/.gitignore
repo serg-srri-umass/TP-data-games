@@ -1,1 +1,4 @@
 /bin-debug/
+
+#ignoring embedded_assets in bin-release. they should be embedded by then. 
+Flash/ChainSaw/bin-release/embedded_assets/*

@@ -3,10 +3,10 @@
   <includeClasses>
     <classEntry path="common.ParkMiller"/>
     <classEntry path="common.TextFormatter"/>
-    <classEntry path="common.AdvancedSoundEvent"/>
     <classEntry path="common.DGInterface"/>
     <classEntry path="common.ScriptInterface"/>
     <classEntry path="common.DebugUtilities"/>
+    <classEntry path="common.SafeTimer"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
