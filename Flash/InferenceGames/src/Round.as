@@ -2,6 +2,7 @@
 
 package
 {
+	import common.DebugUtilities;
 	import common.MathUtilities;
 	
 	import embedded_asset_classes.BotPlayerSWC;
@@ -24,16 +25,26 @@ package
 		
 		public static var currentRound:Round; // the round object we're currently playing.
 		
+		public static const kLevelSettings:Array = [
+			{ iqr:7,	/*sd:5.2,*/	interval:1	}, // level 1
+			{ iqr:7,	/*sd:5.2,*/		interval:4	},
+			{ iqr:7,	/*sd:5.2,*/		interval:2	},
+			{ iqr:14,	/*sd:10,*/		interval:2	},
+			{ iqr:27,	/*sd:20,*/		interval:2	},
+			{ iqr:20,	/*sd:15,*/		interval:2	} // level 6
+		];
+		
 		// ----------------------
 		// --- PUBLIC SECTION ---
 		// ----------------------
 		
-		private var _numDataSoFar:int = 0; // the number of dots that have been sent so far
 		private static var _roundID:int = 0;		// ID number for this round
 		
-		private var _median:int; 
+		private var _samples:Array; 	// array of numeric values generated for this round
+		private var _sampleMedian:Number;		
+		private var _median:int; 		// population median
 		private var _interval:Number;
-		private var _IQR:Number; 		
+		private var _IQR:Number; 		// population inter-quartile range	
 		
 		private var _guess:Number = 0;	// the auto-generated guess, based on the sample size.
 										// currently, the user & the bot use the auto-generated guess.
@@ -43,16 +54,21 @@ package
 		public var lastBuzzer:PlayerAPI; // the player who buzzed in this round.
 		
 		// constructor
-		public function Round( param_interval:Number, param_IQR:Number, param_Median:Number ) {
+		public function Round( whichLevel:int ) {
+			DebugUtilities.assert( whichLevel >= 1 && whichLevel <= kLevelSettings.length, "whichLevel out of range" );
+			
 			Round.currentRound = this;
 			
 			++_roundID;
-			_interval = param_interval;
-			_IQR = param_IQR;
-			_median = param_Median;
+			_interval 	= kLevelSettings[ whichLevel-1 ].interval;
+			_IQR 		= kLevelSettings[ whichLevel-1 ].iqr;
+			_median 	= InferenceGames.instance.randomizer.uniformNtoM( 0, 100 );
+			_samples	= new Array;	// forget about old samples
+			_sampleMedian = 0;
 			
-			ControlsSWC.CONTROLS.interval = param_interval; // update the GUI.
-			ControlsSWC.CONTROLS.IQR = param_IQR; // update the GUI.
+			ControlsSWC.CONTROLS.interval = _interval; // update the GUI.
+			ControlsSWC.CONTROLS.IQR = _IQR; // update the GUI.
+			ControlsSWC.CONTROLS.currentSampleMedian = 0;
 			
 			ExpertAI.newRound(); // prepare the AI for the new round.
 		}
@@ -62,15 +78,17 @@ package
 			
 			// generate random data value; note that mean and median are interchangable for an symmetrical normal curve.
 			value = InferenceGames.instance.randomizer.normalWithMeanIQR( _median, _IQR );
+			_samples.push( value );
+			_sampleMedian = MathUtilities.medianOfNumericArray( _samples ); // warning: _samples is sorted at this point.
 			
-			_numDataSoFar++;
-			ControlsSWC.CONTROLS.currentSampleMedian = calculateGuess(); // based on the data so far, calculate the best guess.
+			// based on the data so far, calculate the best guess.			
+			ControlsSWC.CONTROLS.currentSampleMedian = calculateGuess(); 
 			_accuracy = calculateAccuracy();
-			trace("count: ", numDataSoFar, " accuracy: ", _accuracy);
+			trace( "count: ", numDataSoFar, " accuracy: ", _accuracy);
 			
 			InferenceGames.instance.sendEventData( [[ _roundID, value ]] );
 			
-			if(_accuracy > ExpertAI.guessPercent)		// when the accuracy goes above the expert's guessPercent, he guesses.
+			if( _accuracy > ExpertAI.guessPercent )		// when the accuracy goes above the expert's guessPercent, he guesses.
 				InferenceGames.instance.hitBuzzer( IS_BOT);
 		}
 		
@@ -78,8 +96,8 @@ package
 			return _roundID;
 		}		
 		
-		public function get numDataSoFar():int {
-			return _numDataSoFar;
+		public function get numDataSoFar():int {	// TO-DO: rename to numSamplesSoFar()
+			return _samples.length;
 		}
 		
 		public function get interval():Number {
@@ -117,7 +135,7 @@ package
 		
 		// auto-generate a guess based on the median of the current sample.
 		private function calculateGuess():Number {
-			return 0; // Proxy. TO-DO: Take the mean of the data.
+			return _sampleMedian; // Take the median of the data.
 		}
 		
 		// generates an accuracy %, based on the sample size.

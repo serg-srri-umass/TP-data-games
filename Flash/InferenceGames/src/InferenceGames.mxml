@@ -46,7 +46,8 @@
 			private var sBotPlayer:BotPlayerSWC;
 
 			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
-			private var mGameSerialNum:int = 0;
+			private var mGameSerialNum:int	= 0; // first game starts with serial number 1.
+			private var mGameLevel:int		= 1; // which level (1+) is the current game using.
 			
 			public static var instance:InferenceGames = null;
 			public var randomizer:ParkMiller = null;
@@ -77,6 +78,7 @@
 			
 			private function newGame():void {
 				++mGameSerialNum;
+				mGameLevel = 1; //TO_DO: add a game level picker and change this value accordingly
 				startNewRound();
 			}
 			
@@ -192,15 +194,13 @@
 				}
 
 				// create the new round
-				const kGameInterval:Number = 1; // +/-1 so range of correct estimates is actually 2.
-				const kGameIQR:Number = 7;
-				var   kGameMedian:Number = randomizer.uniformNtoM( 0, 100 );
-				sDataCannon.speed = .25;
-				
-				var boringRound:Round = new Round( kGameInterval, kGameIQR, kGameMedian );
-				var closeCase:Boolean = false;  // open and send the new round data to DG
-				mDGInterface.openGameCase( kGamesCollectionName, getGameCaseValues( closeCase ));
+				sDataCannon.speed = .25;	// reset the speed each time?	
+				var thisRound:Round = new Round( mGameLevel ); // accessed via Round.currentRound from here forward.
 				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
+				
+				// update DG: open and send a new game case for each round
+				var closeCase:Boolean = false;  
+				mDGInterface.openGameCase( kGamesCollectionName, getGameCaseValues( closeCase ));
 			}
 			
 			// when the old round ends, we clean up here

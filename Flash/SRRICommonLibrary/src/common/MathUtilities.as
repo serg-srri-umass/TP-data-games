@@ -97,5 +97,32 @@ package common
 		public static function IQR_to_SD(IQR:Number):Number{
 			return IQR / 1.34896;
 		}
+		
+		/**
+		 * Compute the median of an array of finite numeric values.
+		 * Warning, the input array is sorted, on the assumption that it is most
+		 * computationally efficient to directly modify a temporary array.  Caller
+		 * should make a copy of the array if this is undesired behavior.
+		 * @param ioArray array of numbers (will be sorted ascending)
+		 * @return {Number} median value or undefined if ioArray.length===0
+		 */
+		public static function medianOfNumericArray( ioArray:Array ):Number {
+			
+			function median( iSortedArray:Array ):Number {
+				var i:Number = (iSortedArray.length - 1)/ 2, // middle index in 0-(n-1) array
+					i1:Number = Math.floor(i),
+					i2:Number = Math.ceil(i);
+				if( i < 0 ) {
+					return undefined; // length === 0
+				} else if( i===i1 ) {
+					return iSortedArray[i];
+				} else {
+					return (iSortedArray[i1]+iSortedArray[i2]) / 2;
+				}
+			}
+			
+			ioArray.sort( Array.NUMERIC ); // ascending numeric sort()
+			return median( ioArray );
+		}
 	}
 }
