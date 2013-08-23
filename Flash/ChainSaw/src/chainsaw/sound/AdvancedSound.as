@@ -67,11 +67,9 @@ package chainsaw.sound{
 		// Called just before we destroy this object. We want to stop our sound and free up resources that is uses.
 		public function shutDown():void {
 			if(fadeTimer){ //if it exists, stop it 
-				fadeTimer.stop();
 				fadeTimer.clean();
 			}
 			if(percentageCounter){ //if it exists, stop it 
-				percentageCounter.stop();
 				percentageCounter.clean();
 			}
 				
@@ -119,7 +117,7 @@ package chainsaw.sound{
 		
 		//cancels the timer set to trigger doOnPercentPlayed functions
 		public function stopOnPercentPlayedTimer():void{
-			percentageCounter.stop();
+			percentageCounter.clean();
 		}
 		
 		public function getDebug():SoundDebug{
@@ -168,7 +166,6 @@ package chainsaw.sound{
 			ticksToComplete = Math.ceil(duration/40);
 			
 			ticker = ticksToComplete;
-			fadeTimer.stop();
 			fadeTimer.clean();
 			fadeTimer = new SafeTimer(TICK_TIME, ticksToComplete);
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeOut);
@@ -202,7 +199,6 @@ package chainsaw.sound{
 			ticksToComplete = Math.ceil(duration/40);
 			
 			ticker = 0;
-			fadeTimer.stop();
 			fadeTimer.clean();
 			fadeTimer = new SafeTimer(TICK_TIME, ticksToComplete);
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeIn);
@@ -241,13 +237,13 @@ package chainsaw.sound{
 			//trace("Name: " + sound.toString(), "Position: " + (_channel.position/sound.length)*100, "Volume: " + _volume);
 		}
 			
-		public function removeDoOnPercentPlayed():void{
+		/*public function removeDoOnPercentPlayed():void{
 			percentageCounter.removeEventListener(TimerEvent.TIMER_COMPLETE, onPercentPlayedHandler);
-		}
+		}*/
 		
-		public function restoreDoOnPercentPlayed():void{			
+		/*public function restoreDoOnPercentPlayed():void{			
 			percentageCounter.addEventListener(TimerEvent.TIMER_COMPLETE, onPercentPlayedHandler);
-		}
+		}*/
 		
 		//trigger the function you want to doOnPercentPlayed
 		private function onPercentPlayedHandler(e:Event):void{
@@ -267,14 +263,9 @@ package chainsaw.sound{
 			//dispatches event for sound having finished fading out
 			dispatchEvent(new AdvancedSoundEvent(AdvancedSoundEvent.FADED_OUT));
 			if(fadeTimer){
-				fadeTimer.removeEventListener(TimerEvent.TIMER, tickFadeOut);
+				fadeTimer.clean();
 			}
-			if(fadeTimer){
-				fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeOut);	
-			}
-			if(fadeTimer){
-				fadeTimer.stop();
-			}
+			
 			_volume = 0;
 			stop();
 			isFadingOut = false;
@@ -294,22 +285,16 @@ package chainsaw.sound{
 			//dispatches event for sound having finished fading in
 			dispatchEvent(new AdvancedSoundEvent(AdvancedSoundEvent.FADED_IN));
 			if(fadeTimer){
-				fadeTimer.removeEventListener(TimerEvent.TIMER, tickFadeIn);
+				fadeTimer.clean();
 			}
-			if(fadeTimer){
-				fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeIn);
-			}
-			if(fadeTimer){
-				fadeTimer.stop();
-			}
-			
+		
 			_volume = 1;
 			
 			//setting actual soundChannel volume 
 			if(_channel){
-			var st:SoundTransform = _channel.soundTransform;
-			st.volume = _volume;
-			_channel.soundTransform = st;
+				var st:SoundTransform = _channel.soundTransform;
+				st.volume = _volume;
+				_channel.soundTransform = st;
 			}
 			isFadingIn = false;
 			debug.stateList[soundID].setIsFadingIn(false);

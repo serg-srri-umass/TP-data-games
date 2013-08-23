@@ -5,8 +5,8 @@ package common{
 		
 		private var listenersAndFunctions:Array = new Array(2);
 		private var realTimer:Timer;
-		public static var eventType:int = 0;
-		public static var functionName:int = 1;
+		public static const eventType:int = 0;
+		public static const functionName:int = 1;
 		
 		public function SafeTimer(delay:Number, repeatCount:int=0){
 			realTimer = new Timer(delay, repeatCount); //instantiating Timer that we are wrapping
@@ -16,6 +16,7 @@ package common{
 		
 		//removes all eventListeners registered with this SafeTimer 
 		public function clean():void{
+			realTimer.stop();
 			while(listenersAndFunctions[eventType].length > 0){
 				realTimer.removeEventListener(listenersAndFunctions[eventType].pop(), listenersAndFunctions[functionName].pop());
 			}
