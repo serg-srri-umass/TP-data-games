@@ -8,13 +8,17 @@ package
 		// ----------------------
 		
 		// the minimum % at which the expert will guess. 
-		public static function get guessPercent():int{
-			return _guessPercent;
+		public static function get confidenceIntervalPercent():int{
+			return _confidenceIntervalPercent;
+		}
+		
+		public static function get guessNumSamples():int{
+			return _guessNumSamples;
 		}
 		
 		// call this method at the start of each new round.
-		public static function newRound():void{
-			_guessPercent = calculateGuessPercent();
+		public static function newRound( standardDeviation:Number, interval:Number):void{
+			calculateGuessN( standardDeviation, interval);
 		}
 		
 		// -----------------------
@@ -36,22 +40,33 @@ package
 			{ confPerc: 90,	prob: 0.04,	z: 1.64	}
 		];
 		
-		private static var _guessPercent:int; // the % at which the expert will guess.
-		//private static var _roundsSD:Number;
-		//private static var _roundsInterval;
+		private static var _confidenceIntervalPercent:int;	// the confidence interval percent at which the expert will guess.
+		private static var _guessNumSamples:int;	// number of samples at which expert will guess 
 		
-		// calculate the confidence level that the Expert (Bot) will guess at, returns a percent in range [0-100]
-		// this is where the bot's thinking goes:
-		public static function calculateGuessPercent():int{
-			var guessEarly:Boolean = Math.random() > 0.5; // if this is true, the guess will come earlier than the baseGuess.
-			var deviation:Number; // how many % off of the baseGuess the bot will guess this round.
+		
+		public static function calculateGuessN(standardDeviation:Number, interval:Number):void{
 			
-			deviation = guessEarly ? (-1 * Math.random() * UNDER_RANGE) : (Math.random() * OVER_RANGE); // deviate the guess, based on the over/under range.
+			var prob:Number = 0;
+			var lastProb:Number;
+			var probIndex:int = 0;
+			var rand:Number = Math.random();
 			
-			var guess:int = BASE_GUESS + deviation;
-			trace("guess rate is: ", guess);
-			return guess;
+			//randomly generate a confidence percentage. returned as an index to the array kExpertCallProbs. 
+			for(var i:int = 0; i < kExpertCallProbs.length; i++){
+				lastProb = prob; 
+				prob += kExpertCallProbs[i].prob; 
+				
+				if(rand >= lastProb && rand < prob){
+					probIndex = i;
+					break;
+				}
+			}
+			_confidenceIntervalPercent = kExpertCallProbs[probIndex].confPerc;
+			
+			//calculating 'N' to guess at if you want to guess with confidence interval implied by 'z'. 
+			_guessNumSamples = Math.round((Math.pow(((kExpertCallProbs[probIndex].z * standardDeviation)/interval), 2)));
+			
+			trace("confidence interval perc: " + _confidenceIntervalPercent + "expert num samples: " + _guessNumSamples);
 		}
-		
 	}
 }

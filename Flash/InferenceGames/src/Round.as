@@ -70,7 +70,7 @@ package
 			ControlsSWC.CONTROLS.IQR = _IQR; // update the GUI.
 			ControlsSWC.CONTROLS.currentSampleMedian = 0;
 			
-			ExpertAI.newRound(); // prepare the AI for the new round.
+			ExpertAI.newRound( MathUtilities.IQR_to_SD(_IQR), _interval); // prepare the AI for the new round.
 		}
 		
 		// a point of data has been added.
@@ -88,8 +88,9 @@ package
 			
 			InferenceGames.instance.sendEventData( [[ _roundID, value ]] );
 			
-			if( _accuracy > ExpertAI.guessPercent )		// when the accuracy goes above the expert's guessPercent, he guesses.
+			if(  _samples.length >= ExpertAI.guessNumSamples ){		// when the sample N goes above the expert's guessN, he guesses.
 				InferenceGames.instance.hitBuzzer( IS_BOT);
+			}
 		}
 		
 		public function get roundID():int {
@@ -140,7 +141,7 @@ package
 		
 		// generates an accuracy %, based on the sample size.
 		private function calculateAccuracy():Number {
-			return MathUtilities.calculateAreaUnderBellCurve( interval, numDataSoFar, MathUtilities.IQR_to_SD(IQR)) * 100;
+			return MathUtilities.calculateAreaUnderBellCurve( interval * 2, numDataSoFar, MathUtilities.IQR_to_SD(IQR)) * 100;
 		}
 	}
 }
