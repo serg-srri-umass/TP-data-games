@@ -83,6 +83,7 @@ package
 			
 			// based on the data so far, calculate the best guess.			
 			ControlsSWC.CONTROLS.currentSampleMedian = calculateGuess(); 
+			_guess = calculateGuess();
 			_accuracy = calculateAccuracy();
 			trace( "count: ", numDataSoFar, " accuracy: ", _accuracy);
 			
