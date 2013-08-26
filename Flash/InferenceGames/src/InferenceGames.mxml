@@ -133,7 +133,7 @@
 					Round.currentRound.interval,
 					Round.currentRound.IQR,
 					Round.currentRound.numDataSoFar,
-					(iIsGameOver ? Round.currentRound.getResultsString() : ""), // Result string
+					(iIsGameOver ? Round.currentRound.getResultsString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
 					"" // TO-DO: add ProbWin value
 				];
 			}

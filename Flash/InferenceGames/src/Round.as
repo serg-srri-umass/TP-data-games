@@ -51,6 +51,8 @@ package
 										
 		private var _accuracy:int; 		// the chances of guessing correctly at the current sample size.
 		
+		private var isWon:Boolean = false; //whether or not this round has been won, calculated when we call for the results string
+		
 		public var lastBuzzer:PlayerAPI; // the player who buzzed in this round.
 		
 		// constructor
@@ -120,14 +122,27 @@ package
 			return _accuracy;
 		}
 		
+		// true = win, false = lose
+		public function calculateWinLose():Boolean{
+			// checking to see if the  game has been won, regardless of who stopped the clock
+			if(_median >= (_sampleMedian - _interval) && _median <= (_sampleMedian + _interval)){
+				isWon = true;
+			}else{
+				isWon = false; 
+			}
+			return isWon;
+		}
+		
 		// get the result string showing who won or lost for this round
 		public function getResultsString():String {
-			if( lastBuzzer == UserPlayerSWC.PLAYER ){
-				return("You guessed"); // TODO: change to "you won" or "you lost" result
-			} else if( Round.currentRound.lastBuzzer == BotPlayerSWC.BOT ){
-				return("Expert guessed"); // TODO: change to "expert won" or "expert lost" result
+			calculateWinLose();
+			// returning results string based on win/loss, and who last hit buzzer
+			if( this.lastBuzzer == UserPlayerSWC.PLAYER ){
+				return(isWon ? "You Won" : "You Lost"); 
+			} else if( this.lastBuzzer == BotPlayerSWC.BOT ){
+				return(isWon ? "Expert Won" : "Expert Lost" );
 			} else {
-				return("");
+				return("the lastBuzzer variable is not set to the player, or the bot");
 			}
 		}
 		
