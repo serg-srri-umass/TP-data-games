@@ -80,7 +80,42 @@
 				++mGameSerialNum;
 				mGameLevel = 1; //TO_DO: add a game level picker and change this value accordingly
 				startNewRound();
+				sBottomBar.gameOverMVC.visible = false; // hide t he dialoge that is win/lose.
 			}
+			
+			private function initVisualElements():void{	
+				staticStage = systemManager.stage;
+				
+				sControls = new ControlsSWC();
+				gameContainer.addChild(sControls);
+				sControls.x = 293.1;
+				sControls.y = 173.4;
+				
+				sResults = new ResultsSWC();
+				gameContainer.addChild(sResults);
+				sResults.x = 286.85;
+				sResults.y = 163.5;
+				
+				sBottomBar = new BottomBarSWC();
+				gameContainer.addChild(sBottomBar);
+				sBottomBar.x = 287.55;
+				sBottomBar.y = 324.95;
+				
+				sUserPlayer = new UserPlayerSWC();
+				sBotPlayer = new BotPlayerSWC();
+				gameContainer.addChild(sUserPlayer);
+				gameContainer.addChild(sBotPlayer);
+				sBotPlayer.x = 575;
+				
+				sDataCannon = new DataCannonSWC();
+				gameContainer.addChild(sDataCannon);
+				
+				sControls.show();
+			}
+			
+			// ------------------
+			// --- DG SECTION ---
+			// ------------------
 			
 			// Send the Game-level and Event-level structure to DG, if connected to DG.  
 			// 		The collections are the tables of cases and attributes.
@@ -91,7 +126,6 @@
 						dimensions: { width: this.width, height: this.height },
 						collections: [
 							{
-								name: kGamesCollectionName,
 								attrs:[
 									{ name: "Game", type: "numeric", precision: 0, description: "Sequential Game Number" },
 									{ name: "Round", type: "numeric", precision: 0, description: "Sequential Round Number" },
@@ -145,36 +179,6 @@
 				mDGInterface.createEventCases( kEventsCollectionName, caseValueArrays );
 				var closeCase:Boolean = false; // update number of events in game case
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
-			}
-			
-			private function initVisualElements():void{	
-				staticStage = systemManager.stage;
-				
-				sControls = new ControlsSWC();
-				gameContainer.addChild(sControls);
-				sControls.x = 293.1;
-				sControls.y = 173.4;
-				
-				sResults = new ResultsSWC();
-				gameContainer.addChild(sResults);
-				sResults.x = 286.85;
-				sResults.y = 163.5;
-				
-				sBottomBar = new BottomBarSWC();
-				gameContainer.addChild(sBottomBar);
-				sBottomBar.x = 287.55;
-				sBottomBar.y = 324.95;
-				
-				sUserPlayer = new UserPlayerSWC();
-				sBotPlayer = new BotPlayerSWC();
-				gameContainer.addChild(sUserPlayer);
-				gameContainer.addChild(sBotPlayer);
-				sBotPlayer.x = 575;
-				
-				sDataCannon = new DataCannonSWC();
-				gameContainer.addChild(sDataCannon);
-				
-				sControls.show();
 			}
 			
 			// ----------------------

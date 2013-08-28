@@ -55,6 +55,7 @@ package embedded_asset_classes
 			mDragBounds = new Rectangle(kPadding, 0, dragAreaBtn.width - speedMVC.width - (kPadding * 2), 0); // 20px padding on the left and right. TO-DO: Needs adjusting so % can get to 1 and 100.
 			
 			// mouse events for dragging the slider:
+			dragAreaBtn.buttonMode = true;
 			dragAreaBtn.addEventListener(MouseEvent.MOUSE_DOWN, startDragMVC);
 			dragAreaBtn.addEventListener(MouseEvent.MOUSE_OVER, handleOverSpeed);
 			dragAreaBtn.addEventListener(MouseEvent.MOUSE_OUT, handleUpSpeed);

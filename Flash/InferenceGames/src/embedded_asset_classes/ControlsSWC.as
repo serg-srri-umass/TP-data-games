@@ -54,6 +54,7 @@ package embedded_asset_classes
 			visible = false;
 			addEventListener(AnimationEvent.COMPLETE_HIDE, onCompleteHide); // handler for when hide animation is complete.
 			stopControlsMVC.stopStartBtn.pauseBtn.setClickFunctions(stopFunction, startFunction); // the stop/start button uses these methods on click.
+			stop();
 		}
 		
 		// starts the show animation, making this MovieClip visible.
