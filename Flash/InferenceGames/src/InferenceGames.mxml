@@ -76,10 +76,12 @@
 				newGame();
 			}
 			
+			// Start a new game.  Each game has multiple rounds
 			private function newGame():void {
 				++mGameSerialNum;
 				mGameLevel = 1; //TO_DO: add a game level picker and change this value accordingly
-				startNewRound();
+				sDataCannon.speed = .25;	// reset the speed at the start of each game?
+				newRound();
 			}
 			
 			// Send the Game-level and Event-level structure to DG, if connected to DG.  
@@ -186,7 +188,7 @@
 			}
 			
 			// start a new round as requested
-			public function startNewRound():void{
+			public function newRound():void{
 				
 				// end the old round if there was one
 				if(Round.currentRound){
@@ -194,7 +196,6 @@
 				}
 
 				// create the new round
-				sDataCannon.speed = .25;	// reset the speed each time?	
 				var thisRound:Round = new Round( mGameLevel ); // accessed via Round.currentRound from here forward.
 				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
 				
