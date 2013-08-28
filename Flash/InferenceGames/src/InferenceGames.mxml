@@ -51,6 +51,7 @@
 			
 			public static var instance:InferenceGames = null;
 			public var randomizer:ParkMiller = null;
+			public var isInGame:Boolean = false; // whether there is a game currently going on.
 			
 			// this method ensures that the flash player is a recent enough version to work.
 			private function testFlashPlayer():void {
@@ -76,16 +77,6 @@
 				newGame();
 			}
 			
-			// Start a new game.  Each game has multiple rounds
-			private function newGame():void {
-				++mGameSerialNum;
-				mGameLevel = 1; //TO_DO: add a game level picker and change this value accordingly
-				sDataCannon.speed = .25;	// reset the speed at the start of each game?
-				sBottomBar.gameOverMVC.visible = false; // hide t he dialoge that is win/lose.
-				newRound();
-
-			}
-			
 			private function initVisualElements():void{	
 				staticStage = systemManager.stage;
 				
@@ -103,7 +94,8 @@
 				gameContainer.addChild(sBottomBar);
 				sBottomBar.x = 287.55;
 				sBottomBar.y = 324.95;
-				
+				sBottomBar.gameOverMVC.visible = false; // hide the dialoge that is win/lose.
+
 				sUserPlayer = new UserPlayerSWC();
 				sBotPlayer = new BotPlayerSWC();
 				gameContainer.addChild(sUserPlayer);
@@ -112,8 +104,6 @@
 				
 				sDataCannon = new DataCannonSWC();
 				gameContainer.addChild(sDataCannon);
-				
-				sControls.show();
 			}
 			
 			// ------------------
@@ -216,13 +206,10 @@
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
 				
 				// if one of the two player avatars is hidden, show it.
-				if(Round.currentRound.lastBuzzer == UserPlayerSWC.PLAYER){
+				if(!sUserPlayer.isShowing)
+					sUserPlayer.show(); 
+				if(!sBotPlayer.isShowing)
 					sBotPlayer.show();
-					sUserPlayer.gotoAndStop(1);
-				}else if(Round.currentRound.lastBuzzer == BotPlayerSWC.BOT){
-					sUserPlayer.show();
-					sBotPlayer.gotoAndStop(1); // fixes a bug where the bot disappears.
-				}
 			}			
 			
 			// hit the buzzer, to bring up the recap.
@@ -243,6 +230,53 @@
 				}
 				// show result in DG
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( true ), false );
+			}
+
+			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' dialogue. 
+			public function winGame( user:Boolean = true):void{
+				sBottomBar.gameOverMVC.visible = true;
+				sBottomBar.gameOverMVC.gotoAndPlay("show");
+				if(user)
+					sBottomBar.gameOverMVC.userBotMVC.gotoAndStop("user");
+				else
+					sBottomBar.gameOverMVC.userBotMVC.gotoAndStop("bot");
+			}
+			
+			// Start a new game.  Each game has multiple rounds
+			public function newGame():void {
+				++mGameSerialNum;
+				isInGame = true;
+				
+				mGameLevel = 1; //TO_DO: add a game level picker and change this value accordingly
+				sDataCannon.speed = .25;	// reset the speed at the start of each game?
+				
+				if(!sUserPlayer.isShowing)
+					sUserPlayer.show(); // the players start each game hidden. Show them.
+				if(!sBotPlayer.isShowing)
+					sBotPlayer.show();
+				sControls.show();
+				
+				newRound();
+				
+			}
+
+			// called when 'end game' btn is clicked. Clears the stage, and resets the scores.
+			public function endGame():void{
+				isInGame = false;
+				sUserPlayer.reset();
+				sBotPlayer.reset();
+				sBottomBar.reset();
+				sDataCannon.stopCannon();
+				
+				if(!sUserPlayer.isShowing)
+					sUserPlayer.show();
+				
+				if(sBotPlayer.isShowing)
+					sBotPlayer.hide();
+				if(sControls.isShowing)
+					sControls.hide();
+				if(sResults.isShowing)
+					sResults.hide();
 			}
 			
 		]]>

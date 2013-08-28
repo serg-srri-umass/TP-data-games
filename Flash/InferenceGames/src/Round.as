@@ -17,8 +17,6 @@ package
 		// ----------------------
 		
 		public static const WINNING_SCORE:int = 6; 	// how many points a player needs to win the game.
-		public static const WIN_POINTS:int = 1; 	// how many points you get for guessing correctly.
-		public static const MISS_POINTS:int = 2; 	// how many points the opponent gets when you miss.
 
 		public static const IS_PLAYER:Boolean = true;
 		public static const IS_BOT:Boolean = false;
@@ -53,7 +51,7 @@ package
 		
 		private var _isWon:Boolean = false; //whether or not this round has been won, calculated when we call for the results string
 		
-		public var lastBuzzer:PlayerAPI; // the player who buzzed in this round.
+		private var _lastBuzzer:PlayerAPI; // the player who buzzed in this round.
 		
 		// constructor
 		public function Round( whichLevel:int ) {
@@ -70,7 +68,6 @@ package
 			
 			ControlsSWC.CONTROLS.interval = _interval; // update the GUI.
 			ControlsSWC.CONTROLS.IQR = _IQR; // update the GUI.
-			ControlsSWC.CONTROLS.currentSampleMedian = 0;
 			
 			ExpertAI.newRound( MathUtilities.IQR_to_SD(_IQR), _interval); // prepare the AI for the new round.
 		}
@@ -84,7 +81,6 @@ package
 			_sampleMedian = MathUtilities.medianOfNumericArray( _samples ); // warning: _samples is sorted at this point.
 			
 			// based on the data so far, calculate the best guess.			
-			ControlsSWC.CONTROLS.currentSampleMedian = calculateGuess(); 
 			_guess = calculateGuess();
 			_accuracy = calculateAccuracy();
 			trace( "count: ", numDataSoFar, " accuracy: ", _accuracy);
@@ -94,6 +90,14 @@ package
 			if(  _samples.length >= ExpertAI.guessNumSamples ){		// when the sample N goes above the expert's guessN, he guesses.
 				InferenceGames.instance.hitBuzzer( IS_BOT);
 			}
+		}
+		
+		public function get lastBuzzer():PlayerAPI{
+			return _lastBuzzer;
+		}
+		
+		public function set lastBuzzer(player:PlayerAPI):void{
+			_lastBuzzer = player;
 		}
 		
 		public function get roundID():int {
@@ -128,7 +132,7 @@ package
 		
 		// true = win, false = lose
 		public function calculateWinLose():void{
-			// checking to see if the  game has been won, regardless of who stopped the clock
+			// checking to see if the  round has been won, regardless of who stopped the clock
 			if(_sampleMedian >= (_median-_interval)  && _sampleMedian <= (_median + _interval)){
 				_isWon = true;
 			}else{
@@ -146,6 +150,17 @@ package
 				return(_isWon ? "Expert Won" : "Expert Lost" );
 			} else {
 				return("the lastBuzzer variable is not set to the player, or the bot");
+			}
+		}
+		
+		// Give points to the winner of the current round. 
+		// This is called from the results screen, when it finishes animating.
+		public function handlePoints():void{
+			if(isWon){
+				lastBuzzer.earnPoint(); // if the last buzzer was correct, he or she earns a point.
+			} else {
+				lastBuzzer.otherPlayer.earnPoint(); // otherwise, the opponent earns 2 points.
+				lastBuzzer.otherPlayer.earnPoint();
 			}
 		}
 		

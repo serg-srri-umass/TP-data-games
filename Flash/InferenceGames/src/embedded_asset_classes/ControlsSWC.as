@@ -63,20 +63,15 @@ package embedded_asset_classes
 			stopControlsMVC.stopStartBtn.pauseBtn.look = 1; // set the button to 'start'
 			stopControlsMVC.stopStartBtn.gotoAndStop( "ready");
 			gotoAndPlay("show");
+			_isShowing = true;
 		}
 		
 		// starts the hide animation. When it finishes, this MovieClip becomes invisible.
 		public function hide( triggerEvent:Event = null):void{
 			gotoAndPlay("hide");
+			_isShowing = false;
 		}
-		
-		// sets the text field that says 'current sample median'.
-		// note: this is just a display. Changing this does not change the calculations.
-		public function set currentSampleMedian( median:Number):void{
-			stopControlsMVC.currentSampleMedianMVC.currentSampleMedianTxt.text = median.toFixed(1);
-			stopControlsMVC.currentSampleMedianMVC.currentSampleMedianTxt.setTextFormat(TextFormatter.BOLD);
-		}
-		
+				
 		// sets the text on the IQR shield.
 		// note: this is just a display. Changing this does not change the calculations.
 		public function set IQR( param_iqr:Number):void{
@@ -96,9 +91,15 @@ package embedded_asset_classes
 				shieldsMVC.intervalMVC.gotoAndStop("singleDigit");
 		}
 		
+		public function get isShowing():Boolean{
+			return _isShowing;
+		}
+		
 		// -----------------------
 		// --- PRIVATE SECTION ---
 		// -----------------------
+		
+		private var _isShowing:Boolean = false;
 		
 		// this method is called when the player hits the stop button. 
 		private function stopFunction( e:MouseEvent):void{
@@ -114,7 +115,8 @@ package embedded_asset_classes
 		// when the ControlsSWC finishes hiding itself, this method is called. It turns on the results.
 		private function onCompleteHide( e:AnimationEvent):void{
 			visible = false;
-			ResultsSWC.RESULTS.show(); // TO-DO: Move this to the main. 
+			if(InferenceGames.instance.isInGame)
+				ResultsSWC.RESULTS.show();
 		}
 		
 	}

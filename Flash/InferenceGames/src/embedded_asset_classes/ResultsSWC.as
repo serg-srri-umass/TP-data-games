@@ -58,28 +58,39 @@ package embedded_asset_classes
 			setBounds( (Round.currentRound.guess - Round.currentRound.interval), (Round.currentRound.guess + Round.currentRound.interval));
 			setAccuracy( Round.currentRound.accuracy);
 			this.setWon(Round.currentRound.isWon);
+			_isShowing = true;
 		}
 		
 		// starts the hide animation. When it finishes, this MovieClip becomes invisible.
 		public function hide( e:Event = null):void{
 			gotoAndPlay("hide");
-			BotPlayerSWC.BOT.show();
+			_isShowing = false;
+		}
+		
+		public function get isShowing():Boolean{
+			return _isShowing;
 		}
 		
 		// -----------------------
 		// --- PRIVATE SECTION ---
 		// -----------------------
+		private var _isShowing:Boolean = false;
 		
 		private function onCompleteHide( triggerEvent:AnimationEvent):void{
 			visible = false;
-			ControlsSWC.CONTROLS.show();
+			if(InferenceGames.instance.isInGame)
+				ControlsSWC.CONTROLS.show();
 		}
-		
+
+		// when the results finish displaying, if the game is over, show the winner.
 		private function onCompleteShow( triggerEvent:AnimationEvent):void{
-			BottomBarSWC.BOTTOM_BAR.enableNextRoundBtn(); 
-			if(Round.currentRound.isWon){
-				Round.currentRound.lastBuzzer.earnPoint(); // the last player to buzz in earns a point.
-			}
+			Round.currentRound.handlePoints();
+			if( UserPlayerSWC.PLAYER.score >= Round.WINNING_SCORE)
+				InferenceGames.instance.winGame(true);
+			else if( BotPlayerSWC.BOT.score >= Round.WINNING_SCORE)
+				InferenceGames.instance.winGame(false);
+			else
+				BottomBarSWC.BOTTOM_BAR.enableNextRoundBtn(); 			
 		}
 		
 		// sets which player buzzed in: either the user or the bot. 

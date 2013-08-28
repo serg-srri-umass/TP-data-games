@@ -30,14 +30,18 @@ package embedded_asset_classes
 				SINGLETON_PLAYER = this;
 			else
 				throw new Error("PlayerSWC has already been created.");
+			
+			gotoAndStop("isHidden");
 		}
 		
 		public function hide( triggerEvent:Event = null):void{
 			gotoAndPlay("hide");
+			_isShowing = false;
 		}
 		
 		public function show( triggerEvent:Event = null):void{
 			gotoAndPlay("show");
+			_isShowing = true;
 		}
 		
 		// call this to earn a point for the UserPlayer.
@@ -53,10 +57,27 @@ package embedded_asset_classes
 			return _score;
 		}
 		
+		public function get otherPlayer():PlayerAPI{
+			return BotPlayerSWC.BOT;
+		}
+		
+		public function get isShowing():Boolean{
+			return _isShowing;
+		}
+		
+		// resets the score bar to its starting position. Called on endGame.
+		public function reset():void{
+			for( var i:int = 1; i <= score; i++)
+				scoreMVC["point" + i + "MVC"].gotoAndPlay("hide");
+			scoreMVC.capMVC.gotoAndStop(1);
+			_score = 0;
+		}
+		
 		// -----------------------
 		// --- PRIVATE SECTION ---
 		// -----------------------
 		
+		private var _isShowing:Boolean = false;
 		private var _score:int = 0;
 	}
 }
