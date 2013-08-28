@@ -32,7 +32,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.08.21";
+			private static const kVersion:String = "v.2013.08.28";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			
@@ -265,7 +265,8 @@
 	
 	<!-- the UI component that holds all the game's SWC's -->
 	<mx:UIComponent id="gameContainer" x="0" y="0"/>
-
+	
+	<s:Label id="mVersionLabel" x="460" y="280" color="0x000000" initialize="mVersionLabel.text=kVersion" textAlign="right" verticalAlign="bottom"/>
 
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall" visible="false" x="0" y="0"
