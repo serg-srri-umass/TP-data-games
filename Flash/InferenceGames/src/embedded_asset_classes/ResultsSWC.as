@@ -57,6 +57,7 @@ package embedded_asset_classes
 			setActivePlayer(Round.currentRound.lastBuzzer == UserPlayerSWC.PLAYER)
 			setBounds( (Round.currentRound.guess - Round.currentRound.interval), (Round.currentRound.guess + Round.currentRound.interval));
 			setAccuracy( Round.currentRound.accuracy);
+			this.setWon(Round.currentRound.isWon);
 		}
 		
 		// starts the hide animation. When it finishes, this MovieClip becomes invisible.
