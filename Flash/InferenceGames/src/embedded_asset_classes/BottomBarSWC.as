@@ -58,7 +58,7 @@ package embedded_asset_classes
 		private function onPressNextRoundBtn( e:MouseEvent):void{
 			disableNextRoundBtn();
 			ResultsSWC.RESULTS.hide(); 
-			InferenceGames.instance.startNewRound();
+			InferenceGames.instance.newRound(); // TO-DO: move this functionality to the main.
 		}
 		
 		// this method causes the "next round button" to fade in.

@@ -76,11 +76,14 @@
 				newGame();
 			}
 			
+			// Start a new game.  Each game has multiple rounds
 			private function newGame():void {
 				++mGameSerialNum;
 				mGameLevel = 1; //TO_DO: add a game level picker and change this value accordingly
-				startNewRound();
+				sDataCannon.speed = .25;	// reset the speed at the start of each game?
 				sBottomBar.gameOverMVC.visible = false; // hide t he dialoge that is win/lose.
+				newRound();
+
 			}
 			
 			private function initVisualElements():void{	
@@ -168,7 +171,7 @@
 					Round.currentRound.IQR,
 					Round.currentRound.numDataSoFar,
 					(iIsGameOver ? Round.currentRound.getResultsString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
-					"" // TO-DO: add ProbWin value
+					(iIsGameOver ? Round.currentRound.accuracy : "") // if game is over, submit accuracy with current smaple size. Otherwise, submit the empty string. 
 				];
 			}
 
@@ -190,7 +193,7 @@
 			}
 			
 			// start a new round as requested
-			public function startNewRound():void{
+			public function newRound():void{
 				
 				// end the old round if there was one
 				if(Round.currentRound){
@@ -198,7 +201,6 @@
 				}
 
 				// create the new round
-				sDataCannon.speed = .25;	// reset the speed each time?	
 				var thisRound:Round = new Round( mGameLevel ); // accessed via Round.currentRound from here forward.
 				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
 				
@@ -234,20 +236,10 @@
 					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "user");
 					sBotPlayer.hide();
 					Round.currentRound.lastBuzzer = UserPlayerSWC.PLAYER;
-					if(Round.currentRound.isWon){
-						sResults.setWon(true);
-					}else{
-						sResults.setWon(false);
-					}
 				} else {
 					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
 					sUserPlayer.hide();
 					Round.currentRound.lastBuzzer = BotPlayerSWC.BOT;
-					if(Round.currentRound.isWon){
-						sResults.setWon(true);
-					}else{
-						sResults.setWon(false);
-					}
 				}
 				// show result in DG
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( true ), false );
