@@ -57,6 +57,7 @@ package embedded_asset_classes
 			setActivePlayer(Round.currentRound.lastBuzzer == UserPlayerSWC.PLAYER)
 			setBounds( (Round.currentRound.guess - Round.currentRound.interval), (Round.currentRound.guess + Round.currentRound.interval));
 			setAccuracy( Round.currentRound.accuracy);
+			this.setWon(Round.currentRound.isWon);
 		}
 		
 		// starts the hide animation. When it finishes, this MovieClip becomes invisible.
@@ -76,7 +77,9 @@ package embedded_asset_classes
 		
 		private function onCompleteShow( triggerEvent:AnimationEvent):void{
 			BottomBarSWC.BOTTOM_BAR.enableNextRoundBtn(); 
-			Round.currentRound.lastBuzzer.earnPoint();		// the last player to buzz in earns a point. TO-DO: add the miss-hit functionality.
+			if(Round.currentRound.isWon){
+				Round.currentRound.lastBuzzer.earnPoint(); // the last player to buzz in earns a point.
+			}
 		}
 		
 		// sets which player buzzed in: either the user or the bot. 

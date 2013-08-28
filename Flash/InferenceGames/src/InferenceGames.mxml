@@ -230,20 +230,10 @@
 					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "user");
 					sBotPlayer.hide();
 					Round.currentRound.lastBuzzer = UserPlayerSWC.PLAYER;
-					if(Round.currentRound.isWon){
-						sResults.setWon(true);
-					}else{
-						sResults.setWon(false);
-					}
 				} else {
 					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
 					sUserPlayer.hide();
 					Round.currentRound.lastBuzzer = BotPlayerSWC.BOT;
-					if(Round.currentRound.isWon){
-						sResults.setWon(true);
-					}else{
-						sResults.setWon(false);
-					}
 				}
 				// show result in DG
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( true ), false );
