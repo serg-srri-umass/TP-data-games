@@ -134,7 +134,7 @@
 					Round.currentRound.IQR,
 					Round.currentRound.numDataSoFar,
 					(iIsGameOver ? Round.currentRound.getResultsString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
-					"" // TO-DO: add ProbWin value
+					(iIsGameOver ? Round.currentRound.accuracy : "") // if game is over, submit accuracy with current smaple size. Otherwise, submit the empty string. 
 				];
 			}
 
