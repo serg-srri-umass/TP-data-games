@@ -89,6 +89,12 @@
 				gameContainer.addChild(sResults);
 				sResults.x = 286.85;
 				sResults.y = 163.5;
+		
+				sUserPlayer = new UserPlayerSWC();
+				sBotPlayer = new BotPlayerSWC();
+				gameContainer.addChild(sUserPlayer);
+				gameContainer.addChild(sBotPlayer);
+				sBotPlayer.x = 575;
 				
 				sBottomBar = new BottomBarSWC();
 				gameContainer.addChild(sBottomBar);
@@ -96,12 +102,6 @@
 				sBottomBar.y = 324.95;
 				sBottomBar.gameOverMVC.visible = false; // hide the dialoge that is win/lose.
 
-				sUserPlayer = new UserPlayerSWC();
-				sBotPlayer = new BotPlayerSWC();
-				gameContainer.addChild(sUserPlayer);
-				gameContainer.addChild(sBotPlayer);
-				sBotPlayer.x = 575;
-				
 				sDataCannon = new DataCannonSWC();
 				gameContainer.addChild(sDataCannon);
 			}
@@ -215,8 +215,6 @@
 			// hit the buzzer, to bring up the recap.
 			public function hitBuzzer( user:Boolean = true):void{
 				sControls.hide();
-				sDataCannon.stopCannon();
-				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
 				
 				Round.currentRound.calculateWinLose();
 				if( user){

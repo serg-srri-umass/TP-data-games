@@ -17,9 +17,6 @@ package
 		// ----------------------
 		
 		public static const WINNING_SCORE:int = 6; 	// how many points a player needs to win the game.
-
-		public static const IS_PLAYER:Boolean = true;
-		public static const IS_BOT:Boolean = false;
 		
 		public static var currentRound:Round; // the round object we're currently playing.
 		
@@ -66,6 +63,8 @@ package
 			_samples	= new Array;	// forget about old samples
 			_sampleMedian = 0;
 			
+			trace("Median: ", _median);
+			
 			ControlsSWC.CONTROLS.interval = _interval; // update the GUI.
 			ControlsSWC.CONTROLS.IQR = _IQR; // update the GUI.
 			
@@ -81,15 +80,10 @@ package
 			_sampleMedian = MathUtilities.medianOfNumericArray( _samples ); // warning: _samples is sorted at this point.
 			
 			// based on the data so far, calculate the best guess.			
-			_guess = calculateGuess();
 			_accuracy = calculateAccuracy();
-			trace( "count: ", numDataSoFar, " accuracy: ", _accuracy);
 			
 			InferenceGames.instance.sendEventData( [[ _roundID, value ]] );
-			
-			if(  _samples.length >= ExpertAI.guessNumSamples ){		// when the sample N goes above the expert's guessN, he guesses.
-				InferenceGames.instance.hitBuzzer( IS_BOT);
-			}
+			ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
 		}
 		
 		public function get lastBuzzer():PlayerAPI{
@@ -108,6 +102,10 @@ package
 			return _samples.length;
 		}
 		
+		public function get sampleMedian():Number{
+			return _sampleMedian;
+		}
+		
 		public function get interval():Number {
 			return _interval;
 		}
@@ -119,6 +117,10 @@ package
 		// get the automatically generated guess, based on the median of the sample data.
 		public function get guess():Number {
 			return _guess;
+		}
+		
+		public function set guess( arg:Number):void{
+			_guess = arg;
 		}
 		
 		// get the accuracy of the current guess, based on the sample size:
@@ -133,7 +135,7 @@ package
 		// true = win, false = lose
 		public function calculateWinLose():void{
 			// checking to see if the  round has been won, regardless of who stopped the clock
-			if(_sampleMedian >= (_median-_interval)  && _sampleMedian <= (_median + _interval)){
+			if(_guess >= (_median-_interval)  && _guess <= (_median + _interval)){
 				_isWon = true;
 			}else{
 				_isWon = false; 
@@ -164,14 +166,15 @@ package
 			}
 		}
 		
+		// auto-generate a guess based on the median of the current sample.
+		public function calculateGuess():void {
+			_guess = _sampleMedian; // Take the median of the data.
+		}
+		
 		// -----------------------
 		// --- PRIVATE SECTION ---
 		// -----------------------
 		
-		// auto-generate a guess based on the median of the current sample.
-		private function calculateGuess():Number {
-			return _sampleMedian; // Take the median of the data.
-		}
 		
 		// generates an accuracy %, based on the sample size.
 		private function calculateAccuracy():Number {

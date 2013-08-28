@@ -58,6 +58,7 @@ package embedded_asset_classes
 		
 		// call this to put the bottom bar back to its original position. Used on endgame.
 		public function reset():void{
+			nextRoundBtn.removeEventListener( Event.ENTER_FRAME, animateNextFrameBtn);
 			disableNextRoundBtn();
 			if( gameOverMVC.visible)
 				gameOverMVC.gotoAndPlay("hide");

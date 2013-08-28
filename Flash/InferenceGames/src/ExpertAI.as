@@ -1,6 +1,8 @@
 ﻿// This singleton class handles the AI of the "Statistician Expert"
 package 
 {
+	import embedded_asset_classes.ControlsSWC;
+	
 	public class ExpertAI
 	{
 		// ----------------------
@@ -67,6 +69,14 @@ package
 			_guessNumSamples = Math.round((Math.pow(((kExpertCallProbs[probIndex].z * standardDeviation)/interval), 2)));
 			
 			trace("confidence interval perc: " + _confidenceIntervalPercent + "expert num samples: " + _guessNumSamples);
+		}
+
+		// this method is called whenever data is added. The expert considers whether or not he wants to guess, and may guess.
+		public static function judgeData( sampleLength:int):void{
+			if(sampleLength >= guessNumSamples) {
+				ControlsSWC.CONTROLS.botStopFunction();
+				//InferenceGames.instance.hitBuzzer ( false); // false means bot
+			}
 		}
 	}
 }
