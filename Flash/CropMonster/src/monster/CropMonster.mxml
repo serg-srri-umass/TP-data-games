@@ -16,7 +16,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.adobe.serialization.json.JSON;
-			import com.kcpt.scriptInterface.ScriptInterface;
+			import common.ScriptInterface;
 			
 			import mx.core.SoundAsset;
 			
