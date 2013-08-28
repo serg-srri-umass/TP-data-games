@@ -77,7 +77,9 @@ package embedded_asset_classes
 		
 		private function onCompleteShow( triggerEvent:AnimationEvent):void{
 			BottomBarSWC.BOTTOM_BAR.enableNextRoundBtn(); 
-			Round.currentRound.lastBuzzer.earnPoint();		// the last player to buzz in earns a point. TO-DO: add the miss-hit functionality.
+			if(Round.currentRound.isWon){
+				Round.currentRound.lastBuzzer.earnPoint(); // the last player to buzz in earns a point.
+			}
 		}
 		
 		// sets which player buzzed in: either the user or the bot. 
