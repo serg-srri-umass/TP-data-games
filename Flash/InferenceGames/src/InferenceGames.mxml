@@ -202,6 +202,7 @@
 				// update DG: open and send a new game case for each round
 				var closeCase:Boolean = false;  
 				mDGInterface.openGameCase( kGamesCollectionName, getGameCaseValues( closeCase ));
+				mDGInterface.deletePreviousCaseData(); // deletes old graph data to reduce clutter
 			}
 			
 			// when the old round ends, we clean up here
