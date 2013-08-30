@@ -80,6 +80,8 @@ package embedded_asset_classes
 			visible = false;
 			if(InferenceGames.instance.isInGame)
 				ControlsSWC.CONTROLS.show();
+				else 
+				LevelSelectSWC.LEVELSELECT.show();
 		}
 
 		// when the results finish displaying, if the game is over, show the winner.

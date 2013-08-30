@@ -162,8 +162,12 @@ package embedded_asset_classes
 		// when the ControlsSWC finishes hiding itself, this method is called. It turns on the results.
 		private function onCompleteHide( triggerEvent:AnimationEvent):void{
 			visible = false;
-			if(InferenceGames.instance.isInGame)
+			if(InferenceGames.instance.isInGame){
 				ResultsSWC.RESULTS.show();
+			    }
+			    else{
+				LevelSelectSWC.LEVELSELECT.show();
+				}
 		}
 		
 		// checks if the currently entered guess is valid. If it is, it submits it. If not, it prompts the user.

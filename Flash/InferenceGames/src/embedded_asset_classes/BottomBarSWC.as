@@ -85,11 +85,12 @@ package embedded_asset_classes
 		private function onPressEndGame( e:MouseEvent):void{
 			newEndGameBtn.look = 1; // "new game"
 			InferenceGames.instance.endGame();
+			
 		}
 		
 		private function onPressNewGame( e:MouseEvent):void{
 			newEndGameBtn.look = 0; // "end game"
-			InferenceGames.instance.newGame();
+			LevelSelectSWC.LEVELSELECT.hide();
+		    }
 		}
-	}
-}
+	    }

@@ -19,12 +19,7 @@
 			import common.ScriptInterface;
 			import common.VersionChecker;
 			
-			import embedded_asset_classes.BotPlayerSWC;
-			import embedded_asset_classes.BottomBarSWC;
-			import embedded_asset_classes.ControlsSWC;
-			import embedded_asset_classes.DataCannonSWC;
-			import embedded_asset_classes.ResultsSWC;
-			import embedded_asset_classes.UserPlayerSWC;
+			import embedded_asset_classes.*;
 			
 			// ----------------------
 			// --- PRIVATE SECTION ---
@@ -44,6 +39,7 @@
 			private var sDataCannon:DataCannonSWC;
 			private var sUserPlayer:UserPlayerSWC;
 			private var sBotPlayer:BotPlayerSWC;
+			private var sLevelSelect:LevelSelectSWC;
 
 			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
 			private var mGameSerialNum:int	= 0; // first game starts with serial number 1.
@@ -80,6 +76,11 @@
 			private function initVisualElements():void{	
 				staticStage = systemManager.stage;
 				
+				sLevelSelect = new LevelSelectSWC();
+				gameContainer.addChild(sLevelSelect);
+				sLevelSelect.x = 342.75;
+				sLevelSelect.y = 167.5;
+
 				sControls = new ControlsSWC();
 				gameContainer.addChild(sControls);
 				sControls.x = 293.1;
