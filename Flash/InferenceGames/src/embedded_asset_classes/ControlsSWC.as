@@ -64,6 +64,7 @@ package embedded_asset_classes
 			
 			stopControlsMVC.stop();
 			stopControlsMVC.userGuessMVC.okayBtn.addEventListener( MouseEvent.CLICK, validateGuess);
+			stopControlsMVC.userGuessMVC.guessTxt.addEventListener( KeyboardEvent.KEY_DOWN, checkForEnter); // check if the enter key has been pressed.
 			
 			_botEntryTimer.addEventListener( TimerEvent.TIMER, handleBotType);
 		}
@@ -136,7 +137,7 @@ package embedded_asset_classes
 		private var _isShowing:Boolean = false;
 		
 		// this method is called when the player hits the stop button. Bring up the guess prompt.
-		private function stopFunction( e:MouseEvent):void{
+		private function stopFunction( triggerEvent:MouseEvent):void{
 			DataCannonSWC.DATA_CANNON.stopCannon();
 			stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
 			stopControlsMVC.gotoAndPlay("pressStop");
@@ -153,20 +154,20 @@ package embedded_asset_classes
 		}
 		
 		// called when the player hits the start button.
-		private function startFunction( e:MouseEvent):void{
+		private function startFunction( triggerEvent:MouseEvent):void{
 			stopControlsMVC.stopStartBtn.pauseBtn.look = 0;
 			DataCannonSWC.DATA_CANNON.startCannon();			
 		}
 		
 		// when the ControlsSWC finishes hiding itself, this method is called. It turns on the results.
-		private function onCompleteHide( e:AnimationEvent):void{
+		private function onCompleteHide( triggerEvent:AnimationEvent):void{
 			visible = false;
 			if(InferenceGames.instance.isInGame)
 				ResultsSWC.RESULTS.show();
 		}
 		
 		// checks if the currently entered guess is valid. If it is, it submits it. If not, it prompts the user.
-		private function validateGuess( e:MouseEvent):void{
+		private function validateGuess( triggerEvent:MouseEvent = null):void{
 			var textNum:Number = Number( stopControlsMVC.userGuessMVC.guessTxt.text)
 			if ( isNaN( textNum ) || stopControlsMVC.userGuessMVC.guessTxt.text.length == 0){
 				stopControlsMVC.userGuessMVC.invalidNumberMVC.visible = true;
@@ -180,7 +181,7 @@ package embedded_asset_classes
 		}
 		
 		// this method handles the animation of the bot typing in his answer.
-		private function handleBotType( e:TimerEvent):void{
+		private function handleBotType( triggerEvent:TimerEvent):void{
 			var sampleMedianString:String = String(Round.currentRound.sampleMedian.toFixed(1));
 			
 			if( _botEntryTimer.currentCount == sampleMedianString.length)	// wait a full delay before hitting the okay button.
@@ -198,5 +199,10 @@ package embedded_asset_classes
 			}
 		}
 		
+		// when typing in your guess, check for the enter key. If it's pressed, submit the guess.
+		private function checkForEnter( triggerEvent:KeyboardEvent):void{
+			if( triggerEvent.keyCode == 13) // 13 = enter key
+				validateGuess();
+		}
 	}
 }
