@@ -24,5 +24,105 @@ package common
 			iPrecision = Math.pow(10, iPrecision);
 			return (Math.round(iNumber * iPrecision)/iPrecision);
 		}
+		// end code from stack overflow
+		
+		// give this method an array and it will shuffle it, based on the given start and end index
+		public static function shuffleArray(targetArray:Array, startIndex:int = 0, endIndex:int = int.MAX_VALUE):void{
+			if(endIndex > targetArray.length - 1)
+				endIndex = targetArray.length - 1; // if no end index is given, assume the entirety of the array is to be shuffled.
+			// first, ensure the parameters are valid:
+			if(startIndex > targetArray.length || startIndex < 0)
+				throw new Error("invalid start index.");
+			if(endIndex < startIndex)
+				throw new Error("invalid end index.");
+			
+			// if the end and start index are identical, there's nothing to do.
+			if(endIndex == startIndex)
+				return;
+			
+			var startingPosition:int = startIndex; 
+			while(startingPosition < endIndex){
+				var range:int = endIndex - startingPosition + 1; 
+				var randomPosition:int = Math.random()*range + startingPosition;
+				
+				//make the swap:
+				var swapHolder:* = targetArray[randomPosition];
+				targetArray[randomPosition] = targetArray[startingPosition];
+				targetArray[startingPosition] = swapHolder;
+				
+				startingPosition++;
+			}
+		}
+		
+		//https://gist.github.com/robinhouston/6200770
+		// from Robin Huston
+		private static function integrate_one_slice(f:Function, a:Number, b:Number):Number {
+			return (b-a) * ( f(a) + 4*f((a+b)/2) + f(b)) / 6;
+		}
+		
+		public static function integrate(f:Function, a:Number, b:Number, DELTA:Number):Number {
+			var x:Number = a;
+			var integral:Number = 0;
+			while (x < b) {
+				integral += integrate_one_slice(f, x, Math.min(x+DELTA, b));
+				x += DELTA;
+			}
+			return integral;
+		}
+		
+		//
+		private static function calculateZ( intervalWidth:Number, n:Number, SD:Number):Number{
+			var top:Number =  intervalWidth * Math.sqrt(n);
+			var bottom:Number = 2 * SD;
+			return top / bottom;
+		}
+		
+		private static function bellCurveFormula( mean:Number):Number{
+			var first:Number = 1 / (Math.sqrt( 2 * Math.PI));
+			var exponent:Number = -1 * (mean*mean) / 2;
+			var second:Number = Math.pow( Math.E, exponent);
+			return first * second;
+		}
+		
+		// bell curve is a normal curve. 
+		public static function calculateAreaUnderBellCurve(intervalWidth:Number, n:Number, SD:Number):Number{
+			var z:Number = calculateZ(intervalWidth, n, SD);
+			return integrate(bellCurveFormula, -z, z, 0.01);
+		}
+		
+		public static function SD_to_IQR(SD:Number):Number{
+			return SD * 1.34896;
+		}
+		
+		public static function IQR_to_SD(IQR:Number):Number{
+			return IQR / 1.34896;
+		}
+		
+		/**
+		 * Compute the median of an array of finite numeric values.
+		 * Warning, the input array is sorted, on the assumption that it is most
+		 * computationally efficient to directly modify a temporary array.  Caller
+		 * should make a copy of the array if this is undesired behavior.
+		 * @param ioArray array of numbers (will be sorted ascending)
+		 * @return {Number} median value or undefined if ioArray.length===0
+		 */
+		public static function medianOfNumericArray( ioArray:Array ):Number {
+			
+			function median( iSortedArray:Array ):Number {
+				var i:Number = (iSortedArray.length - 1)/ 2, // middle index in 0-(n-1) array
+					i1:Number = Math.floor(i),
+					i2:Number = Math.ceil(i);
+				if( i < 0 ) {
+					return undefined; // length === 0
+				} else if( i===i1 ) {
+					return iSortedArray[i];
+				} else {
+					return (iSortedArray[i1]+iSortedArray[i2]) / 2;
+				}
+			}
+			
+			ioArray.sort( Array.NUMERIC ); // ascending numeric sort()
+			return median( ioArray );
+		}
 	}
 }

@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<flexLibProperties includeAllClasses="true" version="3">
+<flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="common.ParkMiller"/>
+    <classEntry path="common.TextFormatter"/>
+    <classEntry path="common.DGInterface"/>
+    <classEntry path="common.ScriptInterface"/>
+    <classEntry path="common.DebugUtilities"/>
+    <classEntry path="common.SafeTimer"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

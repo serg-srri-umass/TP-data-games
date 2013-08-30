@@ -73,7 +73,7 @@ package chainsaw
 			{
 				remnant = true;
 			}
-			if(mLength >= ChainSaw.kReferenceLength+(ChainSaw.kReferenceLength/2)) // a piece over 1.5 times the reference length
+			if(mLength >= ChainSaw.kReferenceLength+(ChainSaw.kReferenceLength * .75)) // a piece over 1.75 times the reference length
 			{
 				remnant = true;
 			}

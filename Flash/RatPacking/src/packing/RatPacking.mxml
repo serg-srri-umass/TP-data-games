@@ -13,8 +13,7 @@
 
 	<fx:Script>
 		<![CDATA[
-			import com.kcpt.scriptInterface.ScriptInterface;
-			
+			import common.ScriptInterface;
 			import common.ParkMiller;
 			
 			import mx.events.SliderEvent;

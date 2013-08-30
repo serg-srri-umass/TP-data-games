@@ -3,8 +3,8 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   minWidth="745" minHeight="410" 
-			   backgroundColor="#EAD1AA" 
-			   creationComplete="startUp()"
+			   backgroundColor="#EAD1AA"
+			   creationComplete="testFlashPlayer()"
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
 			   pageTitle="Chainsaw">
@@ -16,11 +16,13 @@
 	<fx:Script>
 		<![CDATA[
 			import chainsaw.GameLevelWindow;
-			
-			import chainsaw_assets.*;
+			import chainsaw.events.*;
 			
 			import com.adobe.serialization.json.JSON;
-			import com.kcpt.scriptInterface.ScriptInterface;
+			
+			import common.ScriptInterface;
+			import common.VersionChecker;
+			import chainsaw.sound.SoundDebug;
 			
 			import flash.media.Sound;
 			import flash.media.SoundMixer;
@@ -39,8 +41,11 @@
 			// edit true/false and rebuild to create a new build for each.
 			// export the DG version to ./bin-release
 			// export the TinkerPlots version to ./bin-release-tp
+			
+			private static const MINIMUM_REQUIREMENTS:Number = 11.4;	//the oldest version of flash player you can play this game on.
+			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2013.03.18";
+			public static const VERSION:String   = "Chainsaw v.2013.08.22";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -87,9 +92,8 @@
 			public static const kRejectLongString:String	= "No-Long";
 			public static const kRemnantString:String		= "Remnant";
 			
-			// Minimum accepted cut length in pixels.
+			// Min and max accepted cut length in pixels.
 			public static const kMinCutLength:Number	= kReferenceLength * (1.0 - (kPercentAllowance / 100));	
-			// Maximum accepted cut length in pixels.
 			public static const kMaxCutLength:Number	= kReferenceLength * (1.0 + (kPercentAllowance / 100));	
 			
 			// Create a timer to update the fuel level display and game duration.
@@ -118,6 +122,7 @@
 			private var mPiecesLong:uint			= 0;	// Number of cut pieces rejected as long.
 			private var mPiecesRemnant:uint			= 0;	// Number of cut pieces rejected as remnants.
 			private var mPlayersName:String			= "Player"; // Stores player's name.
+			private var mStartGameTimer:Timer       = new Timer(2791, 1);
 			
 			private var currentCutStartPoint:Number; // Holds the starting position for each cut.
 			private	var	parentCaseID:int = 0;
@@ -147,109 +152,131 @@
 			// An array that keeps track of the cuts
 			private var mCutsArray:Array = new Array();
 			
+			//conrols playback of dynamic sounds. recieves events from mxml
+			private var mSoundHandler:SoundHandler = new SoundHandler();
+			
+			//coundown movieclip for starting countdown
+			private var mCountDownMVC:MovieClip = new CountDownMVC();
+			
+			//keeps track of whether mouse is down for mouse enabling and disabling purposes. 
+			private var mMouseIsDown:Boolean = false;
+			
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
 			// Converted from .ani format to .png.
-			[Embed(source="../chainsaw_assets/Chainsaw Cursor 2.png")]
+			[Embed(source="../embedded_assets/Chainsaw Cursor 2.png")]
 			private var mChainsawCursor:Class;
 			
 			// Embed the reference length image file.
-			[Embed(source="../chainsaw_assets/Reference Length 75 Pixels.png")]
+			[Embed(source="../embedded_assets/Reference Length 75 Pixels.png")]
 			[Bindable]
 			private var mLengthImage:Class;
 			
 			// Embed tape measure image
-			[Embed(source="../chainsaw_assets/tape_measure.png")]
+			[Embed(source="../embedded_assets/tape_measure.png")]
 			[Bindable]
 			private var mTapeMeasureImage:Class;
 			
 			// Embed the down arrow image file.
-			[Embed(source="../chainsaw_assets/Down Arrow Small.png")]
+			[Embed(source="../embedded_assets/Down Arrow Small.png")]
 			[Bindable]
 			private var mDownArrowImage:Class;
 			
-			[Embed(source="../chainsaw_assets/Cut From Here Right.png")]
+			[Embed(source="../embedded_assets/Cut From Here Right.png")]
 			[Bindable]
 			private var mCutRightArrow:Class;
 			
-			[Embed(source="../chainsaw_assets/Cut From Here Left.png")]
+			[Embed(source="../embedded_assets/Cut From Here Left.png")]
 			[Bindable]
 			private var mCutLeftArrow:Class;
 
-			
 			// Embed volume icon
-			[Embed(source="../chainsaw_assets/Volume.png")]
+			[Embed(source="../embedded_assets/Volume.png")]
 			[Bindable]
 			private var mVolumeIcon:Class;
 			
-			[Embed(source="../chainsaw_assets/Volume_half.png")]
+			[Embed(source="../embedded_assets/Volume_half.png")]
 			[Bindable]
 			private var mHalfVolumeIcon:Class;
 			
-			[Embed(source="../chainsaw_assets/Volume_off.png")]
+			[Embed(source="../embedded_assets/Volume_off.png")]
 			[Bindable]
 			private var mLowVolumeIcon:Class;
 			
-			/*
-			Actual sound files replaced with a 1-second dummy file to allow project to compile without removing sound-related code
-			*/
-			[Embed("../src/chainsaw_assets/Chainsaw Sound Longer.mp3")]
-//			[Embed("../src/chainsaw_assets/dummy.mp3")]
-			private var ChainsawSoundMP3:Class;
-			private var mChainsawSound:Sound = new ChainsawSoundMP3() as Sound;
-			
-			[Embed("../src/chainsaw_assets/Chainsaw Engine Stops no Fade In.mp3")]
-//			[Embed("../src/chainsaw_assets/dummy.mp3")]
-			private var EngineStopSoundMP3:Class;
-			private var mEngineStopsSound:Sound = new EngineStopSoundMP3() as Sound;
-			
+			// test flash player makes sure the player is meeting the minimum requirements.
+			private function testFlashPlayer():void
+			{
+				if( VersionChecker.isValid( MINIMUM_REQUIREMENTS))
+				{
+					recheckTimer.addEventListener(TimerEvent.TIMER, checkSWFLoaders);
+					checkSWFLoaders();
+				} else {
+					BrickWall.visible = true;
+				}
+			}
 			// startUp() is called when the creation of this class is complete
 			// and sets up necessary parameters for game initiation.
 			private	function startUp():void
 			{
-				
-				// Arrays store individual cuts on each log for use in free cut levels.		
-				mLogDetails1 = new Array(dynamicLog1, null, new Array());
-				mLogDetails2 = new Array(dynamicLog2, null, new Array());
-				mLogDetails3 = new Array(dynamicLog3, null, new Array());
-				mLogDetails4 = new Array(dynamicLog4, null, new Array());
-				// Stores array of logs/logtops used in game.
-				// Create new log array and add log/logtop to array.
-				mLogArray = new Array(mLogDetails1, mLogDetails2, mLogDetails3, mLogDetails4);
-				
-				// Load and draw the cut location arrow.
-				mArrowSprite.loadImage(mDownArrowImage);
-				mArrowSprite.visible = false;
-				mLogYardContainer.addElement(mArrowSprite);
-				
-				mCutRightSprite.loadImage(mCutRightArrow);
-				mCutRightSprite.visible = false;
-				mLogYardContainer.addElement(mCutRightSprite);
-				
-				mCutLeftSprite.loadImage(mCutLeftArrow);
-				mCutLeftSprite.visible = false;
-				mLogYardContainer.addElement(mCutLeftSprite);
-				
-				// Randomize log array.
-				randomizeLogSizePosition();
-				
-				// add particle emitter to display
-				uic.addChild(sawdustParticles);
-				uic.mouseEnabled = false; //not quashing the mouse events from UIC was causing mouse events when its children particles were thrown in front of the mouse
-				uic.mouseChildren = false;
-				sawdustParticles.xOffset = 10;
-				sawdustParticles.yOffset = 10;
-				sawdustParticles.pColor = 0xD4B077;
-				sawdustParticles.yFloor = 410-10; // top edge of where sawdust lands is 10 from bottom of game
-				
-				mLevelWindow = new GameLevelWindow();
-				this.sendCollectionData();		// send initGame data to TinkerPlots/DG
 
-				levelSelected(kFreeCutLevel); //Start in free cut mode
+				BrickWall.visible = false;
 				
-				updateVolume(50); // start with volume at 50% level
-			}
-			
+				if(allAssetsLoaded) {
+
+					//preloader code:
+					LoadWall.visible = false;
+					recheckTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, checkSWFLoaders);
+					recheckTimer.stop();
+					
+					// Arrays store individual cuts on each log for use in free cut levels.		
+					mLogDetails1 = new Array(dynamicLog1, null, new Array());
+					mLogDetails2 = new Array(dynamicLog2, null, new Array());
+					mLogDetails3 = new Array(dynamicLog3, null, new Array());
+					mLogDetails4 = new Array(dynamicLog4, null, new Array());
+					// Stores array of logs/logtops used in game.
+					// Create new log array and add log/logtop to array.
+					mLogArray = new Array(mLogDetails1, mLogDetails2, mLogDetails3, mLogDetails4);
+					
+					// Load and draw the cut location arrow.
+					mArrowSprite.loadImage(mDownArrowImage);
+					mArrowSprite.visible = false;
+					mLogYardContainer.addElement(mArrowSprite);
+					
+					mCutRightSprite.loadImage(mCutRightArrow);
+					mCutRightSprite.visible = false;
+					mLogYardContainer.addElement(mCutRightSprite);
+					
+					mCutLeftSprite.loadImage(mCutLeftArrow);
+					mCutLeftSprite.visible = false;
+					mLogYardContainer.addElement(mCutLeftSprite);
+					
+					// Randomize log array.
+					randomizeLogSizePosition();
+					
+					// add particle emitter to display
+					uic.addChild(sawdustParticles);
+					uic.mouseEnabled = false; //not quashing the mouse events from UIC was causing mouse events when its children particles were thrown in front of the mouse
+					uic.mouseChildren = false;
+					sawdustParticles.xOffset = 10;
+					sawdustParticles.yOffset = 10;
+					sawdustParticles.pColor = 0xD4B077;
+					sawdustParticles.yFloor = 410-10; // top edge of where sawdust lands is 10 from bottom of game
+					
+					mLevelWindow = new GameLevelWindow();
+					this.sendCollectionData();		// send initGame data to TinkerPlots/DG
+					
+					levelSelected(kFreeCutLevel); //Start in free cut mode
+					
+					updateVolume(50); // start with volume at 50% level
+				} else {
+					recheckTimer.reset();
+					recheckTimer.start();
+				}
+				//add countDown to stage
+				uic.addChild(mCountDownMVC);
+				mCountDownMVC.x = 745/2;
+				mCountDownMVC.y = 410/2;
+			} 
 
 			// Send the initial game data to TinkerPlots or DG.  The collections are the tables of cases and attributes.
 			private	function	sendCollectionData( ):void	{
@@ -311,7 +338,7 @@
 							] // collections
 						} // args
 					}; //initGameObj
-					var	initGameString:String = JSON.encode( initGameObj );
+					var	initGameString:String = com.adobe.serialization.json.JSON.encode( initGameObj );
 					result = ScriptInterface.doCommand( initGameString );
 				}
 				else {
@@ -633,7 +660,7 @@
 									]
 							}
 						};
-						ScriptInterface.doCommand( JSON.encode( createCaseObj ));
+						ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( createCaseObj ));
 					}
 					else {
 						// send data for case in Cut collection to TinkerPlots/Fathom
@@ -671,6 +698,12 @@
 			// startGame() is called whenever the start button is pressed.
 			protected function startGame():void
 			{
+				//timer to enable mouse activity after coundown movie is done playing
+				mStartGameTimer.addEventListener(TimerEvent.TIMER_COMPLETE, startGameMouseEnabler);
+				mStartGameTimer.start();
+				
+				mCountDownMVC.gotoAndPlay(1); //start countdown movie
+				
 				mLastLog			= 0;	// Reset last cut log counter.
 				mCurrentLog			= 1;	// Reset log counter.
 				mLastCutX			= 0;	// Reset X position of most recent cut.
@@ -681,8 +714,6 @@
 				mPiecesLong			= 0;	// Reset number of rejected long pieces
 				mLeftToRight		= true;	// Begin cutting left to right.
 				mCutNumber			= 0;	// Reset cut number.
-				
-				mChainsawSound.play(0,int.MAX_VALUE); // start the chainsaw sound
 				
 				// Randomize log array, but not for first game, as it's already random.
 				if (!mFirstGame)
@@ -717,13 +748,7 @@
 					flashGasTank['initGasTank'](kTimeLimit * 24);
 					flashGasTank['startDrop']();
 				}
-				dynamicLog1.enabled = true;
-				if (mGameLevel >= kFreeCutLevel){
-					dynamicLog2.enabled = true;
-					dynamicLog3.enabled = true;
-					dynamicLog4.enabled = true;
-					mArrowSprite.visible = false;
-				}
+				
 				
 				if (!practice)
 				{
@@ -759,20 +784,93 @@
 									]
 								} 	
 							}
-						var	resultString:String = ScriptInterface.doCommand( JSON.encode( openGameCaseObj ));
-						var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+						var	resultString:String = ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( openGameCaseObj ));
+						var resultObj:Object = (resultString ? com.adobe.serialization.json.JSON.decode( resultString ) : null );
 						this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
 					}
 					else {
 						// send data to open a case in Game collection to TinkerPlots/Fathom
 						// (Nothing to do)
 					}
+					
+					//reset SoundHandler completely in case anything has broken during the round
+					mSoundHandler.shutDown();
+					mSoundHandler = new SoundHandler(); 
+					
+					//triggering onStart, simulates an onStart event by just directly calling the method 
+					mSoundHandler.onStart();
+					
+					//sending mouseDown, mouseUp, and mouseOutWindow to SoundHandler
+					addEventListener(MouseEvent.MOUSE_DOWN, mSoundHandler.onMouseDown);
+					addEventListener(MouseEvent.MOUSE_UP, mSoundHandler.onMouseUp);
+					addEventListener(MouseEvent.MOUSE_DOWN, mouseIsDown); //for setting boolean
+					addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
+					addEventListener(MouseEvent.MOUSE_UP, mouseIsUp); //for setting boolean
+					stage.addEventListener(ChainsawEvent.MOUSE_OUT_WINDOW, mSoundHandler.onMouseOutStage);
 				}
 			}
 			
-			// endGame() performs all operations necessary when game is complete.
+			//when mouse is down, start tracking the position for exiting stage
+			private function mouseDownHandler(e:Event):void{
+				stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+			}
+			
+			//when we mouse back up, remove the listener that tracks mouseMoves
+			private function mouseUpHandler(e:Event):void{
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+			}
+			
+			//if the mouseMove events show exiting stage, dispatch Chainsaw.MOUSE_OUT_WINDOW
+			private function mouseMoveHandler(e:MouseEvent):void{
+				if(e.stageX<0 || e.stageX>stage.stageWidth || e.stageY<0 || e.stageY>stage.stageHeight){
+					stage.dispatchEvent(new Event(ChainsawEvent.MOUSE_OUT_WINDOW));
+					stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+				}
+			}
+			
+			private function startGameMouseEnabler(e:TimerEvent):void{
+				trace("startGameMouseEnabler!");
+				if(!mMouseIsDown){
+					mSoundHandler.setMouseEnabled(true);
+					
+					dynamicLog1.enabled = true;
+					if (mGameLevel >= kFreeCutLevel){ //this is always true. if we delete practice level, remove 'if'
+						dynamicLog2.enabled = true;
+						dynamicLog3.enabled = true;
+						dynamicLog4.enabled = true;
+						mArrowSprite.visible = false;
+					}
+				}
+				else{
+					addEventListener(MouseEvent.MOUSE_UP, earlyMouseDownCaseHandler);
+				}
+			}
+			
+			private function earlyMouseDownCaseHandler(e:Event):void{
+				mSoundHandler.setMouseEnabled(true);
+				
+				dynamicLog1.enabled = true;
+				if (mGameLevel >= kFreeCutLevel){ //this is always true. if we delete practice level, remove 'if'
+					dynamicLog2.enabled = true;
+					dynamicLog3.enabled = true;
+					dynamicLog4.enabled = true;
+					mArrowSprite.visible = false;
+				}	
+				removeEventListener(MouseEvent.MOUSE_UP, earlyMouseDownCaseHandler);
+			}
+			
+			private  function mouseIsDown(e:MouseEvent):void{
+				mMouseIsDown = true;
+			}
+			
+			private function mouseIsUp(e:MouseEvent):void{
+				mMouseIsDown = false;
+			}
+			
+			//endGame() performs all operations necessary when game is complete.
 			protected function endGame():void
 			{
+				mSoundHandler.onGameEnd();
 				var strategy:String = "";
 				doEndGameStop();
 				if (mGameLevel >= kFreeCutLevel){
@@ -852,7 +950,7 @@
 									]
 								}
 							};
-						ScriptInterface.doCommand( JSON.encode( closeGameCaseObj ));
+						ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( closeGameCaseObj ));
 						// extract value of formula attribute 'score', if created by user in DG
 						var	requestAttributeValueObj:Object = {
 								action: "requestAttributeValues",
@@ -862,8 +960,8 @@
 									attributeNames: ["Score"]
 								}
 							};
-						var	resultString:String = ScriptInterface.doCommand( JSON.encode( requestAttributeValueObj ));
-						var resultObj:Object = (resultString ? JSON.decode( resultString ) : null );
+						var	resultString:String = ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( requestAttributeValueObj ));
+						var resultObj:Object = (resultString ? com.adobe.serialization.json.JSON.decode( resultString ) : null );
 						this.parentCaseScore = "?";
 						if( resultObj && resultObj.success && resultObj.values ) {
 							if( resultObj.values.length >= 1 && resultObj.values[0] != null ) {
@@ -926,9 +1024,8 @@
 				}
 				
 				CursorManager.removeCursor(mChainsawCursorID);	// Remove chainsaw cursor.
-				SoundMixer.stopAll();							// Stop all currently playing sounds
-				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
-				
+/* 				mEngineStopsSound.play();						// Play chainsaw engine stopping sound.
+ */				
 				mStartStopButton.label			= "Start";
 				
 				mChangeLevelButton.enabled		= true;
@@ -1142,15 +1239,15 @@
 			}
 			
 			// Player has pressed the Start/Stop button
-			protected function onClickStartStopButton(event:MouseEvent):void
-			{
-				if(mStartStopButton.label == "Stop")
-				{
+			protected function onClickStartStopButton(event:MouseEvent):void{
+				if(mStartStopButton.label == "Stop"){
+					mStartGameTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, startGameMouseEnabler); //makes sure timer doesn't still trigger if we've already hit stop 
+					mCountDownMVC.gotoAndStop(1); //brings movie back to first frame, and stops
+					mSoundHandler.cancelStart(); //cancels the startup sound 
 					endGame();
 					mStartStopButton.label = "Start";
 				}
-				else
-				{
+				else{
 					startGame();
 					mStartStopButton.label = "Stop";
 				}
@@ -1160,9 +1257,19 @@
 			protected function onClickChangeLevelButton(event:MouseEvent):void
 			{
 				clearGame(mGameLevel); // Clear any remnants of last game and reset game.
-				
 				chooseGameLevel();
 			}
+			
+			protected var allAssetsLoaded:Boolean = false;
+			protected var recheckTimer:Timer = new Timer(1000, 1);
+			
+			protected function checkSWFLoaders(e:Event = null):void{
+				if(flashGasTank && dynamicLog1 && dynamicLog2 && dynamicLog3 && dynamicLog4){
+					allAssetsLoaded = true;
+				}
+				startUp();
+			}
+			
 			
 			//initialize Tristan's gas tank SWF
 			protected function initGasTank():void{
@@ -1174,24 +1281,32 @@
 				dynamicLog1.enabled = false;
 				dynamicLog1.mouseChildren = false;
 				dynamicLog1['setLogNum'](1);
+				dynamicLog1.addEventListener(MouseEvent.ROLL_OVER, mSoundHandler.onMouseOverLog);
+				dynamicLog1.addEventListener(MouseEvent.MOUSE_OUT, mSoundHandler.onMouseOutLog);
 			}
 			protected function initLog2():void{
 				dynamicLog2 = mDynamicLog2.content as MovieClip;
 				dynamicLog2.enabled = false;
 				dynamicLog2.mouseChildren = false;
 				dynamicLog2['setLogNum'](2);
+				dynamicLog2.addEventListener(MouseEvent.ROLL_OVER, mSoundHandler.onMouseOverLog);
+				dynamicLog2.addEventListener(MouseEvent.MOUSE_OUT, mSoundHandler.onMouseOutLog);
 			}
 			protected function initLog3():void{
 				dynamicLog3 = mDynamicLog3.content as MovieClip;
 				dynamicLog3.enabled = false;
 				dynamicLog3.mouseChildren = false;
 				dynamicLog3['setLogNum'](3);
+				dynamicLog3.addEventListener(MouseEvent.ROLL_OVER, mSoundHandler.onMouseOverLog);
+				dynamicLog3.addEventListener(MouseEvent.MOUSE_OUT, mSoundHandler.onMouseOutLog);
 			}
 			protected function initLog4():void{
 				dynamicLog4 = mDynamicLog4.content as MovieClip;
 				dynamicLog4.enabled = false;
 				dynamicLog4.mouseChildren = false;
 				dynamicLog4['setLogNum'](4);
+				dynamicLog4.addEventListener(MouseEvent.ROLL_OVER, mSoundHandler.onMouseOverLog);
+				dynamicLog4.addEventListener(MouseEvent.MOUSE_OUT, mSoundHandler.onMouseOutLog);
 			}
 			
 			//mouse up on currently enabled log, sends to the log's SWF for handling
@@ -1202,6 +1317,8 @@
 			}
 			//mouse in event on currently enabled log
 			protected function logIn(e:MouseEvent):void{
+				mSoundHandler.onMouseOverLog(e);
+				
 				if(e.buttonDown && e.currentTarget.content.enabled){
 					
 					//					sawdustParticles.x = e.stageX+10; //TODO REMOVE
@@ -1220,6 +1337,8 @@
 			}
 			//mouse out event on enabled log
 			protected function logOut(e:MouseEvent):void{
+				mSoundHandler.onMouseOutLog(e);
+				
 				sawdustParticles['stopParticleAnim']();
 				var offsetX:Number = e.localX - e.currentTarget.content.x;
 				var offsetY:Number = e.localY - e.currentTarget.content.y;
@@ -1260,7 +1379,6 @@
 			}
 		]]>
 	</fx:Script>
-	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
 		<s:backgroundFill>
 			<s:LinearGradient rotation="90">
@@ -1279,9 +1397,6 @@
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
 	</s:BorderContainer>
 	
-	<s:Button id="mStartStopButton" x="20" y="46" width="100" height="30" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
-	<s:Button id="mChangeLevelButton" x="20" y="86" width="100" height="30" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
-	
 	<s:BorderContainer id="mLogYardContainer" x="134" y="46" width="600" height="364" backgroundColor="#EAD1AA" borderVisible="false">
 		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)" mouseChildren="false"/>
 		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
@@ -1291,15 +1406,16 @@
 	</s:BorderContainer>
 	
 	<s:BorderContainer id="UI_Elements" x="0" y="156" width="134" height="274" backgroundColor="#EAD1AA" borderVisible="false">
-		<s:Label id="mFuelLabel" x="15" y="-15" fontSize="16" fontWeight="bold" text="Fuel:"/>
-		<s:SWFLoader id="mFuelIcon" x="15" y="5" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
-		<s:Label id="mReferenceLengthLabel" x="13" y="156" fontSize="16" fontWeight="bold" text="Target Length:"/>
-		<mx:Image id="mTapeMeasure" x="15" y="182" source="{mTapeMeasureImage}"/>
-		<mx:Image id="mReferenceLengthImage" x="15" y="216" source="{mLengthImage}"/>
+		<s:Label id="mFuelLabel" x="18" y="35" fontSize="16" fontWeight="bold" text="Fuel:"/>
+		<s:SWFLoader id="mFuelIcon" x="18" y="55" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
+		<s:Label id="mReferenceLengthLabel" x="13" y="-110" fontSize="16" fontWeight="bold" text="Target Length:"/>
+		<mx:Image id="mTapeMeasure" x="15" y="-90" source="{mTapeMeasureImage}"/>
+		<mx:Image id="mReferenceLengthImage" x="18" y="-52" source="{mLengthImage}"/>
+		<s:Button id="mStartStopButton" x="20" y="180" width="100" height="50" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
+		<s:Button id="mChangeLevelButton" x="20" y="-10" width="100" height="30" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
-	
 	<s:BorderContainer id="mResultsOverlay" x="134" y="46" width="{745-134}" height="{410-46}" alpha=".50" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
 		<s:Label id="mAcceptedPiecesValue" x="270" y="{60-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left"/>
 		<s:Label id="mFuelLeftValue" x="270" y="{145-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
@@ -1309,4 +1425,31 @@
 	</s:BorderContainer>
 	
 	<s:Label id="mVersionLabel" x="580" y="386" width="160" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
+	
+	<!-- Loading Screen of Safety -->
+	<s:BorderContainer id="LoadWall"	x="0" y="0" width="{this.minWidth}" height="{this.minHeight}" visible="true" >
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xEAD1A9"/>
+				<s:GradientEntry color="0xBBA178"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		<s:Label id="topLabel" text="Loading..." x="0" y="200"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="745" color="0x000000"/>
+	</s:BorderContainer>
+	
+	<!-- Error message for bad version of flash player -->
+	<s:BorderContainer id="BrickWall"	x="0" y="0" width="{this.minWidth}" height="{this.minHeight}" visible="false" >
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xFF0000"/>
+				<s:GradientEntry color="0xB40404"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		<s:Label id="topLabelError" text="You are using an outdated version of Adobe Flash Player." x="0" y="80"  fontSize="20" fontFamily="Arial" fontWeight="bold" textAlign="center" width="745" color="0xffffff"/>
+		<s:Label id="midLabelError" text="{'ChainSaw requires Flash Player '+ MINIMUM_REQUIREMENTS +' or later.'}" x="0" y="170"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
+		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
+		<s:Button id = "upgradeButton" x="{(745-350)/2}" y="250"  click="VersionChecker.openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
+		<s:Button id = "ignoreButton" x="{(745-350)/2}"  y="310"  click="checkSWFLoaders()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
+	</s:BorderContainer>
+	
 </s:Application>
