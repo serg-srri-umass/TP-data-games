@@ -27,7 +27,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.08.28";
+			private static const kVersion:String = "v.2013.08.30";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			
@@ -120,6 +120,7 @@
 						dimensions: { width: this.width, height: this.height },
 						collections: [
 							{
+								name: kGamesCollectionName,
 								attrs:[
 									{ name: "Game", type: "numeric", precision: 0, description: "Sequential Game Number" },
 									{ name: "Round", type: "numeric", precision: 0, description: "Sequential Round Number" },
