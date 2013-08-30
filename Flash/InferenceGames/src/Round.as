@@ -10,6 +10,8 @@ package
 	import embedded_asset_classes.PlayerAPI;
 	import embedded_asset_classes.UserPlayerSWC;
 	
+	import flash.utils.getTimer;
+	
 	public class Round
 	{
 		// ----------------------
@@ -43,11 +45,9 @@ package
 		
 		private var _guess:Number = 0;	// the auto-generated guess, based on the sample size.
 										// currently, the user & the bot use the auto-generated guess.
-										
 		private var _accuracy:int; 		// the chances of guessing correctly at the current sample size.
 		
 		private var _isWon:Boolean = false; //whether or not this round has been won, calculated when we call for the results string
-		
 		private var _lastBuzzer:PlayerAPI; // the player who buzzed in this round.
 		
 		// constructor
@@ -72,18 +72,24 @@ package
 		}
 		
 		// a point of data has been added.
-		public function addData( value:Number = 0):void {
+		public function addData():void {
 			
 			// generate random data value; note that mean and median are interchangable for an symmetrical normal curve.
-			value = InferenceGames.instance.randomizer.normalWithMeanIQR( _median, _IQR );
+			var value:int = InferenceGames.instance.randomizer.normalWithMeanIQR( _median, _IQR );
 			_samples.push( value );
 			_sampleMedian = MathUtilities.medianOfNumericArray( _samples ); // warning: _samples is sorted at this point.
+						
+			// push this point of data into an array that stores all data not yet evaluated.
+			_dataArray.push( [_roundID, value ]);
 			
-			// based on the data so far, calculate the best guess.			
-			_accuracy = calculateAccuracy();
-			
-			InferenceGames.instance.sendEventData( [[ _roundID, value ]] );
-			ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
+			if(getTimer() - lastSendTime > SEND_TIME){
+				lastSendTime = getTimer();
+				InferenceGames.instance.sendEventData ( _dataArray );
+				_dataArray = new Array();
+				
+				_accuracy = calculateAccuracy();
+				ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
+			}
 		}
 		
 		public function get lastBuzzer():PlayerAPI{
@@ -175,7 +181,10 @@ package
 		// --- PRIVATE SECTION ---
 		// -----------------------
 		
-		
+		private var _dataArray:Array = new Array(); // this array holds all the data that hasn't yet been pushed/evaluated.
+		private var lastSendTime:Number = 0; // the time stamp of the last sent data point.
+		private const SEND_TIME:int = 150; // how many miliseconds between basket emptyings.
+																		// Whenever it ticks, the basket is emptied, and data is pushed to DG/analyzed by the expert.
 		// generates an accuracy %, based on the sample size.
 		private function calculateAccuracy():Number {
 			return MathUtilities.calculateAreaUnderBellCurve( interval * 2, numDataSoFar, MathUtilities.IQR_to_SD(IQR)) * 100;
