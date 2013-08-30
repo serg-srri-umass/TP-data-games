@@ -147,9 +147,9 @@ package
 			calculateWinLose();
 			// returning results string based on win/loss, and who last hit buzzer
 			if( this.lastBuzzer == UserPlayerSWC.PLAYER ){
-				return(_isWon ? "You Won" : "You Lost"); 
+				return(_isWon ? "You were correct" : "You were incorrect"); 
 			} else if( this.lastBuzzer == BotPlayerSWC.BOT ){
-				return(_isWon ? "Expert Won" : "Expert Lost" );
+				return(_isWon ? "Expert was correct" : "Expert was incorrect" );
 			} else {
 				return("the lastBuzzer variable is not set to the player, or the bot");
 			}
