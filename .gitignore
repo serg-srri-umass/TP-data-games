@@ -4,5 +4,19 @@ ehthumbs.db
 Icon?
 Thumbs.db
 
-# Chainsaw sounds are freely available, but -not- for open-source projects. Thus, omitted.
-javascript/Chainsaw/assets/*.mp3
+# Cleaning up all .SWZ files that are cluttering git status view
+*.SWZ
+
+# removing bin-debug directories 
+Flash/ChainSaw/bin-debug/*
+Flash/ShipOdyssey/bin-debug/*
+
+# removing project preferences so we can add our own if needed later
+Flash/ShipOdyssey/com.adobe.flexbuilder.project.prefs
+
+# removing un-needed files from bin-release
+Flash/ShipOdyssey/bin-release/odyssey/
+Flash/ShipOdyssey/bin-release/swfobject.js
+
+# ignore .actionscript properties files
+*/.actionScriptProperties

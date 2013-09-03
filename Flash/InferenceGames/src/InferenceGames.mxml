@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   width="575" height="325"
+			   creationComplete="testFlashPlayer()" 
+			   pageTitle="Inference Games"
+			   activate="ScriptInterface.signalActivation()" 
+			   deactivate="ScriptInterface.signalDeactivation()"
+			   backgroundColor="#CCCCCC">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import common.DGInterface;
+			import common.ParkMiller;
+			import common.ScriptInterface;
+			import common.VersionChecker;
+			
+			import embedded_asset_classes.BotPlayerSWC;
+			import embedded_asset_classes.BottomBarSWC;
+			import embedded_asset_classes.ControlsSWC;
+			import embedded_asset_classes.DataCannonSWC;
+			import embedded_asset_classes.ResultsSWC;
+			import embedded_asset_classes.UserPlayerSWC;
+			
+			// ----------------------
+			// --- PRIVATE SECTION ---
+			// ----------------------
+						
+			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
+			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
+			private static const kVersion:String = "v.2013.08.30";
+			private static const kEventsCollectionName:String = "Events";
+			private static const kGamesCollectionName:String = "Games";
+			
+			private static var staticStage:Stage; // a reference to the stage of this MXML file.
+
+			private var sControls:ControlsSWC;
+			private var sResults:ResultsSWC;
+			private var sBottomBar:BottomBarSWC;
+			private var sDataCannon:DataCannonSWC;
+			private var sUserPlayer:UserPlayerSWC;
+			private var sBotPlayer:BotPlayerSWC;
+
+			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
+			private var mGameSerialNum:int	= 0; // first game starts with serial number 1.
+			private var mGameLevel:int		= 1; // which level (1+) is the current game using.
+			
+			public static var instance:InferenceGames = null;
+			public var randomizer:ParkMiller = null;
+			public var isInGame:Boolean = false; // whether there is a game currently going on.
+			
+			// this method ensures that the flash player is a recent enough version to work.
+			private function testFlashPlayer():void {
+				if( VersionChecker.isValid(kMinimumRequiredVersion))
+					startUp();
+				 else
+					BrickWall.visible = true;
+			}
+			
+			private function startUp():void{
+				if( instance == null )
+					instance = this;
+				
+				this.randomizer = new ParkMiller(); // must instantiate just once to set random seed according to current date-time.
+				BrickWall.visible = false;
+
+				mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
+				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
+				mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
+				
+				initVisualElements();
+				
+				newGame();
+			}
+			
+			private function initVisualElements():void{	
+				staticStage = systemManager.stage;
+				
+				sControls = new ControlsSWC();
+				gameContainer.addChild(sControls);
+				sControls.x = 293.1;
+				sControls.y = 173.4;
+				
+				sResults = new ResultsSWC();
+				gameContainer.addChild(sResults);
+				sResults.x = 286.85;
+				sResults.y = 163.5;
+		
+				sUserPlayer = new UserPlayerSWC();
+				sBotPlayer = new BotPlayerSWC();
+				gameContainer.addChild(sUserPlayer);
+				gameContainer.addChild(sBotPlayer);
+				sBotPlayer.x = 575;
+				
+				sBottomBar = new BottomBarSWC();
+				gameContainer.addChild(sBottomBar);
+				sBottomBar.x = 287.55;
+				sBottomBar.y = 324.95;
+				sBottomBar.gameOverMVC.visible = false; // hide the dialoge that is win/lose.
+
+				sDataCannon = new DataCannonSWC();
+				gameContainer.addChild(sDataCannon);
+			}
+			
+			// ------------------
+			// --- DG SECTION ---
+			// ------------------
+			
+			// Send the Game-level and Event-level structure to DG, if connected to DG.  
+			// 		The collections are the tables of cases and attributes.
+			private function sendCollectionData( ):void	{
+				var initGameArgs:Object = 
+					{
+						name: "InferenceGames",
+						dimensions: { width: this.width, height: this.height },
+						collections: [
+							{
+								name: kGamesCollectionName,
+								attrs:[
+									{ name: "Game", type: "numeric", precision: 0, description: "Sequential Game Number" },
+									{ name: "Round", type: "numeric", precision: 0, description: "Sequential Round Number" },
+									{ name: "Interval", type: "numeric", precision: 0, description: "How close a guess has to be to the true value" },
+									{ name: "IQR", type: "numeric", precision: 0, description: "Inter-Quartile Range (IQR) of distribution" }, 
+									{ name: "SampleSize", type: "numeric", precision: 0, description: "Number of data values generated (sampled) during the round" },
+									{ name: "Result", type: "nominal", description: "Who guessed and whether they won or lost." },
+									{ name: "ProbWin", type: "numeric", precision: 0, description: "Probability of winning"}
+								] ,
+								childAttrName: "Events_Record"
+							},
+							{
+								name: kEventsCollectionName,
+								attrs:	[
+									{ name: "Round", type: "nominal", description: "Which round of the current game"   } ,
+									{ name: "Value", type: "numeric", precision: 0, description: "Value of data point generated"   }
+								],
+								labels: {
+									singleCase: "value sent",
+									pluralCase: "values sent",
+									singleCaseWithArticle: "a value sent",
+									setOfCases: "events",
+									setOfCasesWithArticle: "events"
+								},
+								defaults: { xAttr: "Value", yAttr: "Round" }
+							}
+						] // collections
+					};
+				this.mDGInterface.initGame( initGameArgs );
+			}
+			
+			
+			// get the game case data to send to DG, 
+			// returned as an array for use by sendGameDataOpen(),..Update(),...Close().
+			public function getGameCaseValues( iIsGameOver:Boolean ):Array {
+				return [
+					mGameSerialNum, // Game number starting with 1 since launch of application.
+					Round.currentRound.roundID,
+					Round.currentRound.interval,
+					Round.currentRound.IQR,
+					Round.currentRound.numDataSoFar,
+					(iIsGameOver ? Round.currentRound.getResultsString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
+					(iIsGameOver ? Round.currentRound.accuracy : "") // if game is over, submit accuracy with current smaple size. Otherwise, submit the empty string. 
+				];
+			}
+
+			// Send event case data to DG, if connected to DG.
+			// 		Event data "data point generated" events, with one array value per Event attribute
+			// 		caseValueArrays is an array of cases, and each case is a array of attribute values for that case (corresponding to the attributes previously sent)
+			public function sendEventData( caseValueArrays:Array ):void {
+				mDGInterface.createEventCases( kEventsCollectionName, caseValueArrays );
+				var closeCase:Boolean = false; // update number of events in game case
+				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
+			}
+			
+			// ----------------------
+			// --- PUBLIC SECTION ---
+			// ----------------------
+			
+			public static function get stage():Stage{
+				return staticStage;
+			}
+			
+			// start a new round as requested
+			public function newRound():void{
+				
+				// end the old round if there was one
+				if(Round.currentRound){
+					endOldRound();
+				}
+
+				// create the new round
+				var thisRound:Round = new Round( mGameLevel ); // accessed via Round.currentRound from here forward.
+				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
+				
+				// update DG: open and send a new game case for each round
+				var closeCase:Boolean = false;  
+				mDGInterface.openGameCase( kGamesCollectionName, getGameCaseValues( closeCase ));
+				mDGInterface.deletePreviousCaseData(); // deletes old graph data to reduce clutter
+			}
+			
+			// when the old round ends, we clean up here
+			public function endOldRound():void{
+				
+				var closeCase:Boolean = true; // update and close the old round data in DG
+				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
+				
+				// if one of the two player avatars is hidden, show it.
+				if(!sUserPlayer.isShowing)
+					sUserPlayer.show(); 
+				if(!sBotPlayer.isShowing)
+					sBotPlayer.show();
+			}			
+			
+			// hit the buzzer, to bring up the recap.
+			public function hitBuzzer( user:Boolean = true):void{
+				sControls.hide();
+				
+				Round.currentRound.calculateWinLose();
+				if( user){
+					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "user");
+					sBotPlayer.hide();
+					Round.currentRound.lastBuzzer = UserPlayerSWC.PLAYER;
+				} else {
+					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
+					sUserPlayer.hide();
+					Round.currentRound.lastBuzzer = BotPlayerSWC.BOT;
+				}
+				// show result in DG
+				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( true ), false );
+			}
+
+			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' dialogue. 
+			public function winGame( user:Boolean = true):void{
+				sBottomBar.gameOverMVC.visible = true;
+				sBottomBar.gameOverMVC.gotoAndPlay("show");
+				if(user)
+					sBottomBar.gameOverMVC.userBotMVC.gotoAndStop("user");
+				else
+					sBottomBar.gameOverMVC.userBotMVC.gotoAndStop("bot");
+			}
+			
+			// Start a new game.  Each game has multiple rounds
+			public function newGame():void {
+				++mGameSerialNum;
+				isInGame = true;
+				
+				mGameLevel = 1; //TO_DO: add a game level picker and change this value accordingly
+				sDataCannon.speed = .25;	// reset the speed at the start of each game?
+				
+				if(!sUserPlayer.isShowing)
+					sUserPlayer.show(); // the players start each game hidden. Show them.
+				if(!sBotPlayer.isShowing)
+					sBotPlayer.show();
+				sControls.show();
+				
+				newRound();
+				
+			}
+
+			// called when 'end game' btn is clicked. Clears the stage, and resets the scores.
+			public function endGame():void{
+				isInGame = false;
+				sUserPlayer.reset();
+				sBotPlayer.reset();
+				sBottomBar.reset();
+				sDataCannon.stopCannon();
+				
+				if(!sUserPlayer.isShowing)
+					sUserPlayer.show();
+				
+				if(sBotPlayer.isShowing)
+					sBotPlayer.hide();
+				if(sControls.isShowing)
+					sControls.hide();
+				if(sResults.isShowing)
+					sResults.hide();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<!-- the game's background -->
+	<s:BorderContainer id="background" y="36" width="575" height="255">
+		<s:backgroundFill>
+			<s:RadialGradient scaleX="1000" scaleY="1000">
+				<s:GradientEntry color="0xE5C1D1"/>
+				<s:GradientEntry color="0x8C7A8B"/>
+			</s:RadialGradient>
+		</s:backgroundFill>
+	</s:BorderContainer>
+	
+	<!-- the UI component that holds all the game's SWC's -->
+	<mx:UIComponent id="gameContainer" x="0" y="0"/>
+	
+	<s:Label id="mVersionLabel" x="460" y="280" color="0x000000" initialize="mVersionLabel.text=kVersion" textAlign="right" verticalAlign="bottom"/>
+
+	<!-- Error message for bad version of flash player -->	
+	<s:BorderContainer id="BrickWall" visible="false" x="0" y="0"
+					   width="575"
+					   height="327" depth="999">
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0x13B3C2"/>
+				<s:GradientEntry color="0x1E5B77"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		
+		<s:Label id="topLabelError" x="0" y="30" width="575"
+				 color="0xffffff" fontFamily="Georgia" fontSize="20" fontWeight="bold"
+				 text="You are using an outdated version of Adobe Flash Player." textAlign="center"/>
+		<s:Label id="midLabelError" x="0" y="100" width="575"
+				 color="0xffffff" fontFamily="Georgia" fontSize="15"
+				 text="{'Inference Games requires Flash Player '+ kMinimumRequiredVersion +' or later.'}"
+				 textAlign="center"/>
+		<s:Label id="midLabel2Error" x="0" y="120" width="575"
+				 color="0xffffff" fontFamily="Georgia" fontSize="15"
+				 text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}"
+				 textAlign="center"/>
+		<s:Button id="upgradeButton" x="{(575-350)/2}" y="190" width="350"
+				  height="50" fontFamily="Georgia" label="Upgrade Flash Player" click="VersionChecker.openAdobeWebsite()"
+				  enabled="true" fontSize="25"/>
+		<s:Button id="ignoreButton" x="{(575-350)/2}" y="250" width="350"
+				  height="30" fontFamily="Georgia" label="Ignore Warning" click="startUp()" enabled="true" fontSize="12"/>
+		
+	</s:BorderContainer>
+
+</s:Application>

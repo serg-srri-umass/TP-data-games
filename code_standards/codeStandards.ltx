@@ -1,0 +1,107 @@
+\documentclass{article}
+
+\begin{document}
+\title{SRRI Code Standards} \date{June 28 2013}
+\maketitle
+
+\begin{abstract}
+  This document outlines the standards decided upon for coding the
+  SRRI Datagames project. If you update this document at any time, be
+  sure to change the 'date' tag to the date of your update.
+\end{abstract}
+
+
+\section{Variable Definitions}
+
+\begin{itemize}
+\item Variable defintions should be prefixed with either m, or k,
+  depending on whether they represent a variable, or constant
+  respectively.
+\item The prefix character should always be lowercase. Start each word
+  after that with uppercase.
+\item Variables should be named according to the value that they
+  represent. Look at other variables in document if you need help with
+  naming.
+\item Instance variables should be private.
+\end{itemize}
+
+
+\section{Function Definitions}
+
+\begin{itemize}
+\item The opening brace should be on the same line as the function
+  name.
+\item Functions are named in camel case, i.e. likeThisOneIsNamed.
+\end{itemize}
+
+
+\section{Commenting}
+
+\begin{itemize}
+\item Comments for a function should be written on the line above the
+  function definition. If the line ends up being very long, break it
+  into two lines around 70 characters.
+\item In-line comments may be added within function
+  definitions. Insert comments after the end of the line. If inline
+  comments end up too long, select them, and press CMD-i to block them
+  together.
+\item There are never enough comments. Program as literately as
+  possible.
+\end{itemize}
+
+
+\section{Packages}
+
+\begin{itemize}
+\item Packages will be named in all lowercase, and with the \_
+  character representing a space. Use of the default package is
+  prohibited.
+\item Each game will have a 'main' package containing the .MXML and
+  related source. This package will always be one word chosen based on
+  the game title.
+\item If you have created several classes that together serve a
+  purpose, create a package for them inside of the main package.
+\end{itemize}
+
+
+\section{Whitespace}
+
+\begin{itemize}
+\item Leave one blank line between each method/function that you
+  define. If there is a comment above a function, leave a line between
+  the end of your function, and the comment.
+\item Generally, leave one space character between parameters. This
+  includes arguments to a function/method, as well as anywhere you
+  have a comma between items in a list. i.e.
+\begin{verbatim}
+private var mArrayTest:Array = [1, 2, 3, 4];
+
+private function testFunc(arg1:int, arg2:int):void{
+    ...
+}
+\end{verbatim}
+\end{itemize}
+
+
+\section{Code Example}
+
+\begin{verbatim}
+package test_package{
+    
+    private var mTestVar:Number = 1.618;
+    
+    public static const kTestConst:Number = 1.618;
+    
+    //Here is the comment explaining what testFunc does
+    private function testFunc(arg1:String, arg2:Number):void{
+        ...
+    }
+    
+    //Here is the comment explaining what testFunc does
+    private function testFunc(arg1:String, arg2:Number):void{
+        ... //here is an example of an inline comment
+    }
+}
+\end{verbatim}
+
+\end{document}
