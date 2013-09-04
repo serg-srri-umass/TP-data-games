@@ -213,6 +213,10 @@
 					sUserPlayer.show(); 
 				if(!sBotPlayer.isShowing)
 					sBotPlayer.show();
+				
+				// if one of the player's has a reaction face, reset it.
+				sUserPlayer.emotion = UserPlayerSWC.NEUTRAL;
+				sBotPlayer.emotion = BotPlayerSWC.NEUTRAL;
 			}			
 			
 			// hit the buzzer, to bring up the recap.
@@ -279,7 +283,7 @@
 				if(sResults.isShowing)
 					sResults.hide();
 			}
-			
+						
 		]]>
 	</fx:Script>
 	

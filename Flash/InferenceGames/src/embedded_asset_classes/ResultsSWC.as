@@ -58,6 +58,8 @@ package embedded_asset_classes
 			setBounds( (Round.currentRound.guess - Round.currentRound.interval), (Round.currentRound.guess + Round.currentRound.interval));
 			setAccuracy( Round.currentRound.accuracy);
 			this.setWon(Round.currentRound.isWon);
+			Round.currentRound.lastBuzzer.emotion = Round.currentRound.isWon ? BotPlayerSWC.HAPPY : BotPlayerSWC.SAD;
+
 			_isShowing = true;
 		}
 		

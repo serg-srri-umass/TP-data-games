@@ -12,7 +12,9 @@ package embedded_asset_classes
 		// ----------------------
 		// --- STATIC SECTION ---
 		// ----------------------
-		
+		public static const NEUTRAL:String = "neutral";
+		public static const HAPPY:String = "happy";
+		public static const SAD:String = "sad";
 		private static  var SINGLETON_BOT:BotPlayerSWC;
 		
 		public static function get BOT():BotPlayerSWC{
@@ -34,6 +36,7 @@ package embedded_asset_classes
 				throw new Error("BotSWC has already been created.");
 			
 			gotoAndStop("isHidden");
+			avatarMVC.stop();
 		}
 		
 		public function hide( triggerEvent:Event = null):void{
@@ -74,12 +77,26 @@ package embedded_asset_classes
 			scoreMVC.capMVC.gotoAndStop(1);
 			_score = 0;
 		}
+
+		// set the avatar drawing's face, based on whether he/she guessed correctly or incorrectly.
+		public function set emotion(emotion:String):void{
+			if(emotion != NEUTRAL && emotion != HAPPY && emotion != SAD)
+				throw new Error("invalid emotion. Please use NEUTRAL, HAPPY, or SAD");
+			if(_currentEmotion != NEUTRAL && emotion != NEUTRAL)
+				throw new Error("face must be NEUTRAL to set this emotion.");
+			
+			if(emotion != _currentEmotion){
+				avatarMVC.gotoAndPlay ( _currentEmotion + "_to_" + emotion);
+				_currentEmotion = emotion;
+			}
+		}
+		
 		
 		// -----------------------
 		// --- PRIVATE SECTION ---
 		// -----------------------
-		
 		private var _isShowing:Boolean = false;
 		private var _score:int = 0;
+		private var _currentEmotion:String = NEUTRAL;
 	}
 }

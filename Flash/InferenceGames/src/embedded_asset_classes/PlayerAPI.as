@@ -1,6 +1,6 @@
 /* STRUCTURE:
 - this [labels: "hide", "isHidden", "show", "isShowing"]
-	|- avatarMVC
+	|- avatarMVC [labels: "neutral" "neutral_to_happy", "happy", "happy_to_neutral", "neutral_to_sad", "sad", "sad_to_neutral"]
 	|- scoreMVC
 		|- point1MVC [labels: "isHidden", "show", "isShowing"]
 		|- point2MVC [labels: "isHidden", "show", "isShowing"]
@@ -20,5 +20,7 @@ package embedded_asset_classes
 		function get score():int;
 		function get otherPlayer():PlayerAPI; // returns the opponent's player API.
 		function reset():void; // resets the player to their starting state.
+		
+		function set emotion(emotion:String):void;
 	}
 }
