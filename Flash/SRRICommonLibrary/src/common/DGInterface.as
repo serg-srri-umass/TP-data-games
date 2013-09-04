@@ -16,6 +16,7 @@ package common
 		private var mDebugNumCases:int = 0;			// count number of game-level cases for debugging only
 		private	var	mParentCaseID:int = -2;			// parent (game-level) case ID for DG; -2 means DG data not yet initialized, -1 means that no game case is open, 0+ is valid ID
 
+		public static const kCloseCase:Boolean = true;		// 3rd parameter to updateOrCloseGameCase()
 		
 		// constructor
 		public function DGInterface( inDebugMode:Boolean )

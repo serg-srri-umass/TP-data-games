@@ -68,7 +68,7 @@ package
 			//calculating 'N' to guess at if you want to guess with confidence interval implied by 'z'. 
 			_guessNumSamples = Math.round((Math.pow(((kExpertCallProbs[probIndex].z * standardDeviation)/interval), 2)));
 			
-			trace("confidence interval perc: " + _confidenceIntervalPercent + "expert num samples: " + _guessNumSamples);
+			trace("confidence interval %: " + _confidenceIntervalPercent + ", expert will guess at N samples: " + _guessNumSamples);
 		}
 
 		// this method is called whenever data is added. The expert considers whether or not he wants to guess, and may guess.
