@@ -7,5 +7,6 @@ package embedded_asset_classes
 	{
 		function show( triggerEvent:Event = null):void;
 		function hide( triggerEvent:Event = null):void;
+		function get isShowing():Boolean;
 	}
 }

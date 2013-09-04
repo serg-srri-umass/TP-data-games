@@ -1,5 +1,5 @@
 /* STRUCTURE:
-- this [labels: "hide", "show"]
+- this [labels: "hide", "isHidden", "show", "isShowing"]
 	|- avatarMVC
 	|- scoreMVC
 		|- point1MVC [labels: "isHidden", "show", "isShowing"]
@@ -18,5 +18,7 @@ package embedded_asset_classes
 	{
 		function earnPoint():void;
 		function get score():int;
+		function get otherPlayer():PlayerAPI; // returns the opponent's player API.
+		function reset():void; // resets the player to their starting state.
 	}
 }

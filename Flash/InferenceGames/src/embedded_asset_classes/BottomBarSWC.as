@@ -5,7 +5,10 @@
 - this
 	|- levelNameTxt
 	|- nextRoundBtn
-	|- endGameBtn
+	|- endGameBtn [toggle button, with 2 looks "endGame" "newGame"]
+	|
+	|- gameOverMVC [labels: "hide", "isHidden", "show", "isShowing"]
+		|- userBotMVC [labels: "user", "bot"] 
 */
 
 package embedded_asset_classes
@@ -38,7 +41,9 @@ package embedded_asset_classes
 				throw new Error("BottomBarSWC has already been created.");
 			
 			disableNextRoundBtn(); // by default, the next round button is not visible. 
-			nextRoundBtn.addEventListener(MouseEvent.CLICK, onPressNextRoundBtn); // handler for when the next round button is clicked.
+			newEndGameBtn.setClickFunctions(onPressEndGame, onPressNewGame);
+			
+			nextRoundBtn.addEventListener(MouseEvent.MOUSE_UP, onPressNextRoundBtn); // handler for when the next round button is clicked.
 		}
 		
 		public function enableNextRoundBtn():void{
@@ -49,6 +54,14 @@ package embedded_asset_classes
 		public function disableNextRoundBtn():void{
 			nextRoundBtn.mouseEnabled = false;
 			nextRoundBtn.alpha = 0; // the next round button is made invisible instantly. 
+		}
+		
+		// call this to put the bottom bar back to its original position. Used on endgame.
+		public function reset():void{
+			nextRoundBtn.removeEventListener( Event.ENTER_FRAME, animateNextFrameBtn);
+			disableNextRoundBtn();
+			if( gameOverMVC.visible)
+				gameOverMVC.gotoAndPlay("hide");
 		}
 		
 		// -------------------------
@@ -67,6 +80,16 @@ package embedded_asset_classes
 			if(nextRoundBtn.alpha >= 1){
 				nextRoundBtn.removeEventListener( Event.ENTER_FRAME, animateNextFrameBtn);
 			}
+		}
+		
+		private function onPressEndGame( e:MouseEvent):void{
+			newEndGameBtn.look = 1; // "new game"
+			InferenceGames.instance.endGame();
+		}
+		
+		private function onPressNewGame( e:MouseEvent):void{
+			newEndGameBtn.look = 0; // "end game"
+			InferenceGames.instance.newGame();
 		}
 	}
 }

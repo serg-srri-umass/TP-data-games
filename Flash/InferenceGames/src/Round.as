@@ -10,6 +10,8 @@ package
 	import embedded_asset_classes.PlayerAPI;
 	import embedded_asset_classes.UserPlayerSWC;
 	
+	import flash.utils.getTimer;
+	
 	public class Round
 	{
 		// ----------------------
@@ -17,11 +19,6 @@ package
 		// ----------------------
 		
 		public static const WINNING_SCORE:int = 6; 	// how many points a player needs to win the game.
-		public static const WIN_POINTS:int = 1; 	// how many points you get for guessing correctly.
-		public static const MISS_POINTS:int = 2; 	// how many points the opponent gets when you miss.
-
-		public static const IS_PLAYER:Boolean = true;
-		public static const IS_BOT:Boolean = false;
 		
 		public static var currentRound:Round; // the round object we're currently playing.
 		
@@ -48,12 +45,10 @@ package
 		
 		private var _guess:Number = 0;	// the auto-generated guess, based on the sample size.
 										// currently, the user & the bot use the auto-generated guess.
-										
 		private var _accuracy:int; 		// the chances of guessing correctly at the current sample size.
 		
 		private var _isWon:Boolean = false; //whether or not this round has been won, calculated when we call for the results string
-		
-		public var lastBuzzer:PlayerAPI; // the player who buzzed in this round.
+		private var _lastBuzzer:PlayerAPI; // the player who buzzed in this round.
 		
 		// constructor
 		public function Round( whichLevel:int ) {
@@ -68,32 +63,41 @@ package
 			_samples	= new Array;	// forget about old samples
 			_sampleMedian = 0;
 			
+			trace("Median: ", _median);
+			
 			ControlsSWC.CONTROLS.interval = _interval; // update the GUI.
 			ControlsSWC.CONTROLS.IQR = _IQR; // update the GUI.
-			ControlsSWC.CONTROLS.currentSampleMedian = 0;
 			
 			ExpertAI.newRound( MathUtilities.IQR_to_SD(_IQR), _interval); // prepare the AI for the new round.
 		}
 		
 		// a point of data has been added.
-		public function addData( value:Number = 0):void {
+		public function addData():void {
 			
 			// generate random data value; note that mean and median are interchangable for an symmetrical normal curve.
-			value = InferenceGames.instance.randomizer.normalWithMeanIQR( _median, _IQR );
+			var value:int = InferenceGames.instance.randomizer.normalWithMeanIQR( _median, _IQR );
 			_samples.push( value );
 			_sampleMedian = MathUtilities.medianOfNumericArray( _samples ); // warning: _samples is sorted at this point.
+						
+			// push this point of data into an array that stores all data not yet evaluated.
+			_dataArray.push( [_roundID, value ]);
 			
-			// based on the data so far, calculate the best guess.			
-			ControlsSWC.CONTROLS.currentSampleMedian = calculateGuess(); 
-			_guess = calculateGuess();
-			_accuracy = calculateAccuracy();
-			trace( "count: ", numDataSoFar, " accuracy: ", _accuracy);
-			
-			InferenceGames.instance.sendEventData( [[ _roundID, value ]] );
-			
-			if(  _samples.length >= ExpertAI.guessNumSamples ){		// when the sample N goes above the expert's guessN, he guesses.
-				InferenceGames.instance.hitBuzzer( IS_BOT);
+			if(getTimer() - lastSendTime > SEND_TIME){
+				lastSendTime = getTimer();
+				InferenceGames.instance.sendEventData ( _dataArray );
+				_dataArray = new Array();
+				
+				_accuracy = calculateAccuracy();
+				ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
 			}
+		}
+		
+		public function get lastBuzzer():PlayerAPI{
+			return _lastBuzzer;
+		}
+		
+		public function set lastBuzzer(player:PlayerAPI):void{
+			_lastBuzzer = player;
 		}
 		
 		public function get roundID():int {
@@ -102,6 +106,10 @@ package
 		
 		public function get numDataSoFar():int {	// TO-DO: rename to numSamplesSoFar()
 			return _samples.length;
+		}
+		
+		public function get sampleMedian():Number{
+			return _sampleMedian;
 		}
 		
 		public function get interval():Number {
@@ -117,6 +125,10 @@ package
 			return _guess;
 		}
 		
+		public function set guess( arg:Number):void{
+			_guess = arg;
+		}
+		
 		// get the accuracy of the current guess, based on the sample size:
 		public function get accuracy():Number {
 			return _accuracy;
@@ -128,8 +140,8 @@ package
 		
 		// true = win, false = lose
 		public function calculateWinLose():void{
-			// checking to see if the  game has been won, regardless of who stopped the clock
-			if(_sampleMedian >= (_median-_interval)  && _sampleMedian <= (_median + _interval)){
+			// checking to see if the  round has been won, regardless of who stopped the clock
+			if(_guess >= (_median-_interval)  && _guess <= (_median + _interval)){
 				_isWon = true;
 			}else{
 				_isWon = false; 
@@ -141,23 +153,38 @@ package
 			calculateWinLose();
 			// returning results string based on win/loss, and who last hit buzzer
 			if( this.lastBuzzer == UserPlayerSWC.PLAYER ){
-				return(_isWon ? "You Won" : "You Lost"); 
+				return(_isWon ? "You were correct" : "You were incorrect"); 
 			} else if( this.lastBuzzer == BotPlayerSWC.BOT ){
-				return(_isWon ? "Expert Won" : "Expert Lost" );
+				return(_isWon ? "Expert was correct" : "Expert was incorrect" );
 			} else {
 				return("the lastBuzzer variable is not set to the player, or the bot");
 			}
+		}
+		
+		// Give points to the winner of the current round. 
+		// This is called from the results screen, when it finishes animating.
+		public function handlePoints():void{
+			if(isWon){
+				lastBuzzer.earnPoint(); // if the last buzzer was correct, he or she earns a point.
+			} else {
+				lastBuzzer.otherPlayer.earnPoint(); // otherwise, the opponent earns 2 points.
+				lastBuzzer.otherPlayer.earnPoint();
+			}
+		}
+		
+		// auto-generate a guess based on the median of the current sample.
+		public function calculateGuess():void {
+			_guess = _sampleMedian; // Take the median of the data.
 		}
 		
 		// -----------------------
 		// --- PRIVATE SECTION ---
 		// -----------------------
 		
-		// auto-generate a guess based on the median of the current sample.
-		private function calculateGuess():Number {
-			return _sampleMedian; // Take the median of the data.
-		}
-		
+		private var _dataArray:Array = new Array(); // this array holds all the data that hasn't yet been pushed/evaluated.
+		private var lastSendTime:Number = 0; // the time stamp of the last sent data point.
+		private const SEND_TIME:int = 150; // how many miliseconds between basket emptyings.
+																		// Whenever it ticks, the basket is emptied, and data is pushed to DG/analyzed by the expert.
 		// generates an accuracy %, based on the sample size.
 		private function calculateAccuracy():Number {
 			return MathUtilities.calculateAreaUnderBellCurve( interval * 2, numDataSoFar, MathUtilities.IQR_to_SD(IQR)) * 100;

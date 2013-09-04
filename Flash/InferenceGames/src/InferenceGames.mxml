@@ -32,7 +32,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.08.28";
+			private static const kVersion:String = "v.2013.08.30";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			
@@ -51,6 +51,7 @@
 			
 			public static var instance:InferenceGames = null;
 			public var randomizer:ParkMiller = null;
+			public var isInGame:Boolean = false; // whether there is a game currently going on.
 			
 			// this method ensures that the flash player is a recent enough version to work.
 			private function testFlashPlayer():void {
@@ -76,13 +77,38 @@
 				newGame();
 			}
 			
-			// Start a new game.  Each game has multiple rounds
-			private function newGame():void {
-				++mGameSerialNum;
-				mGameLevel = 1; //TO_DO: add a game level picker and change this value accordingly
-				sDataCannon.speed = .25;	// reset the speed at the start of each game?
-				newRound();
+			private function initVisualElements():void{	
+				staticStage = systemManager.stage;
+				
+				sControls = new ControlsSWC();
+				gameContainer.addChild(sControls);
+				sControls.x = 293.1;
+				sControls.y = 173.4;
+				
+				sResults = new ResultsSWC();
+				gameContainer.addChild(sResults);
+				sResults.x = 286.85;
+				sResults.y = 163.5;
+		
+				sUserPlayer = new UserPlayerSWC();
+				sBotPlayer = new BotPlayerSWC();
+				gameContainer.addChild(sUserPlayer);
+				gameContainer.addChild(sBotPlayer);
+				sBotPlayer.x = 575;
+				
+				sBottomBar = new BottomBarSWC();
+				gameContainer.addChild(sBottomBar);
+				sBottomBar.x = 287.55;
+				sBottomBar.y = 324.95;
+				sBottomBar.gameOverMVC.visible = false; // hide the dialoge that is win/lose.
+
+				sDataCannon = new DataCannonSWC();
+				gameContainer.addChild(sDataCannon);
 			}
+			
+			// ------------------
+			// --- DG SECTION ---
+			// ------------------
 			
 			// Send the Game-level and Event-level structure to DG, if connected to DG.  
 			// 		The collections are the tables of cases and attributes.
@@ -149,36 +175,6 @@
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
 			}
 			
-			private function initVisualElements():void{	
-				staticStage = systemManager.stage;
-				
-				sControls = new ControlsSWC();
-				gameContainer.addChild(sControls);
-				sControls.x = 293.1;
-				sControls.y = 173.4;
-				
-				sResults = new ResultsSWC();
-				gameContainer.addChild(sResults);
-				sResults.x = 286.85;
-				sResults.y = 163.5;
-				
-				sBottomBar = new BottomBarSWC();
-				gameContainer.addChild(sBottomBar);
-				sBottomBar.x = 287.55;
-				sBottomBar.y = 324.95;
-				
-				sUserPlayer = new UserPlayerSWC();
-				sBotPlayer = new BotPlayerSWC();
-				gameContainer.addChild(sUserPlayer);
-				gameContainer.addChild(sBotPlayer);
-				sBotPlayer.x = 575;
-				
-				sDataCannon = new DataCannonSWC();
-				gameContainer.addChild(sDataCannon);
-				
-				sControls.show();
-			}
-			
 			// ----------------------
 			// --- PUBLIC SECTION ---
 			// ----------------------
@@ -202,6 +198,7 @@
 				// update DG: open and send a new game case for each round
 				var closeCase:Boolean = false;  
 				mDGInterface.openGameCase( kGamesCollectionName, getGameCaseValues( closeCase ));
+				mDGInterface.deletePreviousCaseData(); // deletes old graph data to reduce clutter
 			}
 			
 			// when the old round ends, we clean up here
@@ -211,20 +208,15 @@
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
 				
 				// if one of the two player avatars is hidden, show it.
-				if(Round.currentRound.lastBuzzer == UserPlayerSWC.PLAYER){
+				if(!sUserPlayer.isShowing)
+					sUserPlayer.show(); 
+				if(!sBotPlayer.isShowing)
 					sBotPlayer.show();
-					sUserPlayer.gotoAndStop(1);
-				}else if(Round.currentRound.lastBuzzer == BotPlayerSWC.BOT){
-					sUserPlayer.show();
-					sBotPlayer.gotoAndStop(1); // fixes a bug where the bot disappears.
-				}
 			}			
 			
 			// hit the buzzer, to bring up the recap.
 			public function hitBuzzer( user:Boolean = true):void{
 				sControls.hide();
-				sDataCannon.stopCannon();
-				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
 				
 				Round.currentRound.calculateWinLose();
 				if( user){
@@ -238,6 +230,53 @@
 				}
 				// show result in DG
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( true ), false );
+			}
+
+			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' dialogue. 
+			public function winGame( user:Boolean = true):void{
+				sBottomBar.gameOverMVC.visible = true;
+				sBottomBar.gameOverMVC.gotoAndPlay("show");
+				if(user)
+					sBottomBar.gameOverMVC.userBotMVC.gotoAndStop("user");
+				else
+					sBottomBar.gameOverMVC.userBotMVC.gotoAndStop("bot");
+			}
+			
+			// Start a new game.  Each game has multiple rounds
+			public function newGame():void {
+				++mGameSerialNum;
+				isInGame = true;
+				
+				mGameLevel = 1; //TO_DO: add a game level picker and change this value accordingly
+				sDataCannon.speed = .25;	// reset the speed at the start of each game?
+				
+				if(!sUserPlayer.isShowing)
+					sUserPlayer.show(); // the players start each game hidden. Show them.
+				if(!sBotPlayer.isShowing)
+					sBotPlayer.show();
+				sControls.show();
+				
+				newRound();
+				
+			}
+
+			// called when 'end game' btn is clicked. Clears the stage, and resets the scores.
+			public function endGame():void{
+				isInGame = false;
+				sUserPlayer.reset();
+				sBotPlayer.reset();
+				sBottomBar.reset();
+				sDataCannon.stopCannon();
+				
+				if(!sUserPlayer.isShowing)
+					sUserPlayer.show();
+				
+				if(sBotPlayer.isShowing)
+					sBotPlayer.hide();
+				if(sControls.isShowing)
+					sControls.hide();
+				if(sResults.isShowing)
+					sResults.hide();
 			}
 			
 		]]>
