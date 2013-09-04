@@ -88,7 +88,9 @@ package embedded_asset_classes
 
 		// when the results finish displaying, if the game is over, show the winner.
 		private function onCompleteShow( triggerEvent:AnimationEvent):void{
-			Round.currentRound.handlePoints();
+			Round.currentRound.handlePoints(); // update points for this game
+			InferenceGames.instance.closeRoundData(); // show final round data in DG
+			
 			if( UserPlayerSWC.PLAYER.score >= Round.WINNING_SCORE)
 				InferenceGames.instance.winGame(true);
 			else if( BotPlayerSWC.BOT.score >= Round.WINNING_SCORE)
