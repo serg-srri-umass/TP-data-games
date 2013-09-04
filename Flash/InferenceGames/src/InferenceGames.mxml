@@ -18,8 +18,13 @@
 			import common.ParkMiller;
 			import common.ScriptInterface;
 			import common.VersionChecker;
-			
-			import embedded_asset_classes.*;
+			import embedded_asset_classes.BotPlayerSWC;
+			import embedded_asset_classes.BottomBarSWC;
+			import embedded_asset_classes.ControlsSWC;
+			import embedded_asset_classes.DataCannonSWC;
+			import embedded_asset_classes.LevelSelectSWC;
+			import embedded_asset_classes.ResultsSWC;
+			import embedded_asset_classes.UserPlayerSWC;
 			
 			// ----------------------
 			// --- PRIVATE SECTION ---
@@ -27,7 +32,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.08.30";
+			private static const kVersion:String = "v.2013.09.03";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			
@@ -155,15 +160,15 @@
 			
 			// get the game case data to send to DG, 
 			// returned as an array for use by sendGameDataOpen(),..Update(),...Close().
-			public function getGameCaseValues( iIsGameOver:Boolean ):Array {
+			public function getGameCaseValues( iIsRoundOver:Boolean = false ):Array {
 				return [
 					mGameSerialNum, // Game number starting with 1 since launch of application.
 					Round.currentRound.roundID,
 					Round.currentRound.interval,
 					Round.currentRound.IQR,
 					Round.currentRound.numDataSoFar,
-					(iIsGameOver ? Round.currentRound.getResultsString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
-					(iIsGameOver ? Round.currentRound.accuracy : "") // if game is over, submit accuracy with current smaple size. Otherwise, submit the empty string. 
+					(iIsRoundOver ? Round.currentRound.getResultsString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
+					(iIsRoundOver ? Round.currentRound.accuracy : "") // if game is over, submit accuracy with current smaple size. Otherwise, submit the empty string. 
 				];
 			}
 
@@ -172,8 +177,7 @@
 			// 		caseValueArrays is an array of cases, and each case is a array of attribute values for that case (corresponding to the attributes previously sent)
 			public function sendEventData( caseValueArrays:Array ):void {
 				mDGInterface.createEventCases( kEventsCollectionName, caseValueArrays );
-				var closeCase:Boolean = false; // update number of events in game case
-				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
+				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
 			}
 			
 			// ----------------------
@@ -189,6 +193,7 @@
 				
 				// end the old round if there was one
 				if(Round.currentRound){
+					trace("OLD ROUND IS STILL OPEN...PLEASE CLOSE FIRST");
 					endOldRound();
 				}
 
@@ -197,16 +202,22 @@
 				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
 				
 				// update DG: open and send a new game case for each round
-				var closeCase:Boolean = false;  
-				mDGInterface.openGameCase( kGamesCollectionName, getGameCaseValues( closeCase ));
+				mDGInterface.sendLog( "newRound:"
+					+" round="+Round.currentRound.roundID
+					+" population-median="+Round.currentRound.populationMedian
+					+" expert-confidence-percent="+ExpertAI.confidenceIntervalPercent
+					+" expert-guess-N="+ExpertAI.guessNumSamples 
+				);
+				mDGInterface.openGameCase( kGamesCollectionName, getGameCaseValues());
 				mDGInterface.deletePreviousCaseData(); // deletes old graph data to reduce clutter
 			}
 			
 			// when the old round ends, we clean up here
 			public function endOldRound():void{
 				
-				var closeCase:Boolean = true; // update and close the old round data in DG
-				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( closeCase ), closeCase );
+				// update and close the old round data in DG
+				if( mDGInterface.isGameCaseOpen())
+					mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( DGInterface.kCloseCase ), DGInterface.kCloseCase );
 				
 				// if one of the two player avatars is hidden, show it.
 				if(!sUserPlayer.isShowing)
@@ -230,7 +241,8 @@
 					Round.currentRound.lastBuzzer = BotPlayerSWC.BOT;
 				}
 				// show result in DG
-				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( true ), false );
+				mDGInterface.sendLog( "hitBuzzer: Result="+Round.currentRound.getResultsString());
+				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
 			}
 
 			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' dialogue. 
@@ -257,12 +269,20 @@
 					sBotPlayer.show();
 				sControls.show();
 				
+				mDGInterface.sendLog( "newGame: GameNumber="+mGameSerialNum+" Level="+mGameLevel );
+				
 				newRound();
 				
 			}
 
 			// called when 'end game' btn is clicked. Clears the stage, and resets the scores.
 			public function endGame():void{
+				
+				// end the old round if there was one
+				if(Round.currentRound){
+					endOldRound();
+				}
+				
 				isInGame = false;
 				sUserPlayer.reset();
 				sBotPlayer.reset();
