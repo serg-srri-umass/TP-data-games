@@ -32,7 +32,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.09.04.b";
+			private static const kVersion:String = "v.2013.09.05";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			
@@ -110,6 +110,7 @@
 
 				sDataCannon = new DataCannonSWC();
 				gameContainer.addChild(sDataCannon);
+				sDataCannon.speed = .25;	// reset the speed at the start of each game?
 			}
 			
 			// ------------------
@@ -198,7 +199,7 @@
 				}
 
 				// create the new round
-				var thisRound:Round = new Round( LevelSelectSWC.instance.getSelectedLevelNumber()); // accessed via Round.currentRound from here forward.
+				var thisRound:Round = new Round( mGameLevel); // accessed via Round.currentRound from here forward.
 				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
 				
 				// update DG: open and send a new game case for each round
@@ -268,8 +269,7 @@
 				++mGameSerialNum;
 				isInGame = true;
 				
-				mGameLevel = 1; //TO_DO: add a game level picker and change this value accordingly
-				sDataCannon.speed = .25;	// reset the speed at the start of each game?
+				mGameLevel = LevelSelectSWC.instance.getSelectedLevelNumber();
 				
 				if(!sUserPlayer.isShowing)
 					sUserPlayer.show(); // the players start each game hidden. Show them.
@@ -289,7 +289,7 @@
 				// end the old round if there was one
 				if(Round.currentRound){
 					closeRoundData();
-					resetPlayers();
+					//resetPlayers();
 				}
 				
 				isInGame = false;

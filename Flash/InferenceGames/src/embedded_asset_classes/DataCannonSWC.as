@@ -29,6 +29,8 @@ package embedded_asset_classes
 		// --- STATIC SECTION ---
 		// ----------------------
 		
+		private static const MAX_DATA_SPEED:int = 50; // the fastest a data point can travel.
+		
 		private static const kPadding:int = 20; // how many px padding are on each side of the data cannon.
 		private static  var SINGLETON_DATA_CANNON:DataCannonSWC;
 		
@@ -45,6 +47,7 @@ package embedded_asset_classes
 		public function DataCannonSWC()
 		{
 			super();
+			DataPoint.maxSpeed = MAX_DATA_SPEED;
 			
 			if(!SINGLETON_DATA_CANNON)
 				SINGLETON_DATA_CANNON = this;

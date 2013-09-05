@@ -17,19 +17,29 @@ package
 		// ----------------------
 		// --- STATIC SECTION ---
 		// ----------------------
+		
+		private static var FASTEST_SPEED:Number; // the fastest a data point can travel in px/frame.		
 		private static const CANNON_WIDTH:Number = 555; // how wide the cannon movieclip is. 
-		private static const FASTEST_SPEED:Number = 50; // the fastest a data point can travel in px/frame.		
 		private static const PADDING:Number = 50;	// how many px each DataPoint starts apart.
 		
 		private static var _numDataPoints:int = 0; // how many DataPoints are on-screen.
 		private static var _paused:Boolean = false; // cannon is paused?
-		private static var _speed:Number = FASTEST_SPEED; // the speed that all data points travel at.
+		private static var _speed:Number; // the speed that all data points travel at.
 		private static var _popMovieClip:DataPops; // the movieclip that plays 'popping' animations when datapoints hit the edge of the cannon.
 		private static var _dataPointVector:Vector.<DataPoint> = new Vector.<DataPoint>();
 		
 		// sets the speed of data being fired out of the cannon.
 		public static function setSpeed( percent:Number):void{
 			_speed = FASTEST_SPEED * percent;
+		}
+		
+		public static function set maxSpeed( arg:Number):void{
+			FASTEST_SPEED = arg;
+			_speed = arg;
+		}
+		
+		public static function get maxSpeed():Number{
+			return FASTEST_SPEED;
 		}
 		
 		// stops/plays all currently active data points.
@@ -53,8 +63,9 @@ package
 		// remove all currently active data points.
 		public static function stop():void{
 			for( var i:int = 0; i < _dataPointVector.length; i++){
+				if(_dataPointVector[i].live)
+					_dataPointVector[i].gotoAndPlay("hide");
 				_dataPointVector[i].live = false;
-				_dataPointVector[i].gotoAndPlay("hide");
 			}
 		}
 		
