@@ -18,7 +18,7 @@ package embedded_asset_classes
 		
 		private static  var SINGLETON_PLAYER:UserPlayerSWC;
 		
-		public static function get PLAYER():UserPlayerSWC{
+		public static function get instance():UserPlayerSWC{
 			return SINGLETON_PLAYER;
 		}
 		
@@ -62,7 +62,7 @@ package embedded_asset_classes
 		}
 		
 		public function get otherPlayer():PlayerAPI{
-			return BotPlayerSWC.BOT;
+			return BotPlayerSWC.instance;
 		}
 		
 		public function get isShowing():Boolean{

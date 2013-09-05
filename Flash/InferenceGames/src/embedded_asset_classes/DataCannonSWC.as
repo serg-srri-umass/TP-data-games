@@ -32,7 +32,7 @@ package embedded_asset_classes
 		private static const kPadding:int = 20; // how many px padding are on each side of the data cannon.
 		private static  var SINGLETON_DATA_CANNON:DataCannonSWC;
 		
-		public static function get DATA_CANNON():DataCannonSWC{
+		public static function get instance():DataCannonSWC{
 			return SINGLETON_DATA_CANNON;
 		}
 		

@@ -24,7 +24,7 @@ package embedded_asset_classes
 		
 		private static  var SINGLETON_BOTTOM_BAR:BottomBarSWC;
 		
-		public static function get BOTTOM_BAR():BottomBarSWC{
+		public static function get instance():BottomBarSWC{
 			return SINGLETON_BOTTOM_BAR;
 		}
 		
@@ -70,7 +70,7 @@ package embedded_asset_classes
 		
 		private function onPressNextRoundBtn( e:MouseEvent):void{
 			disableNextRoundBtn();
-			ResultsSWC.RESULTS.hide(); 
+			ResultsSWC.instance.hide(); 
 			InferenceGames.instance.newRound(); // TO-DO: move this functionality to the main.
 		}
 		
@@ -90,7 +90,7 @@ package embedded_asset_classes
 		
 		private function onPressNewGame( e:MouseEvent):void{
 			newEndGameBtn.look = 0; // "end game"
-			LevelSelectSWC.LEVELSELECT.hide();
+			LevelSelectSWC.instance.hide();
 		    }
 		}
 	    }

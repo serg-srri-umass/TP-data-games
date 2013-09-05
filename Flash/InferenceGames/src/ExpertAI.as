@@ -74,7 +74,7 @@ package
 		// this method is called whenever data is added. The expert considers whether or not he wants to guess, and may guess.
 		public static function judgeData( sampleLength:int):void{
 			if(sampleLength >= guessNumSamples) {
-				ControlsSWC.CONTROLS.botStopFunction();
+				ControlsSWC.instance.botStopFunction();
 				//InferenceGames.instance.hitBuzzer ( false); // false means bot
 			}
 		}

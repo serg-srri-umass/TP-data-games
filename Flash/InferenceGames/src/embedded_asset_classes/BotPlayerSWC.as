@@ -17,7 +17,7 @@ package embedded_asset_classes
 		public static const SAD:String = "sad";
 		private static  var SINGLETON_BOT:BotPlayerSWC;
 		
-		public static function get BOT():BotPlayerSWC{
+		public static function get instance():BotPlayerSWC{
 			return SINGLETON_BOT;
 		}
 		
@@ -63,7 +63,7 @@ package embedded_asset_classes
 		}
 		
 		public function get otherPlayer():PlayerAPI{
-			return UserPlayerSWC.PLAYER;
+			return UserPlayerSWC.instance;
 		}
 		
 		public function get isShowing():Boolean{
@@ -72,8 +72,10 @@ package embedded_asset_classes
 		
 		// resets the score bar to its starting position. Called on endGame.
 		public function reset():void{
-			for( var i:int = 1; i <= score; i++)
-				scoreMVC["point" + i + "MVC"].gotoAndPlay("hide");
+			for( var i:int = 1; i <= score; i++){
+				if(scoreMVC["point" + i + "MVC"])
+					scoreMVC["point" + i + "MVC"].gotoAndPlay("hide");
+			}
 			scoreMVC.capMVC.gotoAndStop(1);
 			_score = 0;
 		}

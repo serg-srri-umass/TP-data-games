@@ -198,7 +198,7 @@
 				}
 
 				// create the new round
-				var thisRound:Round = new Round( mGameLevel ); // accessed via Round.currentRound from here forward.
+				var thisRound:Round = new Round( LevelSelectSWC.instance.getSelectedLevelNumber()); // accessed via Round.currentRound from here forward.
 				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
 				
 				// update DG: open and send a new game case for each round
@@ -219,11 +219,10 @@
 				// closing the game case prevents further updating of the Round data.
 				if( Round.currentRound && mDGInterface.isGameCaseOpen())
 					mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( DGInterface.kCloseCase ), DGInterface.kCloseCase );
-			}		
+			}
 			
 			// when the old round ends, we reset the players here.
 			public function resetPlayers():void{
-				
 				// if one of the two player avatars is hidden, show it.
 				if(!sUserPlayer.isShowing)
 					sUserPlayer.show(); 
@@ -243,11 +242,11 @@
 				if( user){
 					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "user");
 					sBotPlayer.hide();
-					Round.currentRound.lastBuzzer = UserPlayerSWC.PLAYER;
+					Round.currentRound.lastBuzzer = UserPlayerSWC.instance;
 				} else {
 					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
 					sUserPlayer.hide();
-					Round.currentRound.lastBuzzer = BotPlayerSWC.BOT;
+					Round.currentRound.lastBuzzer = BotPlayerSWC.instance;
 				}
 				// show result in DG
 				mDGInterface.sendLog( "hitBuzzer: Result='"+Round.currentRound.getResultsString()+"'");

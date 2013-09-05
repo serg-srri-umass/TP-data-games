@@ -5,25 +5,25 @@
 
 /* STRUCTURE:
 - this [labels: "hide", "show"]
-	|- stopControlsMVC [labels: "pressStop"]
-	|	|- stopStartBtn	[labels: "ready", "user", "bot"]
-	|	|	|- pauseBtn [looks: stop(0), start(1)]
-	|	|
-	|	|- botGuessMVC
-	|	|	|- guessTxt
-	|	|	|- okayMVC
-	|	|
-	|	|- userGuessMVC
-	|		|- guessTxt (input)
-	|		|- okayBtn
-	|		|- invalidNumberMVC
-	|
-	|- shieldsMVC
-		|- intervalMVC [labels: "singleDigit", "doubleDigit"]
-		|	|- intervalTxt
-		|
-		|- deviationMVC
-			|- deviationTxt
+|- stopControlsMVC [labels: "pressStop"]
+|	|- stopStartBtn	[labels: "ready", "user", "bot"]
+|	|	|- pauseBtn [looks: stop(0), start(1)]
+|	|
+|	|- botGuessMVC
+|	|	|- guessTxt
+|	|	|- okayMVC
+|	|
+|	|- userGuessMVC
+|		|- guessTxt (input)
+|		|- okayBtn
+|		|- invalidNumberMVC
+|
+|- shieldsMVC
+|- intervalMVC [labels: "singleDigit", "doubleDigit"]
+|	|- intervalTxt
+|
+|- deviationMVC
+|- deviationTxt
 */
 
 package embedded_asset_classes
@@ -41,14 +41,14 @@ package embedded_asset_classes
 		
 		private static var SINGLETON_CONTROLS:ControlsSWC;
 		
-		public static function get CONTROLS():controlsSWC{
+		public static function get instance():controlsSWC{
 			return SINGLETON_CONTROLS;
 		}
 		
 		// ----------------------
 		// --- PUBLIC SECTION ---
 		// ----------------------
-				
+		
 		// constructor
 		public function ControlsSWC(){
 			super();
@@ -88,7 +88,7 @@ package embedded_asset_classes
 			gotoAndPlay("hide");
 			_isShowing = false;
 		}
-				
+		
 		// sets the text on the IQR shield.
 		// note: this is just a display. Changing this does not change the calculations.
 		public function set IQR( param_iqr:Number):void{
@@ -114,7 +114,7 @@ package embedded_asset_classes
 		
 		// call this method when the bot hits the stop button.
 		public function botStopFunction():void{
-			DataCannonSWC.DATA_CANNON.stopCannon();
+			DataCannonSWC.instance.stopCannon();
 			stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
 			stopControlsMVC.gotoAndPlay("pressStop");
 			stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
@@ -138,7 +138,7 @@ package embedded_asset_classes
 		
 		// this method is called when the player hits the stop button. Bring up the guess prompt.
 		private function stopFunction( triggerEvent:MouseEvent):void{
-			DataCannonSWC.DATA_CANNON.stopCannon();
+			DataCannonSWC.instance.stopCannon();
 			stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
 			stopControlsMVC.gotoAndPlay("pressStop");
 			stopControlsMVC.stopStartBtn.gotoAndStop( "user");
@@ -156,18 +156,18 @@ package embedded_asset_classes
 		// called when the player hits the start button.
 		private function startFunction( triggerEvent:MouseEvent):void{
 			stopControlsMVC.stopStartBtn.pauseBtn.look = 0;
-			DataCannonSWC.DATA_CANNON.startCannon();			
+			DataCannonSWC.instance.startCannon();			
 		}
 		
 		// when the ControlsSWC finishes hiding itself, this method is called. It turns on the results.
 		private function onCompleteHide( triggerEvent:AnimationEvent):void{
 			visible = false;
 			if(InferenceGames.instance.isInGame){
-				ResultsSWC.RESULTS.show();
-			    }
-			    else{
-				LevelSelectSWC.LEVELSELECT.show();
-				}
+				ResultsSWC.instance.show();
+			}
+			else{
+				LevelSelectSWC.instance.show();
+			}
 		}
 		
 		// checks if the currently entered guess is valid. If it is, it submits it. If not, it prompts the user.
@@ -190,7 +190,7 @@ package embedded_asset_classes
 			
 			if( _botEntryTimer.currentCount == sampleMedianString.length)	// wait a full delay before hitting the okay button.
 				_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
-
+			
 			if( _botEntryTimer.currentCount > sampleMedianString.length){ // the last character has been added. Hit the okay button.
 				_botEntryTimer.stop();
 				stopControlsMVC.botGuessMVC.okayMVC.gotoAndStop(2);

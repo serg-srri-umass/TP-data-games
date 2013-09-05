@@ -65,8 +65,8 @@ package
 			
 			trace("Population Median for new round: ", _median);
 			
-			ControlsSWC.CONTROLS.interval = _interval; // update the GUI.
-			ControlsSWC.CONTROLS.IQR = _IQR; // update the GUI.
+			ControlsSWC.instance.interval = _interval; // update the GUI.
+			ControlsSWC.instance.IQR = _IQR; // update the GUI.
 			
 			ExpertAI.newRound( MathUtilities.IQR_to_SD(_IQR), _interval); // prepare the AI for the new round.
 		}
@@ -156,9 +156,9 @@ package
 		public function getResultsString():String {
 			calculateWinLose();
 			// returning results string based on win/loss, and who last hit buzzer
-			if( this.lastBuzzer == UserPlayerSWC.PLAYER ){
+			if( this.lastBuzzer == UserPlayerSWC.instance ){
 				return(_isWon ? "You were correct" : "You were incorrect"); 
-			} else if( this.lastBuzzer == BotPlayerSWC.BOT ){
+			} else if( this.lastBuzzer == BotPlayerSWC.instance ){
 				return(_isWon ? "Expert was correct" : "Expert was incorrect" );
 			} else {
 				return("the lastBuzzer variable is not set to the player, or the bot");

@@ -27,7 +27,7 @@ package embedded_asset_classes
 		
 		private static var SINGLETON_RESULTS:ResultsSWC;
 		
-		public static function get RESULTS():ResultsSWC{
+		public static function get instance():ResultsSWC{
 			return SINGLETON_RESULTS;
 		}
 
@@ -54,7 +54,7 @@ package embedded_asset_classes
 			visible = true;
 			gotoAndPlay("show");
 			
-			setActivePlayer(Round.currentRound.lastBuzzer == UserPlayerSWC.PLAYER)
+			setActivePlayer(Round.currentRound.lastBuzzer == UserPlayerSWC.instance)
 			setBounds( (Round.currentRound.guess - Round.currentRound.interval), (Round.currentRound.guess + Round.currentRound.interval));
 			setAccuracy( Round.currentRound.accuracy);
 			this.setWon(Round.currentRound.isWon);
@@ -81,9 +81,9 @@ package embedded_asset_classes
 		private function onCompleteHide( triggerEvent:AnimationEvent):void{
 			visible = false;
 			if(InferenceGames.instance.isInGame)
-				ControlsSWC.CONTROLS.show();
+				ControlsSWC.instance.show();
 				else 
-				LevelSelectSWC.LEVELSELECT.show();
+				LevelSelectSWC.instance.show();
 		}
 
 		// when the results finish displaying, if the game is over, show the winner.
@@ -91,12 +91,12 @@ package embedded_asset_classes
 			Round.currentRound.handlePoints(); // update points for this game
 			InferenceGames.instance.closeRoundData(); // show final round data in DG
 			
-			if( UserPlayerSWC.PLAYER.score >= Round.WINNING_SCORE)
+			if( UserPlayerSWC.instance.score >= Round.WINNING_SCORE)
 				InferenceGames.instance.winGame(true);
-			else if( BotPlayerSWC.BOT.score >= Round.WINNING_SCORE)
+			else if( BotPlayerSWC.instance.score >= Round.WINNING_SCORE)
 				InferenceGames.instance.winGame(false);
 			else
-				BottomBarSWC.BOTTOM_BAR.enableNextRoundBtn(); 			
+				BottomBarSWC.instance.enableNextRoundBtn();
 		}
 		
 		// sets which player buzzed in: either the user or the bot. 
