@@ -23,6 +23,15 @@ package
 			calculateGuessN( standardDeviation, interval);
 		}
 		
+		// debug. When true, the expert will always guess incorrectly.
+		public static function set DEBUG_alwaysWrong( arg:Boolean):void{
+			_alwaysWrong = arg;
+		}
+		
+		public static function get DEBUG_alwaysWrong ():Boolean{
+			return _alwaysWrong;
+		}
+		
 		// -----------------------
 		// --- PRIVATE SECTION ---
 		// -----------------------
@@ -41,6 +50,8 @@ package
 			{ confPerc: 89,	prob: 0.04,	z: 1.61	},
 			{ confPerc: 90,	prob: 0.04,	z: 1.64	}
 		];
+		
+		private static var _alwaysWrong:Boolean = false; // debug. When true, the expert will always guess incorrectly.
 		
 		private static var _confidenceIntervalPercent:int;	// the confidence interval percent at which the expert will guess.
 		private static var _guessNumSamples:int;	// number of samples at which expert will guess 
@@ -73,10 +84,8 @@ package
 
 		// this method is called whenever data is added. The expert considers whether or not he wants to guess, and may guess.
 		public static function judgeData( sampleLength:int):void{
-			if(sampleLength >= guessNumSamples) {
+			if(sampleLength >= guessNumSamples)
 				ControlsSWC.instance.botStopFunction();
-				//InferenceGames.instance.hitBuzzer ( false); // false means bot
-			}
 		}
 	}
 }

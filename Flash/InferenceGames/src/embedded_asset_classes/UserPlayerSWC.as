@@ -38,12 +38,12 @@ package embedded_asset_classes
 			avatarMVC.stop();
 		}
 		
-		public function hide( triggerEvent:Event = null):void{
+		public function hide( triggerEvent:* = null):void{
 			gotoAndPlay("hide");
 			_isShowing = false;
 		}
 		
-		public function show( triggerEvent:Event = null):void{
+		public function show( triggerEvent:* = null):void{
 			gotoAndPlay("show");
 			_isShowing = true;
 		}

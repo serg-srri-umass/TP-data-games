@@ -5,8 +5,8 @@ package embedded_asset_classes
 	
 	public interface ShowHideAPI
 	{
-		function show( triggerEvent:Event = null):void;
-		function hide( triggerEvent:Event = null):void;
+		function show( triggerEvent:* = null):void;
+		function hide( triggerEvent:* = null):void;
 		function get isShowing():Boolean;
 	}
 }
