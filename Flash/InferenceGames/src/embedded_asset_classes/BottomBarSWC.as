@@ -91,6 +91,6 @@ package embedded_asset_classes
 		private function onPressNewGame( e:MouseEvent):void{
 			newEndGameBtn.look = 0; // "end game"
 			LevelSelectSWC.instance.hide();
-		    }
 		}
-	    }
+	}
+}

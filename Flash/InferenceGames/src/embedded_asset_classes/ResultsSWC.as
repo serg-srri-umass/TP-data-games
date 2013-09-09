@@ -50,7 +50,7 @@ package embedded_asset_classes
 		}
 		
 		// starts the show animation, making this MovieClip visible.
-		public function show( e:Event = null):void{
+		public function show( triggerEvent:* = null):void{
 			visible = true;
 			gotoAndPlay("show");
 			
@@ -64,7 +64,7 @@ package embedded_asset_classes
 		}
 		
 		// starts the hide animation. When it finishes, this MovieClip becomes invisible.
-		public function hide( e:Event = null):void{
+		public function hide( triggerEvent:* = null):void{
 			gotoAndPlay("hide");
 			_isShowing = false;
 		}
@@ -92,9 +92,9 @@ package embedded_asset_classes
 			InferenceGames.instance.closeRoundData(); // show final round data in DG
 			
 			if( UserPlayerSWC.instance.score >= Round.WINNING_SCORE)
-				InferenceGames.instance.winGame(true);
+				InferenceGames.instance.winLoseGame(true);
 			else if( BotPlayerSWC.instance.score >= Round.WINNING_SCORE)
-				InferenceGames.instance.winGame(false);
+				InferenceGames.instance.winLoseGame(false);
 			else
 				BottomBarSWC.instance.enableNextRoundBtn();
 		}

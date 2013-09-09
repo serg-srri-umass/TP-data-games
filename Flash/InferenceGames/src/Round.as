@@ -17,9 +17,7 @@ package
 		// ----------------------
 		// --- STATIC SECTION ---
 		// ----------------------
-		
 		public static const WINNING_SCORE:int = 6; 	// how many points a player needs to win the game.
-		
 		public static var currentRound:Round; // the round object we're currently playing.
 		
 		public static const kLevelSettings:Array = [
@@ -178,13 +176,16 @@ package
 		
 		// auto-generate a guess based on the median of the current sample.
 		public function calculateGuess():void {
-			_guess = _sampleMedian; // Take the median of the data.
+			if( ExpertAI.DEBUG_alwaysWrong) {
+				_guess = -100; // if the debug code has made the expert always wrong, guess this.
+			} else {
+				_guess = _sampleMedian; // Take the median of the data.
+			}
 		}
 		
 		// -----------------------
 		// --- PRIVATE SECTION ---
 		// -----------------------
-		
 		private var _dataArray:Array = new Array(); // this array holds all the data that hasn't yet been pushed/evaluated.
 		private var lastSendTime:Number = 0; // the time stamp of the last sent data point.
 		private const SEND_TIME:int = 150; // how many miliseconds between basket emptyings.
