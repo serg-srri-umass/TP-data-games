@@ -122,7 +122,7 @@
 			private var mPiecesLong:uint			= 0;	// Number of cut pieces rejected as long.
 			private var mPiecesRemnant:uint			= 0;	// Number of cut pieces rejected as remnants.
 			private var mPlayersName:String			= "Player"; // Stores player's name.
-			private var mStartGameTimer:Timer       = new Timer(2791, 1);
+			private var mStartGameTimer:Timer       = new Timer(1850, 1);
 			
 			private var currentCutStartPoint:Number; // Holds the starting position for each cut.
 			private	var	parentCaseID:int = 0;
