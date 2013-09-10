@@ -193,7 +193,7 @@ package chainsaw{
 		public function onMouseDown(e:Event):void{
 			mouseIsDown = true;
 			if(mouseEnabled){
-				//trace("mouseDown");
+				trace("mouseDown");
 				if(mRevDownSound.isPlaying() && (!mRevUpSound.isPlaying() || mRevUpSound.getIsFadingOut())){
 					revDownToRevUpTrans();
 				}else if(mStartUpSound && mStartUpSound.isPlaying()){
@@ -208,7 +208,7 @@ package chainsaw{
 		public function onMouseUp(e:Event):void{
 			mouseIsDown = false; 
 			if(mouseEnabled){
-				//trace("mouseUp");
+				trace("mouseUp");
 				if(mRevUpSound.isPlaying() && (!mRevDownSound.isPlaying() || mRevDownSound.getIsFadingOut())){
 					revUpToRevDownTrans();
 				}else{
@@ -433,9 +433,13 @@ package chainsaw{
 		private function revUpToRevDownTrans():void{
 			//trace("revUpToRevDownTrans");
 			loopRunSound = false; 
-			mRunSound.fadeOut(revUpToRevDownTransFadeTime);
-			mIdleSound.fadeOut(revUpToRevDownTransFadeTime);
-			
+			if(mRunSound && mRunSound.isPlaying()){
+				mRunSound.fadeOut(revUpToRevDownTransFadeTime);
+			}
+			if(mIdleSound && mIdleSound.isPlaying()){
+				mIdleSound.fadeOut(revUpToRevDownTransFadeTime);
+			}
+
 			//to fade out all things that shouldn't be playing in case they are. checks to see 
 			//if they exist first. 
 			if(mRunSound2 && mRunSound2.isPlaying()){
@@ -446,7 +450,8 @@ package chainsaw{
 			}
 			mRevUpSound.fadeOut(revUpToRevDownTransFadeTime);
 			if(mRevDownSound.isPlaying()){
-				mRevDownSound.stop();
+				mRevDownSound.shutDown();
+				mRevDownSound = new AdvancedSound(new revDownSoundMP3 as Sound);
 			}
 			mRevDownSound.setStartPosition(mapPosition(mRevUpSound.getChannel().position, mRevUpSound.getLength(), mRevDownSound.getLength()));
 			mRevDownSound.doOnPercentPlayed(.92, revToIdleTrans);
@@ -469,7 +474,8 @@ package chainsaw{
 			}
 			mRevDownSound.fadeOut(revDownToRevUpTransFadeTime);
 			if(mRevUpSound.isPlaying()){
-				mRevUpSound.stop();
+				mRevUpSound.shutDown();
+				mRevUpSound = new AdvancedSound(new revUpSoundMP3 as Sound);
 			}
 			mRevUpSound.setStartPosition(mapPosition(mRevDownSound.getChannel().position, mRevDownSound.getLength(), mRevUpSound.getLength()));
 			mRevUpSound.doOnPercentPlayed(.92, revToRunTrans);

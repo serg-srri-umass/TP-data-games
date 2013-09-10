@@ -39,6 +39,7 @@ package chainsaw.sound{
 		public static var debug:SoundDebug = new SoundDebug(); //static instance of SoundDebug for all AdvancedSounds
 		
 		public static var nextSoundID:int = 0;
+		private var debugTimer:SafeTimer = new SafeTimer(46, 0); //for printing out things every frame
 
 
 		//constructor
@@ -54,6 +55,8 @@ package chainsaw.sound{
 			debug.addEntry(new AdvancedSoundState(name, soundID, _isPlaying, this.isFadingIn, this.isFadingOut));
 
 			checkSounds("AdvancedSound constructor ID "+soundID);
+			debugTimer.addEventListener(TimerEvent.TIMER, onEnterFrameHandler);
+			debugTimer.start();
 			
 			/*if(traceEveryFrame){
 				var timer:SafeTimer = new SafeTimer(46, 0);
@@ -77,6 +80,10 @@ package chainsaw.sound{
 				_channel.stop();
 			} 
 			
+			if(debugTimer){
+				debugTimer.clean();
+			}
+
 			this.sound = null;
 			this._channel = null;
 			this.fadeTimer = null;
@@ -136,9 +143,10 @@ package chainsaw.sound{
 		public function play(startTime:Number = 0, loops:int = 0, sndTransform:SoundTransform = null):SoundChannel{
 			if(_channel){
 				_channel.stop();
-				_channel = sound.play(startTime, loops, sndTransform);
 			}
-
+			
+			_channel = sound.play(startTime, loops, sndTransform);
+			
 			if(percentageCounter){
 				percentageCounter.reset();
 				percentageCounter.start();
@@ -154,10 +162,12 @@ package chainsaw.sound{
 		//stops & resets the sound
 		public function stop():SoundChannel{
 			if(_channel){
-			_channel.stop();	
+				_channel.stop();	
+				_channel = new SoundChannel();
 			}
 			if(percentageCounter){
 				percentageCounter.stop();
+				percentageCounter.reset();
 			}
 			_isPlaying = false;
 			if(debug.stateList[soundID]){
@@ -178,7 +188,9 @@ package chainsaw.sound{
 			}
 			//var date:Date = new Date(); UNUSED
 			
-			//trace("fadeOut ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
+			// if(_channel && sound){
+			// 	trace("fadeOut ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
+			// }
 			
 			if(duration < 1){
 				throw new Error("fade duration must be longer than 1 millisecond.");
@@ -262,6 +274,13 @@ package chainsaw.sound{
 		
 		private function onEnterFrameHandler(e:Event):void{
 			//trace("Name: " + sound.toString(), "Position: " + (_channel.position/sound.length)*100, "Volume: " + _volume);
+			// if(sound){
+			// 	if(sound.toString() == "[object SoundHandler_revUpSoundMP3]"){
+			// 		trace("revUp position: " + Math.round((_channel.position/sound.length) *100) + "%");
+			// 	}else if(sound.toString() == "[object SoundHandler_revDownSoundMP3]"){
+			// 		trace("revDown position: " + Math.round((_channel.position/sound.length) *100) + "%");
+			// 	}
+			// }
 		}
 			
 		/*public function removeDoOnPercentPlayed():void{
@@ -295,6 +314,7 @@ package chainsaw.sound{
 			
 			_volume = 0;
 			stop();
+			_channel = new SoundChannel();
 			this.isFadingOut = false;
 			if(debug.stateList[soundID]){
 				debug.stateList[soundID].setIsFadingOut(false);
@@ -326,8 +346,9 @@ package chainsaw.sound{
 				_channel.soundTransform = st;
 			}
 			this.isFadingIn = false;
+
 			if(debug.stateList[soundID]){
-			debug.stateList[soundID].setIsFadingIn(false);
+				debug.stateList[soundID].setIsFadingIn(false);
 			}
 		}
 		
