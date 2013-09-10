@@ -194,7 +194,7 @@ package chainsaw{
 			mouseIsDown = true;
 			if(mouseEnabled){
 				//trace("mouseDown");
-				if(mRevDownSound.isPlaying() && !mRevUpSound.isPlaying()){
+				if(mRevDownSound.isPlaying() && (!mRevUpSound.isPlaying() || mRevUpSound.getIsFadingOut())){
 					revDownToRevUpTrans();
 				}else if(mStartUpSound && mStartUpSound.isPlaying()){
 					startUpToRun();
@@ -209,7 +209,7 @@ package chainsaw{
 			mouseIsDown = false; 
 			if(mouseEnabled){
 				//trace("mouseUp");
-				if(mRevUpSound.isPlaying() && !mRevDownSound.isPlaying()){
+				if(mRevUpSound.isPlaying() && (!mRevDownSound.isPlaying() || mRevDownSound.getIsFadingOut())){
 					revUpToRevDownTrans();
 				}else{
 					runToIdle();
@@ -295,15 +295,19 @@ package chainsaw{
 		
 		private function idleToRun():void{
 			//trace("idleToRun");
-			loopIdleSound = false; 
-			mIdleSound.fadeOut(idleToRunFadeTime);
-			
-			//to fade out all things that shouldn't be playing in case they are. checks to see 
-			//if they exist first. 
-			if(mIdleSound2 && mIdleSound2.isPlaying()){
-				mIdleSound2.fadeOut(idleToRunFadeTime);
+			if(!mouseIsDown){
+				return;
+			}else{
+				loopIdleSound = false; 
+				mIdleSound.fadeOut(idleToRunFadeTime);
+				
+				//to fade out all things that shouldn't be playing in case they are. checks to see 
+				//if they exist first. 
+				if(mIdleSound2 && mIdleSound2.isPlaying()){
+					mIdleSound2.fadeOut(idleToRunFadeTime);
+				}
+				mRevUpSound.fadeIn(idleToRunFadeTime);
 			}
-			mRevUpSound.fadeIn(idleToRunFadeTime);
 		}
 		
 		//triggered when mouseDown is pressed during startUpSound 
@@ -366,10 +370,14 @@ package chainsaw{
 		//transition clip handling
 		private function revToRunTrans(e:Event = null):void{
 			if(!inLog){
-				//trace("revToRunTrans");
-				mRevUpSound.fadeOut(revToRunTransFadeTime);
-				mRunSound.fadeIn(revToRunTransFadeTime);
-				loopRunSound = true;
+				if(mRevDownSound.getIsFadingIn() || mRevDownSound.isPlaying()){
+					return;
+				}else{
+					//trace("revToRunTrans");
+					mRevUpSound.fadeOut(revToRunTransFadeTime);
+					mRunSound.fadeIn(revToRunTransFadeTime);
+					loopRunSound = true;
+				}
 			}else{
 				return;
 			}
@@ -437,6 +445,9 @@ package chainsaw{
 				mIdleSound2.fadeOut(revUpToRevDownTransFadeTime);
 			}
 			mRevUpSound.fadeOut(revUpToRevDownTransFadeTime);
+			if(mRevDownSound.isPlaying()){
+				mRevDownSound.stop();
+			}
 			mRevDownSound.setStartPosition(mapPosition(mRevUpSound.getChannel().position, mRevUpSound.getLength(), mRevDownSound.getLength()));
 			mRevDownSound.doOnPercentPlayed(.92, revToIdleTrans);
 			mRevDownSound.fadeIn(revUpToRevDownTransFadeTime, 0, mRevDownSound.getStartPosition());
@@ -457,6 +468,9 @@ package chainsaw{
 				mIdleSound2.fadeOut(revDownToRevUpTransFadeTime);
 			}
 			mRevDownSound.fadeOut(revDownToRevUpTransFadeTime);
+			if(mRevUpSound.isPlaying()){
+				mRevUpSound.stop();
+			}
 			mRevUpSound.setStartPosition(mapPosition(mRevDownSound.getChannel().position, mRevDownSound.getLength(), mRevUpSound.getLength()));
 			mRevUpSound.doOnPercentPlayed(.92, revToRunTrans);
 			mRevUpSound.fadeIn(revDownToRevUpTransFadeTime, 0, mRevUpSound.getStartPosition());
