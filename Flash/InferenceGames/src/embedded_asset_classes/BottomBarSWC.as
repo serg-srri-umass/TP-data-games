@@ -76,9 +76,11 @@ package embedded_asset_classes
 		
 		// this method causes the "next round button" to fade in.
 		private function animateNextFrameBtn( e:Event):void{
-			nextRoundBtn.alpha += 0.1;
-			if(nextRoundBtn.alpha >= 1){
-				nextRoundBtn.removeEventListener( Event.ENTER_FRAME, animateNextFrameBtn);
+			if(nextRoundBtn.mouseEnabled){
+				nextRoundBtn.alpha += 0.1;
+				if(nextRoundBtn.alpha >= 1){
+					nextRoundBtn.removeEventListener( Event.ENTER_FRAME, animateNextFrameBtn);
+				}
 			}
 		}
 		

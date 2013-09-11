@@ -71,7 +71,8 @@ package embedded_asset_classes
 		
 		// resets the score bar to its starting position. Called on endGame.
 		public function reset():void{
-			for( var i:int = 1; i <= score; i++)
+			var clearingScore:int = score < 6 ? score : 6;
+			for( var i:int = 1; i <= clearingScore; i++)
 				scoreMVC["point" + i + "MVC"].gotoAndPlay("hide");
 			scoreMVC.capMVC.gotoAndStop(1);
 			_score = 0;
