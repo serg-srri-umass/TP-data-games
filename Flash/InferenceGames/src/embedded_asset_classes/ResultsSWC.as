@@ -2,15 +2,12 @@
 
 /* STRUCTURE:
 - this [labels: "hide", "show"]
-	|- rangeMVC [labels: "user", "bot"]
-	|	|-lowBoundTxt
-	|	|-highBoundTxt
-	|	
 	|- accuracyMVC [labels: "user", "bot"]
 	|	|- accuracyTxt
 	|
 	|- verdictMVC [labels: "user", "bot"]
 		|- winLoseMVC [labels: "win", "lose"]
+			|- medianTxt
 */
 
 package embedded_asset_classes
@@ -55,8 +52,7 @@ package embedded_asset_classes
 			gotoAndPlay("show");
 			
 			setActivePlayer(Round.currentRound.lastBuzzer == UserPlayerSWC.instance)
-			setBounds( (Round.currentRound.guess - Round.currentRound.interval), (Round.currentRound.guess + Round.currentRound.interval));
-			setAccuracy( Round.currentRound.accuracy);
+			setAccuracy( Round.currentRound.accuracy);			
 			this.setWon(Round.currentRound.isWon);
 			Round.currentRound.lastBuzzer.emotion = Round.currentRound.isWon ? BotPlayerSWC.HAPPY : BotPlayerSWC.SAD;
 
@@ -103,22 +99,12 @@ package embedded_asset_classes
 		// this method must be called BEFORE the other setters!
 		public function setActivePlayer( user:Boolean):void{
 			if( user){
-				rangeMVC.gotoAndStop("user");
 				accuracyMVC.gotoAndStop("user");
 				verdictMVC.gotoAndStop("user");
 			} else {
-				rangeMVC.gotoAndStop("bot");
 				accuracyMVC.gotoAndStop("bot");
 				verdictMVC.gotoAndStop("bot");
 			}
-		}
-		
-		// sets the low and high bound of the range, in the display
-		public function setBounds( lowBound:Number, highBound:Number):void{
-			rangeMVC.lowBoundTxt.text = lowBound.toFixed(1);
-			rangeMVC.highBoundTxt.text = highBound.toFixed(1);
-			rangeMVC.lowBoundTxt.setTextFormat(TextFormatter.BOLD);
-			rangeMVC.highBoundTxt.setTextFormat(TextFormatter.BOLD);
 		}
 		
 		// sets the accuracy shield
@@ -132,10 +118,9 @@ package embedded_asset_classes
 		
 		// set the win/lose screen
 		public function setWon( won:Boolean):void{
-			if(won)
-				verdictMVC.winLoseMVC.gotoAndStop("win");
-			else
-				verdictMVC.winLoseMVC.gotoAndStop("lose");
+			var winLoseString:String = won ? "win" : "lose";
+			verdictMVC.winLoseMVC.gotoAndStop(winLoseString);
+			verdictMVC.winLoseMVC.medianTxt.text = Round.currentRound.populationMedian.toFixed(1);
 		}
 	}
 }

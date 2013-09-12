@@ -111,6 +111,8 @@ package embedded_asset_classes
 			inputTxt.setSelection( inputTxt.length, inputTxt.length);
 			inputTxt.text = "";
 			inputTxt.addEventListener(KeyboardEvent.KEY_UP, evaluateEnter);
+			
+			ControlsSWC.instance.stopControlsMVC.userGuessMVC.guessTxt.text = ""; // wipe out the input text, because they may have typed 'debug' into it.
 			println(""); // put a new line in the output window.
 		}
 		

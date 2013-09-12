@@ -2,9 +2,12 @@
 - this [labels: "hide", "show"]
 	|- levelsMVC 
 		|- level[n]Btn (n ranges from 1-6)
-			|- numberTxt
-			|- intervalTxt
-			|- iqrTxt
+			|- numberMVC
+			|	|- txt
+			|- intervalMVC
+			|	|- txt
+			|- iqrMVC
+				|- txt
 */
 
 package embedded_asset_classes{
@@ -49,7 +52,7 @@ package embedded_asset_classes{
 			_isShowing = true;
 			visible = true;
 			
-			BottomBarSWC.instance.levelNameTxt.text = "Choose A Level";
+			BottomBarSWC.instance.levelNameTxt.text = "Guess the Median |";
 			
 			// only enable unlocked levels: 
 			for( var i:int = 0; i < 6; i++){
@@ -89,9 +92,9 @@ package embedded_asset_classes{
 		private function establishRadioButtons():void{
 			_radioBtnGroup = new RadioBtnGroup( levelsMVC.level1Btn, levelsMVC.level2Btn, levelsMVC.level3Btn, levelsMVC.level4Btn, levelsMVC.level5Btn, levelsMVC.level6Btn );     
 			for( var i:int = 0; i < 6; i++){
-				levelsMVC["level" + (i+1) + "Btn"].numberTxt.text = i + 1;
-				levelsMVC["level" + (i+1) + "Btn"].intervalTxt.text = "±" + Round.kLevelSettings[i].interval;
-				levelsMVC["level" + (i+1) + "Btn"].iqrTxt.text = Round.kLevelSettings[i].iqr;
+				levelsMVC["level" + (i+1) + "Btn"].levelMVC.txt.text = i + 1;
+				levelsMVC["level" + (i+1) + "Btn"].intervalMVC.txt.text = "±" + Round.kLevelSettings[i].interval;
+				levelsMVC["level" + (i+1) + "Btn"].iqrMVC.txt.text = Round.kLevelSettings[i].iqr;
 			}
 		}
 	}
