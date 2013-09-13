@@ -116,17 +116,26 @@ package embedded_asset_classes
 			DataCannonSWC.instance.stopCannon();
 			UserPlayerSWC.instance.hide();
 			
-			stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
-			stopControlsMVC.gotoAndPlay("pressStop");
-			stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
-			stopControlsMVC.botGuessMVC.visible = true;	
-			stopControlsMVC.botGuessMVC.guessTxt.text = "";
-			stopControlsMVC.botGuessMVC.okayMVC.gotoAndStop(1);
-			
-			_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
-			_botEntryTimer.reset();
-			_botEntryTimer.start();
-			//InferenceGames.instance.hitBuzzer();
+			if( _autoGuess){
+				
+				Round.currentRound.guess = Round.currentRound.sampleMedian;
+				InferenceGames.instance.hitBuzzer( false);
+				//stopControlsMVC.userGuessMVC.okayBtn.mouseEnabled = false;
+				
+			} else {
+				
+				stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
+				stopControlsMVC.gotoAndPlay("pressStop");
+				stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
+				stopControlsMVC.botGuessMVC.visible = true;	
+				stopControlsMVC.botGuessMVC.guessTxt.text = "";
+				stopControlsMVC.botGuessMVC.okayMVC.gotoAndStop(1);
+				
+				_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
+				_botEntryTimer.reset();
+				_botEntryTimer.start();
+				//InferenceGames.instance.hitBuzzer();
+			}
 		}
 		
 		// set whether the game automatically guesses for you or not.

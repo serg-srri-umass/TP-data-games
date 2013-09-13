@@ -7,7 +7,8 @@
 	|
 	|- verdictMVC [labels: "user", "bot"]
 		|- winLoseMVC [labels: "win", "lose"]
-			|- medianTxt
+			|- popMedianMVC
+				|- medianTxt
 */
 
 package embedded_asset_classes
@@ -120,7 +121,13 @@ package embedded_asset_classes
 		public function setWon( won:Boolean):void{
 			var winLoseString:String = won ? "win" : "lose";
 			verdictMVC.winLoseMVC.gotoAndStop(winLoseString);
-			verdictMVC.winLoseMVC.medianTxt.text = Round.currentRound.populationMedian.toFixed(1);
+			
+			if( !ControlsSWC.instance.DEBUG_autoGuess){
+				verdictMVC.winLoseMVC.popMedianMVC.medianTxt.text = Round.currentRound.populationMedian.toFixed(1);
+				verdictMVC.winLoseMVC.popMedianMVC.visible = true;
+			} else {
+				verdictMVC.winLoseMVC.popMedianMVC.visible = false;
+			}
 		}
 	}
 }
