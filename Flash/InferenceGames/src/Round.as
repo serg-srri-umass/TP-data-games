@@ -22,7 +22,7 @@ package
 		
 		public static const kLevelSettings:Array = [
 			{ iqr:7,	/*sd:5.2,*/	interval:1	}, // level 1
-			{ iqr:7,	/*sd:5.2,*/		interval:4	},
+			{ iqr:12,	/*sd:5.2,*/		interval:4	},
 			{ iqr:7,	/*sd:5.2,*/		interval:2	},
 			{ iqr:14,	/*sd:10,*/		interval:2	},
 			{ iqr:27,	/*sd:20,*/		interval:2	},

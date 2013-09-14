@@ -96,8 +96,8 @@
 				
 				sResults = new ResultsSWC();
 				gameContainer.addChild(sResults);
-				sResults.x = 286.85;
-				sResults.y = 163.5;
+				sResults.x = 335;
+				sResults.y = 103;
 		
 				sUserPlayer = new UserPlayerSWC();
 				sBotPlayer = new BotPlayerSWC();
@@ -250,11 +250,9 @@
 				Round.currentRound.calculateWinLose();
 				if( user){
 					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "user");
-					sBotPlayer.hide();
 					Round.currentRound.lastBuzzer = UserPlayerSWC.instance;
 				} else {
 					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
-					sUserPlayer.hide();
 					Round.currentRound.lastBuzzer = BotPlayerSWC.instance;
 				}
 				// show result in DG
@@ -264,15 +262,9 @@
 
 			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' display
 			public function winLoseGame( user:Boolean = true):void{
-				sBottomBar.gameOverMVC.visible = true;
-				sBottomBar.gameOverMVC.gotoAndPlay("show");
-				if(user){
-					sBottomBar.gameOverMVC.userBotMVC.gotoAndStop("user");
-					if(mGameLevel == unlockedLevels) // if the player beats their current level, unlock the next.
-						unlockedLevels++;
-				}else{
-					sBottomBar.gameOverMVC.userBotMVC.gotoAndStop("bot");
-				}
+				sBottomBar.showWinner( user);
+				if(user && mGameLevel == unlockedLevels) // if the player beats their current level, unlock the next.
+					unlockedLevels++;
 			}
 			
 			// Start a new game.  Each game has multiple rounds
@@ -325,10 +317,11 @@
 	<!-- the game's background -->
 	<s:BorderContainer id="background" y="36" width="575" height="255">
 		<s:backgroundFill>
-			<s:RadialGradient scaleX="1000" scaleY="1000">
-				<s:GradientEntry color="0xE5C1D1"/>
+			 <!-- <s:RadialGradient scaleX="1000" scaleY="1000">
+				<s:GradientEntry color="0xcad7eb"/>
 				<s:GradientEntry color="0x8C7A8B"/>
-			</s:RadialGradient>
+			</s:RadialGradient> -->
+			<s:SolidColor color="0xbfcfe6"/>
 		</s:backgroundFill>
 	</s:BorderContainer>
 	

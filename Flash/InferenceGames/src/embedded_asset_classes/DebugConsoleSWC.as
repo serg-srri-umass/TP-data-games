@@ -21,12 +21,28 @@ package embedded_asset_classes
 		internal var c3:Command  = new Command( "G", "Guess for me", true, guessForMe);
 		internal var c4:Command  = new Command( "U", "Unlock all levels", false, unlockAllLevels);
 		internal var c5:Command = new Command( "M", "Show Population Median", false, showPopMedian);
+		internal var c6:Command = new Command("1", "Earn Point (User)", false, earnPointPlayer);
+		internal var c7:Command = new Command("2", "Earn Point (Bot)", false, earnPointBot);
 		
 		internal var LAST_COMMAND:Command  = new Command("Q", "Quit Console", false, hide);
 		
 		// -------------------------
 		// --- COMMAND FUNCTIONS ---
 		// -------------------------
+		
+		private function earnPointPlayer():void{
+			if(InferenceGames.instance.isInGame)
+				UserPlayerSWC.instance.earnPoint();
+			else
+				println( "Must be in game to use this command");
+		}
+		
+		private function earnPointBot():void{
+			if(InferenceGames.instance.isInGame)
+				BotPlayerSWC.instance.earnPoint();
+			else
+				println( "Must be in game to use this command");
+		}
 		
 		private function expertIsWrong( on:Boolean):void{
 			ExpertAI.DEBUG_alwaysWrong = on;
@@ -49,7 +65,11 @@ package embedded_asset_classes
 		}
 		
 		private function showPopMedian():void{
-			println("Population Median: " + Round.currentRound.populationMedian);
+			if(InferenceGames.instance.isInGame)
+				println("Population Median: " + Round.currentRound.populationMedian);
+			else
+				println( "Must be in game to use this command");
+			
 		}
 		
 		
@@ -91,6 +111,8 @@ package embedded_asset_classes
 			inputTxt.setSelection( inputTxt.length, inputTxt.length);
 			inputTxt.text = "";
 			inputTxt.addEventListener(KeyboardEvent.KEY_UP, evaluateEnter);
+			
+			ControlsSWC.instance.stopControlsMVC.userGuessMVC.guessTxt.text = ""; // wipe out the input text, because they may have typed 'debug' into it.
 			println(""); // put a new line in the output window.
 		}
 		
