@@ -164,6 +164,9 @@
 			//The Youtube video player for the intro video
 			private var videoPlayer:Object;
 			
+			//Stores the current volume when sound is muted
+			private var volume:Number = 50;
+			
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
 			// Converted from .ani format to .png.
@@ -202,9 +205,13 @@
 			[Bindable]
 			private var mHalfVolumeIcon:Class;
 			
-			[Embed(source="../embedded_assets/Volume_off.png")]
+			[Embed(source="../embedded_assets/Volume_low.png")]
 			[Bindable]
 			private var mLowVolumeIcon:Class;
+			
+			[Embed(source="../embedded_assets/Volume_off.png")]
+			[Bindable]
+			private var mMutedVolumeIcon:Class;
 			
 			// test flash player makes sure the player is meeting the minimum requirements.
 			private function testFlashPlayer():void
@@ -1392,7 +1399,9 @@
 				SoundMixer.soundTransform = st;
 				
 				//adjust the volume level icon
-				if(vol < 33){
+				if(vol == 0) {
+					mVolumeImage.source = mMutedVolumeIcon;
+				} else if(vol < 33) {
 					mVolumeImage.source = mLowVolumeIcon;
 				} else if(vol > 66) {
 					mVolumeImage.source = mVolumeIcon;
@@ -1402,6 +1411,22 @@
 				
 				if(videoPlayer != null){
 					videoPlayer.setVolume(vol); //Youtube player volume range is [0-100], same as the slider
+				}
+			}
+			
+			protected function toggleMute():void
+			{
+				var muted:Boolean = (SoundMixer.soundTransform.volume == 0);
+				if(muted)
+				{
+					updateVolume(volume);
+					mVolumeSlider.value = volume;
+				}
+				else
+				{
+					volume = SoundMixer.soundTransform.volume * 100;
+					updateVolume(0);
+					mVolumeSlider.value = 0;
 				}
 			}
 			
@@ -1443,7 +1468,7 @@
 		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput()" color="#7B9453" enabled="true"
 					 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
 		
-		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}"/>
+		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}" click="toggleMute()" />
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
 	</s:BorderContainer>
 	
