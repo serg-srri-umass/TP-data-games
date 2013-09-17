@@ -17,12 +17,12 @@
 		<![CDATA[
 			import chainsaw.GameLevelWindow;
 			import chainsaw.events.*;
+			import chainsaw.sound.SoundDebug;
 			
 			import com.adobe.serialization.json.JSON;
 			
 			import common.ScriptInterface;
 			import common.VersionChecker;
-			import chainsaw.sound.SoundDebug;
 			
 			import flash.media.Sound;
 			import flash.media.SoundMixer;
@@ -45,7 +45,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2013.09.10";
+			public static const VERSION:String   = "Chainsaw v.2013.09.13";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -161,6 +161,12 @@
 			//keeps track of whether mouse is down for mouse enabling and disabling purposes. 
 			private var mMouseIsDown:Boolean = false;
 			
+			//The Youtube video player for the intro video
+			private var videoPlayer:Object;
+			
+			//Stores the current volume when sound is muted
+			private var volume:Number = 50;
+			
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
 			// Converted from .ani format to .png.
@@ -199,9 +205,13 @@
 			[Bindable]
 			private var mHalfVolumeIcon:Class;
 			
-			[Embed(source="../embedded_assets/Volume_off.png")]
+			[Embed(source="../embedded_assets/Volume_low.png")]
 			[Bindable]
 			private var mLowVolumeIcon:Class;
+			
+			[Embed(source="../embedded_assets/Volume_off.png")]
+			[Bindable]
+			private var mMutedVolumeIcon:Class;
 			
 			// test flash player makes sure the player is meeting the minimum requirements.
 			private function testFlashPlayer():void
@@ -276,7 +286,27 @@
 				uic.addChild(mCountDownMVC);
 				mCountDownMVC.x = 745/2;
 				mCountDownMVC.y = 410/2;
-			} 
+				
+				//Embedded Youtube video
+				var videoID:String = "UjjfK0Mb3dg";
+				
+				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
+				Security.allowDomain("s.ytimg.com");
+				
+				var loader:Loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
+				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
+				//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
+				function onLoaderInit(event:Event):void {
+					videoHolder.addChild(loader);
+					loader.content.addEventListener("onReady", onPlayerReady);
+					function onPlayerReady(event:Event):void {
+						videoPlayer = loader.content;
+						videoPlayer.setSize(570, 360);
+						videoPlayer.loadVideoById(videoID);	
+					}
+				}
+			}
 
 			// Send the initial game data to TinkerPlots or DG.  The collections are the tables of cases and attributes.
 			private	function	sendCollectionData( ):void	{
@@ -1369,13 +1399,58 @@
 				SoundMixer.soundTransform = st;
 				
 				//adjust the volume level icon
-				if(vol < 33){
+				if(vol == 0) {
+					mVolumeImage.source = mMutedVolumeIcon;
+				} else if(vol < 33) {
 					mVolumeImage.source = mLowVolumeIcon;
 				} else if(vol > 66) {
 					mVolumeImage.source = mVolumeIcon;
 				} else {
 					mVolumeImage.source = mHalfVolumeIcon;
 				}
+				
+				if(videoPlayer != null){
+					videoPlayer.setVolume(vol); //Youtube player volume range is [0-100], same as the slider
+				}
+			}
+			
+			protected function toggleMute():void
+			{
+				var muted:Boolean = (SoundMixer.soundTransform.volume == 0);
+				if(muted)
+				{
+					updateVolume(volume);
+					mVolumeSlider.value = volume;
+				}
+				else
+				{
+					volume = SoundMixer.soundTransform.volume * 100;
+					updateVolume(0);
+					mVolumeSlider.value = 0;
+				}
+			}
+			
+			//Video functions
+			private function playPauseVideo():void
+			{
+				if(playPauseBtn.label == "Play") {
+					videoPlayer.playVideo();
+					playPauseBtn.label = "Pause";
+				} else {
+					videoPlayer.pauseVideo();
+					playPauseBtn.label = "Play";
+				}
+			}
+			private function replayVideo():void
+			{
+				videoPlayer.seekTo(0, true);
+				videoPlayer.playVideo();
+				playPauseBtn.label = "Pause";
+			}
+			private function skipVideo():void
+			{
+				videoPlayer.destroy();
+				StartupVideo.visible = false;
 			}
 		]]>
 	</fx:Script>
@@ -1393,7 +1468,7 @@
 		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput()" color="#7B9453" enabled="true"
 					 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
 		
-		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}"/>
+		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}" click="toggleMute()" />
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
 	</s:BorderContainer>
 	
@@ -1450,6 +1525,16 @@
 		<s:Label id="midLabel2Error" text="{'You are currently using Flash Player ' + VersionChecker.getVersion()}" x="0" y="190"  fontSize="15" fontFamily="Arial" textAlign="center" width="745" color="0xffffff"/>
 		<s:Button id = "upgradeButton" x="{(745-350)/2}" y="250"  click="VersionChecker.openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
 		<s:Button id = "ignoreButton" x="{(745-350)/2}"  y="310"  click="checkSWFLoaders()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
+	</s:BorderContainer>
+	
+	<!-- Contains startup video -->
+	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="true" backgroundColor="0xEAD1A9" borderVisible="false">
+		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="0"/>
+		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-30}">
+			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
+			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width}"/>
+			<s:Button id="skipBtn" label="Skip" click="skipVideo()" x="{playPauseBtn.width+replayBtn.width}" />
+		</s:Group>
 	</s:BorderContainer>
 	
 </s:Application>
