@@ -193,8 +193,8 @@ package chainsaw{
 		public function onMouseDown(e:Event):void{
 			mouseIsDown = true;
 			if(mouseEnabled){
-				//trace("mouseDown");
-				if(mRevDownSound.isPlaying() && !mRevUpSound.isPlaying()){
+				trace("mouseDown");
+				if(mRevDownSound.isPlaying() && (!mRevUpSound.isPlaying() || mRevUpSound.getIsFadingOut())){
 					revDownToRevUpTrans();
 				}else if(mStartUpSound && mStartUpSound.isPlaying()){
 					startUpToRun();
@@ -208,8 +208,8 @@ package chainsaw{
 		public function onMouseUp(e:Event):void{
 			mouseIsDown = false; 
 			if(mouseEnabled){
-				//trace("mouseUp");
-				if(mRevUpSound.isPlaying() && !mRevDownSound.isPlaying()){
+				trace("mouseUp");
+				if(mRevUpSound.isPlaying() && (!mRevDownSound.isPlaying() || mRevDownSound.getIsFadingOut())){
 					revUpToRevDownTrans();
 				}else{
 					runToIdle();
@@ -295,15 +295,19 @@ package chainsaw{
 		
 		private function idleToRun():void{
 			//trace("idleToRun");
-			loopIdleSound = false; 
-			mIdleSound.fadeOut(idleToRunFadeTime);
-			
-			//to fade out all things that shouldn't be playing in case they are. checks to see 
-			//if they exist first. 
-			if(mIdleSound2 && mIdleSound2.isPlaying()){
-				mIdleSound2.fadeOut(idleToRunFadeTime);
+			if(!mouseIsDown){
+				return;
+			}else{
+				loopIdleSound = false; 
+				mIdleSound.fadeOut(idleToRunFadeTime);
+				
+				//to fade out all things that shouldn't be playing in case they are. checks to see 
+				//if they exist first. 
+				if(mIdleSound2 && mIdleSound2.isPlaying()){
+					mIdleSound2.fadeOut(idleToRunFadeTime);
+				}
+				mRevUpSound.fadeIn(idleToRunFadeTime);
 			}
-			mRevUpSound.fadeIn(idleToRunFadeTime);
 		}
 		
 		//triggered when mouseDown is pressed during startUpSound 
@@ -366,10 +370,14 @@ package chainsaw{
 		//transition clip handling
 		private function revToRunTrans(e:Event = null):void{
 			if(!inLog){
-				//trace("revToRunTrans");
-				mRevUpSound.fadeOut(revToRunTransFadeTime);
-				mRunSound.fadeIn(revToRunTransFadeTime);
-				loopRunSound = true;
+				if(mRevDownSound.getIsFadingIn() || mRevDownSound.isPlaying()){
+					return;
+				}else{
+					//trace("revToRunTrans");
+					mRevUpSound.fadeOut(revToRunTransFadeTime);
+					mRunSound.fadeIn(revToRunTransFadeTime);
+					loopRunSound = true;
+				}
 			}else{
 				return;
 			}
@@ -425,9 +433,13 @@ package chainsaw{
 		private function revUpToRevDownTrans():void{
 			//trace("revUpToRevDownTrans");
 			loopRunSound = false; 
-			mRunSound.fadeOut(revUpToRevDownTransFadeTime);
-			mIdleSound.fadeOut(revUpToRevDownTransFadeTime);
-			
+			if(mRunSound && mRunSound.isPlaying()){
+				mRunSound.fadeOut(revUpToRevDownTransFadeTime);
+			}
+			if(mIdleSound && mIdleSound.isPlaying()){
+				mIdleSound.fadeOut(revUpToRevDownTransFadeTime);
+			}
+
 			//to fade out all things that shouldn't be playing in case they are. checks to see 
 			//if they exist first. 
 			if(mRunSound2 && mRunSound2.isPlaying()){
@@ -437,6 +449,10 @@ package chainsaw{
 				mIdleSound2.fadeOut(revUpToRevDownTransFadeTime);
 			}
 			mRevUpSound.fadeOut(revUpToRevDownTransFadeTime);
+			if(mRevDownSound.isPlaying()){
+				mRevDownSound.shutDown();
+				mRevDownSound = new AdvancedSound(new revDownSoundMP3 as Sound);
+			}
 			mRevDownSound.setStartPosition(mapPosition(mRevUpSound.getChannel().position, mRevUpSound.getLength(), mRevDownSound.getLength()));
 			mRevDownSound.doOnPercentPlayed(.92, revToIdleTrans);
 			mRevDownSound.fadeIn(revUpToRevDownTransFadeTime, 0, mRevDownSound.getStartPosition());
@@ -457,6 +473,10 @@ package chainsaw{
 				mIdleSound2.fadeOut(revDownToRevUpTransFadeTime);
 			}
 			mRevDownSound.fadeOut(revDownToRevUpTransFadeTime);
+			if(mRevUpSound.isPlaying()){
+				mRevUpSound.shutDown();
+				mRevUpSound = new AdvancedSound(new revUpSoundMP3 as Sound);
+			}
 			mRevUpSound.setStartPosition(mapPosition(mRevDownSound.getChannel().position, mRevDownSound.getLength(), mRevUpSound.getLength()));
 			mRevUpSound.doOnPercentPlayed(.92, revToRunTrans);
 			mRevUpSound.fadeIn(revDownToRevUpTransFadeTime, 0, mRevUpSound.getStartPosition());

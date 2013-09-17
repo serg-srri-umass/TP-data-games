@@ -39,6 +39,7 @@ package chainsaw.sound{
 		public static var debug:SoundDebug = new SoundDebug(); //static instance of SoundDebug for all AdvancedSounds
 		
 		public static var nextSoundID:int = 0;
+		private var debugTimer:SafeTimer = new SafeTimer(46, 0); //for printing out things every frame
 
 
 		//constructor
@@ -51,9 +52,11 @@ package chainsaw.sound{
 
 			
 			//adds entry for this sound to the stateList in SoundDebug
-			debug.addEntry(new AdvancedSoundState(name, soundID, _isPlaying, isFadingIn, isFadingOut));
+			debug.addEntry(new AdvancedSoundState(name, soundID, _isPlaying, this.isFadingIn, this.isFadingOut));
 
 			checkSounds("AdvancedSound constructor ID "+soundID);
+			debugTimer.addEventListener(TimerEvent.TIMER, onEnterFrameHandler);
+			debugTimer.start();
 			
 			/*if(traceEveryFrame){
 				var timer:SafeTimer = new SafeTimer(46, 0);
@@ -77,6 +80,10 @@ package chainsaw.sound{
 				_channel.stop();
 			} 
 			
+			if(debugTimer){
+				debugTimer.clean();
+			}
+
 			this.sound = null;
 			this._channel = null;
 			this.fadeTimer = null;
@@ -123,41 +130,67 @@ package chainsaw.sound{
 		public function getDebug():SoundDebug{
 			return debug;
 		}
+
+		public function getIsFadingOut():Boolean{
+			return this.isFadingOut;
+		}
+		
+		public function getIsFadingIn():Boolean{
+			return this.isFadingIn;
+		}
 		
 		//works exactly like sound.play
 		public function play(startTime:Number = 0, loops:int = 0, sndTransform:SoundTransform = null):SoundChannel{
-			_channel.stop();
+			if(_channel){
+				_channel.stop();
+			}
+			
 			_channel = sound.play(startTime, loops, sndTransform);
-			percentageCounter.reset();
-			percentageCounter.start();
+			
+			if(percentageCounter){
+				percentageCounter.reset();
+				percentageCounter.start();
+			}
 			_isPlaying = true;
-			debug.stateList[soundID].setIsPlaying(true);
+			if(debug.stateList[soundID]){
+				debug.stateList[soundID].setIsPlaying(true);
+			}
 			checkSounds("AdvancedSound.play: ");
 			return _channel;
 		}
 		
 		//stops & resets the sound
 		public function stop():SoundChannel{
-			_channel.stop();	
-			percentageCounter.stop();
+			if(_channel){
+				_channel.stop();	
+				_channel = new SoundChannel();
+			}
+			if(percentageCounter){
+				percentageCounter.stop();
+				percentageCounter.reset();
+			}
 			_isPlaying = false;
-			debug.stateList[soundID].setIsPlaying(false);
+			if(debug.stateList[soundID]){
+				debug.stateList[soundID].setIsPlaying(false);
+			}
 			return _channel;
 		}
 		
 		//fades sound in linearly over a given millisecond duration
 		public function fadeOut(duration:Number = 1000):void{
-			if(isFadingOut){
+			if(this.isFadingOut){
 				return; //if sound is already fading out, return without doing anything
 			}
-			if(isFadingIn){
+			if(this.isFadingIn){
 				cleanFadeIn(new Event("e"));
 				fadeOut(duration);
 				return;
 			}
 			//var date:Date = new Date(); UNUSED
 			
-			//trace("fadeOut ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
+			// if(_channel && sound){
+			// 	trace("fadeOut ID:" + soundID + " Sound:" + sound.toString() + "PercentPlayed: " + (_channel.position/sound.length)*100);
+			// }
 			
 			if(duration < 1){
 				throw new Error("fade duration must be longer than 1 millisecond.");
@@ -166,22 +199,26 @@ package chainsaw.sound{
 			ticksToComplete = Math.ceil(duration/40);
 			
 			ticker = ticksToComplete;
+			if(fadeTimer){
 			fadeTimer.clean();
+			}
 			fadeTimer = new SafeTimer(TICK_TIME, ticksToComplete);
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeOut);
 			fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeOut);
 			fadeTimer.start();
-			isFadingOut = true;
-			debug.stateList[soundID].setIsFadingOut(true);
+			this.isFadingOut = true;
+			if(debug.stateList[soundID]){
+				debug.stateList[soundID].setIsFadingOut(true);
+			}
 		}
 		
 		//takes number of times you want to loop the sound after fading, and startPosition if you want 
 		//to fade in part-way through the sound. fades sound in linearly over a given millisecond duration. 
 		public function fadeIn(duration:Number = 1000, numLoops:int = 0, startPos:Number = 0):void{
-			if(isFadingIn){
+			if(this.isFadingIn){
 				return; //if sound is already fading in, return without doing anything. 
 			}
-			if(isFadingOut){
+			if(this.isFadingOut){
 				cleanFadeOut(new Event("e"));
 				fadeIn(duration);
 				return;
@@ -189,7 +226,7 @@ package chainsaw.sound{
 			//var date:Date = new Date(); UNUSED
 			
 			if(startPos != 0){
-				//trace("start position: " + startPos); // for debugging
+				trace("start position: " + startPos); // for debugging
 			}
 			
 			if(duration < 1){
@@ -204,8 +241,10 @@ package chainsaw.sound{
 			fadeTimer.addEventListener(TimerEvent.TIMER, tickFadeIn);
 			fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, cleanFadeIn);
 			fadeTimer.start();
-			isFadingIn = true;
-			debug.stateList[soundID].setIsFadingIn(true);
+			this.isFadingIn = true;
+			if(debug.stateList[soundID]){
+				debug.stateList[soundID].setIsFadingIn(true);
+			}
 
 			_volume = 0;
 			startPosition = startPos; 
@@ -235,6 +274,13 @@ package chainsaw.sound{
 		
 		private function onEnterFrameHandler(e:Event):void{
 			//trace("Name: " + sound.toString(), "Position: " + (_channel.position/sound.length)*100, "Volume: " + _volume);
+			// if(sound){
+			// 	if(sound.toString() == "[object SoundHandler_revUpSoundMP3]"){
+			// 		trace("revUp position: " + Math.round((_channel.position/sound.length) *100) + "%");
+			// 	}else if(sound.toString() == "[object SoundHandler_revDownSoundMP3]"){
+			// 		trace("revDown position: " + Math.round((_channel.position/sound.length) *100) + "%");
+			// 	}
+			// }
 		}
 			
 		/*public function removeDoOnPercentPlayed():void{
@@ -268,8 +314,11 @@ package chainsaw.sound{
 			
 			_volume = 0;
 			stop();
-			isFadingOut = false;
-			debug.stateList[soundID].setIsFadingOut(false);
+			_channel = new SoundChannel();
+			this.isFadingOut = false;
+			if(debug.stateList[soundID]){
+				debug.stateList[soundID].setIsFadingOut(false);
+			}
 		}
 		
 		//ticks through slices of the sound to split volume changes into small increments to 
@@ -296,8 +345,11 @@ package chainsaw.sound{
 				st.volume = _volume;
 				_channel.soundTransform = st;
 			}
-			isFadingIn = false;
-			debug.stateList[soundID].setIsFadingIn(false);
+			this.isFadingIn = false;
+
+			if(debug.stateList[soundID]){
+				debug.stateList[soundID].setIsFadingIn(false);
+			}
 		}
 		
 		// sets the volume based on ticker & ticksToComplete

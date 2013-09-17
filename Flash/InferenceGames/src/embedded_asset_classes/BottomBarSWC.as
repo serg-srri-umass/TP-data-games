@@ -5,7 +5,7 @@
 - this
 	|- levelNameTxt
 	|- nextRoundBtn
-	|- endGameBtn [toggle button, with 2 looks "endGame" "newGame"]
+	|- newEndGameBtn [toggle button, with 3 looks "endGame" "startGame" "okay"]
 	|
 	|- gameOverMVC [labels: "hide", "isHidden", "show", "isShowing"]
 		|- userBotMVC [labels: "user", "bot"] 
@@ -41,7 +41,7 @@ package embedded_asset_classes
 				throw new Error("BottomBarSWC has already been created.");
 			
 			disableNextRoundBtn(); // by default, the next round button is not visible. 
-			newEndGameBtn.setClickFunctions(onPressEndGame, onPressNewGame);
+			newEndGameBtn.setClickFunctions(onPressEndGame, onPressNewGame, onPressEndGame);
 			
 			nextRoundBtn.addEventListener(MouseEvent.MOUSE_UP, onPressNextRoundBtn); // handler for when the next round button is clicked.
 		}
@@ -64,6 +64,16 @@ package embedded_asset_classes
 				gameOverMVC.gotoAndPlay("hide");
 		}
 		
+		// show the winner dialogue.
+		public function showWinner( user:Boolean):void{
+			gameOverMVC.visible = true;
+			gameOverMVC.gotoAndPlay("show");
+			var winnerLabel:String = user ? "user" : "bot";
+			gameOverMVC.userBotMVC.gotoAndStop(winnerLabel);
+			
+			newEndGameBtn.look = 2;
+		}
+		
 		// -------------------------
 		// --- PRIVATE FUNCTIONS ---
 		// -------------------------
@@ -71,14 +81,16 @@ package embedded_asset_classes
 		private function onPressNextRoundBtn( e:MouseEvent):void{
 			disableNextRoundBtn();
 			ResultsSWC.instance.hide(); 
-			InferenceGames.instance.newRound(); // TO-DO: move this functionality to the main.
+			InferenceGames.instance.newRound();
 		}
 		
 		// this method causes the "next round button" to fade in.
 		private function animateNextFrameBtn( e:Event):void{
-			nextRoundBtn.alpha += 0.1;
-			if(nextRoundBtn.alpha >= 1){
-				nextRoundBtn.removeEventListener( Event.ENTER_FRAME, animateNextFrameBtn);
+			if(nextRoundBtn.mouseEnabled){
+				nextRoundBtn.alpha += 0.1;
+				if(nextRoundBtn.alpha >= 1){
+					nextRoundBtn.removeEventListener( Event.ENTER_FRAME, animateNextFrameBtn);
+				}
 			}
 		}
 		
@@ -91,6 +103,6 @@ package embedded_asset_classes
 		private function onPressNewGame( e:MouseEvent):void{
 			newEndGameBtn.look = 0; // "end game"
 			LevelSelectSWC.instance.hide();
-		    }
 		}
-	    }
+	}
+}

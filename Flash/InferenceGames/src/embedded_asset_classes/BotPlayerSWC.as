@@ -39,12 +39,12 @@ package embedded_asset_classes
 			avatarMVC.stop();
 		}
 		
-		public function hide( triggerEvent:Event = null):void{
+		public function hide( triggerEvent:* = null):void{
 			gotoAndPlay("hide");
 			_isShowing = false;
 		}
 		
-		public function show( triggerEvent:Event = null):void{
+		public function show( triggerEvent:* = null):void{
 			gotoAndPlay("show");
 			_isShowing = true;
 		}
@@ -72,7 +72,8 @@ package embedded_asset_classes
 		
 		// resets the score bar to its starting position. Called on endGame.
 		public function reset():void{
-			for( var i:int = 1; i <= score; i++){
+			var clearingScore:int = score < 6 ? score : 6;
+			for( var i:int = 1; i <= clearingScore; i++){
 				if(scoreMVC["point" + i + "MVC"])
 					scoreMVC["point" + i + "MVC"].gotoAndPlay("hide");
 			}

@@ -2,15 +2,13 @@
 
 /* STRUCTURE:
 - this [labels: "hide", "show"]
-	|- rangeMVC [labels: "user", "bot"]
-	|	|-lowBoundTxt
-	|	|-highBoundTxt
-	|	
 	|- accuracyMVC [labels: "user", "bot"]
 	|	|- accuracyTxt
 	|
 	|- verdictMVC [labels: "user", "bot"]
 		|- winLoseMVC [labels: "win", "lose"]
+			|- popMedianMVC
+				|- medianTxt
 */
 
 package embedded_asset_classes
@@ -50,13 +48,12 @@ package embedded_asset_classes
 		}
 		
 		// starts the show animation, making this MovieClip visible.
-		public function show( e:Event = null):void{
+		public function show( triggerEvent:* = null):void{
 			visible = true;
 			gotoAndPlay("show");
 			
 			setActivePlayer(Round.currentRound.lastBuzzer == UserPlayerSWC.instance)
-			setBounds( (Round.currentRound.guess - Round.currentRound.interval), (Round.currentRound.guess + Round.currentRound.interval));
-			setAccuracy( Round.currentRound.accuracy);
+			setAccuracy( Round.currentRound.accuracy);			
 			this.setWon(Round.currentRound.isWon);
 			Round.currentRound.lastBuzzer.emotion = Round.currentRound.isWon ? BotPlayerSWC.HAPPY : BotPlayerSWC.SAD;
 
@@ -64,7 +61,7 @@ package embedded_asset_classes
 		}
 		
 		// starts the hide animation. When it finishes, this MovieClip becomes invisible.
-		public function hide( e:Event = null):void{
+		public function hide( triggerEvent:* = null):void{
 			gotoAndPlay("hide");
 			_isShowing = false;
 		}
@@ -92,9 +89,9 @@ package embedded_asset_classes
 			InferenceGames.instance.closeRoundData(); // show final round data in DG
 			
 			if( UserPlayerSWC.instance.score >= Round.WINNING_SCORE)
-				InferenceGames.instance.winGame(true);
+				InferenceGames.instance.winLoseGame(true);
 			else if( BotPlayerSWC.instance.score >= Round.WINNING_SCORE)
-				InferenceGames.instance.winGame(false);
+				InferenceGames.instance.winLoseGame(false);
 			else
 				BottomBarSWC.instance.enableNextRoundBtn();
 		}
@@ -103,22 +100,12 @@ package embedded_asset_classes
 		// this method must be called BEFORE the other setters!
 		public function setActivePlayer( user:Boolean):void{
 			if( user){
-				rangeMVC.gotoAndStop("user");
 				accuracyMVC.gotoAndStop("user");
 				verdictMVC.gotoAndStop("user");
 			} else {
-				rangeMVC.gotoAndStop("bot");
 				accuracyMVC.gotoAndStop("bot");
 				verdictMVC.gotoAndStop("bot");
 			}
-		}
-		
-		// sets the low and high bound of the range, in the display
-		public function setBounds( lowBound:Number, highBound:Number):void{
-			rangeMVC.lowBoundTxt.text = lowBound.toFixed(1);
-			rangeMVC.highBoundTxt.text = highBound.toFixed(1);
-			rangeMVC.lowBoundTxt.setTextFormat(TextFormatter.BOLD);
-			rangeMVC.highBoundTxt.setTextFormat(TextFormatter.BOLD);
 		}
 		
 		// sets the accuracy shield
@@ -132,10 +119,15 @@ package embedded_asset_classes
 		
 		// set the win/lose screen
 		public function setWon( won:Boolean):void{
-			if(won)
-				verdictMVC.winLoseMVC.gotoAndStop("win");
-			else
-				verdictMVC.winLoseMVC.gotoAndStop("lose");
+			var winLoseString:String = won ? "win" : "lose";
+			verdictMVC.winLoseMVC.gotoAndStop(winLoseString);
+			
+			if( !ControlsSWC.instance.DEBUG_autoGuess){
+				verdictMVC.winLoseMVC.popMedianMVC.medianTxt.text = Round.currentRound.populationMedian.toFixed(1);
+				verdictMVC.winLoseMVC.popMedianMVC.visible = true;
+			} else {
+				verdictMVC.winLoseMVC.popMedianMVC.visible = false;
+			}
 		}
 	}
 }

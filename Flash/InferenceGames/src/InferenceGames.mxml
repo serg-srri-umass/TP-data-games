@@ -22,6 +22,7 @@
 			import embedded_asset_classes.BottomBarSWC;
 			import embedded_asset_classes.ControlsSWC;
 			import embedded_asset_classes.DataCannonSWC;
+			import embedded_asset_classes.DebugConsoleSWC;
 			import embedded_asset_classes.LevelSelectSWC;
 			import embedded_asset_classes.ResultsSWC;
 			import embedded_asset_classes.UserPlayerSWC;
@@ -32,7 +33,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.09.05";
+			private static const kVersion:String = "v.2013.09.12";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			
@@ -45,6 +46,7 @@
 			private var sUserPlayer:UserPlayerSWC;
 			private var sBotPlayer:BotPlayerSWC;
 			private var sLevelSelect:LevelSelectSWC;
+			private var sDebugConsole:DebugConsoleSWC;
 
 			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
 			private var mGameSerialNum:int	= 0; // first game starts with serial number 1.
@@ -53,6 +55,7 @@
 			public static var instance:InferenceGames = null;
 			public var randomizer:ParkMiller = null;
 			public var isInGame:Boolean = false; // whether there is a game currently going on.
+			public var unlockedLevels:uint = 1; // how many levels the player has unlocked.
 			
 			// this method ensures that the flash player is a recent enough version to work.
 			private function testFlashPlayer():void {
@@ -93,8 +96,8 @@
 				
 				sResults = new ResultsSWC();
 				gameContainer.addChild(sResults);
-				sResults.x = 286.85;
-				sResults.y = 163.5;
+				sResults.x = 335;
+				sResults.y = 103;
 		
 				sUserPlayer = new UserPlayerSWC();
 				sBotPlayer = new BotPlayerSWC();
@@ -110,7 +113,12 @@
 
 				sDataCannon = new DataCannonSWC();
 				gameContainer.addChild(sDataCannon);
-				sDataCannon.speed = .25;	// reset the speed at the start of each game?
+				sDataCannon.speed = .25;	// set the starting speed
+				
+				sDebugConsole = new DebugConsoleSWC();
+				gameContainer.addChild(sDebugConsole);
+				sDebugConsole.x = 86;
+				sDebugConsole.y = 25;
 			}
 			
 			// ------------------
@@ -242,11 +250,9 @@
 				Round.currentRound.calculateWinLose();
 				if( user){
 					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "user");
-					sBotPlayer.hide();
 					Round.currentRound.lastBuzzer = UserPlayerSWC.instance;
 				} else {
 					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
-					sUserPlayer.hide();
 					Round.currentRound.lastBuzzer = BotPlayerSWC.instance;
 				}
 				// show result in DG
@@ -255,13 +261,10 @@
 			}
 
 			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' display
-			public function winGame( user:Boolean = true):void{
-				sBottomBar.gameOverMVC.visible = true;
-				sBottomBar.gameOverMVC.gotoAndPlay("show");
-				if(user)
-					sBottomBar.gameOverMVC.userBotMVC.gotoAndStop("user");
-				else
-					sBottomBar.gameOverMVC.userBotMVC.gotoAndStop("bot");
+			public function winLoseGame( user:Boolean = true):void{
+				sBottomBar.showWinner( user);
+				if(user && mGameLevel == unlockedLevels) // if the player beats their current level, unlock the next.
+					unlockedLevels++;
 			}
 			
 			// Start a new game.  Each game has multiple rounds
@@ -280,7 +283,7 @@
 				mDGInterface.sendLog( "newGame: GameNumber="+mGameSerialNum+" Level="+mGameLevel );
 				
 				newRound();
-				
+				sBottomBar.levelNameTxt.text = "Guess the Median | Level " + mGameLevel;
 			}
 
 			// called when 'end game' btn is clicked. Clears the stage, and resets the scores.
@@ -289,7 +292,6 @@
 				// end the old round if there was one
 				if(Round.currentRound){
 					closeRoundData();
-					//resetPlayers();
 				}
 				
 				isInGame = false;
@@ -308,7 +310,6 @@
 				if(sResults.isShowing)
 					sResults.hide();
 			}
-						
 		]]>
 	</fx:Script>
 	
@@ -316,10 +317,11 @@
 	<!-- the game's background -->
 	<s:BorderContainer id="background" y="36" width="575" height="255">
 		<s:backgroundFill>
-			<s:RadialGradient scaleX="1000" scaleY="1000">
-				<s:GradientEntry color="0xE5C1D1"/>
+			 <!-- <s:RadialGradient scaleX="1000" scaleY="1000">
+				<s:GradientEntry color="0xcad7eb"/>
 				<s:GradientEntry color="0x8C7A8B"/>
-			</s:RadialGradient>
+			</s:RadialGradient> -->
+			<s:SolidColor color="0xbfcfe6"/>
 		</s:backgroundFill>
 	</s:BorderContainer>
 	

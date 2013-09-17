@@ -5,25 +5,25 @@
 
 /* STRUCTURE:
 - this [labels: "hide", "show"]
-|- stopControlsMVC [labels: "pressStop"]
-|	|- stopStartBtn	[labels: "ready", "user", "bot"]
-|	|	|- pauseBtn [looks: stop(0), start(1)]
-|	|
-|	|- botGuessMVC
-|	|	|- guessTxt
-|	|	|- okayMVC
-|	|
-|	|- userGuessMVC
-|		|- guessTxt (input)
-|		|- okayBtn
-|		|- invalidNumberMVC
-|
-|- shieldsMVC
-|- intervalMVC [labels: "singleDigit", "doubleDigit"]
-|	|- intervalTxt
-|
-|- deviationMVC
-|- deviationTxt
+	|- stopControlsMVC [labels: "pressStop"]
+	|	|- stopStartBtn	[labels: "ready", "user", "bot"]
+	|	|	|- pauseBtn [looks: stop(0), start(1)]
+	|	|
+	|	|- botGuessMVC
+	|	|	|- guessTxt
+	|	|	|- okayMVC
+	|	|
+	|	|- userGuessMVC
+	|		|- guessTxt (input)
+	|		|- okayBtn
+	|		|- invalidNumberMVC
+	|
+	|- shieldsMVC
+		|- intervalMVC [labels: "singleDigit", "doubleDigit"]
+		|	|- intervalTxt
+		|
+		|- deviationMVC
+		|- deviationTxt
 */
 
 package embedded_asset_classes
@@ -64,13 +64,12 @@ package embedded_asset_classes
 			
 			stopControlsMVC.stop();
 			stopControlsMVC.userGuessMVC.okayBtn.addEventListener( MouseEvent.CLICK, validateGuess);
-			stopControlsMVC.userGuessMVC.guessTxt.addEventListener( KeyboardEvent.KEY_DOWN, checkForEnter); // check if the enter key has been pressed.
 			
 			_botEntryTimer.addEventListener( TimerEvent.TIMER, handleBotType);
 		}
 		
 		// starts the show animation, making this MovieClip visible.
-		public function show( triggerEvent:Event = null):void{
+		public function show( triggerEvent:* = null):void{
 			visible = true;
 			stopControlsMVC.stopStartBtn.pauseBtn.look = 1; // set the button to 'start'
 			stopControlsMVC.stopStartBtn.gotoAndStop( "ready");
@@ -84,7 +83,7 @@ package embedded_asset_classes
 		}
 		
 		// starts the hide animation. When it finishes, this MovieClip becomes invisible.
-		public function hide( triggerEvent:Event = null):void{
+		public function hide( triggerEvent:* = null):void{
 			gotoAndPlay("hide");
 			_isShowing = false;
 		}
@@ -115,17 +114,37 @@ package embedded_asset_classes
 		// call this method when the bot hits the stop button.
 		public function botStopFunction():void{
 			DataCannonSWC.instance.stopCannon();
-			stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
-			stopControlsMVC.gotoAndPlay("pressStop");
-			stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
-			stopControlsMVC.botGuessMVC.visible = true;	
-			stopControlsMVC.botGuessMVC.guessTxt.text = "";
-			stopControlsMVC.botGuessMVC.okayMVC.gotoAndStop(1);
+			UserPlayerSWC.instance.hide();
 			
-			_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
-			_botEntryTimer.reset();
-			_botEntryTimer.start();
-			//InferenceGames.instance.hitBuzzer();
+			if( _autoGuess){
+				
+				Round.currentRound.guess = Round.currentRound.sampleMedian;
+				InferenceGames.instance.hitBuzzer( false);
+				//stopControlsMVC.userGuessMVC.okayBtn.mouseEnabled = false;
+				
+			} else {
+				
+				stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
+				stopControlsMVC.gotoAndPlay("pressStop");
+				stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
+				stopControlsMVC.botGuessMVC.visible = true;	
+				stopControlsMVC.botGuessMVC.guessTxt.text = "";
+				stopControlsMVC.botGuessMVC.okayMVC.gotoAndStop(1);
+				
+				_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
+				_botEntryTimer.reset();
+				_botEntryTimer.start();
+				//InferenceGames.instance.hitBuzzer();
+			}
+		}
+		
+		// set whether the game automatically guesses for you or not.
+		public function set DEBUG_autoGuess( arg:Boolean):void{
+			_autoGuess = arg;
+		}
+		
+		public function get DEBUG_autoGuess():Boolean{
+			return _autoGuess;
 		}
 		
 		// -----------------------
@@ -133,24 +152,35 @@ package embedded_asset_classes
 		// -----------------------
 		private static const FULL_BOT_TYPE_DELAY:int = 1000; // how many miliseconds elapse before the bot starts typing its answer.
 		private var _botEntryTimer:Timer = new Timer(FULL_BOT_TYPE_DELAY, 0); // used to simulate the opponent typing his answer.
+		private var _autoGuess:Boolean; // whether the game automatically guesses for you or not. Can be turned on with the debug panel.
 		
 		private var _isShowing:Boolean = false;
 		
 		// this method is called when the player hits the stop button. Bring up the guess prompt.
 		private function stopFunction( triggerEvent:MouseEvent):void{
 			DataCannonSWC.instance.stopCannon();
-			stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
-			stopControlsMVC.gotoAndPlay("pressStop");
-			stopControlsMVC.stopStartBtn.gotoAndStop( "user");
-			stopControlsMVC.userGuessMVC.visible = true;
-			stopControlsMVC.userGuessMVC.okayBtn.mouseEnabled = true;
+			BotPlayerSWC.instance.hide();
+			if( _autoGuess){
+				
+				Round.currentRound.guess = Round.currentRound.sampleMedian;
+				InferenceGames.instance.hitBuzzer();
+				stopControlsMVC.userGuessMVC.okayBtn.mouseEnabled = false;
+				
+			} else {
+				stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
+				stopControlsMVC.gotoAndPlay("pressStop");
+				stopControlsMVC.stopStartBtn.gotoAndStop( "user");
+				stopControlsMVC.userGuessMVC.visible = true;
+				stopControlsMVC.userGuessMVC.okayBtn.mouseEnabled = true;
 			
-			// auto set the focus to the new text field:
-			// taken from http://reality-sucks.blogspot.com/2007/11/actionscript-3-adventures-setting-focus.html
-			InferenceGames.stage.focus = stopControlsMVC.userGuessMVC.guessTxt; 
-			stopControlsMVC.userGuessMVC.guessTxt.text=" "; 
-			stopControlsMVC.userGuessMVC.guessTxt.setSelection( stopControlsMVC.userGuessMVC.guessTxt.length, stopControlsMVC.userGuessMVC.guessTxt.length);
-			stopControlsMVC.userGuessMVC.guessTxt.text = "";
+				// auto set the focus to the new text field:
+				// taken from http://reality-sucks.blogspot.com/2007/11/actionscript-3-adventures-setting-focus.html
+				InferenceGames.stage.focus = stopControlsMVC.userGuessMVC.guessTxt; 
+				stopControlsMVC.userGuessMVC.guessTxt.text=" "; 
+				stopControlsMVC.userGuessMVC.guessTxt.setSelection( stopControlsMVC.userGuessMVC.guessTxt.length, stopControlsMVC.userGuessMVC.guessTxt.length);
+				stopControlsMVC.userGuessMVC.guessTxt.text = "";
+				stopControlsMVC.userGuessMVC.guessTxt.addEventListener( KeyboardEvent.KEY_DOWN, checkForEnter); // check if the enter key has been pressed.
+			}
 		}
 		
 		// called when the player hits the start button.
@@ -181,6 +211,7 @@ package embedded_asset_classes
 				Round.currentRound.guess = textNum;
 				InferenceGames.instance.hitBuzzer();
 				stopControlsMVC.userGuessMVC.okayBtn.mouseEnabled = false;
+				stopControlsMVC.userGuessMVC.guessTxt.removeEventListener( KeyboardEvent.KEY_DOWN, checkForEnter); // check if the enter key has been pressed.
 			}
 		}
 		
