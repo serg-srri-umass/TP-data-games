@@ -27,6 +27,11 @@ package odyssey.missions
 		public var hookSize:int = REGULAR_HOOK; // what frame to show the hook at.
 		public var hookRadius:int = 2; // how big in units the hook is (multiply this by 2 for the full interval)
 		
+		//sea wall variables
+		public var wallSD:Number = 0; // how many SDs from the mean the wall will be 
+		public var wallShift:Number = 5; // how far from the wall to shift data points that fall below it (or above it, depending on low or high wall) 
+										 // read as interval [0, wallShift]
+		
 		// math variables:
 		public var stdDeviation:Number = kStdDeviationClear;	// the standard deviation of rats here
 		

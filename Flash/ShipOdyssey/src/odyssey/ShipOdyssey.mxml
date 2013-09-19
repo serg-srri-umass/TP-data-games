@@ -50,7 +50,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.08.19";
+			private static const kVersion:String = "v.2013.09.17";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -83,7 +83,8 @@
 			private var numTreasuresPerSite:Array = new Array(); // this will hold how many treasures are at each site in Treasure or Not, for the first 6 sites.
 			private var haveTreasure:Boolean = false; // whether you pulled up a treasure or not on your last hook drop.
 			private var mTreasuresThisSite:Vector.<Treasure>;
-			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)		
+			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
+			private var lowWall:Boolean = false; // true for low wall, false for high wall on level 'Sea Wall'
 			
 			//variables for holding loaded MovieClips
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle, closeGame);	
@@ -298,11 +299,19 @@
 							
 							if(numTreasuresHere == 1){
 								// Generate a noisy result based on the current treasure's location.
-								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + treasurePositions[0]; // Display nothing after decimal point.		
-							} else if(numTreasuresHere == 0){
+								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + treasurePositions[0];
+
+								if(mCurrentMission.number == 6){
+									if(noisyLocation < kMinLocation){
+										noisyLocation = kMinLocation + Math.abs(noisyLocation);
+									}else if(noisyLocation > kMaxLocation){
+										noisyLocation = kMaxLocation - (noisyLocation - kMaxLocation);
+									}
+								}
+							}else if(numTreasuresHere == 0){
 								//get random normal values from the entire range
 								noisyLocation = randomLocation();
-							} else if(numTreasuresHere == 2) {
+							}else if(numTreasuresHere == 2) {
 								//do swap back and forth for two locations if they have 2 left
 								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + treasurePositions[evenOdd];
 							}
@@ -565,7 +574,7 @@
 				var numTreasuresThisSite:int = createNumTreasuresThisSite();
 				mTreasuresThisSite = new Vector.<Treasure>();
 				for( var i:int = 0; i < numTreasuresThisSite; i++)
-					mTreasuresThisSite.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), randomLocation()));
+					mTreasuresThisSite.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), 10/*  randomLocation() */));
 				
 				if(mTreasuresThisSite.length == 2){
 					// this while loop ensures that the two treasures are sufficiently far apart.

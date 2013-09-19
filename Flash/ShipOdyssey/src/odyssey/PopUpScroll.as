@@ -97,9 +97,12 @@ package odyssey
 			gotoAndStop("level");
 			displayMissionInstructions(null, skipAnimation);
 			
-			for(var i:int = 1; i <= 5; i++){
+			for(var i:int = 1; i <= 4; i++){
 				missions["mission"+i].buttonMode = true; // turns the cursor into a hand on mouse over.
 				missions["mission"+i].addEventListener(MouseEvent.MOUSE_UP, this["displayMission"+i]);
+				
+				//code to temporarily make the mission 5 button activate mission 6, 'Sea Wall'. MISSION5 BUTTON INSTANCE HAS BEEN RENAMED MISSION6
+				missions["mission6"].addEventListener(MouseEvent.MOUSE_UP, this["displayMission6"]);
 			}
 			
 			deleteDataBox.checked = deleteData;
@@ -119,7 +122,7 @@ package odyssey
 		private function displayMissionInstructions(e:MouseEvent = null, skipAnimation:Boolean = true):void {
 			body.text = getCurrentLevelDescription(selectedLevel);
 			titleBar.gotoAndStop(selectedLevel);
-			missions.choose(selectedLevel, skipAnimation);
+			missions.choose((selectedLevel == 6) ? selectedLevel-1:selectedLevel, skipAnimation);
 		}
 		
 		private function displayMission1(e:MouseEvent):void {
@@ -151,13 +154,20 @@ package odyssey
 			selectedLevel = Missions.getMission(5).number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
+
+		private function displayMission6(e:MouseEvent):void{ 
+			body.text = Missions.getMission(6).instructions;
+			selectedLevel = Missions.getMission(6).number;
+			titleBar.gotoAndStop(selectedLevel);
+		}
 		
 		//remove all listeners from the level chooser window & close it.
 		public function stripMissionButtonListeners():void {
 			visible = false;
-			for(var i:int = 1; i <= 5; i++){
+			for(var i:int = 1; i <= 4; i++){
 				missions["mission"+i].removeEventListener(MouseEvent.MOUSE_UP, this["displayMission"+i]);
 			}
+			missions["mission6"].removeEventListener(MouseEvent.MOUSE_UP, this["displayMission6"]);
 		
 			playBtn.removeEventListener(MouseEvent.CLICK, startGame);
 		}
