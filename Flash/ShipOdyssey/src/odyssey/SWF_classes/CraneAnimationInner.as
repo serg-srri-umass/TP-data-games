@@ -100,8 +100,11 @@
 		
 		private function pullUpHook(e:TweenEvent):void{
 			//trace("Treasure found = " + treasureFound);
-			if(treasureFound) DropHook.showTreasure();
-			else DropHook.showRandom();
+			if(treasureFound){
+				DropHook.showTreasure();
+			} else {
+				DropHook.showRandom();
+			}
 			hookLiftTween = new Tween(DropHook,"y", Regular.easeInOut, 400, 111, hookRaiseTime, true);
 			ropeLiftTween = new Tween(DropRope,"height", Regular.easeInOut, 350, 30, hookRaiseTime, true);
 			hookLiftTween.addEventListener(TweenEvent.MOTION_FINISH, clearTweens);
@@ -124,6 +127,12 @@
 			ring1.gotoAndStop(frame);
 			ring2.gotoAndStop(frame);
 			ring3.gotoAndStop(frame);
+			activeInterval.gotoAndStop(frame);
+		}
+		
+		public function showMissedInterval():void{
+			missedInterval.gotoAndStop( activeInterval.currentFrame);
+			missedInterval.visible = true;
 		}
 	}
 }

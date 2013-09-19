@@ -752,7 +752,7 @@
 			
 			// called when the sailing animation finishes zooming in. Enables the buttons and let's the user start playing.
 			private function zoomInTimerFinish(e:TimerEvent):void{
-				crane.visible = true;
+				crane.establish();
 				sailingMovie.visible = false;
 				enableAllButtons();
 			}

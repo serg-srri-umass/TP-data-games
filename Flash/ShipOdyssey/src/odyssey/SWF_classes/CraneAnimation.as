@@ -4,6 +4,11 @@
 	
 	public class CraneAnimation extends MovieClip{
 		
+		public function establish(){
+			visible = true;
+			Crane_mc.missedInterval.visible = false;
+		}
+		
 		//PASS-THROUGH CODE:
 		public function runTo(frame:int):void{
 			//act as a passthrough
@@ -23,6 +28,8 @@
 		
 		public function dropHook(treasureFound:Boolean, secsDrop:Number, secsLift:Number):void{
 			Crane_mc.dropHook(treasureFound, secsDrop, secsLift);
+			if(Crane_mc.missedInterval.visible == false)
+				Crane_mc.showMissedInterval();
 		}
 		
 		public function tweenTo(frame:int, time:Number):void{
@@ -74,6 +81,7 @@
 		
 		public function startDragging(e:MouseEvent):void{
 			if(_canDrag){
+				showPopUp();
 				lastPos = Crane_mc.currentFrame;
 				grabby.startDrag();
 				runTo(lastPos);
@@ -87,6 +95,7 @@
 		
 		public function stopDragging(e:Event):void{
 			if(isDragging){
+				hidePopUp();
 				grabby.stopDrag();
 				removeEventListener(Event.ENTER_FRAME, animateWhileDragging);
 				grabby.x = grabbyX;
@@ -104,6 +113,8 @@
 			var newPos = calcMousePosition() - downPos;
 			toFrame(lastPos + newPos);
 			zeroed = (lastPos + newPos) < 1;
+			
+			animateDraggingText( lastPos + newPos);
 		}
 		
 		public function calcMousePosition():int{
@@ -130,18 +141,23 @@
 			}
 		}
 		
-		public function showPopUp(e:MouseEvent):void {
+		public function showPopUp(e:MouseEvent = null):void {
 			if(_canDrag)
 				Crane_mc.position.visible = true;
 		}
 		
-		public function hidePopUp(e:MouseEvent):void {
+		public function hidePopUp(e:MouseEvent = null):void {
 			Crane_mc.position.visible = false;	
 		}
 		
 		public function movePopUp(e:MouseEvent):void {
 			Crane_mc.position.x = mouseX + 5;
 			Crane_mc.position.txt.text = limit(calcMousePosition());
+		}
+		
+		public function animateDraggingText(txtInt:int):void {
+			Crane_mc.position.x = Crane_mc.mHook.x + 8; // the 8 centers the text.
+			Crane_mc.position.txt.text = limit( txtInt);
 		}
 		
 		public function CraneAnimation(){
@@ -151,6 +167,7 @@
 			grabbyY = grabby.y;
 			
 			Crane_mc.glowingArrows.visible = false;	
+			Crane_mc.missedInterval.visible = false;
 			
 			grabby.addEventListener(MouseEvent.MOUSE_OVER, highlightArrows);
 			grabby.addEventListener(MouseEvent.MOUSE_OUT, stopDragging);
@@ -167,6 +184,8 @@
 		public function setHookSize(arg:int):void{
 			Crane_mc.mHook.gotoAndStop(arg);
 			Crane_mc.DropHook.gotoAndStop(arg);
+			Crane_mc.missedInterval.craneInterval.gotoAndStop(arg);
+			Crane_mc.activeInterval.craneInterval.gotoAndStop(arg);
 		}
 	}
 }
