@@ -969,7 +969,12 @@
 				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
 				popUpScreen.rating = getRating();
 				
-				popUpScreen.displayGameOver();
+				if( bootyMeter.treasuresFound > 0){
+					popUpScreen.displayGameOver();
+				} else {
+					popUpScreen.displayMissionMap( true);
+					closeGame();
+				}
 				
 				mDGInterface.sendLog( "endGameButtonPress:" );
 			}
