@@ -19,10 +19,10 @@ package odyssey
 			closeGame = closeGameFunc;
 		}
 		
-		public function startHunt( missionNum:int, e:Event = null, clearPreviousData:Boolean = false):void {
+		public function startHunt( missionNum:int, e:Event = null):void {
 			var md:MissionData = Missions.getMission( missionNum);
 			var stripBtnListeners:Boolean = (e ? true : false);
-			beginGame( md, stripBtnListeners, clearPreviousData);
+			beginGame( md, stripBtnListeners);
 		}
 	}
 }

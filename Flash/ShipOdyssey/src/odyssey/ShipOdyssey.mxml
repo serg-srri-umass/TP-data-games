@@ -168,7 +168,7 @@
 			}
 			
 			// start a new game.
-			private function newGame( mission:MissionData, stripBtnListeners:Boolean, deletePreviousData:Boolean):void{
+			private function newGame( mission:MissionData, stripBtnListeners:Boolean):void{
 				if(stripBtnListeners)
 					popUpScreen.stripMissionButtonListeners();	// if this is being called from the pop-up screen, strip the button listeners. 
 				
@@ -177,9 +177,6 @@
 				// first update/close/delete old game case in DG, before we update mGameSerialNum, etc. for new game
 				if( mDGInterface.isGameCaseOpen()) {
 					sendGameDataClose();
-				}
-				if( deletePreviousData )  {
-					mDGInterface.deletePreviousCaseData();
 				}
 				
 				//updateGameTitle(); // update the mission name and site number.				
@@ -552,9 +549,15 @@
 			
 			// set up our game for a new site.
 			private function newSite(iEvent:Event = null):void {
+				if( popUpScreen.deleteData )  {
+					mDGInterface.deletePreviousCaseData();
+				}
+				
+				
 				popUpScreen.visible = false;
 				readyToZoomIn();
 				disableAllButtons();
+				
 				
 				mSiteSerialNum			+= 1;
 				mSitesVisitedThisGame 	+= 1;
@@ -974,6 +977,10 @@
 				} else {
 					popUpScreen.displayMissionMap( true);
 					closeGame();
+				}
+				
+				if( popUpScreen.deleteData )  {
+					mDGInterface.deletePreviousCaseData();
 				}
 				
 				mDGInterface.sendLog( "endGameButtonPress:" );

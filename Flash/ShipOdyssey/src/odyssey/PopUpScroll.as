@@ -19,7 +19,7 @@ package odyssey
 		
 		private var okayFunc:Function = emptyFunction;	// the funciton that's assigned to the okay button
 		private function emptyFunction():void{}
-		private var deleteData:Boolean = true;
+		public var deleteData:Boolean = true;
 		
 		public function PopUpScroll(api:ShipMissionAPI = null) {
 			game = api;
@@ -50,7 +50,6 @@ package odyssey
 		public function displayGameOver(e:Event = null):void{
 			visible = true;
 			gotoAndStop("finishMission"); // TO-DO: rename this to gameOver
-			//delayTimer = new Timer(700, 1);
 			mainBtn.addEventListener(MouseEvent.CLICK, okayGameOver);
 			
 			var tf:TextFormat = new TextFormat();
@@ -102,18 +101,26 @@ package odyssey
 				missions["mission"+i].addEventListener(MouseEvent.MOUSE_UP, this["displayMission"+i]);
 			}
 			
-			deleteDataBox.checked = deleteData;
-			deleteDataBox.addEventListener(MouseEvent.CLICK, toggleDeletion);
+			missions.ghostBlocker.addEventListener(MouseEvent.DOUBLE_CLICK, startGame);
+			missions.ghostBlocker.doubleClickEnabled  = true;
+			missions.ghostBlocker.buttonMode = true;
+			
+			//deleteDataBox.checked = deleteData;
+			//deleteDataBox.addEventListener(MouseEvent.CLICK, toggleDeletion);
 			playBtn.addEventListener(MouseEvent.CLICK, startGame);
 		}
 		
+		
+		private function pop(e:Event):void{
+			trace("pop");
+		}
 		private function toggleDeletion(e:MouseEvent):void{
 			deleteData = deleteDataBox.checked;	
 		}
 		
 		private function startGame(e:MouseEvent):void {
-			var clearPreviousData:Boolean = deleteData; // whether or not the 'clear all data' box is checked.
-			game.startHunt(selectedLevel, e, clearPreviousData);
+			trace("starting game...");
+			game.startHunt(selectedLevel, e);
 		}
 		
 		private function displayMissionInstructions(e:MouseEvent = null, skipAnimation:Boolean = true):void {
@@ -173,6 +180,9 @@ package odyssey
 			nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
 			okayBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
 			doReplayPrivate();
+			
+			deleteDataBox.checked = deleteData;
+			deleteDataBox.addEventListener(MouseEvent.CLICK, toggleDeletion);
 		}
 		
 		private function useOkayFunc(e:Event):void{
@@ -265,6 +275,9 @@ package odyssey
 			gotoAndStop("confirm");
 			mainBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
 			noBtn.addEventListener(MouseEvent.CLICK, cancelAction);
+			
+			deleteDataBox.checked = deleteData;
+			deleteDataBox.addEventListener(MouseEvent.CLICK, toggleDeletion);
 		}
 		
 		private function cancelAction(e:Event):void{
