@@ -752,7 +752,7 @@
 			
 			// called when the sailing animation finishes zooming in. Enables the buttons and let's the user start playing.
 			private function zoomInTimerFinish(e:TimerEvent):void{
-				crane.visible = true;
+				crane.establish();
 				sailingMovie.visible = false;
 				enableAllButtons();
 			}
@@ -969,7 +969,12 @@
 				popUpScreen.treasuresFound = bootyMeter.treasuresFound;
 				popUpScreen.rating = getRating();
 				
-				popUpScreen.displayGameOver();
+				if( bootyMeter.treasuresFound > 0){
+					popUpScreen.displayGameOver();
+				} else {
+					popUpScreen.displayMissionMap( true);
+					closeGame();
+				}
 				
 				mDGInterface.sendLog( "endGameButtonPress:" );
 			}
