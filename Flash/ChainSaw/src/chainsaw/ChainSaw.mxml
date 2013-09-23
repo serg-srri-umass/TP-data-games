@@ -146,6 +146,9 @@
 			//coundown movieclip for starting countdown
 			private var mCountDownMVC:MovieClip = new CountDownMVC();
 			
+			// the button on the top-bar that prompts you to watch the instructional video.
+			private var mVideoButton:MovieClip = new videoMVC();
+			
 			//keeps track of whether mouse is down for mouse enabling and disabling purposes. 
 			private var mMouseIsDown:Boolean = false;
 			
@@ -243,11 +246,32 @@
 				} else {
 					recheckTimer.reset();
 					recheckTimer.start();
+					return; 
 				}
+
+				// I added a return in the above statement because otherwise, the following code could be run multiple times. -Mike
+				
 				//add countDown to stage
 				uic.addChild(mCountDownMVC);
 				mCountDownMVC.x = 745/2;
 				mCountDownMVC.y = 410/2;
+				
+				// init the 'play video' button & prompt.
+				videoBtnContainer.addChild(mVideoButton);
+				mVideoButton.x = 600;
+				mVideoButton.y = 15;
+				
+				// all the things that will make the 'click here' prompt go away go here.
+				// they need matching 'removeEventListeners' in the closePrompt method.
+				
+				mVideoButton.addEventListener( MouseEvent.CLICK, closePrompt);
+				mStartStopButton.addEventListener( MouseEvent.CLICK, closePrompt);
+				mChangeLevelButton.addEventListener( MouseEvent.CLICK, closePrompt);
+				
+
+				// this is the method that will be called when the button is clicked on.
+				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, openCloseVideo);
+				
 				
 				//Embedded Youtube video
 				var videoID:String = "UjjfK0Mb3dg";
@@ -268,6 +292,20 @@
 						videoPlayer.loadVideoById(videoID);	
 					}
 				}
+			}
+
+			// close the red 'click here' prompt that the video gives you.
+			private function closePrompt(e:MouseEvent):void{
+				mVideoButton.gotoAndPlay("close");
+				
+				mVideoButton.removeEventListener( MouseEvent.CLICK, closePrompt);
+				mStartStopButton.removeEventListener( MouseEvent.CLICK, closePrompt);
+				mChangeLevelButton.removeEventListener( MouseEvent.CLICK, closePrompt);
+			}
+
+			// TO-DO: Write a method that interacts with the button.
+			private function openCloseVideo(e:MouseEvent):void{
+				trace("Open or Close the video...");
 			}
 
 			// Send the initial game data to TinkerPlots or DG.  The collections are the tables of cases and attributes.
@@ -1362,6 +1400,7 @@
 		<!-- <s:Label id="continue_msg"   x="404" y="370" text="(Click anywhere to continue)"/> -->
 	</s:BorderContainer>
 	
+	<mx:UIComponent	id="videoBtnContainer" x="0" y="0"/>
 	<s:Label id="mVersionLabel" x="580" y="386" width="165" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
 	
 	<!-- Loading Screen of Safety -->
