@@ -50,7 +50,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.08.19";
+			private static const kVersion:String = "v.2013.09.24";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -83,7 +83,8 @@
 			private var numTreasuresPerSite:Array = new Array(); // this will hold how many treasures are at each site in Treasure or Not, for the first 6 sites.
 			private var haveTreasure:Boolean = false; // whether you pulled up a treasure or not on your last hook drop.
 			private var mTreasuresThisSite:Vector.<Treasure>;
-			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)		
+			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
+			private var lowWall:Boolean = false; // true for low wall, false for high wall on level 'Sea Wall'
 			
 			//variables for holding loaded MovieClips
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle, closeGame);	
@@ -269,7 +270,7 @@
 				if(shipControlsMVC.ratStepper.validate()){ // check if the stepper is valid #, based on how much $ you have.
 					if(mCurrentMission.ratCost >= bootyMeter.rats){
 						shipControlsMVC.ratStepper.gotoAndPlay("blink"); // make the stepper flash red if you can afford 0 rats.
-					}else{
+					} else{
 						if(mCurrentMission.ratCost > 0){ // pay if rats cost $
 							bootyMeter.pay(mCurrentMission.ratCost * mRatsToSend);
 							updateRatLimit();
@@ -293,12 +294,20 @@
 						var	eventsAtATime:int = Math.max( 1, Math.round( mRatsToSend / 10 ));
 						var	eventArray:Array = [];
 						
-						for( var ratNum:int = 0; ratNum < mRatsToSend; ++ratNum){
+						for(var ratNum:int = 0; ratNum < mRatsToSend; ++ratNum){
 							mRatsSentThisSite +=1; // Increment rat counter.
 							
 							if(numTreasuresHere == 1){
 								// Generate a noisy result based on the current treasure's location.
-								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + treasurePositions[0]; // Display nothing after decimal point.		
+								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + treasurePositions[0];
+
+								if(mCurrentMission.number == 6){
+									if(noisyLocation < kMinLocation){
+										noisyLocation = kMinLocation + (Math.abs(noisyLocation)/5);
+									} else if(noisyLocation > kMaxLocation){
+										noisyLocation = kMaxLocation - ((noisyLocation - kMaxLocation)/5);
+									}
+								}
 							} else if(numTreasuresHere == 0){
 								//get random normal values from the entire range
 								noisyLocation = randomLocation();
@@ -312,7 +321,7 @@
 							if( (ratNum + 1 == mRatsToSend) || (eventArray.length >= eventsAtATime )){
 								DivingRatDirector.addRat( noisyLocation, eventArray);
 								eventArray = []; // clear values already sent
-							}else{
+							} else{
 								DivingRatDirector.addRat( noisyLocation);					
 							}
 							evenOdd = (evenOdd + 1) % 2;
@@ -564,9 +573,28 @@
 				
 				var numTreasuresThisSite:int = createNumTreasuresThisSite();
 				mTreasuresThisSite = new Vector.<Treasure>();
-				for( var i:int = 0; i < numTreasuresThisSite; i++)
-					mTreasuresThisSite.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), randomLocation()));
-				
+				if(mCurrentMission.number == 6){
+					
+					var randKey:int = Math.floor(Math.random() * 3) //returns {0,1,2}
+					
+					switch(randKey){
+						case 0: // left wall
+							mTreasuresThisSite.push(new Treasure(TreasureNamePicker.poolShift(mCurrentMission.number), Math.floor(Math.random() * 4) + 3)); // rand on [3,6]
+							break;
+						case 1: // right wall
+							mTreasuresThisSite.push(new Treasure(TreasureNamePicker.poolShift(mCurrentMission.number), Math.floor(Math.random() * 4) + 94)); // rand on [94,97]
+							break;
+						case 2: // walls still there, but treasure is positioned for no effect 
+							mTreasuresThisSite.push(new Treasure(TreasureNamePicker.poolShift(mCurrentMission.number), Math.floor(Math.random() * 49) + 25)); // rand on [25,75]
+							break;
+						default: 
+							trace("key for switch at newSite() is out of range");
+					}
+				} else{
+					for( var i:int = 0; i < numTreasuresThisSite; i++)
+						mTreasuresThisSite.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), randomLocation()));
+				}
+						
 				if(mTreasuresThisSite.length == 2){
 					// this while loop ensures that the two treasures are sufficiently far apart.
 					while(Math.abs( mTreasuresThisSite[0].location - mTreasuresThisSite[1].location) < 30)

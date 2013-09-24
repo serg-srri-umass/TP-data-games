@@ -145,7 +145,9 @@ package chainsaw.sound{
 				_channel.stop();
 			}
 			
+			if(_channel){
 			_channel = sound.play(startTime, loops, sndTransform);
+			}
 			
 			if(percentageCounter){
 				percentageCounter.reset();

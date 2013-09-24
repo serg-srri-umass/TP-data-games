@@ -12,7 +12,7 @@ package odyssey.missions
 			_missionArray = new Array();
 						
 			//NOTE: ON THE MAP, Titles are set in the .swc. If they're changed, the .swc has to be updated as well.
-			for( var i:int=1; i<=5; i++ ) {
+			for( var i:int=1; i<=6; i++ ) {
 				
 				var m:MissionData = new MissionData( i );
 				
@@ -103,12 +103,27 @@ package odyssey.missions
 					m.instructions = "You start this mission with 1000 rats.  But your hook is only 2 units wide rather than 4.  The mission is over when you miss twice with the hook.";
 					m.ratingArray = new Array(2, 3, 4, 5);
 					break;
+				
+				case 6:
+					m.title = "Sea Wall";
+					
+					m.startingRats = 500;
+					m.missesAllowed = 2;
+					
+					m.ratsInStepper = 5;
+					
+					m.skyGradient = VisualVariables.daylight;
+					m.waterGradient = VisualVariables.clearWater;
+					m.cloudPattern = VisualVariables.fluffyClouds;
+					
+					m.instructions = "You start this mission with 500 rats. This time, there's a  wall beneath the ocean that affects where your treasure can be found. The mission is over when you miss twice with the hook"
+					m.ratingArray = new Array(4, 5, 6, 7); // rating minimum requirements: in order: 2 stars, 3 stars, 4 stars, 5 stars 
+					break;
 				}
 			}
 		}
 		
-		
-		// pass this function a #, and it will return the cooresponding MissionData object.
+		// pass this function a #, and it will return the corresponding MissionData object.
 		public static function getMission(arg:Number):MissionData{
 			
 			if( ! _missionArray ) {

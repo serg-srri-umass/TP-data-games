@@ -68,6 +68,12 @@ package odyssey {
 					outString = pool5Arr.shift();
 					pool5Arr.push(outString);
 					break;
+				case 6: // using pool5 for mission 6 for now 
+					outString = pool5Arr.shift();
+					pool5Arr.push(outString);
+					break;
+				default:
+					trace("mission # is out of range for treasure pool chooser");
 			}
 			return outString;
 		}
