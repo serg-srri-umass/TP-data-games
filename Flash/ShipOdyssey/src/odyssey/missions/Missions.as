@@ -116,9 +116,6 @@ package odyssey.missions
 					m.waterGradient = VisualVariables.clearWater;
 					m.cloudPattern = VisualVariables.fluffyClouds;
 					
-					m.wallSD = 4;
-					m.wallShift = 5;
-					
 					m.instructions = "You start this mission with 500 rats. This time, there's a  wall beneath the ocean that affects where your treasure can be found. The mission is over when you miss twice with the hook"
 					m.ratingArray = new Array(4, 5, 6, 7); // rating minimum requirements: in order: 2 stars, 3 stars, 4 stars, 5 stars 
 					break;

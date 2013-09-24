@@ -50,7 +50,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.09.17";
+			private static const kVersion:String = "v.2013.09.24";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -303,9 +303,9 @@
 
 								if(mCurrentMission.number == 6){
 									if(noisyLocation < kMinLocation){
-										noisyLocation = kMinLocation + Math.abs(noisyLocation);
+										noisyLocation = kMinLocation + (Math.abs(noisyLocation)/5);
 									} else if(noisyLocation > kMaxLocation){
-										noisyLocation = kMaxLocation - (noisyLocation - kMaxLocation);
+										noisyLocation = kMaxLocation - ((noisyLocation - kMaxLocation)/5);
 									}
 								}
 							} else if(numTreasuresHere == 0){
@@ -573,9 +573,28 @@
 				
 				var numTreasuresThisSite:int = createNumTreasuresThisSite();
 				mTreasuresThisSite = new Vector.<Treasure>();
-				for( var i:int = 0; i < numTreasuresThisSite; i++)
-					mTreasuresThisSite.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), 10/*  randomLocation() */));
-				
+				if(mCurrentMission.number == 6){
+					
+					var randKey:int = Math.floor(Math.random() * 3) //returns {0,1,2}
+					
+					switch(randKey){
+						case 0: // left wall
+							mTreasuresThisSite.push(new Treasure(TreasureNamePicker.poolShift(mCurrentMission.number), Math.floor(Math.random() * 4) + 3)); // rand on [3,6]
+							break;
+						case 1: // right wall
+							mTreasuresThisSite.push(new Treasure(TreasureNamePicker.poolShift(mCurrentMission.number), Math.floor(Math.random() * 4) + 94)); // rand on [94,97]
+							break;
+						case 2: // walls still there, but treasure is positioned for no effect 
+							mTreasuresThisSite.push(new Treasure(TreasureNamePicker.poolShift(mCurrentMission.number), Math.floor(Math.random() * 49) + 25)); // rand on [25,75]
+							break;
+						default: 
+							trace("key for switch at newSite() is out of range");
+					}
+				} else{
+					for( var i:int = 0; i < numTreasuresThisSite; i++)
+						mTreasuresThisSite.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), randomLocation()));
+				}
+						
 				if(mTreasuresThisSite.length == 2){
 					// this while loop ensures that the two treasures are sufficiently far apart.
 					while(Math.abs( mTreasuresThisSite[0].location - mTreasuresThisSite[1].location) < 30)
