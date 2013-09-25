@@ -12,7 +12,7 @@ package odyssey.missions
 			_missionArray = new Array();
 						
 			//NOTE: ON THE MAP, Titles are set in the .swc. If they're changed, the .swc has to be updated as well.
-			for( var i:int=1; i<=6; i++ ) {
+			for( var i:int=1; i<=5; i++ ) {
 				
 				var m:MissionData = new MissionData( i );
 				
@@ -52,7 +52,7 @@ package odyssey.missions
 					m.ratingArray = new Array(2, 4, 5, 7);
 					break;
 			
-				case 3:
+				/*case 3:
 					m.title = "Treasure or Not";
 					
 					m.startingRats = 500;
@@ -67,9 +67,9 @@ package odyssey.missions
 					
 					m.instructions = "You start this mission with 600 rats.  But there may be 0, 1, or even 2 treasures at each site.  Click the Next Site button when you think there are no more treasures.";
 					m.ratingArray = new Array(2, 3, 4, 5);
-					break;
+					break;*/
 			
-				case 4:
+				case 3:
 					m.title = "Deep Water";
 				
 					m.startingRats = 750;
@@ -86,7 +86,7 @@ package odyssey.missions
 					m.ratingArray = new Array(2, 3, 4, 6);
 					break;
 			
-				case 5:
+				case 4:
 					m.title = "Small Hook";
 				
 					m.startingRats = 1000;
@@ -104,7 +104,7 @@ package odyssey.missions
 					m.ratingArray = new Array(2, 3, 4, 5);
 					break;
 				
-				case 6:
+				case 5:
 					m.title = "Sea Wall";
 					
 					m.startingRats = 500;
@@ -116,8 +116,10 @@ package odyssey.missions
 					m.waterGradient = VisualVariables.clearWater;
 					m.cloudPattern = VisualVariables.fluffyClouds;
 					
-					m.instructions = "You start this mission with 500 rats. This time, there's a  wall beneath the ocean that affects where your treasure can be found. The mission is over when you miss twice with the hook"
+					m.instructions = "You start this mission with 500 rats. There's a  wall beneath the ocean that affects where the treasure can be found. The game is over when you miss twice with the hook."
 					m.ratingArray = new Array(4, 5, 6, 7); // rating minimum requirements: in order: 2 stars, 3 stars, 4 stars, 5 stars 
+					
+					m.seaWall = true;
 					break;
 				}
 			}

@@ -96,12 +96,9 @@ package odyssey
 			gotoAndStop("level");
 			displayMissionInstructions(null, skipAnimation);
 			
-			for(var i:int = 1; i <= 4; i++){
+			for(var i:int = 1; i <= 5; i++){
 				missions["mission"+i].buttonMode = true; // turns the cursor into a hand on mouse over.
 				missions["mission"+i].addEventListener(MouseEvent.MOUSE_UP, this["displayMission"+i]);
-				
-				//code to temporarily make the mission 5 button activate mission 6, 'Sea Wall'. MISSION5 BUTTON INSTANCE HAS BEEN RENAMED MISSION6
-				missions["mission6"].addEventListener(MouseEvent.MOUSE_UP, this["displayMission6"]);
 			}
 			
 			missions.ghostBlocker.addEventListener(MouseEvent.DOUBLE_CLICK, startGame);
@@ -130,52 +127,65 @@ package odyssey
 			body.text = getCurrentLevelDescription(selectedLevel);
 			titleBar.gotoAndStop(selectedLevel);
 			missions.choose((selectedLevel == 6) ? selectedLevel-1:selectedLevel, skipAnimation);
+			handleBestRating( selectedLevel);
 		}
 		
 		private function displayMission1(e:MouseEvent):void {
 			body.text = Missions.getMission(1).instructions;
 			selectedLevel = Missions.getMission(1).number;
+			handleBestRating(1);
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		
 		private function displayMission2(e:MouseEvent):void {
 			body.text = Missions.getMission(2).instructions;
 			selectedLevel = Missions.getMission(2).number;
+			handleBestRating(2);
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		
 		private function displayMission3(e:MouseEvent):void {
 			body.text = Missions.getMission(3).instructions;
 			selectedLevel = Missions.getMission(3).number;
+			handleBestRating(3);
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		
 		private function displayMission4(e:MouseEvent):void {
 			body.text = Missions.getMission(4).instructions;
 			selectedLevel = Missions.getMission(4).number;
+			handleBestRating(4);
 			titleBar.gotoAndStop(selectedLevel);
 		}
 		
 		private function displayMission5(e:MouseEvent):void {
 			body.text = Missions.getMission(5).instructions;
 			selectedLevel = Missions.getMission(5).number;
+			handleBestRating(5);
 			titleBar.gotoAndStop(selectedLevel);
 		}
+		
+		// given a mission #, this sets the 'best rating' on screen.
+		private function handleBestRating( missionNum:int):void{
+			if(Missions.getMission(missionNum).bestRating > 0){
+				highScore.gotoAndStop( Missions.getMission(missionNum).bestRating);
+			} else {
+				highScore.gotoAndStop(6); // frame six is 'no rating'
+			}
+		}
 
-		private function displayMission6(e:MouseEvent):void{ 
+		/*private function displayMission6(e:MouseEvent):void{ 
 			body.text = Missions.getMission(6).instructions;
 			selectedLevel = Missions.getMission(6).number;
 			titleBar.gotoAndStop(selectedLevel);
-		}
+		}*/
 		
 		//remove all listeners from the level chooser window & close it.
 		public function stripMissionButtonListeners():void {
 			visible = false;
-			for(var i:int = 1; i <= 4; i++){
+			for(var i:int = 1; i <= 5; i++){
 				missions["mission"+i].removeEventListener(MouseEvent.MOUSE_UP, this["displayMission"+i]);
-			}
-			missions["mission6"].removeEventListener(MouseEvent.MOUSE_UP, this["displayMission6"]);
-		
+			}		
 			playBtn.removeEventListener(MouseEvent.CLICK, startGame);
 		}
 		
@@ -248,14 +258,18 @@ package odyssey
 		
 		private var replayArray:Array = new Array();
 		private var treasuresArray:Vector.<Treasure>;
+		private var hasSeaWalls:Boolean;
 		
-		public function doReplay(arg:Array, treasuresArg:Vector.<Treasure>):void{
+		public function doReplay(arg:Array, treasuresArg:Vector.<Treasure>, hasSeaWalls:Boolean):void{
 			replayArray = arg;
 			treasuresArray = treasuresArg;
+			this.hasSeaWalls = hasSeaWalls;
 		}
 		
 		private function doReplayPrivate():void{
 			replayWindow.foreground.reset();
+			replayWindow.foreground.seaWalls.visible = hasSeaWalls;
+			
 			var t1:Number = -1;
 			var t2:Number = -1;
 			
