@@ -9,10 +9,6 @@
 			   deactivate="ScriptInterface.signalDeactivation()"
 			   pageTitle="Chainsaw">
 	
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
-	</fx:Declarations>
-	
 	<fx:Script>
 		<![CDATA[
 			import chainsaw.GameLevelWindow;
@@ -270,7 +266,7 @@
 				
 
 				// this is the method that will be called when the button is clicked on.
-				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, openCloseVideo);
+				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
 				
 				
 				//Embedded Youtube video
@@ -289,7 +285,8 @@
 					function onPlayerReady(event:Event):void {
 						videoPlayer = loader.content;
 						videoPlayer.setSize(570, 360);
-						videoPlayer.loadVideoById(videoID);	
+						videoPlayer.loadVideoById(videoID);
+						videoPlayer.pauseVideo();
 					}
 				}
 			}
@@ -301,11 +298,6 @@
 				mVideoButton.removeEventListener( MouseEvent.CLICK, closePrompt);
 				mStartStopButton.removeEventListener( MouseEvent.CLICK, closePrompt);
 				mChangeLevelButton.removeEventListener( MouseEvent.CLICK, closePrompt);
-			}
-
-			// TO-DO: Write a method that interacts with the button.
-			private function openCloseVideo(e:MouseEvent):void{
-				trace("Open or Close the video...");
 			}
 
 			// Send the initial game data to TinkerPlots or DG.  The collections are the tables of cases and attributes.
@@ -1332,14 +1324,30 @@
 			}
 			
 			//Video functions
+			private function showVideo( e:MouseEvent = null):void
+			{
+				if(StartupVideo.visible == true)
+				{
+					if(videoPlayer != null)
+//					videoPlayer.stopVideo();
+					videoPlayer.pauseVideo();
+					
+					StartupVideo.visible = false;
+				}
+				else
+				{
+					StartupVideo.visible = true;
+				}
+			}
 			private function playPauseVideo():void
 			{
-				if(playPauseBtn.label == "Play") {
-					videoPlayer.playVideo();
-					playPauseBtn.label = "Pause";
-				} else {
+				var PLAYING_VIDEO:Number = 1;
+				if(videoPlayer.getPlayerState() == PLAYING_VIDEO) {
 					videoPlayer.pauseVideo();
 					playPauseBtn.label = "Play";
+				} else {
+					videoPlayer.playVideo();
+					playPauseBtn.label = "Pause";
 				}
 			}
 			private function replayVideo():void
@@ -1350,11 +1358,15 @@
 			}
 			private function skipVideo():void
 			{
-				videoPlayer.destroy();
 				StartupVideo.visible = false;
 			}
 		]]>
 	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
 		<s:backgroundFill>
 			<s:LinearGradient rotation="90">
@@ -1368,7 +1380,7 @@
 		<s:Label id="mPlayersNameLabel" x="280" y="8" color="#7B9453" fontFamily="Arial" fontSize="16" fontWeight="bold" text="Player's Name:" />
 		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput()" color="#7B9453" enabled="true"
 					 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
-		
+				
 		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}" click="toggleMute()" />
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
 	</s:BorderContainer>
@@ -1430,12 +1442,12 @@
 	</s:BorderContainer>
 	
 	<!-- Contains startup video -->
-	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="true" backgroundColor="0xEAD1A9" borderVisible="false">
+	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="0xEAD1A9" borderVisible="false">
 		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="0"/>
 		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-30}">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
 			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width}"/>
-			<s:Button id="skipBtn" label="Skip" click="skipVideo()" x="{playPauseBtn.width+replayBtn.width}" />
+			<s:Button id="skipBtn" label="Close" chromeColor="#eac42d" click="skipVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
 		</s:Group>
 	</s:BorderContainer>
 	
