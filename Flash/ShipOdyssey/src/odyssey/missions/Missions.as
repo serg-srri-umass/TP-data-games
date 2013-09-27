@@ -12,7 +12,7 @@ package odyssey.missions
 			_missionArray = new Array();
 						
 			//NOTE: ON THE MAP, Titles are set in the .swc. If they're changed, the .swc has to be updated as well.
-			for( var i:int=1; i<=5; i++ ) {
+			for( var i:int=1; i<=6; i++ ) {
 				
 				var m:MissionData = new MissionData( i );
 				
@@ -52,7 +52,7 @@ package odyssey.missions
 					m.ratingArray = new Array(2, 4, 5, 7);
 					break;
 			
-				/*case 3:
+				case 3:
 					m.title = "Treasure or Not";
 					
 					m.startingRats = 500;
@@ -67,9 +67,9 @@ package odyssey.missions
 					
 					m.instructions = "You start this mission with 600 rats.  But there may be 0, 1, or even 2 treasures at each site.  Click the Next Site button when you think there are no more treasures.";
 					m.ratingArray = new Array(2, 3, 4, 5);
-					break;*/
+					break;
 			
-				case 3:
+				case 4:
 					m.title = "Deep Water";
 				
 					m.startingRats = 750;
@@ -86,7 +86,7 @@ package odyssey.missions
 					m.ratingArray = new Array(2, 3, 4, 6);
 					break;
 			
-				case 4:
+				case 5:
 					m.title = "Small Hook";
 				
 					m.startingRats = 1000;
@@ -104,7 +104,7 @@ package odyssey.missions
 					m.ratingArray = new Array(2, 3, 4, 5);
 					break;
 				
-				case 5:
+				case 6:
 					m.title = "Sea Wall";
 					
 					m.startingRats = 500;
