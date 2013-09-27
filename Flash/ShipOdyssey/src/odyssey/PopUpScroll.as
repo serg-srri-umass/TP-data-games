@@ -19,7 +19,7 @@ package odyssey
 		
 		private var okayFunc:Function = emptyFunction;	// the funciton that's assigned to the okay button
 		private function emptyFunction():void{}
-		private var deleteData:Boolean = true;
+		public var deleteData:Boolean = true;
 		
 		public function PopUpScroll(api:ShipMissionAPI = null) {
 			game = api;
@@ -50,7 +50,6 @@ package odyssey
 		public function displayGameOver(e:Event = null):void{
 			visible = true;
 			gotoAndStop("finishMission"); // TO-DO: rename this to gameOver
-			//delayTimer = new Timer(700, 1);
 			mainBtn.addEventListener(MouseEvent.CLICK, okayGameOver);
 			
 			var tf:TextFormat = new TextFormat();
@@ -97,16 +96,19 @@ package odyssey
 			gotoAndStop("level");
 			displayMissionInstructions(null, skipAnimation);
 			
-			for(var i:int = 1; i <= 4; i++){
+			for(var i:int = 1; i <= 6; i++){
 				missions["mission"+i].buttonMode = true; // turns the cursor into a hand on mouse over.
 				missions["mission"+i].addEventListener(MouseEvent.MOUSE_UP, this["displayMission"+i]);
 				
-				//code to temporarily make the mission 5 button activate mission 6, 'Sea Wall'. MISSION5 BUTTON INSTANCE HAS BEEN RENAMED MISSION6
-				missions["mission6"].addEventListener(MouseEvent.MOUSE_UP, this["displayMission6"]);
+				var myBestRating:int = Missions.getMission(i).bestRating;
+				missions["mission"+i].rating.gotoAndStop(myBestRating);
+				missions["mission"+i].rating.visible = (myBestRating > 0);
 			}
 			
-			deleteDataBox.checked = deleteData;
-			deleteDataBox.addEventListener(MouseEvent.CLICK, toggleDeletion);
+			missions.ghostBlocker.addEventListener(MouseEvent.DOUBLE_CLICK, startGame);
+			missions.ghostBlocker.doubleClickEnabled  = true;
+			missions.ghostBlocker.buttonMode = true;
+			
 			playBtn.addEventListener(MouseEvent.CLICK, startGame);
 		}
 		
@@ -115,8 +117,8 @@ package odyssey
 		}
 		
 		private function startGame(e:MouseEvent):void {
-			var clearPreviousData:Boolean = deleteData; // whether or not the 'clear all data' box is checked.
-			game.startHunt(selectedLevel, e, clearPreviousData);
+			trace("starting game...");
+			game.startHunt(selectedLevel, e);
 		}
 		
 		private function displayMissionInstructions(e:MouseEvent = null, skipAnimation:Boolean = true):void {
@@ -154,7 +156,7 @@ package odyssey
 			selectedLevel = Missions.getMission(5).number;
 			titleBar.gotoAndStop(selectedLevel);
 		}
-
+		
 		private function displayMission6(e:MouseEvent):void{ 
 			body.text = Missions.getMission(6).instructions;
 			selectedLevel = Missions.getMission(6).number;
@@ -164,11 +166,9 @@ package odyssey
 		//remove all listeners from the level chooser window & close it.
 		public function stripMissionButtonListeners():void {
 			visible = false;
-			for(var i:int = 1; i <= 4; i++){
+			for(var i:int = 1; i <= 6; i++){
 				missions["mission"+i].removeEventListener(MouseEvent.MOUSE_UP, this["displayMission"+i]);
-			}
-			missions["mission6"].removeEventListener(MouseEvent.MOUSE_UP, this["displayMission6"]);
-		
+			}		
 			playBtn.removeEventListener(MouseEvent.CLICK, startGame);
 		}
 		
@@ -183,6 +183,9 @@ package odyssey
 			nextSiteBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
 			okayBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
 			doReplayPrivate();
+			
+			deleteDataBox.checked = deleteData;
+			deleteDataBox.addEventListener(MouseEvent.CLICK, toggleDeletion);
 		}
 		
 		private function useOkayFunc(e:Event):void{
@@ -238,14 +241,18 @@ package odyssey
 		
 		private var replayArray:Array = new Array();
 		private var treasuresArray:Vector.<Treasure>;
+		private var hasSeaWalls:Boolean;
 		
-		public function doReplay(arg:Array, treasuresArg:Vector.<Treasure>):void{
+		public function doReplay(arg:Array, treasuresArg:Vector.<Treasure>, hasSeaWalls:Boolean):void{
 			replayArray = arg;
 			treasuresArray = treasuresArg;
+			this.hasSeaWalls = hasSeaWalls;
 		}
 		
 		private function doReplayPrivate():void{
 			replayWindow.foreground.reset();
+			replayWindow.foreground.seaWalls.visible = hasSeaWalls;
+			
 			var t1:Number = -1;
 			var t2:Number = -1;
 			
@@ -275,6 +282,9 @@ package odyssey
 			gotoAndStop("confirm");
 			mainBtn.addEventListener(MouseEvent.CLICK, useOkayFunc);
 			noBtn.addEventListener(MouseEvent.CLICK, cancelAction);
+			
+			deleteDataBox.checked = deleteData;
+			deleteDataBox.addEventListener(MouseEvent.CLICK, toggleDeletion);
 		}
 		
 		private function cancelAction(e:Event):void{

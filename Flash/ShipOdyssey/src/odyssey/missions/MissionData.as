@@ -26,6 +26,7 @@ package odyssey.missions
 		
 		public var hookSize:int = REGULAR_HOOK; // what frame to show the hook at.
 		public var hookRadius:int = 2; // how big in units the hook is (multiply this by 2 for the full interval)
+		public var seaWall:Boolean = false; // when true, the level has sea walls.
 		
 		// math variables:
 		public var stdDeviation:Number = kStdDeviationClear;	// the standard deviation of rats here
@@ -36,6 +37,7 @@ package odyssey.missions
 		public var cloudPattern:Array;
 		
 		public var ratingArray:Array = new Array(0,0,0,0);	// rating minimum requirements: in order: 2 stars, 3 stars, 4 stars, 5 stars 
+		private var _bestRating:int = 0;
 		
 		// when a missionData is created, it's automatically enumerated.
 		public function MissionData( num:int ){
@@ -46,17 +48,27 @@ package odyssey.missions
 			return _number;
 		}
 		
+		public function get bestRating():int{
+			return _bestRating;
+		}
+		
 		public function getRating(arg:int):int{
+			var output:int;
 			if(arg >= ratingArray[3])
-				return 5;
-			if(arg >= ratingArray[2])
-				return 4;
-			if(arg >= ratingArray[1])
-				return 3;
-			if(arg >= ratingArray[0])
-				return 2;
+				output = 5;
+			else if(arg >= ratingArray[2])
+				output = 4;
+			else if(arg >= ratingArray[1])
+				output = 3;
+			else if(arg >= ratingArray[0])
+				output = 2;
+			else
+				output = 1;
 			
-			return 1;
+			if( output > _bestRating)
+				_bestRating = output;
+			
+			return output;
 		}
 	}
 }
