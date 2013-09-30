@@ -41,6 +41,7 @@
 			if(treasure1_location > 0) {
 				x1.visible = true;
 				x1.x = getScalePosition(treasure1_location);
+				x1.position.text = treasure1_location.toFixed(1);
 				dispatchEvent(new Event("treasurePlaced"));
 			} else {
 				x1.visible = false;
@@ -49,6 +50,7 @@
 			if(treasure2_location > 0) {
 				x2.visible = true;
 				x2.x = getScalePosition(treasure2_location);
+				x2.position.text = treasure2_location.toFixed(1);
 			} else {
 				x2.visible = false;
 			}
