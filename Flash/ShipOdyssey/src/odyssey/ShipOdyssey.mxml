@@ -93,6 +93,12 @@
 			private var shipControlsMVC:ShipControlsMVC = new ShipControlsMVC();
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
 			
+			// the button on the top-bar that prompts you to watch the instructional video.
+			private var mVideoButton:MovieClip = new videoMVC();
+			
+			//The Youtube video player for the intro video
+			private var videoPlayer:Object;
+			
 			
 			// ********** END OF TREASURE HUNT CONSTANTS AND VARIABLES **********
 			
@@ -153,6 +159,43 @@
 					popUpScreen.displayMissionMap(); // show level selection on start up and start the game (true = start game after level selection)
 				else
 					popUpScreen.showLoading();
+				
+				
+				//this code block displays the intro YouTube video, and sets up buttons for interaction with it 
+				// init the 'play video' button & prompt.
+				videoBtnContainer.addChild(mVideoButton);
+				mVideoButton.x = 415;
+				mVideoButton.y = 13;
+				
+				// all the things that will make the 'click here' prompt go away go here.
+				// they need matching 'removeEventListeners' in the closePrompt method.
+				
+				mVideoButton.addEventListener( MouseEvent.CLICK, closePrompt);
+				
+				// this is the method that will be called when the button is clicked on.
+				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
+				
+				
+				//Embedded Youtube video
+				var videoID:String = "95ORl-O5QRk";
+				
+				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
+				Security.allowDomain("s.ytimg.com");
+				
+				var loader:Loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
+				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
+				//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
+				function onLoaderInit(event:Event):void {
+					videoHolder.addChild(loader);
+					loader.content.addEventListener("onReady", onPlayerReady);
+					function onPlayerReady(event:Event):void {
+						videoPlayer = loader.content;
+						videoPlayer.setSize(518, 308);
+						videoPlayer.loadVideoById(videoID);
+						videoPlayer.pauseVideo();
+					}
+				}
 			}
 			
 			// set the rat stepper values and mRatsToSend.
@@ -205,6 +248,8 @@
 				
 				// start a new Game case in DG
 				sendGameDataOpen();
+				
+				closePrompt(new MouseEvent("click"));
 			}
 						
 			// randomLocation() creates a new location on the ocean floor based on a uniform
@@ -1013,7 +1058,46 @@
 				
 				mDGInterface.sendLog( "endGameButtonPress:" );
 			}
+
+			//Video functions
+			private function showVideo( e:MouseEvent = null):void{
+				if(StartupVideo.visible == true){
+					if(videoPlayer != null){
+						//					videoPlayer.stopVideo();
+						videoPlayer.pauseVideo();
+					}
+					StartupVideo.visible = false;
+				} else{
+					StartupVideo.visible = true;
+				}
+			}
+			private function playPauseVideo():void{
+				var PLAYING_VIDEO:Number = 1;
+				if(videoPlayer.getPlayerState() == PLAYING_VIDEO) {
+					videoPlayer.pauseVideo();
+					playPauseBtn.label = "Play";
+				} else{
+					videoPlayer.playVideo();
+					playPauseBtn.label = "Pause";
+				}
+			}
+			private function replayVideo():void{
+				videoPlayer.seekTo(0, true);
+				videoPlayer.playVideo();
+				playPauseBtn.label = "Pause";
+			}
+			private function skipVideo():void{
+				StartupVideo.visible = false;
+			}
 			
+			// close the red 'click here' prompt that the video gives you.
+			private function closePrompt(e:MouseEvent):void{
+				mVideoButton.gotoAndPlay("close");
+				
+				mVideoButton.removeEventListener( MouseEvent.CLICK, closePrompt);
+			//	mStartStopButton.removeEventListener( MouseEvent.CLICK, closePrompt);
+				//mChangeLevelButton.removeEventListener( MouseEvent.CLICK, closePrompt);
+			}
 		]]>
 	</fx:Script>
 	
@@ -1075,5 +1159,17 @@
 				  height="30" fontFamily="Georgia" label="Ignore Warning" click="startUp()" enabled="true" fontSize="12"/>
 	
 	</s:BorderContainer>
+	
+	<!-- Contains startup video -->
+	<s:BorderContainer id="StartupVideo" x="0" y="27" width="518" height="443" visible="false" backgroundColor="0xEAD1A9" borderVisible="false">
+		<mx:UIComponent	id="videoHolder" x="0" y="20"/>
+		<s:Group id="videoControlsContainer" x="160" y="350">
+			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
+			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width}"/>
+			<s:Button id="skipBtn" label="Close" chromeColor="#eac42d" click="skipVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
+		</s:Group>
+	</s:BorderContainer>
+	
+	<mx:UIComponent	id="videoBtnContainer" x="0" y="0"/>
 	
 </s:Application>
