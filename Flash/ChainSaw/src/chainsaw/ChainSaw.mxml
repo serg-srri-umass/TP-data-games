@@ -192,6 +192,19 @@
 			[Bindable]
 			private var mMutedVolumeIcon:Class;
 			
+			// Embed accepted/not accepted/remnant icons
+			[Embed(source="../embedded_assets/accepted.png")]
+			[Bindable]
+			private var mAcceptedImage:Class;
+			
+			[Embed(source="../embedded_assets/not_accepted.png")]
+			[Bindable]
+			private var mNotAcceptedImage:Class;
+			
+			[Embed(source="../embedded_assets/remnant.png")]
+			[Bindable]
+			private var mRemnantImage:Class;
+			
 			// test flash player makes sure the player is meeting the minimum requirements.
 			private function testFlashPlayer():void
 			{
@@ -578,8 +591,7 @@
 				// Not cutting, so don't specify a cut location.
 				if (pieceStatus.mIsEndPiece) pieceStatus.mCutX = 0;
 				
-				// Create "X" or "√" for piece to indicate rejected or accepted. "O" for remnants.
-				var statusLabel:Label = createStatusLabel();
+				var statusLabel:EnhancedSprite = new EnhancedSprite();
 								
 				// Accept cut piece if it falls within accepted range.
 				var accepted:Boolean = pieceStatus.isAccepted();
@@ -590,18 +602,15 @@
 				if (accepted){
 					if (!practice) ++mPieceNumber;
 					++mPiecesAccepted;
-					statusLabel.text	= "√";					// Check mark = OK.
-					statusLabel.setStyle("color", "0x00FF00");	// Green = OK.
+					statusLabel.loadImage(mAcceptedImage);
 				}else if (remnant){
 					if (!practice) ++mPieceNumber;
-					statusLabel.text = "O";
-					statusLabel.setStyle("color", "0xFFFF00"); // Yellow
 					++mPiecesRemnant;
+					statusLabel.loadImage(mRemnantImage);
 				}else{
 					if (!practice) ++mPieceNumber;
 					++mPiecesRejected;
-					statusLabel.text = "X";						// X = not OK.
-					statusLabel.setStyle("color", "0xFF0000");	// Red = not OK.
+					statusLabel.loadImage(mNotAcceptedImage);
 					if(pieceStatus.mLength < kMinCutLength){
 						++mPiecesShort;
 					}else{
@@ -609,17 +618,23 @@
 					}
 				}
 				
-				// Set y location of status label for cut piece.
-				statusLabel.y = (currentLog.height / 2) - (statusLabel.height / 2) + currentLog.y;
-				// Set x location of status label for cut piece.
+				// Set y location of the acceptance status label for cut piece.
+				statusLabel.y = (currentLog.height / 2) - (statusLabel.getHeight() / 2) + currentLog.y - 2;
+				
+				// Set x location of the acceptance status label for cut piece.
 				if (pieceStatus.mLeftToRight>0){
 					// End piece or cutting along same log as at the last cut.
-					if (pieceStatus.mIsEndPiece || (!pieceStatus.mIsEndPiece && !pieceStatus.mIsNewLog))
-						statusLabel.x = pieceStatus.mPrevXCut + (pieceStatus.mLength / 2) - (statusLabel.width / 2)+currentLog.x;
-						// Cutting on new log.
-					else statusLabel.x = (pieceStatus.mLength / 2) - (statusLabel.width / 2)+currentLog.x;
+					if (pieceStatus.mIsEndPiece || (!pieceStatus.mIsEndPiece && !pieceStatus.mIsNewLog)){
+						statusLabel.x = pieceStatus.mPrevXCut + (pieceStatus.mLength / 2) - (statusLabel.getWidth() / 2) + currentLog.x;
+					}
+					// Cutting on new log.
+					else{
+						statusLabel.x = (pieceStatus.mLength / 2) - (statusLabel.getWidth() / 2) + currentLog.x;
+					}
 				}
-				else statusLabel.x = pieceStatus.mCutX + (pieceStatus.mLength / 2) - (statusLabel.width / 2)+currentLog.x;
+				else {
+					statusLabel.x = pieceStatus.mCutX + (pieceStatus.mLength / 2) - (statusLabel.getWidth() / 2) + currentLog.x;
+				}
 				
 				//add statusLabel element to holder to be shown later
 				mStatusLabelHolder.addElement(statusLabel);
@@ -672,22 +687,6 @@
 						);
 					}
 				}
-			}
-			
-			/**
-			 * Creates a label to mark the piece on the log at the end of the game.
-			 */
-			private function createStatusLabel():Label
-			{
-				var statusLabel:Label	= new Label();
-				statusLabel.width		= 14;			// Setting manually, as measureText() fails with Spark Label.
-				statusLabel.height		= 14;
-				statusLabel.setStyle("fontWeight", "bold");
-				statusLabel.setStyle("fontSize", "16");
-				statusLabel.setStyle("antiAliasType", "normal");
-				statusLabel.setStyle("justificationStyle", "auto");
-				
-				return statusLabel;
 			}
 			
 			// startGame() is called whenever the start button is pressed.
@@ -1403,10 +1402,10 @@
 			</s:LinearGradient>
 		</s:backgroundFill>
 		
-		<s:Label id="mLevelLabel" x="5" y="3" text="PRACTICE LEVEL" width="318" textAlign="left" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Georgia" fontStyle="normal" color="#669035"/>
+		<s:Label id="mLevelLabel" x="5" y="3" text="PRACTICE LEVEL" width="318" textAlign="left" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Arial" fontStyle="normal" />
 		
-		<s:Label id="mPlayersNameLabel" x="280" y="8" color="#7B9453" fontFamily="Arial" fontSize="16" fontWeight="bold" text="Player's Name:" />
-		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput()" color="#7B9453" enabled="true"
+		<s:Label id="mPlayersNameLabel" x="280" y="8" fontFamily="Arial" fontSize="16" fontWeight="bold" text="Player's Name:" />
+		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput()" enabled="true"
 					 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
 		
 		<s:Image id="mVideoIconImage" x="595" y="6" source="{mVideoIcon}" click="showVideo()" />
@@ -1415,7 +1414,7 @@
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
 	</s:BorderContainer>
 	
-	<s:BorderContainer id="mLogYardContainer" x="134" y="46" width="600" height="364" backgroundColor="#EAD1AA" borderVisible="false">
+	<s:BorderContainer id="mLogYardContainer" x="134" y="46" width="600" height="364" backgroundAlpha="0" borderVisible="false">
 		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)" mouseChildren="false"/>
 		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
@@ -1434,6 +1433,7 @@
 	</s:BorderContainer>
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
+	
 	<s:BorderContainer id="mResultsOverlay" x="134" y="46" width="{745-134}" height="{410-46}" alpha=".50" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
 		<s:Label id="mAcceptedPiecesValue" x="270" y="{60-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left"/>
 		<s:Label id="mFuelLeftValue" x="270" y="{145-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>

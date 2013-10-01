@@ -2,6 +2,7 @@ package chainsaw
 {
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
+	import flash.display.BlendMode;
 	
 	import spark.core.SpriteVisualElement;
 	
@@ -23,7 +24,7 @@ package chainsaw
 			_image = new image();
 			_data = _image.bitmapData;
 			
-			this.blendMode = "multiply";
+			this.blendMode = BlendMode.NORMAL;
 			this.graphics.clear();
 			this.graphics.beginBitmapFill(_data);
 			this.graphics.drawRect(0, 0, _data.width, _data.height);
