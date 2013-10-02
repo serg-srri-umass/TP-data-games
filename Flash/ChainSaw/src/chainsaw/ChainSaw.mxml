@@ -3,7 +3,7 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   minWidth="745" minHeight="410" 
-			   backgroundColor="#EAD1AA"
+			   backgroundColor="#47B070"
 			   creationComplete="testFlashPlayer()"
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
@@ -1414,7 +1414,7 @@
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
 	</s:BorderContainer>
 	
-	<s:BorderContainer id="mLogYardContainer" x="134" y="46" width="600" height="364" backgroundAlpha="0" borderVisible="false">
+	<s:BorderContainer id="mLogYardContainer" x="135" y="46" width="610" height="364" backgroundAlpha="0" borderVisible="false">
 		<s:SWFLoader		id="mDynamicLog" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog1()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)" mouseChildren="false"/>
 		<s:SWFLoader		id="mDynamicLog2" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog2()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
 		<s:SWFLoader		id="mDynamicLog3" x="-5" y="0" source="chainsaw_assets/DynamicLog.swf" complete="initLog3()" mouseUp="logUp(event)" mouseOver="logIn(event)" mouseOut="logOut(event)" mouseMove="logMidLog(event)"/>
@@ -1422,19 +1422,19 @@
 		<s:Group			id="mStatusLabelHolder" x="0" y="0" width="597" height="324" visible="false"/>
 	</s:BorderContainer>
 	
-	<s:BorderContainer id="UI_Elements" x="0" y="156" width="134" height="274" backgroundColor="#EAD1AA" borderVisible="false">
-		<s:Label id="mFuelLabel" x="18" y="35" fontSize="16" fontWeight="bold" text="Fuel:"/>
-		<s:SWFLoader id="mFuelIcon" x="18" y="55" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
-		<s:Label id="mReferenceLengthLabel" x="13" y="-110" fontSize="16" fontWeight="bold" text="Target Length:"/>
-		<mx:Image id="mTapeMeasure" x="15" y="-90" source="{mTapeMeasureImage}"/>
-		<mx:Image id="mReferenceLengthImage" x="18" y="-52" source="{mLengthImage}"/>
-		<s:Button id="mStartStopButton" x="20" y="180" width="100" height="50" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
-		<s:Button id="mChangeLevelButton" x="20" y="-10" width="100" height="30" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
+	<s:BorderContainer id="UI_Elements" x="0" y="46" width="135" height="364" backgroundAlpha="0" borderVisible="false">
+		<s:Label id="mReferenceLengthLabel" x="15" y="0" fontSize="16" fontWeight="bold" text="Target Length:"/>
+		<mx:Image id="mTapeMeasure" x="15" y="20" source="{mTapeMeasureImage}"/>
+		<mx:Image id="mReferenceLengthImage" x="18" y="58" source="{mLengthImage}"/>
+		<s:Button id="mChangeLevelButton" x="20" y="100" width="100" height="30" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
+		<s:Label id="mFuelLabel" x="18" y="145" fontSize="16" fontWeight="bold" text="Fuel:"/>
+		<s:SWFLoader id="mFuelIcon" x="18" y="165" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
+		<s:Button id="mStartStopButton" x="20" y="290" width="100" height="50" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
 	</s:BorderContainer>
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
 	
-	<s:BorderContainer id="mResultsOverlay" x="134" y="46" width="{745-134}" height="{410-46}" alpha=".50" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
+	<s:BorderContainer id="mResultsOverlay" x="135" y="46" width="{745-135}" height="{410-46}" alpha=".50" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
 		<s:Label id="mAcceptedPiecesValue" x="270" y="{60-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left"/>
 		<s:Label id="mFuelLeftValue" x="270" y="{145-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
 		<s:Label id="mCutStyleValue" x="270" y="{225-46}" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
