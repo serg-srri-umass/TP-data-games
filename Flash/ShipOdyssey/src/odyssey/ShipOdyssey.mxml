@@ -142,7 +142,7 @@
 			private	function startUp():void	
 			{
 				BrickWall.visible = false;
-				topBarMVC.disableHelpButton();			// disable the info button, it won't be enabled until arriving at a site.
+				//topBarMVC.disableHelpButton();			// disable the info button, it won't be enabled until arriving at a site.
 				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
 				
 				mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
@@ -164,7 +164,7 @@
 				//this code block displays the intro YouTube video, and sets up buttons for interaction with it 
 				// init the 'play video' button & prompt.
 				videoBtnContainer.addChild(mVideoButton);
-				mVideoButton.x = 415;
+				mVideoButton.x = 440;
 				mVideoButton.y = 13;
 				
 				// all the things that will make the 'click here' prompt go away go here.
@@ -844,7 +844,7 @@
 				shipControlsMVC.disableHookButton();
 				shipControlsMVC.ratStepper.enabled = false;
 				shipControlsMVC.disableRatsButton();
-				topBarMVC.disableHelpButton();
+				//topBarMVC.disableHelpButton();
 				bootyMeter.disableEndMissionButton();
 				bootyMeter.disableNextSiteButton();
 				
@@ -853,7 +853,7 @@
 			}	
 			
 			private function enableAllButtons():void{
-				topBarMVC.enableHelpButton();
+				//topBarMVC.enableHelpButton();
 				shipControlsMVC.hookStepper.enabled = true;
 				shipControlsMVC.ratStepper.enabled = true;
 				shipControlsMVC.enableRatsButton();
@@ -1012,7 +1012,7 @@
 				popUpContainer.addChild(topBarMVC);
 				topBarMVC.setVersion(kVersion);
 				topBarMVC.setStage(this.systemManager.stage);
-				topBarMVC.helpFunction = onClickHelpButton;
+				//topBarMVC.helpFunction = onClickHelpButton;
 				
 				addEventListener(MouseEvent.CLICK, handleFocus);
 				
@@ -1036,7 +1036,7 @@
 			private function endGameConfirmed(e:Event = null):void{								
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
 				sailingMovie.visible = true;
-				topBarMVC.disableHelpButton();
+			//	topBarMVC.disableHelpButton();
 				crane.visible = false;
 				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));
@@ -1069,6 +1069,7 @@
 					StartupVideo.visible = false;
 				} else{
 					StartupVideo.visible = true;
+					videoPlayer.playVideo();
 				}
 			}
 			private function playPauseVideo():void{
@@ -1088,12 +1089,12 @@
 			}
 			private function skipVideo():void{
 				StartupVideo.visible = false;
+				videoPlayer.pauseVideo();
 			}
 			
 			// close the red 'click here' prompt that the video gives you.
 			private function closePrompt(e:MouseEvent):void{
 				mVideoButton.gotoAndPlay("close");
-				
 				mVideoButton.removeEventListener( MouseEvent.CLICK, closePrompt);
 			//	mStartStopButton.removeEventListener( MouseEvent.CLICK, closePrompt);
 				//mChangeLevelButton.removeEventListener( MouseEvent.CLICK, closePrompt);
@@ -1161,12 +1162,12 @@
 	</s:BorderContainer>
 	
 	<!-- Contains startup video -->
-	<s:BorderContainer id="StartupVideo" x="0" y="27" width="518" height="443" visible="false" backgroundColor="0xEAD1A9" borderVisible="false">
+	<s:BorderContainer id="StartupVideo" x="0" y="27" width="518" height="443" visible="false" backgroundColor="0x000000" borderVisible="false">
 		<mx:UIComponent	id="videoHolder" x="0" y="20"/>
 		<s:Group id="videoControlsContainer" x="160" y="350">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
 			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width}"/>
-			<s:Button id="skipBtn" label="Close" chromeColor="#eac42d" click="skipVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
+			<s:Button id="skipBtn" label="Close" chromeColor="#eac42d" color="0x000000" click="skipVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
 		</s:Group>
 	</s:BorderContainer>
 	

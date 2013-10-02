@@ -16,7 +16,7 @@ package odyssey
 		private var _quality:int = HIGH; // the current quality.
 		private var _muted:Boolean = false; // whether the game is muted.
 		
-		private var _helpFunction:Function = function():void{};
+		//private var _helpFunction:Function = function():void{};
 		
 		public function TopBarMVC():void{
 			quality.addEventListener(MouseEvent.CLICK, toggleQuality);			
@@ -27,7 +27,7 @@ package odyssey
 			st.volume = 1;			
 			SoundMixer.soundTransform = st;
 			
-			helpBtn.addEventListener(MouseEvent.CLICK, doHelpFunction);
+			//helpBtn.addEventListener(MouseEvent.CLICK, doHelpFunction);
 		}
 		
 		// set the title at the top of the screen
@@ -72,7 +72,7 @@ package odyssey
 			SoundMixer.soundTransform = st;
 		}
 		
-		public function get helpFunction():Function{
+		/*public function get helpFunction():Function{
 			return _helpFunction;
 		}
 		
@@ -81,18 +81,18 @@ package odyssey
 		}
 		
 		private function doHelpFunction(e:Event):void{
-			_helpFunction();
+			//_helpFunction();
 		}
 		
 		
 		public function disableHelpButton():void{
-			helpBtn.mouseEnabled = false;
-			helpBtn.alpha = 0.5;
+			//helpBtn.mouseEnabled = false;
+			//helpBtn.alpha = 0.5;
 		}
 		
 		public function enableHelpButton():void{
-			helpBtn.mouseEnabled = true;
-			helpBtn.alpha = 1;
-		}
+			//helpBtn.mouseEnabled = true;
+			//helpBtn.alpha = 1;
+		}*/
 	}
 }
