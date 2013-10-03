@@ -105,7 +105,7 @@ package odyssey.missions
 					break;
 				
 				case 6:
-					m.title = "Sea Wall";
+					m.title = "Sea Walls";
 					
 					m.startingRats = 500;
 					m.missesAllowed = 2;

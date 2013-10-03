@@ -111,12 +111,15 @@
 				this.addEventListener(Event.ENTER_FRAME, BoatBob);
 			}
 		}
+		
+		// hard reset called on new game.
 		public function hardReset(e:Event = null):void{
 			reset();
 			sendCraneToFrame(100);
 			scale.gotoAndStop("off");
 			ToyBoat.gotoAndStop(59);
 			ToyBoat.startSail();
+			ToyBoat.hoard.gotoAndStop(1);
 		}
 		public function doZoomIn():void{
 			ToyBoat.stopSail();
@@ -142,6 +145,7 @@
 			this.addEventListener(Event.ENTER_FRAME, zoomStepOut);
 		}
 		
+		// called every site.
 		public function reset():void{
 			ToyBoat.x = baseX;
 			ToyBoat.y = baseY;
@@ -155,6 +159,11 @@
 		public function setHookSize(arg:int):void{
 			ToyBoat.crane.hook.gotoAndStop(arg);
 		}
+		
+		public function addTreasure():void{
+			ToyBoat.hoard.nextFrame();
+		}
+		
 	}
 }
 

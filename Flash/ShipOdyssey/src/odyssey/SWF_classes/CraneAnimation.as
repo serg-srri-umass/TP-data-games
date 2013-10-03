@@ -69,7 +69,8 @@
 		public function set canDrag(arg:Boolean):void{
 			_canDrag = arg;
 			grabby.buttonMode = _canDrag;
-			Crane_mc.scale.mouseEnabled = _canDrag;
+			grabby2.buttonMode = _canDrag;	// grabby2 is over the yellow scale.
+			grabby2.mouseEnabled = _canDrag;
 		}
 		
 		public function highlightArrows(e:Event):void{
@@ -136,7 +137,7 @@
 		public function gotoPoint(e:MouseEvent):void {
 			if(_canDrag){
 				snappingPoint = limit(calcMousePosition());
-				runTo(snappingPoint);	
+				toFrame(snappingPoint);
 				dispatchEvent(new Event("scaleClicked"));
 			}
 		}
@@ -153,6 +154,9 @@
 		public function movePopUp(e:MouseEvent):void {
 			Crane_mc.position.x = mouseX + 5;
 			Crane_mc.position.txt.text = limit(calcMousePosition());
+			if(isDraggingScale){
+				gotoPoint(e);
+			}
 		}
 		
 		public function animateDraggingText(txtInt:int):void {
@@ -175,17 +179,48 @@
 			this.addEventListener(MouseEvent.MOUSE_UP, stopDragging);
 		
 			Crane_mc.position.visible = false;
-			Crane_mc.scale.addEventListener(MouseEvent.CLICK, gotoPoint);
-			Crane_mc.scale.addEventListener(MouseEvent.MOUSE_MOVE, movePopUp);
-			Crane_mc.scale.addEventListener(MouseEvent.MOUSE_OVER, showPopUp);
-			Crane_mc.scale.addEventListener(MouseEvent.MOUSE_OUT, hidePopUp);
+			
+			grabby2.addEventListener(MouseEvent.MOUSE_DOWN, startScaleDrag);
+			grabby2.addEventListener(MouseEvent.MOUSE_UP, stopScaleDrag);
+			
+			grabby2.addEventListener(MouseEvent.MOUSE_MOVE, movePopUp);
+			
+			grabby2.addEventListener(MouseEvent.MOUSE_OVER, showPopUp);
+			grabby2.addEventListener(MouseEvent.MOUSE_OUT, stopScaleDragHidePopUp);
 		}
+		
+		private function stopScaleDragHidePopUp(e:MouseEvent):void{
+			hidePopUp(e);
+			stopScaleDrag(e);
+		}
+		
+		private function stopScaleDrag(e:MouseEvent):void{
+			isDraggingScale = false;
+		}
+		
+		private function startScaleDrag(e:MouseEvent):void{
+			if(_canDrag){
+				gotoPoint(e);
+				isDraggingScale = true;
+			}
+		}
+		
+		private var isDraggingScale:Boolean = false;
 		
 		public function setHookSize(arg:int):void{
 			Crane_mc.mHook.gotoAndStop(arg);
 			Crane_mc.DropHook.gotoAndStop(arg);
 			Crane_mc.missedInterval.craneInterval.gotoAndStop(arg);
 			Crane_mc.activeInterval.craneInterval.gotoAndStop(arg);
+		}
+		
+		public function addTreasure():void{
+			Crane_mc.hoard.nextFrame();
+			trace("ADDING A TREASURE!");
+		}
+		
+		public function resetTreasure():void{
+			Crane_mc.hoard.gotoAndStop(1);
 		}
 	}
 }

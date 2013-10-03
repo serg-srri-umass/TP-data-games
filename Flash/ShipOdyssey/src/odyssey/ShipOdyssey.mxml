@@ -189,7 +189,7 @@
 				function onLoaderInit(event:Event):void {
 					videoHolder.addChild(loader);
 					loader.content.addEventListener("onReady", onPlayerReady);
-					function onPlayerReady(event:Event):void {
+					function onPlayerReady(evenzt:Event):void {
 						videoPlayer = loader.content;
 						videoPlayer.setSize(518, 308);
 						videoPlayer.loadVideoById(videoID);
@@ -246,8 +246,11 @@
 				shipControlsMVC.useLargeRatButton = mission.fixedRats; 	// if this mission has a fixed # of rats, use the big button instead of the stepper.
 				setHookSizes(mission.hookSize);
 				
+				crane.resetTreasure();
+				
 				// start a new Game case in DG
 				sendGameDataOpen();
+				
 				
 				closePrompt(new MouseEvent("click"));
 			}
@@ -505,7 +508,6 @@
 				{
 					// Add treasure value to accumulated wealth.
 					bootyMeter.finishTreasureDrop(true);
-
 					mCashSound.play(); // Play cash register sound.	
 					
 					// Tell the player which treasure was found and how much it is worth.					
@@ -566,6 +568,12 @@
 				sailingMovie.visible = true;
 				sailingMovie.reset();
 				//mCurrentGameComplete = true;// Game is now complete.	
+				
+				// add treasure to the deck of the ship
+				if(haveTreasure){
+					sailingMovie.addTreasure();
+					crane.addTreasure();
+				}
 				
 				if(!popUpScreen.visible){
 					if(haveTreasure || bootyMeter.isOutOfHooks || bootyMeter.isOutOfRats){
@@ -696,7 +704,7 @@
 				}
 			}
 			
-			// should we change this, or make it work? It's not being called at all right now. $WIP
+			// TO-DO: should we change this, or make it work? It's not being called at all right now.
 			private function updateProfitAfterSail():void{
 				//update the cumulative cost of using the ship and crew as well as the profit so far
 				mCurrentTreasureNum = selectRandomTreasure();
