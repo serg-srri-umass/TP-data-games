@@ -318,11 +318,6 @@
 				mChangeLevelButton.removeEventListener( MouseEvent.CLICK, closePrompt);
 			}
 
-			// TO-DO: Write a method that interacts with the button.
-			private function openCloseVideo(e:MouseEvent):void{
-				trace("Open or Close the video...");
-			}
-
 			// Send the initial game data to TinkerPlots or DG.  The collections are the tables of cases and attributes.
 			private	function	sendCollectionData( ):void	{
 				var	result:String;
@@ -1375,13 +1370,6 @@
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<s:Sine id="sineEasing" />
-		<s:Bounce id="bounceEasing" />
-		
-		<s:Sequence id="bounceMove" repeatCount="{Number.MAX_VALUE}">
-			<s:Move id="moveDown" yBy="20" duration="1000" easer="{sineEasing}" />
-			<s:Move id="moveUp" yBy="-20" duration="1000" easer="{sineEasing}" />
-		</s:Sequence>
 	</fx:Declarations>
 	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
@@ -1397,7 +1385,7 @@
 		<s:Label id="mPlayersNameLabel" x="280" y="8" fontFamily="Arial" fontSize="16" fontWeight="bold" text="Player's Name:" />
 		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput()" enabled="true"
 					 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
-		
+				
 		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}" click="toggleMute()" />
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
 	</s:BorderContainer>
@@ -1465,7 +1453,7 @@
 		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-30}">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
 			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width}"/>
-			<s:Button id="skipBtn" label="Close" chromeColor="#eac42d" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
+			<s:Button id="closeVideoBtn" label="Close" chromeColor="#eac42d" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
 		</s:Group>
 	</s:BorderContainer>
 	
