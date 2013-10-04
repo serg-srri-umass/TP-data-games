@@ -305,6 +305,7 @@
 						videoPlayer.setSize(570, 360);
 						videoPlayer.loadVideoById(videoID);
 						videoPlayer.pauseVideo();
+						videoPlayer.addEventListener("onStateChange", onVideoStateChange);
 					}
 				}
 			}
@@ -1353,17 +1354,26 @@
 				var PLAYING_VIDEO:Number = 1;
 				if(videoPlayer.getPlayerState() == PLAYING_VIDEO) {
 					videoPlayer.pauseVideo();
-					playPauseBtn.label = "Play";
 				} else {
 					videoPlayer.playVideo();
-					playPauseBtn.label = "Pause";
 				}
 			}
 			private function replayVideo():void
 			{
 				videoPlayer.seekTo(0, true);
 				videoPlayer.playVideo();
-				playPauseBtn.label = "Pause";
+			}
+			private function onVideoStateChange(e:Event):void
+			{
+				var PLAY:int=1, PAUSE:int=2;
+				var state:int = Object(e).data;
+				switch(state)
+				{
+					case PLAY:
+						playPauseBtn.label = "Pause"; break;
+					case PAUSE:
+						playPauseBtn.label = "Play"; break;
+				}
 			}
 		]]>
 	</fx:Script>
