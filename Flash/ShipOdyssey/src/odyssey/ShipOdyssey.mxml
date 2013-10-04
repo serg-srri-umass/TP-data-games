@@ -605,6 +605,13 @@
 				sendGameDataClose();
 			}
 			
+			// this method is called on "Treasure or Not". When you get the treasure, take it off the hook, and put it on deck.
+			private function putTreasureOnDeck():void{
+				crane.addTreasure(); // adds treasure to the ship deck
+				crane.hideTreasure(); // hides treasure from the ship hook
+				sailingMovie.addTreasure(); 
+			}
+			
 			private function getRating():int{
 				return mCurrentMission.getRating(bootyMeter.treasuresFound);
 			}
