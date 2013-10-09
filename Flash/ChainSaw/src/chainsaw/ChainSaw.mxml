@@ -14,6 +14,7 @@
 			import chainsaw.GameLevelWindow;
 			import chainsaw.events.*;
 			import chainsaw.sound.SoundDebug;
+			import chainsaw.sawdust.*;
 			
 			import com.adobe.serialization.json.JSON;
 			
