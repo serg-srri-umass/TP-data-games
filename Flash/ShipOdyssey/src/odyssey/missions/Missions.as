@@ -32,7 +32,7 @@ package odyssey.missions
 					m.waterGradient = VisualVariables.clearWater;
 					m.cloudPattern = VisualVariables.fluffyClouds;
 					
-					m.instructions = "Send down 100 rats at a time to guess the treasure's location.  Position the hook, then drop it. Be careful: when you miss twice, your game is over.";
+					m.instructions = "Send down 100 rats at a time to guess the treasure's location. When you think you know where the treasure is, position the hook and drop it. The game is over when you miss twice with the hook or use up your 800 rats.";
 					m.ratingArray = new Array(4, 5, 6, 7); // rating minimum requirements: in order: 2 stars, 3 stars, 4 stars, 5 stars 
 					break;
 				
@@ -48,7 +48,7 @@ package odyssey.missions
 					m.waterGradient = VisualVariables.clearWater;
 					m.cloudPattern = VisualVariables.grayClouds;
 					
-					m.instructions = "You start this mission with 400 rats.  Send down as few as you can to estimate the treasure's location.  The game is over when you miss twice with the hook.";
+					m.instructions = "Send down as few rats as you can to estimate the treasure's location. But remember, the game is over when you miss twice with the hook or use up your 400 rats.";
 					m.ratingArray = new Array(2, 4, 5, 7);
 					break;
 			
@@ -59,13 +59,14 @@ package odyssey.missions
 					m.missesAllowed = 2;
 					m.variableTreasures = true;
 					
-					m.ratsInStepper = 5;
+					m.fixedRats = true;
+					m.ratsInStepper = 100;
 					
 					m.skyGradient = VisualVariables.daylight;
 					m.waterGradient = VisualVariables.clearWater;
 					m.cloudPattern = VisualVariables.grayClouds;
 					
-					m.instructions = "You start this mission with 600 rats.  But there may be 0, 1, or even 2 treasures at each site.  Click the Next Site button when you think there are no more treasures.";
+					m.instructions = "Send down 100 rats at a time to guess the treasure's location.  At each site, there may be 0, 1, or even 2 treasures.  Click the Next Site button when you think there are no more treasures at a site.";
 					m.ratingArray = new Array(2, 3, 4, 5);
 					break;
 			
@@ -82,7 +83,7 @@ package odyssey.missions
 					m.waterGradient = VisualVariables.murkyWater;
 					m.cloudPattern = VisualVariables.grayClouds;
 				
-					m.instructions = "You start this mission with 750 rats.  This is deep water, so the rat readings are less accurate. The game is over when you miss twice with the hook.";
+					m.instructions = "Send down as few rats as you can to estimate the treasure's location. But this is deep water, so the rat readings are less accurate. The game is over when you miss twice with the hook or use up your 750 rats.";
 					m.ratingArray = new Array(2, 3, 4, 6);
 					break;
 			
@@ -100,23 +101,24 @@ package odyssey.missions
 					m.waterGradient = VisualVariables.clearWater;
 					m.cloudPattern = VisualVariables.fluffyClouds;
 				
-					m.instructions = "You start this mission with 1000 rats.  But your hook is only 2 units wide rather than 4.  The mission is over when you miss twice with the hook.";
+					m.instructions = "Send down as few rats as you can to estimate the treasure's location.  But your hook is now only 2 units wide rather than 4. The game is over when you miss twice with the hook or use up your 1000 rats.";
 					m.ratingArray = new Array(2, 3, 4, 5);
 					break;
 				
 				case 6:
 					m.title = "Sea Walls";
 					
-					m.startingRats = 500;
+					m.startingRats = 800;
 					m.missesAllowed = 2;
 					
-					m.ratsInStepper = 5;
+					m.ratsInStepper = 100;
+					m.fixedRats = true;
 					
 					m.skyGradient = VisualVariables.daylight;
 					m.waterGradient = VisualVariables.clearWater;
 					m.cloudPattern = VisualVariables.fluffyClouds;
 					
-					m.instructions = "You start this mission with 500 rats. There's a  wall beneath the ocean that affects where the treasure can be found. The game is over when you miss twice with the hook."
+					m.instructions = "Send down 100 rats at a time to guess the treasure's location.  Sea walls keep the rats from surfacing below 0 or above 100. The game is over when you miss twice with the hook or use up your 800 rats."
 					m.ratingArray = new Array(4, 5, 6, 7); // rating minimum requirements: in order: 2 stars, 3 stars, 4 stars, 5 stars 
 					
 					m.seaWall = true;

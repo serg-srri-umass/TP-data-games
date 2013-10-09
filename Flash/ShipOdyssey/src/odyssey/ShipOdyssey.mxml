@@ -217,6 +217,7 @@
 					popUpScreen.stripMissionButtonListeners();	// if this is being called from the pop-up screen, strip the button listeners. 
 				
 				mCurrentMission = mission;
+				sailingMovie.hardReset();
 				
 				// first update/close/delete old game case in DG, before we update mGameSerialNum, etc. for new game
 				if( mDGInterface.isGameCaseOpen()) {

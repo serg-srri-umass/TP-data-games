@@ -124,7 +124,7 @@ package odyssey
 		private function displayMissionInstructions(e:MouseEvent = null, skipAnimation:Boolean = true):void {
 			body.text = getCurrentLevelDescription(selectedLevel);
 			titleBar.gotoAndStop(selectedLevel);
-			missions.choose((selectedLevel == 6) ? selectedLevel-1:selectedLevel, skipAnimation);
+			missions.choose(selectedLevel, skipAnimation);
 		}
 		
 		private function displayMission1(e:MouseEvent):void {
