@@ -1415,7 +1415,7 @@
 		<s:Button id="mChangeLevelButton" x="20" y="100" width="100" height="30" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
 		<s:Label id="mFuelLabel" x="18" y="145" fontSize="16" fontWeight="bold" text="Fuel:"/>
 		<s:SWFLoader id="mFuelIcon" x="18" y="165" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
-		<s:Button id="mStartStopButton" x="20" y="290" width="100" height="50" label="Start" click="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
+		<s:Button id="mStartStopButton" x="20" y="290" width="100" height="50" label="Start" mouseDown="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
 	</s:BorderContainer>
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
