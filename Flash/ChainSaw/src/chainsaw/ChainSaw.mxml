@@ -278,9 +278,9 @@
 				// all the things that will make the 'click here' prompt go away go here.
 				// they need matching 'removeEventListeners' in the closePrompt method.
 				
-				mVideoButton.addEventListener( MouseEvent.CLICK, closePrompt);
-				mStartStopButton.addEventListener( MouseEvent.CLICK, closePrompt);
-				mChangeLevelButton.addEventListener( MouseEvent.CLICK, closePrompt);
+				this.systemManager.stage.addEventListener(MouseEvent.CLICK, closePrompt);
+				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OVER, showHidePrompt);
+				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OUT, showHidePrompt);
 				
 
 				// this is the method that will be called when the button is clicked on.
@@ -312,10 +312,18 @@
 			// close the red 'click here' prompt that the video gives you.
 			private function closePrompt(e:MouseEvent):void{
 				mVideoButton.gotoAndPlay("close");
-				
-				mVideoButton.removeEventListener( MouseEvent.CLICK, closePrompt);
-				mStartStopButton.removeEventListener( MouseEvent.CLICK, closePrompt);
-				mChangeLevelButton.removeEventListener( MouseEvent.CLICK, closePrompt);
+				mVideoButton.promptMVC.gotoAndStop(1);
+				this.systemManager.stage.removeEventListener( MouseEvent.CLICK, closePrompt);
+			}
+			
+			private function showHidePrompt(e:MouseEvent):void{
+				if(e.type == MouseEvent.MOUSE_OVER){
+					mVideoButton.gotoAndStop(1);
+					mVideoButton.promptMVC.gotoAndStop(1);
+					mVideoButton.promptMVC.visible = true;
+				} else {
+					mVideoButton.gotoAndPlay(1);
+				}
 			}
 
 			// Send the initial game data to TinkerPlots or DG.  The collections are the tables of cases and attributes.
@@ -1418,8 +1426,19 @@
 		<!-- <s:Label id="continue_msg"   x="404" y="370" text="(Click anywhere to continue)"/> -->
 	</s:BorderContainer>
 	
-	<mx:UIComponent	id="videoBtnContainer" x="0" y="0"/>
 	<s:Label id="mVersionLabel" x="580" y="386" width="165" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
+	
+	<!-- Contains startup video -->
+	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="#47B070" borderVisible="false">
+		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="0"/>
+		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-30}">
+			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
+			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width}"/>
+			<s:Button id="closeVideoBtn" label="Close" chromeColor="#eac42d" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
+		</s:Group>
+	</s:BorderContainer>
+	
+	<mx:UIComponent	id="videoBtnContainer" x="0" y="0"/>
 	
 	<!-- Loading Screen of Safety -->
 	<s:BorderContainer id="LoadWall"	x="0" y="0" width="{this.minWidth}" height="{this.minHeight}" visible="true" >
@@ -1446,15 +1465,6 @@
 		<s:Button id = "upgradeButton" x="{(745-350)/2}" y="250"  click="VersionChecker.openAdobeWebsite()" label="Upgrade Flash Player" width="350" height="50" fontSize="25" enabled="true"/>
 		<s:Button id = "ignoreButton" x="{(745-350)/2}"  y="310"  click="checkSWFLoaders()" label="Ignore Warning" width="350" height="30" fontSize="12" enabled="true"/>
 	</s:BorderContainer>
-	
-	<!-- Contains startup video -->
-	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="#47B070" borderVisible="false">
-		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="0"/>
-		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-30}">
-			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
-			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width}"/>
-			<s:Button id="closeVideoBtn" label="Close" chromeColor="#eac42d" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
-		</s:Group>
-	</s:BorderContainer>
+
 	
 </s:Application>
