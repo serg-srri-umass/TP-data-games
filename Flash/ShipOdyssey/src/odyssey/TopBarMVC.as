@@ -13,19 +13,30 @@ package odyssey
 		
 		private var _stage:Stage; // a reference to the application's stage, so its quality can be adjusted.
 		
+		private var _videoFunc:Function; 
 		private var _quality:int = HIGH; // the current quality.
-		private var _muted:Boolean = false; // whether the game is muted.
+		private var _muted:Boolean = false; // whether the game is muted.		
+		private var bouncingPrompt:Boolean = true; // whether or not the first bouncing prompt is still visible.
 		
-		//private var _helpFunction:Function = function():void{};
-		
-		public function TopBarMVC():void{
+		public function TopBarMVC( videoFunction:Function):void{
 			quality.addEventListener(MouseEvent.CLICK, toggleQuality);			
 			soundIcon.addEventListener(MouseEvent.CLICK, toggleMuted);
+			videoBtn.addEventListener(MouseEvent.CLICK, toggleVideo);
+			
+			videoBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
+			videoBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			quality.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
+			quality.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			soundIcon.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
+			soundIcon.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
 			
 			// establish the initial sound volume:
 			var st:SoundTransform = SoundMixer.soundTransform;
 			st.volume = 1;			
 			SoundMixer.soundTransform = st;
+						
+			_videoFunc = videoFunction;
+			mouseOverHelp.inner.gotoAndPlay("bob"); // make the intro movie button bob up and down.
 			
 			//helpBtn.addEventListener(MouseEvent.CLICK, doHelpFunction);
 		}
@@ -41,6 +52,7 @@ package odyssey
 		// set a reference to the stage.
 		public function setStage(arg:Stage):void{
 			_stage = arg;
+			_stage.addEventListener(MouseEvent.CLICK, closeBouncer); // the first mouse click will close the video prompt.
 		}
 		
 		private function toggleQuality(e:MouseEvent = null):void{
@@ -60,6 +72,7 @@ package odyssey
 				default:
 					break;
 			}
+			showHidePrompt(e);
 		}
 		
 		private function toggleMuted(e:MouseEvent = null):void{
@@ -70,29 +83,53 @@ package odyssey
 			else
 				st.volume = 1;			
 			SoundMixer.soundTransform = st;
+			showHidePrompt(e);
 		}
 		
-		/*public function get helpFunction():Function{
-			return _helpFunction;
+		private function toggleVideo(e:MouseEvent = null):void{
+			mouseOverHelp.gotoAndStop(1);
+			mouseOverHelp.inner.gotoAndPlay("close");
+			_videoFunc();
 		}
 		
-		public function set helpFunction(arg:Function):void{
-			_helpFunction = arg;
+		private function showHidePrompt(e:MouseEvent = null):void{
+			if(e.type == MouseEvent.MOUSE_OUT){
+				if(bouncingPrompt){
+					bouncingPrompt = false;
+				}
+				mouseOverHelp.visible = false;
+				if(e.target == videoBtn){
+					mouseOverHelp.gotoAndStop(1);
+					mouseOverHelp.inner.gotoAndStop("still");
+				}
+			} else {
+				mouseOverHelp.visible = true;
+				
+				if(e.target == videoBtn){
+					mouseOverHelp.gotoAndStop(1);
+				}else if(e.target == quality){
+					mouseOverHelp.gotoAndStop(2);
+					if(_quality == LOW){
+						mouseOverHelp.promptTxt.text = "Quality: Low";
+					} else if(_quality == MEDIUM){
+						mouseOverHelp.promptTxt.text = "Quality: Med";
+					} else if(_quality == HIGH){
+						mouseOverHelp.promptTxt.text = "Quality: High";
+					}
+				}else if(e.target == soundIcon){
+					mouseOverHelp.gotoAndStop(3);
+					mouseOverHelp.promptTxt.text = ( !_muted ? "Volume: On" : "Volume: Off");
+				}
+			}
 		}
 		
-		private function doHelpFunction(e:Event):void{
-			//_helpFunction();
+		public function closeBouncer( e:Event = null):void{
+			if(bouncingPrompt){
+				mouseOverHelp.gotoAndStop(1);
+				mouseOverHelp.inner.gotoAndPlay("close");
+				bouncingPrompt = false;
+			}
+			_stage.removeEventListener( MouseEvent.CLICK, closeBouncer);
 		}
-		
-		
-		public function disableHelpButton():void{
-			//helpBtn.mouseEnabled = false;
-			//helpBtn.alpha = 0.5;
-		}
-		
-		public function enableHelpButton():void{
-			//helpBtn.mouseEnabled = true;
-			//helpBtn.alpha = 1;
-		}*/
 	}
 }
