@@ -41,7 +41,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2013.09.13";
+			public static const VERSION:String   = "Chainsaw v.2013.10.04";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -305,6 +305,7 @@
 						videoPlayer.setSize(570, 360);
 						videoPlayer.loadVideoById(videoID);
 						videoPlayer.pauseVideo();
+						videoPlayer.addEventListener("onStateChange", onVideoStateChange);
 					}
 				}
 			}
@@ -1361,17 +1362,26 @@
 				var PLAYING_VIDEO:Number = 1;
 				if(videoPlayer.getPlayerState() == PLAYING_VIDEO) {
 					videoPlayer.pauseVideo();
-					playPauseBtn.label = "Play";
 				} else {
 					videoPlayer.playVideo();
-					playPauseBtn.label = "Pause";
 				}
 			}
 			private function replayVideo():void
 			{
 				videoPlayer.seekTo(0, true);
 				videoPlayer.playVideo();
-				playPauseBtn.label = "Pause";
+			}
+			private function onVideoStateChange(e:Event):void
+			{
+				var PLAY:int=1, PAUSE:int=2;
+				var state:int = Object(e).data;
+				switch(state)
+				{
+					case PLAY:
+						playPauseBtn.label = "Pause"; break;
+					case PAUSE:
+						playPauseBtn.label = "Play"; break;
+				}
 			}
 		]]>
 	</fx:Script>

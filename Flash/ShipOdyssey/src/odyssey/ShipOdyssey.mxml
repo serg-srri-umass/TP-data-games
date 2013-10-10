@@ -50,7 +50,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.09.24";
+			private static const kVersion:String = "v.2013.10.03";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -84,7 +84,6 @@
 			private var haveTreasure:Boolean = false; // whether you pulled up a treasure or not on your last hook drop.
 			private var mTreasuresThisSite:Vector.<Treasure>;
 			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
-			private var lowWall:Boolean = false; // true for low wall, false for high wall on level 'Sea Wall'
 			
 			//variables for holding loaded MovieClips
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle, closeGame);	
@@ -300,12 +299,12 @@
 			// onClickSendRatsButton() is called when the Send Rats button is
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent = null):void{
-				if(shipControlsMVC.ratStepper.validate()){ // check if the stepper is valid #, based on how much $ you have.
-					if(mCurrentMission.ratCost >= bootyMeter.rats){
+				if( shipControlsMVC.ratStepper.validate()){ // check if the stepper is valid #, based on how much $ you have.
+					if( mCurrentMission.ratCost >= bootyMeter.rats){
 						shipControlsMVC.ratStepper.gotoAndPlay("blink"); // make the stepper flash red if you can afford 0 rats.
 					} else{
-						if(mCurrentMission.ratCost > 0){ // pay if rats cost $
-							bootyMeter.pay(mCurrentMission.ratCost * mRatsToSend);
+						if( mCurrentMission.ratCost > 0){ // pay if rats cost $
+							bootyMeter.pay( mCurrentMission.ratCost * mRatsToSend);
 							updateRatLimit();
 						}
 						mDGInterface.sendLog( "sendRats: "+mRatsToSend );
@@ -315,7 +314,7 @@
 						// For every rat sent, update Results text and send Rat data to TinkerPlots/DG
 						
 						var treasurePositions:Array = new Array(); // this array holds the position of each un-found treasure.
-						for(var i:int = 0; i < mTreasuresThisSite.length; i++){
+						for( var i:int = 0; i < mTreasuresThisSite.length; i++){
 							if(!mTreasuresThisSite[i].found){
 								treasurePositions.push(mTreasuresThisSite[i].location);
 							}
@@ -327,10 +326,10 @@
 						var	eventsAtATime:int = Math.max( 1, Math.round( mRatsToSend / 10 ));
 						var	eventArray:Array = [];
 						
-						for(var ratNum:int = 0; ratNum < mRatsToSend; ++ratNum){
+						for( var ratNum:int = 0; ratNum < mRatsToSend; ++ratNum){
 							mRatsSentThisSite +=1; // Increment rat counter.
 							
-							if(numTreasuresHere == 1){
+							if( numTreasuresHere == 1){
 								// Generate a noisy result based on the current treasure's location.
 								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + treasurePositions[0];
 
@@ -341,10 +340,10 @@
 										noisyLocation = kMaxLocation - ((noisyLocation - kMaxLocation)/5);
 									}
 								}
-							} else if(numTreasuresHere == 0){
+							} else if( numTreasuresHere == 0){
 								//get random normal values from the entire range
 								noisyLocation = randomLocation();
-							} else if(numTreasuresHere == 2) {
+							} else if( numTreasuresHere == 2) {
 								//do swap back and forth for two locations if they have 2 left
 								noisyLocation = (mRandomNormal.standardNormal() * mCurrentMission.stdDeviation) + treasurePositions[evenOdd];
 							}
@@ -359,7 +358,7 @@
 							}
 							evenOdd = (evenOdd + 1) % 2;
 						}
-						if(mRatsToSend > 0)
+						if( mRatsToSend > 0)
 							DivingRatDirector.releaseRats();
 					}
 				}
