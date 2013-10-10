@@ -77,7 +77,12 @@ package
 			_confidenceIntervalPercent = kExpertCallProbs[probIndex].confPerc;
 			
 			//calculating 'N' to guess at if you want to guess with confidence interval implied by 'z'. 
-			_guessNumSamples = Math.round((Math.pow(((kExpertCallProbs[probIndex].z * standardDeviation)/interval), 2)));
+			//expert does not guess on level 1
+			if(Round.currentRound.level == 1){
+				_guessNumSamples = int.MAX_VALUE;
+			} else{
+				_guessNumSamples = Math.round((Math.pow(((kExpertCallProbs[probIndex].z * standardDeviation)/interval), 2)));
+			}
 			
 			trace("confidence interval %: " + _confidenceIntervalPercent + ", expert will guess at N samples: " + _guessNumSamples);
 		}
