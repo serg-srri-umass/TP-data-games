@@ -21,19 +21,25 @@ package
 		public static var currentRound:Round; // the round object we're currently playing.
 		
 		public static const kLevelSettings:Array = [
-			{ iqr:7,	/*sd:5.2,*/	interval:1	}, // level 1
-			{ iqr:12,	/*sd:5.2,*/		interval:4	},
-			{ iqr:7,	/*sd:5.2,*/		interval:2	},
-			{ iqr:14,	/*sd:10,*/		interval:2	},
+			{ iqr:7,	/*sd:5.2,*/	    interval:1	}, // level 1
+			{ iqr:7,	/*sd:5.2,*/		interval:1	},
+			{ iqr:7,	/*sd:5.2,*/		interval:"?"},
+			{ iqr:"?",	/*sd:10,*/		interval:1	},
 			{ iqr:27,	/*sd:20,*/		interval:2	},
 			{ iqr:20,	/*sd:15,*/		interval:2	} // level 6
 		];
+		
+		public static const kIntervalWidth:Array = [4, 2, 1, 4, 6, 10]; // interval widths for level 3
+		
+		public static const kIQR:Array = [7, 3, 1, 7, 9, 12]; // IQRs for level 4
 		
 		// ----------------------
 		// --- PUBLIC SECTION ---
 		// ----------------------
 		
 		private static var _roundID:int = 0;		// ID number for this round
+		private static var _intervalIndex:int = -1; // inc'd each round to set next interval on level 3. Neg so first inc brings to 0.
+		private static var _IQRIndex:int = -1; // inc'd each round to set next IQR on leve 4. Neg so first inc brings to 0.
 		
 		private var _samples:Array; 	// array of numeric values generated for this round
 		private var _sampleMedian:Number;		
@@ -47,7 +53,8 @@ package
 		
 		private var _isWon:Boolean = false; //whether or not this round has been won, calculated when we call for the results string
 		private var _lastBuzzer:PlayerAPI; // the player who buzzed in this round.
-		
+		private var _level:int = 0; //level of this round
+	
 		// constructor
 		public function Round( whichLevel:int ) {
 			DebugUtilities.assert( whichLevel >= 1 && whichLevel <= kLevelSettings.length, "whichLevel out of range" );
@@ -55,11 +62,25 @@ package
 			Round.currentRound = this;
 			
 			++_roundID;
-			_interval 	= kLevelSettings[ whichLevel-1 ].interval;
-			_IQR 		= kLevelSettings[ whichLevel-1 ].iqr;
+			
+			// setting IQR and Interval, including rotating values for levels 3 and 4
+			if(whichLevel == 3){
+				_intervalIndex = _intervalIndex + 1 % 5; // next index in bounds
+				_IQR = kLevelSettings[ whichLevel-1 ].iqr;
+				_interval = kIntervalWidth[_intervalIndex];
+			} else if(whichLevel == 4){
+				_IQRIndex = _IQRIndex + 1 % 5; // next index in bounds
+				_interval = kLevelSettings[ whichLevel-1 ].interval;
+				_IQR	  = kIQR[_IQRIndex];
+			} else{ // case for other levels
+				_interval 	= kLevelSettings[ whichLevel-1 ].interval;
+				_IQR 		= kLevelSettings[ whichLevel-1 ].iqr;
+			}
+			
 			_median 	= InferenceGames.instance.randomizer.uniformNtoM( 0, 100 );
-			_samples	= new Array;	// forget about old samples
+			_samples	= new Array; // forget about old samples
 			_sampleMedian = 0;
+			_level = whichLevel; 
 			
 			trace("Population Median for new round: ", _median);
 			
@@ -138,6 +159,10 @@ package
 		
 		public function get isWon():Boolean{
 			return _isWon;
+		}
+		
+		public function get level():int{
+			return _level;
 		}
 		
 		// true = win, false = lose
