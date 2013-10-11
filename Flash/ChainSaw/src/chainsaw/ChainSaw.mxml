@@ -42,7 +42,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2013.10.04";
+			public static const VERSION:String   = "Chainsaw v.2013.10.11";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -935,14 +935,13 @@
 					}
 				}
 				
-				mScoreValue.text			= "Score: " + this.parentCaseScore;
-				mAcceptedPiecesValue.text	= "Number of Accepted Pieces:  " + mPiecesAccepted.toString();		// Update the number of accepted pieces.
-				
-				mFuelLeftValue.text	= fuelLeftAmount.toString() +" ("+ fuelLeftPercent.toFixed();		// Update the percentage of fuel left.
-				mFuelLeftValue.text = mFuelLeftValue.text.replace(/\.\d*/,"") + "%)"; // remove the decimal point and trailing digits, then append '%'
-				mFuelLeftValue.text = "Fuel Left:  " + mFuelLeftValue.text;
+				// Update the results screen
+				mAcceptedPiecesValue.text	= mPiecesAccepted.toString();
+				mFuelLeftValue.text			= fuelLeftAmount.toFixed() + " (" + fuelLeftPercent.toFixed() + "%)";
+				mCutStyleValue.text			= strategy;
+				mScoreValue.text			= this.parentCaseScore;
 
-				mResultsOverlay.visible		= true;								// Display the results Overlay
+				mResultsOverlay.visible		= true;	// Display the results Overlay
 				
 				mPrevLevel 			= mGameLevel;	// Track game level change.
 				mPrevPieceNumber	= mPieceNumber;	// Track piece number at the end of the game.
@@ -1090,29 +1089,29 @@
 			
 			/**
 			 * Guesses the cut style of the player using data stored in CutProperties objects,
-			 * created after each cut. Only matters for Free Cut levels.
+			 * created after each cut.
 			 * @author Ryan
 			 */
 			private function determineCutStyle():String
 			{
-				mCutStyleValue.text = "Cut Strategy:  "
+				var styleName:String;
 				var strategy:int = CutProperties.determineStrategy(mCutsArray);
 				switch(strategy)
 				{
 					case 0:
-						mCutStyleValue.text += "Single, down";
+						styleName = "Single, down";
 						break;
 					case 1:
-						mCutStyleValue.text += "Single, downup";
+						styleName = "Single, downup";
 						break;
 					case 2:
-						mCutStyleValue.text += "Multi, down";
+						styleName = "Multi, down";
 						break;
 					case 3:
-						mCutStyleValue.text += "Multi, downup";
+						styleName = "Multi, downup";
 						break;
 					default:
-						mCutStyleValue.text += "Other";
+						styleName = "Other";
 				}
 				
 				//Important - we need to clear out the array each time
@@ -1121,7 +1120,7 @@
 					mCutsArray.pop();
 				}
 				
-				return mCutStyleValue.text;
+				return styleName;
 			}
 			
 			// timerListener() is called to update the fuel level display and game duration.
@@ -1429,15 +1428,19 @@
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
 	
-	<s:BorderContainer id="mResultsOverlay" x="135" y="46" width="{745-135}" height="{410-46}" alpha=".50" backgroundColor="#FFFFFF" borderColor="#FFFFFF" visible="false" click="{mResultsOverlay.visible=false}">
-		<s:Label id="mAcceptedPiecesValue" x="270" y="{60-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left"/>
-		<s:Label id="mFuelLeftValue" x="270" y="{145-46}" text="0" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
-		<s:Label id="mCutStyleValue" x="270" y="{225-46}" text="OTHER" fontSize="16" verticalAlign="middle" fontWeight="bold" width="300" textAlign="left" visible="true"/>
-		<s:Label id="mScoreValue"    x="270" y="{300-46}" fontSize="30" fontWeight="bold" textAlign="left" text="?"/>
-		<!-- <s:Label id="continue_msg"   x="404" y="370" text="(Click anywhere to continue)"/> -->
+	<s:BorderContainer id="mResultsOverlay" x="135" y="46" width="{745-135}" height="{410-46}" backgroundAlpha="0" borderVisible="false" visible="false">
+		<s:Label id="mAcceptedPiecesLabel" x="10" y="{60-46}" text="Number of Accepted Pieces:" fontSize="20" fontWeight="bold" textAlign="left"/>
+		<s:Label id="mFuelLeftLabel" x="10" y="{145-46}" text="Fuel Left:" fontSize="20" fontWeight="bold" textAlign="left"/>
+		<s:Label id="mCutStyleLabel" x="10" y="{225-46}" text="Cut Strategy:" fontSize="20" fontWeight="bold" textAlign="left"/>
+		<s:Label id="mScoreLabel"    x="10" y="{300-46}" text="Score:" fontSize="30" fontWeight="bold" textAlign="left"/>
+		
+		<s:Label id="mAcceptedPiecesValue" x="300" y="{60-46}" text="0" fontSize="20" fontWeight="bold" width="300" textAlign="right"/>
+		<s:Label id="mFuelLeftValue" x="300" y="{145-46}" text="0" fontSize="20" fontWeight="bold" width="300" textAlign="right"/>
+		<s:Label id="mCutStyleValue" x="300" y="{225-46}" text="Other" fontSize="20" fontWeight="bold" width="300" textAlign="right"/>
+		<s:Label id="mScoreValue"    x="300" y="{300-46}" text="?" fontSize="30" fontWeight="bold" width="300" textAlign="right"/>
 	</s:BorderContainer>
 	
-	<s:Label id="mVersionLabel" x="580" y="386" width="165" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="580" y="386" width="165" color="#cdcdcd" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
 	
 	<!-- Contains startup video -->
 	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="#47B070" borderVisible="false">
