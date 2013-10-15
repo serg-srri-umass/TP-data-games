@@ -168,8 +168,10 @@
 				//Embedded Youtube video
 				var videoID:String = "95ORl-O5QRk";
 				
-				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
-				Security.allowDomain("s.ytimg.com");
+				Security.allowDomain("http://youtube.com"); //Allow flash to load assets from youtube
+				Security.allowDomain("http://s.ytimg.com");
+				Security.allowDomain("file:/Users/russphelan/Documents/SRRI/TP-data-games/Flash/ShipOdyssey/bin-release/*"); //moving our local SWF files to a trusted sandbox
+				Security.allowDomain("file:/Users/russphelan/Documents/SRRI/TP-data-games/Flash/ShipOdyssey/bin-debug/*");
 				
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
