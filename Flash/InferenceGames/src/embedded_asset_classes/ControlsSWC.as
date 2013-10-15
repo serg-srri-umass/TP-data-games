@@ -90,8 +90,8 @@ package embedded_asset_classes
 		
 		// sets the text on the IQR shield.
 		// note: this is just a display. Changing this does not change the calculations.
-		public function set IQR( param_iqr:Number):void{
-			shieldsMVC.deviationMVC.deviationTxt.text = param_iqr.toFixed(0);
+		public function set IQR( param_iqr:String):void{
+			shieldsMVC.deviationMVC.deviationTxt.text = param_iqr;
 			shieldsMVC.deviationMVC.deviationTxt.setTextFormat(TextFormatter.BOLD);
 		}
 		

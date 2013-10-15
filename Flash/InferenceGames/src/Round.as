@@ -25,8 +25,8 @@ package
 			{ iqr:7,	/*sd:5.2,*/		interval:1	},
 			{ iqr:7,	/*sd:5.2,*/		interval:"?"},
 			{ iqr:"?",	/*sd:10,*/		interval:1	},
-			{ iqr:27,	/*sd:20,*/		interval:2	},
-			{ iqr:20,	/*sd:15,*/		interval:2	} // level 6
+			{ iqr:"?",	/*sd:20,*/		interval:"?"},
+			{ iqr:"?",	/*sd:15,*/		interval:"?"} // level 6
 		];
 		
 		public static const kIntervalWidth:Array = [4, 2, 1, 4, 6, 10]; // interval widths for level 3
@@ -63,18 +63,43 @@ package
 			
 			++_roundID;
 			
-			// setting IQR and Interval, including rotating values for levels 3 and 4
-			if(whichLevel == 3){
-				_intervalIndex = _intervalIndex + 1 % 5; // next index in bounds
-				_IQR = kLevelSettings[ whichLevel-1 ].iqr;
-				_interval = kIntervalWidth[_intervalIndex];
-			} else if(whichLevel == 4){
-				_IQRIndex = _IQRIndex + 1 % 5; // next index in bounds
-				_interval = kLevelSettings[ whichLevel-1 ].interval;
-				_IQR	  = kIQR[_IQRIndex];
-			} else{ // case for other levels
-				_interval 	= kLevelSettings[ whichLevel-1 ].interval;
-				_IQR 		= kLevelSettings[ whichLevel-1 ].iqr;
+			// setting IQR and Interval based on level
+			switch(whichLevel){
+				case 3:
+					_intervalIndex = ((_intervalIndex + 1) % (kIntervalWidth.length - 1)); // next index in bounds
+					_IQR = kLevelSettings[ whichLevel-1 ].iqr;
+					_interval = kIntervalWidth[_intervalIndex];
+					ControlsSWC.instance.interval = _interval; // update the GUI.
+					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
+					break;
+				case 4:
+					_IQRIndex = ((_IQRIndex + 1) % (kIQR.length - 1)); // next index in bounds
+					_interval = kLevelSettings[ whichLevel-1 ].interval;
+					_IQR	  = kIQR[_IQRIndex];
+					ControlsSWC.instance.interval = _interval; // update the GUI.
+					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
+					break;
+				case 5: 
+					_intervalIndex = ((_intervalIndex + 1) % (kIntervalWidth.length - 1)); // next index in bounds
+					_IQRIndex = _IQRIndex + 1 % kIQR.length - 1; // next index in bounds
+					_interval = kIntervalWidth[_intervalIndex];
+					_IQR	  = kIQR[_IQRIndex];
+					ControlsSWC.instance.interval = _interval; // update the GUI.
+					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
+					break;
+				case 6:
+					_intervalIndex = ((_intervalIndex + 1) % (kIntervalWidth.length - 1)); // next index in bounds
+					_IQRIndex = _IQRIndex + 1 % kIQR.length - 1; // next index in bounds
+					_interval = kIntervalWidth[_intervalIndex];
+					_IQR	  = kIQR[_IQRIndex];
+					ControlsSWC.instance.interval = _interval; // update the GUI.
+					ControlsSWC.instance.IQR = "?"; // update the GUI.
+					break;
+				default:
+					_interval 	= kLevelSettings[ whichLevel-1 ].interval;
+					_IQR 		= kLevelSettings[ whichLevel-1 ].iqr;
+					ControlsSWC.instance.interval = _interval; // update the GUI.
+					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
 			}
 			
 			_median 	= InferenceGames.instance.randomizer.uniformNtoM( 0, 100 );
@@ -84,8 +109,7 @@ package
 			
 			trace("Population Median for new round: ", _median);
 			
-			ControlsSWC.instance.interval = _interval; // update the GUI.
-			ControlsSWC.instance.IQR = _IQR; // update the GUI.
+			
 			
 			ExpertAI.newRound( MathUtilities.IQR_to_SD(_IQR), _interval); // prepare the AI for the new round.
 		}
