@@ -6,8 +6,6 @@ package chainsaw{
 		
 		import flash.events.Event;
 		import flash.media.*;
-		import flash.utils.Timer;
-		import flash.events.TimerEvent;
 		
 		//constructor
 		public function SoundHandler(){

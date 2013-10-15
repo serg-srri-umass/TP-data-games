@@ -29,9 +29,9 @@ package
 			{ iqr:"?",	/*sd:15,*/		interval:"?"} // level 6
 		];
 		
-		public static const kIntervalWidth:Array = [4, 2, 1, 4, 6, 10]; // interval widths for level 3
+		public static const kIntervalWidth:Array = [4, 2, 1, 4, 6, 10]; // variable interval widths for levels with ?
 		
-		public static const kIQR:Array = [7, 3, 1, 7, 9, 12]; // IQRs for level 4
+		public static const kIQR:Array = [7, 3, 1, 7, 9, 12]; // variable IQRs for levels with ?
 		
 		// ----------------------
 		// --- PUBLIC SECTION ---
@@ -66,30 +66,30 @@ package
 			// setting IQR and Interval based on level
 			switch(whichLevel){
 				case 3:
-					_intervalIndex = ((_intervalIndex + 1) % (kIntervalWidth.length - 1)); // next index in bounds
+					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
 					_IQR = kLevelSettings[ whichLevel-1 ].iqr;
 					_interval = kIntervalWidth[_intervalIndex];
 					ControlsSWC.instance.interval = _interval; // update the GUI.
 					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
 					break;
 				case 4:
-					_IQRIndex = ((_IQRIndex + 1) % (kIQR.length - 1)); // next index in bounds
+					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
 					_interval = kLevelSettings[ whichLevel-1 ].interval;
 					_IQR	  = kIQR[_IQRIndex];
 					ControlsSWC.instance.interval = _interval; // update the GUI.
 					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
 					break;
 				case 5: 
-					_intervalIndex = ((_intervalIndex + 1) % (kIntervalWidth.length - 1)); // next index in bounds
-					_IQRIndex = _IQRIndex + 1 % kIQR.length - 1; // next index in bounds
+					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
+					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
 					_interval = kIntervalWidth[_intervalIndex];
 					_IQR	  = kIQR[_IQRIndex];
 					ControlsSWC.instance.interval = _interval; // update the GUI.
 					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
 					break;
 				case 6:
-					_intervalIndex = ((_intervalIndex + 1) % (kIntervalWidth.length - 1)); // next index in bounds
-					_IQRIndex = _IQRIndex + 1 % kIQR.length - 1; // next index in bounds
+					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
+					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
 					_interval = kIntervalWidth[_intervalIndex];
 					_IQR	  = kIQR[_IQRIndex];
 					ControlsSWC.instance.interval = _interval; // update the GUI.
