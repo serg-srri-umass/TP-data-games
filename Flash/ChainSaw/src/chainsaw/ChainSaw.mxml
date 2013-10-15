@@ -279,17 +279,17 @@
 				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OVER, showHidePrompt);
 				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OUT, showHidePrompt);
 				
-
 				// this is the method that will be called when the button is clicked on.
 				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
-				
 				
 				//Embedded Youtube video
 				var videoID:String = "UjjfK0Mb3dg";
 				
 				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
 				Security.allowDomain("s.ytimg.com");
-				
+				Security.allowDomain("file:/Users/russphelan/Documents/SRRI/TP-data-games/Flash/ChainSaw/bin-release/*");
+				Security.allowDomain("file:/Users/russphelan/Documents/SRRI/TP-data-games/Flash/ChainSaw/bin-debug/*");
+
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
 				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
