@@ -287,8 +287,6 @@
 				
 				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
 				Security.allowDomain("s.ytimg.com");
-				Security.allowDomain("file:/TP-data-games/Flash/ChainSaw/bin-release/*");
-				Security.allowDomain("file:/TP-data-games/Flash/ChainSaw/bin-debug/*");
 
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
