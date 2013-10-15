@@ -178,11 +178,12 @@
 				function onLoaderInit(event:Event):void {
 					videoHolder.addChild(loader);
 					loader.content.addEventListener("onReady", onPlayerReady);
-					function onPlayerReady(evenzt:Event):void {
+					function onPlayerReady(event:Event):void {
 						videoPlayer = loader.content;
 						videoPlayer.setSize(518, 308);
 						videoPlayer.loadVideoById(videoID);
 						videoPlayer.pauseVideo();
+						videoPlayer.addEventListener("onStateChange", onVideoStateChange);
 					}
 				}
 			}
@@ -1088,7 +1089,6 @@
 			private function showVideo( e:MouseEvent = null):Boolean{
 				if(StartupVideo.visible == true){
 					if(videoPlayer != null){
-						//					videoPlayer.stopVideo();
 						videoPlayer.pauseVideo();
 					}
 					StartupVideo.visible = false;
@@ -1099,24 +1099,33 @@
 					return true;
 				}
 			}
+			private function hideVideo():void{
+				StartupVideo.visible = false;
+				videoPlayer.pauseVideo();
+			}
 			private function playPauseVideo():void{
 				var PLAYING_VIDEO:Number = 1;
 				if(videoPlayer.getPlayerState() == PLAYING_VIDEO) {
 					videoPlayer.pauseVideo();
-					playPauseBtn.label = "Play";
 				} else{
 					videoPlayer.playVideo();
-					playPauseBtn.label = "Pause";
 				}
 			}
 			private function replayVideo():void{
 				videoPlayer.seekTo(0, true);
 				videoPlayer.playVideo();
-				playPauseBtn.label = "Pause";
 			}
-			private function skipVideo():void{
-				StartupVideo.visible = false;
-				videoPlayer.pauseVideo();
+			private function onVideoStateChange(e:Event):void
+			{
+				var PLAY:int=1, PAUSE:int=2;
+				var state:int = Object(e).data;
+				switch(state)
+				{
+					case PLAY:
+						playPauseBtn.label = "Pause"; break;
+					case PAUSE:
+						playPauseBtn.label = "Play"; break;
+				}
 			}
 			
 			// close the red 'click here' prompt that the video gives you.
@@ -1194,7 +1203,7 @@
 		<s:Group id="videoControlsContainer" x="160" y="350">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
 			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width}"/>
-			<s:Button id="skipBtn" label="Close" chromeColor="#eac42d" color="0x000000" click="skipVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
+			<s:Button id="skipBtn" label="Close" chromeColor="#eac42d" color="0x000000" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
 		</s:Group>
 	</s:BorderContainer>
 	
