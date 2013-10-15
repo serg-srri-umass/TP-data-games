@@ -170,9 +170,7 @@
 				
 				Security.allowDomain("http://youtube.com"); //Allow flash to load assets from youtube
 				Security.allowDomain("http://s.ytimg.com");
-				Security.allowDomain("file:/Users/russphelan/Documents/SRRI/TP-data-games/Flash/ShipOdyssey/bin-release/*"); //moving our local SWF files to a trusted sandbox
-				Security.allowDomain("file:/Users/russphelan/Documents/SRRI/TP-data-games/Flash/ShipOdyssey/bin-debug/*");
-				
+
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
 				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
