@@ -13,7 +13,6 @@
 		<![CDATA[
 			import chainsaw.GameLevelWindow;
 			import chainsaw.events.*;
-			import chainsaw.sound.SoundDebug;
 			import chainsaw.sawdust.*;
 			
 			import com.adobe.serialization.json.JSON;
@@ -21,7 +20,6 @@
 			import common.ScriptInterface;
 			import common.VersionChecker;
 			
-			import flash.media.Sound;
 			import flash.media.SoundMixer;
 			
 			import mx.core.UIComponent;
@@ -30,8 +28,6 @@
 			import mx.managers.PopUpManager;
 			
 			import spark.components.CheckBox;
-			import spark.components.TitleWindow;
-			import spark.core.SpriteVisualElement;
 			import spark.events.TextOperationEvent;
 			
 			// BUILD FOR TinkerPlots or DG: 

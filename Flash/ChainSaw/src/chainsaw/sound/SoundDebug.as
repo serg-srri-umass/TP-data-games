@@ -2,10 +2,10 @@ package chainsaw.sound{
 	
 	import flash.utils.Dictionary;
 	
-		/*Provides secondary debug functionality to check on sounds manipulated in SoundHandler. 
-		Stores entries of AdvancedSoundStates, can print information from these states. Possible 
-		uses are printing states of sounds when an error occurs, regular intervals of state checking, etc. */
-		public class SoundDebug{
+	/*Provides secondary debug functionality to check on sounds manipulated in SoundHandler. 
+	Stores entries of AdvancedSoundStates, can print information from these states. Possible 
+	uses are printing states of sounds when an error occurs, regular intervals of state checking, etc. */
+	public class SoundDebug {
 		
 		
 		public var stateList:Dictionary = new Dictionary();
