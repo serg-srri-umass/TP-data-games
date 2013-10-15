@@ -46,6 +46,9 @@ package
 		private var _median:int; 		// population median
 		private var _interval:Number;
 		private var _IQR:Number; 		// population inter-quartile range	
+		private var _chunkSize:int;
+		private var _minNumChunks:int = 3;
+		private var _maxNumChunks:int = 12;
 		
 		private var _guess:Number = 0;	// the auto-generated guess, based on the sample size.
 										// currently, the user & the bot use the auto-generated guess.
@@ -117,7 +120,7 @@ package
 		// a point of data has been added.
 		public function addData():void {
 			
-			// generate random data value; note that mean and median are interchangable for an symmetrical normal curve.
+			// generate random data value; note that mean and median are interchangable for a symmetrical normal curve.
 			var value:int = InferenceGames.instance.randomizer.normalWithMeanIQR( _median, _IQR );
 			_samples.push( value );
 			_sampleMedian = MathUtilities.medianOfNumericArray( _samples ); // warning: _samples is sorted at this point.
@@ -132,6 +135,17 @@ package
 				
 				_accuracy = calculateAccuracy();
 				ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
+			}
+		}
+		
+		public function setChunkSize():void{
+			var numChunks:int = _minNumChunks + (Math.random() * ((_maxNumChunks - _minNumChunks) + 1) as int);
+			_chunkSize = ExpertAI.guessNumSamples / numChunks;
+		}
+		
+		public function addChunk():void{
+			for(var i:int = 0; i < _chunkSize; i++){
+				addData();
 			}
 		}
 		

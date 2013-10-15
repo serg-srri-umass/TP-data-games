@@ -186,7 +186,7 @@ package embedded_asset_classes
 		// called when the player hits the start button.
 		private function startFunction( triggerEvent:MouseEvent):void{
 			stopControlsMVC.stopStartBtn.pauseBtn.look = 0;
-			DataCannonSWC.instance.startCannon();			
+			//DataCannonSWC.instance.startCannon();			
 		}
 		
 		// when the ControlsSWC finishes hiding itself, this method is called. It turns on the results.

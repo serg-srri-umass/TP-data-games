@@ -112,7 +112,7 @@
 				sBottomBar.gameOverMVC.visible = false; // hide the dialoge that is win/lose.
 
 				sDataCannon = new DataCannonSWC();
-				gameContainer.addChild(sDataCannon);
+				//gameContainer.addChild(sDataCannon);
 				sDataCannon.speed = .25;	// set the starting speed
 				
 				sDebugConsole = new DebugConsoleSWC();
@@ -329,6 +329,9 @@
 	<mx:UIComponent id="gameContainer" x="0" y="0"/>
 	
 	<s:Label id="mVersionLabel" x="460" y="280" color="0x000000" initialize="mVersionLabel.text=kVersion" textAlign="right" verticalAlign="bottom"/>
+	
+	<!-- temp button to send data chunks -->
+	<s:Button id="chunkButton" x="55" y="45" width="125" height="25" label="Sample" click="Round.currentRound.addChunk()" enabled="true"/>
 
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall" visible="false" x="0" y="0"

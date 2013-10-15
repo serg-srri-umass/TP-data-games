@@ -21,6 +21,7 @@ package
 		// call this method at the start of each new round.
 		public static function newRound( standardDeviation:Number, interval:Number):void{
 			calculateGuessN( standardDeviation, interval);
+			Round.currentRound.setChunkSize();
 		}
 		
 		// debug. When true, the expert will always guess incorrectly.
