@@ -1,9 +1,9 @@
-﻿package chainsaw {
+﻿package chainsaw.sawdust {
 	import flash.events.*;
 	import flash.events.Event;
 	import flash.display.*;
 	
-	public class ParticleLauncherXYFloor extends Sprite{
+	public class ParticleLauncherXYFloor extends Sprite {
 		
 		public var maxParticleCount:int = 1200;
 		public var maxParticlesPerFrame:int = 5;

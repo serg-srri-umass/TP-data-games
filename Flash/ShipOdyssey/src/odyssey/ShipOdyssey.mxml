@@ -88,7 +88,7 @@
 			//variables for holding loaded MovieClips
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle, closeGame);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
-			private var topBarMVC:TopBarMVC = new TopBarMVC();
+			private var topBarMVC:TopBarMVC = new TopBarMVC( showVideo);
 			private var shipControlsMVC:ShipControlsMVC = new ShipControlsMVC();
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
 			
@@ -160,20 +160,7 @@
 					popUpScreen.showLoading();
 				
 				
-				//this code block displays the intro YouTube video, and sets up buttons for interaction with it 
-				// init the 'play video' button & prompt.
-				videoBtnContainer.addChild(mVideoButton);
-				mVideoButton.x = 440;
-				mVideoButton.y = 13;
-				
-				// all the things that will make the 'click here' prompt go away go here.
-				// they need matching 'removeEventListeners' in the closePrompt method.
-				
-				mVideoButton.addEventListener( MouseEvent.CLICK, closePrompt);
-				
-				// this is the method that will be called when the button is clicked on.
-				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
-				
+				//mVideoButton.addEventListener( MouseEvent.CLICK, closePrompt);	$WIP				
 				
 				//Embedded Youtube video
 				var videoID:String = "95ORl-O5QRk";
@@ -216,6 +203,7 @@
 					popUpScreen.stripMissionButtonListeners();	// if this is being called from the pop-up screen, strip the button listeners. 
 				
 				mCurrentMission = mission;
+				sailingMovie.hardReset();
 				
 				// first update/close/delete old game case in DG, before we update mGameSerialNum, etc. for new game
 				if( mDGInterface.isGameCaseOpen()) {
@@ -602,6 +590,13 @@
 			// this method is called when the user clicks 'okay' on the "Game Over" popup. It closes the game in DG. 
 			private function closeGame(e:Event = null):void{
 				sendGameDataClose();
+			}
+			
+			// this method is called on "Treasure or Not". When you get the treasure, take it off the hook, and put it on deck.
+			private function putTreasureOnDeck():void{
+				crane.addTreasure(); // adds treasure to the ship deck
+				crane.hideTreasure(); // hides treasure from the ship hook
+				sailingMovie.addTreasure(); 
 			}
 			
 			private function getRating():int{
@@ -1016,7 +1011,7 @@
 				popUpContainer.addChild(popUpScreen);
 				popUpScreen.visible = false;
 
-				popUpContainer.addChild(topBarMVC);
+				topBarContainer.addChild(topBarMVC);
 				topBarMVC.setVersion(kVersion);
 				topBarMVC.setStage(this.systemManager.stage);
 				//topBarMVC.helpFunction = onClickHelpButton;
@@ -1067,16 +1062,18 @@
 			}
 
 			//Video functions
-			private function showVideo( e:MouseEvent = null):void{
+			private function showVideo( e:MouseEvent = null):Boolean{
 				if(StartupVideo.visible == true){
 					if(videoPlayer != null){
 						//					videoPlayer.stopVideo();
 						videoPlayer.pauseVideo();
 					}
 					StartupVideo.visible = false;
+					return false;
 				} else{
 					StartupVideo.visible = true;
 					videoPlayer.playVideo();
+					return true;
 				}
 			}
 			private function playPauseVideo():void{
@@ -1169,7 +1166,7 @@
 	</s:BorderContainer>
 	
 	<!-- Contains startup video -->
-	<s:BorderContainer id="StartupVideo" x="0" y="27" width="518" height="443" visible="false" backgroundColor="0x000000" borderVisible="false">
+	<s:BorderContainer id="StartupVideo" x="0" y="27" width="518" height="443" visible="false" backgroundColor="0x294867" borderVisible="false">
 		<mx:UIComponent	id="videoHolder" x="0" y="20"/>
 		<s:Group id="videoControlsContainer" x="160" y="350">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
@@ -1178,6 +1175,6 @@
 		</s:Group>
 	</s:BorderContainer>
 	
-	<mx:UIComponent	id="videoBtnContainer" x="0" y="0"/>
+	<mx:UIComponent	id="topBarContainer" x="0" y="0"/>
 	
 </s:Application>

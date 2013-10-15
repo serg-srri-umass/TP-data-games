@@ -28,7 +28,7 @@
 		
 		public function dropHook(treasureFound:Boolean, secsDrop:Number, secsLift:Number):void{
 			Crane_mc.dropHook(treasureFound, secsDrop, secsLift);
-			if(Crane_mc.missedInterval.visible == false)
+			if(Crane_mc.missedInterval.visible == false && !treasureFound)
 				Crane_mc.showMissedInterval();
 		}
 		
