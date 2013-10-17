@@ -117,8 +117,9 @@ package
 			ExpertAI.newRound( MathUtilities.IQR_to_SD(_IQR), _interval); // prepare the AI for the new round.
 		}
 		
-		// a point of data has been added.
-		public function addData():void {
+		// create a point of data, send to DG and let the expert judge the data (guess or not)
+		// returns true if the expert guessed
+		public function addData():Boolean {
 			
 			// generate random data value; note that mean and median are interchangable for a symmetrical normal curve.
 			var value:int = InferenceGames.instance.randomizer.normalWithMeanIQR( _median, _IQR );
@@ -128,31 +129,34 @@ package
 			// push this point of data into an array that stores all data not yet evaluated.
 			_dataArray.push( [_roundID, value ]);
 			
-			if(true /*getTimer() - lastSendTime > SEND_TIME*/){
+			var expertGuessed:Boolean = false;
+			if( true /*getTimer() - lastSendTime > SEND_TIME*/){
 				lastSendTime = getTimer();
 				InferenceGames.instance.sendEventData ( _dataArray );
 				_dataArray = new Array();
 				
 				_accuracy = calculateAccuracy();
-				ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
+				expertGuessed = ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
 			}
+			return expertGuessed;
 		}
 		
 		//sets size of data chunks to be sent to DG. Called at beginning of new round
 		public function setChunkSize():void{
 			if(_level == 1){
 				_chunkSize = 20;
-			} else{
-			var numChunks:int = _minNumChunks + (Math.random() * ((_maxNumChunks - _minNumChunks) + 1) as int);
-			_chunkSize = ExpertAI.guessNumSamples / numChunks;
-			trace("Chunk Size set to: " + _chunkSize);
+			} else {
+				var numChunks:int = _minNumChunks + (Math.random() * ((_maxNumChunks - _minNumChunks) + 1) as int);
+				_chunkSize = ExpertAI.guessNumSamples / numChunks;
+				trace("Chunk Size set to: " + _chunkSize);
 			}
 		}
 		
 		//sends a chunk of data to DG. called from 'sample' mxml button
 		public function addChunk():void{
 			for(var i:int = 0; i < _chunkSize; i++){
-				addData();
+				if( addData())
+					break; // stop sending data if expert guessed
 			}
 		}
 		
