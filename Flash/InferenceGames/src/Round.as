@@ -138,6 +138,7 @@ package
 			}
 		}
 		
+		//sets size of data chunks to be sent to DG. Called at beginning of new round
 		public function setChunkSize():void{
 			if(_level == 1){
 				_chunkSize = 20;
@@ -148,11 +149,11 @@ package
 			}
 		}
 		
+		//sends a chunk of data to DG. called from 'sample' mxml button
 		public function addChunk():void{
-			for(var i:int = 0; i < _chunkSize-1; i++){
+			for(var i:int = 0; i < _chunkSize; i++){
 				addData();
 			}
-			addData();
 		}
 		
 		public function get lastBuzzer():PlayerAPI{
