@@ -128,7 +128,7 @@ package
 			// push this point of data into an array that stores all data not yet evaluated.
 			_dataArray.push( [_roundID, value ]);
 			
-			if(getTimer() - lastSendTime > SEND_TIME){
+			if(true /*getTimer() - lastSendTime > SEND_TIME*/){
 				lastSendTime = getTimer();
 				InferenceGames.instance.sendEventData ( _dataArray );
 				_dataArray = new Array();
@@ -139,14 +139,20 @@ package
 		}
 		
 		public function setChunkSize():void{
+			if(_level == 1){
+				_chunkSize = 20;
+			} else{
 			var numChunks:int = _minNumChunks + (Math.random() * ((_maxNumChunks - _minNumChunks) + 1) as int);
 			_chunkSize = ExpertAI.guessNumSamples / numChunks;
+			trace("Chunk Size set to: " + _chunkSize);
+			}
 		}
 		
 		public function addChunk():void{
-			for(var i:int = 0; i < _chunkSize; i++){
+			for(var i:int = 0; i < _chunkSize-1; i++){
 				addData();
 			}
+			addData();
 		}
 		
 		public function get lastBuzzer():PlayerAPI{
