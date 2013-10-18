@@ -9,7 +9,7 @@
 		private var color:uint;
 		private var dx:Number;
 		public var dy:Number;
-		private var dAlpha:Number = 1.0;
+		protected var dAlpha:Number = 1.0;
 		private var life:int;
 		private var frameCount:int;
 		private var isBlock:Boolean = true;
@@ -23,6 +23,19 @@
 		private var yFloor:Number = 9999999;
 		private var initY:Number = 0;
 		
+		/**
+		 * 
+		 * @param X x-position
+		 * @param Y y-position
+		 * @param w width
+		 * @param h height
+		 * @param c color
+		 * @param l life
+		 * @param block isBlock
+		 * @param rot rotation
+		 * @param randomlyRotate
+		 * @param alphaVal transparency
+		 */
 		public function SpecksXYFloor(X:Number, Y:Number, w:Number = 1, h:Number = 1,
 							   c:Number = 0x000000, l:int = 24,
 							   block:Boolean = true, rot:Number = 0,
@@ -37,6 +50,8 @@
 			life = l;
 			isBlock = block;
 			dAlpha = alphaVal;
+//			this.scaleX = 2;
+//			this.scaleY = 2;
 			
 			if (randomlyRotate){
 				rotateBy = (Math.random()-.5)*rot;
@@ -60,7 +75,8 @@
 			dy = -(Math.random() * maxVel/1.5) + (maxVel/4);
 			dx = (Math.random()*maxVel) - (maxVel/2);
 			frameCount = 0;
-			alpha = 1.0;
+//			alpha = 1.0;
+			alpha = dAlpha;
 			visible = true;
 			alive = true;
 			addEventListener(Event.ENTER_FRAME, animate_frame,false,0,true);
@@ -70,7 +86,8 @@
 			//frameCount++;
 			this.x += dx;
 			this.y += (dy += gravity);
-			//this.rotation += rotateBy;
+			this.rotation += rotateBy;
+//			this.scaleX = this.scaleY = 5;
 			this.alpha *= dAlpha;
 			if (checkFloor()){
 				removeEventListener(Event.ENTER_FRAME, animate_frame);
