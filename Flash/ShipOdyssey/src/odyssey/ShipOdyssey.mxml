@@ -166,7 +166,10 @@
 				//mVideoButton.addEventListener( MouseEvent.CLICK, closePrompt);	$WIP				
 				
 				//Embedded Youtube video
-				var videoID:String = "95ORl-O5QRk";
+				var videoID:String = "dDJ0oicZi1k";
+				// to add a new video:
+				// upload it to youtube using serg.srri.umass@gmail.com account
+				// copy the 11 digit ID string which is in the URL and embed code
 				
 				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
 				Security.allowDomain("s.ytimg.com");
@@ -640,7 +643,7 @@
 				var numTreasuresThisSite:int = createNumTreasuresThisSite();
 				mTreasuresThisSite = new Vector.<Treasure>();
 				for( var i:int = 0; i < numTreasuresThisSite; i++)
-					mTreasuresThisSite.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), generateTreasurePosition()));
+					mTreasuresThisSite.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), 42)); //generateTreasurePosition()));
 						
 				if(mTreasuresThisSite.length == 2){
 					// this while loop ensures that the two treasures are sufficiently far apart.
