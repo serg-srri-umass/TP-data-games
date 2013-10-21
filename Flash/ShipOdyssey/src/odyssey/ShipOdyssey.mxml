@@ -643,7 +643,7 @@
 				var numTreasuresThisSite:int = createNumTreasuresThisSite();
 				mTreasuresThisSite = new Vector.<Treasure>();
 				for( var i:int = 0; i < numTreasuresThisSite; i++)
-					mTreasuresThisSite.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), 42)); //generateTreasurePosition()));
+					mTreasuresThisSite.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), generateTreasurePosition()));
 						
 				if(mTreasuresThisSite.length == 2){
 					// this while loop ensures that the two treasures are sufficiently far apart.
