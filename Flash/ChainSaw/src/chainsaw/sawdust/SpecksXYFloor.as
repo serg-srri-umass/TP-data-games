@@ -18,6 +18,7 @@
 		private var alive:Boolean = true;
 		private var gravity:Number = .5;
 		private var rotateBy:Number = 0;
+		private var sizeVariance:Number = 0;
 		
 		private var relativeFloor:Boolean = false;
 		private var yFloor:Number = 9999999;
@@ -37,7 +38,7 @@
 		 * @param alphaVal transparency
 		 */
 		public function SpecksXYFloor(X:Number, Y:Number, w:Number = 1, h:Number = 1,
-							   c:Number = 0x000000, l:int = 24,
+							   sizeVar:Number=0, c:Number = 0x000000, l:int = 24,
 							   block:Boolean = true, rot:Number = 0,
 							   randomlyRotate:Boolean = false, alphaVal:Number = 0.99) {
 			// constructor code
@@ -50,8 +51,12 @@
 			life = l;
 			isBlock = block;
 			dAlpha = alphaVal;
-//			this.scaleX = 2;
-//			this.scaleY = 2;
+			sizeVariance = sizeVar;
+			
+			//vary the size of the particle
+			var size:Number = 1+(Math.random()*sizeVariance*2)-sizeVariance;
+			this.scaleX = size;
+			this.scaleY = size;
 			
 			if (randomlyRotate){
 				rotateBy = (Math.random()-.5)*rot;
