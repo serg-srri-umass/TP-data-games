@@ -23,6 +23,8 @@
 			import flash.media.SoundMixer;
 			
 			import mx.core.UIComponent;
+			import mx.logging.*;
+			import mx.logging.targets.TraceTarget;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
 			import mx.managers.PopUpManager;
@@ -156,6 +158,8 @@
 			//Stores the current volume when sound is muted
 			private var volume:Number = 50;
 			
+			private var logger:ILogger;
+			
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
 			// Converted from .ani format to .png.
@@ -222,7 +226,8 @@
 			// and sets up necessary parameters for game initiation.
 			private	function startUp():void
 			{
-
+				initLogger();
+				
 				BrickWall.visible = false;
 				
 				if(allAssetsLoaded) {
@@ -309,6 +314,15 @@
 						videoPlayer.addEventListener("onStateChange", onVideoStateChange);
 					}
 				}
+			}
+			
+			private function initLogger():void
+			{
+				var logTarget:TraceTarget = new TraceTarget();
+				logTarget.level = LogEventLevel.INFO; //excludes DEBUG messages only
+				logTarget.includeLevel = true;
+				Log.addTarget(logTarget);
+				logger = Log.getLogger("Chainsaw");
 			}
 
 			// close the red 'click here' prompt that the video gives you.
@@ -1274,29 +1288,25 @@
 					
 					currentCutStartPoint = e.localX; //save where the cut was started
 					
-					switch(e.currentTarget)
-					{
-						case mDynamicLog:
-							trace("cutting log 1");
-							sawdustParticlesLog1['startParticleAnim']();
-							break;
-						case mDynamicLog2:
-							trace("cutting log 2");
-							sawdustParticlesLog2['startParticleAnim']();
-							break;
-						case mDynamicLog3:
-							trace("cutting log 3");
-							sawdustParticlesLog3['startParticleAnim']();
-							break;
-						case mDynamicLog4:
-							trace("cutting log 4");
-							sawdustParticlesLog4['startParticleAnim']();
-							break;
-					}
 					//prevent showing particles if player is cutting wrong side of log
-//					if(e.currentTarget.content['canCutAt'](offsetX)){
-//						sawdustParticlesLog1['startParticleAnim']();
-//					}
+					if(e.currentTarget.content['canCutAt'](offsetX))
+					{
+						switch(e.currentTarget)
+						{
+							case mDynamicLog:
+								sawdustParticlesLog1['startParticleAnim']();
+								break;
+							case mDynamicLog2:
+								sawdustParticlesLog2['startParticleAnim']();
+								break;
+							case mDynamicLog3:
+								sawdustParticlesLog3['startParticleAnim']();
+								break;
+							case mDynamicLog4:
+								sawdustParticlesLog4['startParticleAnim']();
+								break;
+						}
+					}
 				}
 			}
 			//mouse out event on enabled log
