@@ -21,6 +21,7 @@ package
 		// call this method at the start of each new round.
 		public static function newRound( standardDeviation:Number, interval:Number):void{
 			calculateGuessN( standardDeviation, interval);
+			Round.currentRound.setChunkSize();
 		}
 		
 		// debug. When true, the expert will always guess incorrectly.
@@ -88,9 +89,11 @@ package
 		}
 
 		// this method is called whenever data is added. The expert considers whether or not he wants to guess, and may guess.
-		public static function judgeData( sampleLength:int):void{
-			if(sampleLength >= guessNumSamples)
+		public static function judgeData( sampleLength:int):Boolean {
+			var expertDidGuess:Boolean =( sampleLength >= guessNumSamples );
+			if( expertDidGuess )
 				ControlsSWC.instance.botStopFunction();
+			return expertDidGuess;
 		}
 	}
 }

@@ -166,11 +166,14 @@
 				//mVideoButton.addEventListener( MouseEvent.CLICK, closePrompt);	$WIP				
 				
 				//Embedded Youtube video
-				var videoID:String = "95ORl-O5QRk";
+				var videoID:String = "dDJ0oicZi1k";
+				// to add a new video:
+				// upload it to youtube using serg.srri.umass@gmail.com account
+				// copy the 11 digit ID string which is in the URL and embed code
 				
-				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
-				Security.allowDomain("s.ytimg.com");
-				
+				Security.allowDomain("http://youtube.com"); //Allow flash to load assets from youtube
+				Security.allowDomain("http://s.ytimg.com");
+
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
 				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));

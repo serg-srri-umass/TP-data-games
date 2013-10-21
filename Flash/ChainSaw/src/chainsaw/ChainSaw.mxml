@@ -288,17 +288,15 @@
 				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OVER, showHidePrompt);
 				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OUT, showHidePrompt);
 				
-
 				// this is the method that will be called when the button is clicked on.
 				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
-				
 				
 				//Embedded Youtube video
 				var videoID:String = "UjjfK0Mb3dg";
 				
 				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
 				Security.allowDomain("s.ytimg.com");
-				
+
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
 				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
@@ -711,7 +709,7 @@
 			protected function startGame():void
 			{
 				//timer to enable mouse activity after coundown movie is done playing
-				mStartGameTimer.addEventListener(TimerEvent.TIMER_COMPLETE, startGameMouseEnabler);
+				mStartGameTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onCountdownTimerFinish);
 				mStartGameTimer.start();
 				
 				mCountDownMVC.gotoAndPlay(1); //start countdown movie
@@ -746,9 +744,6 @@
 					// Set up the fuel timer and visual gas tank
 					mFuelTimer.addEventListener(TimerEvent.TIMER, timerListener);
 					mFuelTimer.reset();	// Reset the timer to run until fuel runs out.
-					mFuelTimer.start(); // Start the timer, now that all variables are set up.
-					flashGasTank['initGasTank'](kTimeLimit * 24);
-					flashGasTank['startDrop']();
 				}
 				
 				
@@ -827,8 +822,8 @@
 				}
 			}
 			
-			private function startGameMouseEnabler(e:TimerEvent):void{
-				trace("startGameMouseEnabler!");
+			//triggered when countdown animation finishes
+			private function onCountdownTimerFinish(e:Event):void{
 				if(!mMouseIsDown){
 					mSoundHandler.setMouseEnabled(true);
 					
@@ -836,20 +831,16 @@
 					dynamicLog2.enabled = true;
 					dynamicLog3.enabled = true;
 					dynamicLog4.enabled = true;
+					
+					mFuelTimer.start(); // Start the timer, now that all variables are set up.
+					flashGasTank['initGasTank'](kTimeLimit * 24);
+					flashGasTank['startDrop']();
+					
+					removeEventListener(MouseEvent.MOUSE_UP, onCountdownTimerFinish);
 				}
 				else{
-					addEventListener(MouseEvent.MOUSE_UP, earlyMouseDownCaseHandler);
+					addEventListener(MouseEvent.MOUSE_UP, onCountdownTimerFinish);
 				}
-			}
-			
-			private function earlyMouseDownCaseHandler(e:Event):void{
-				mSoundHandler.setMouseEnabled(true);
-				
-				dynamicLog1.enabled = true;
-				dynamicLog2.enabled = true;
-				dynamicLog3.enabled = true;
-				dynamicLog4.enabled = true;
-				removeEventListener(MouseEvent.MOUSE_UP, earlyMouseDownCaseHandler);
 			}
 			
 			private  function mouseIsDown(e:MouseEvent):void{
@@ -1201,7 +1192,7 @@
 			// Player has pressed the Start/Stop button
 			protected function onClickStartStopButton(event:MouseEvent):void{
 				if(mStartStopButton.label == "Stop"){
-					mStartGameTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, startGameMouseEnabler); //makes sure timer doesn't still trigger if we've already hit stop 
+					mStartGameTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, onCountdownTimerFinish); //makes sure timer doesn't still trigger if we've already hit stop 
 					mCountDownMVC.gotoAndStop(1); //brings movie back to first frame, and stops
 					mSoundHandler.cancelStart(); //cancels the startup sound 
 					endGame();
