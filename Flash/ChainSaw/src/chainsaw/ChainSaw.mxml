@@ -23,6 +23,8 @@
 			import flash.media.SoundMixer;
 			
 			import mx.core.UIComponent;
+			import mx.logging.*;
+			import mx.logging.targets.TraceTarget;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
 			import mx.managers.PopUpManager;
@@ -46,7 +48,12 @@
 			}
 			
 			public var flashGasTank:MovieClip;
-			public var sawdustParticles:ParticleLauncherXYFloor = new ParticleLauncherXYFloor();
+
+			public var sawdustParticlesLog1:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (38+95), 0xD4B077);
+			public var sawdustParticlesLog2:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (120+95), 0xD4B077);
+			public var sawdustParticlesLog3:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (202+95), 0xD4B077);
+			public var sawdustParticlesLog4:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (284+95), 0xD4B077);
+			
 			public var dynamicLog1:MovieClip;
 			public var dynamicLog2:MovieClip;
 			public var dynamicLog3:MovieClip;
@@ -151,6 +158,8 @@
 			//Stores the current volume when sound is muted
 			private var volume:Number = 50;
 			
+			private var logger:ILogger;
+			
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
 			// Converted from .ani format to .png.
@@ -217,7 +226,8 @@
 			// and sets up necessary parameters for game initiation.
 			private	function startUp():void
 			{
-
+				initLogger();
+				
 				BrickWall.visible = false;
 				
 				if(allAssetsLoaded) {
@@ -240,13 +250,12 @@
 					randomizeLogSizePosition();
 					
 					// add particle emitter to display
-					uic.addChild(sawdustParticles);
+					uic.addChild(sawdustParticlesLog1);
+					uic.addChild(sawdustParticlesLog2);
+					uic.addChild(sawdustParticlesLog3);
+					uic.addChild(sawdustParticlesLog4);
 					uic.mouseEnabled = false; //not quashing the mouse events from UIC was causing mouse events when its children particles were thrown in front of the mouse
 					uic.mouseChildren = false;
-					sawdustParticles.xOffset = 10;
-					sawdustParticles.yOffset = 10;
-					sawdustParticles.pColor = 0xD4B077;
-					sawdustParticles.yFloor = 410-10; // top edge of where sawdust lands is 10 from bottom of game
 					
 					mLevelWindow = new GameLevelWindow();
 					this.sendCollectionData();		// send initGame data to TinkerPlots/DG
@@ -303,6 +312,15 @@
 						videoPlayer.addEventListener("onStateChange", onVideoStateChange);
 					}
 				}
+			}
+			
+			private function initLogger():void
+			{
+				var logTarget:TraceTarget = new TraceTarget();
+				logTarget.level = LogEventLevel.INFO; //excludes DEBUG messages only
+				logTarget.includeLevel = true;
+				Log.addTarget(logTarget);
+				logger = Log.getLogger("Chainsaw");
 			}
 
 			// close the red 'click here' prompt that the video gives you.
@@ -424,7 +442,7 @@
 			
 			// clearGame() resets the game according to the current level and clears remnants of
 			// the previous game, if any.
-			private function clearGame(iNewGameLevel:uint):void
+			private function clearGame():void
 			{
 				// hide results overlay if visible from end of previous game
 				mResultsOverlay.visible		= false; 
@@ -443,6 +461,12 @@
 				
 				flashGasTank['resetDrop'](); // Set fuel height back to top of fuel container.
 				mFuelUsed = 0;		// Initialize the fuel used to zero.
+				
+				// Clear sawdust particles
+				sawdustParticlesLog1.clearParticles();
+				sawdustParticlesLog2.clearParticles();
+				sawdustParticlesLog3.clearParticles();
+				sawdustParticlesLog4.clearParticles();
 			}
 			
 			// chooseGameLevel() listens for clicks on the level dialog's level buttons.
@@ -527,7 +551,7 @@
 					}else{
 						mLevelLabel.text = kLevelLabelThinLogs;
 					}
-					clearGame(kFreeCutLevel); 
+					clearGame(); 
 					dynamicLog1['init'](0,dynamicLog2); // send cut direction and link to next log
 					dynamicLog2['init'](0,dynamicLog3); // cut direction 1=LtoR, -1=RtoL, 0 = free
 					dynamicLog3['init'](0,dynamicLog4);
@@ -546,15 +570,15 @@
 				dynamicLog1['drawNewLog'](pickLogLength());
 				
 				dynamicLog2.x = Math.random()*120+40;
-				dynamicLog2.y = 120;//127
+				dynamicLog2.y = 120;
 				dynamicLog2['drawNewLog'](pickLogLength());
 				
 				dynamicLog3.x = Math.random()*120+40;
-				dynamicLog3.y = 202;//216
+				dynamicLog3.y = 202;
 				dynamicLog3['drawNewLog'](pickLogLength());
 				
 				dynamicLog4.x = Math.random()*120+40;
-				dynamicLog4.y = 284;//305
+				dynamicLog4.y = 284;
 				dynamicLog4['drawNewLog'](pickLogLength());
 			}
 			
@@ -706,7 +730,7 @@
 				}
 				else mFirstGame = false;
 				
-				clearGame(mGameLevel); // Clear any remnants of last game and reset game.
+				clearGame(); // Clear any remnants of last game and reset game.
 				
 				mChangeLevelButton.enabled	= false;
 				mPlayerTextInput.enabled	= false;
@@ -1183,7 +1207,7 @@
 			// onClickChangeLevelButton() allows the user to change the game level.
 			protected function onClickChangeLevelButton(event:MouseEvent):void
 			{
-				clearGame(mGameLevel); // Clear any remnants of last game and reset game.
+				clearGame(); // Clear any remnants of last game and reset game.
 				chooseGameLevel();
 			}
 			
@@ -1239,18 +1263,16 @@
 			//mouse up on currently enabled log, sends to the log's SWF for handling
 			protected function logUp(e:MouseEvent):void{
 				e.currentTarget.content['logUp'](e);
-				//trace("logUp");
-				sawdustParticles['stopParticleAnim']();
+				sawdustParticlesLog1['stopParticleAnim']();
+				sawdustParticlesLog2['stopParticleAnim']();
+				sawdustParticlesLog3['stopParticleAnim']();
+				sawdustParticlesLog4['stopParticleAnim']();
 			}
 			//mouse in event on currently enabled log
 			protected function logIn(e:MouseEvent):void{
 				mSoundHandler.onMouseOverLog(e);
 				
 				if(e.buttonDown && e.currentTarget.content.enabled){
-					
-					//					sawdustParticles.x = e.stageX+10; //TODO REMOVE
-					//					sawdustParticles.y = e.stageY+10;
-					
 					var offsetX:Number = e.localX - e.currentTarget.content.x;
 					var offsetY:Number = e.localY - e.currentTarget.content.y;
 					e.currentTarget.content['logInMod'](offsetX, offsetY);
@@ -1259,14 +1281,33 @@
 					
 					//prevent showing particles if player is cutting wrong side of log
 					if(e.currentTarget.content['canCutAt'](offsetX))
-						sawdustParticles['startParticleAnim']();
+					{
+						switch(e.currentTarget)
+						{
+							case mDynamicLog:
+								sawdustParticlesLog1['startParticleAnim']();
+								break;
+							case mDynamicLog2:
+								sawdustParticlesLog2['startParticleAnim']();
+								break;
+							case mDynamicLog3:
+								sawdustParticlesLog3['startParticleAnim']();
+								break;
+							case mDynamicLog4:
+								sawdustParticlesLog4['startParticleAnim']();
+								break;
+						}
+					}
 				}
 			}
 			//mouse out event on enabled log
 			protected function logOut(e:MouseEvent):void{
 				mSoundHandler.onMouseOutLog(e);
 				
-				sawdustParticles['stopParticleAnim']();
+				sawdustParticlesLog1['stopParticleAnim']();
+				sawdustParticlesLog2['stopParticleAnim']();
+				sawdustParticlesLog3['stopParticleAnim']();
+				sawdustParticlesLog4['stopParticleAnim']();
 				var offsetX:Number = e.localX - e.currentTarget.content.x;
 				var offsetY:Number = e.localY - e.currentTarget.content.y;
 				if(e.currentTarget.content['logOutMod'](offsetX,offsetY)){

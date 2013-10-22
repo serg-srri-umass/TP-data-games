@@ -1,7 +1,7 @@
 ﻿package chainsaw.sawdust {
+	import flash.display.*;
 	import flash.events.*;
 	import flash.events.Event;
-	import flash.display.*;
 	
 	public class ParticleLauncherXYFloor extends Sprite {
 		
@@ -10,8 +10,8 @@
 		public var particleLimit:int = 0;
 		public var particlesLaunched:int = 0;
 		public var pLife:int = 48; //in frames
-		public var pWidth:Number = 1;
-		public var pHeight:Number = 1;
+		public var pWidth:Number = 2;
+		public var pHeight:Number = 2;
 		public var pColor:uint = 0xFFFFFF;
 		public var vectX:Number = 0;
 		public var vectY:Number = 5;
@@ -20,22 +20,28 @@
 		public var speckCount:int = 0;
 		private var atMaxCapacity:Boolean;
 		public var useBlocks:Boolean = true;
-		public var Rotation:Number = 0;
-		public var RandomlyRotate:Boolean = false;
+		public var Rotation:Number = 10;
+		public var RandomlyRotate:Boolean = true;
 		public var xOffset:Number = 0;
 		public var yOffset:Number = 0;
 		public var yFloor:Number = 410;
+		public var sizeVariance:Number = 0.5;
 
-
-		public function ParticleLauncherXY():void {
-			// constructor code
+		public function ParticleLauncherXYFloor(xoffset:Number=0, yoffset:Number=0, floor:Number=0, color=0xFFFFFF):void
+		{
 			//this.enabled = false;
 			this.mouseEnabled = false;
 			this.mouseChildren = false;
 			//maxParticleCount = maxParticlesPerFrame * pLife;
 			pArray = new Array(maxParticleCount);
 			atMaxCapacity = false;
+			
+			this.xOffset = xoffset;
+			this.yOffset = yoffset;
+			this.yFloor = floor;
+			this.pColor = color;
 		}
+		
 		public function setMaxParticlesPerFrame(maxParts:int):void{
 			maxParticlesPerFrame = maxParts;
 			//maxParticleCount = maxParticlesPerFrame * pLife;
@@ -74,11 +80,12 @@
 			while(parts < maxParticlesPerFrame && checkLimit(parts)){
 				if(speckCount < maxParticleCount && !atMaxCapacity){
 					//trace("particle " + parts);
-					speck = new SpecksXYFloor(stage.mouseX+xOffset, stage.mouseY+yOffset,  pWidth, pHeight, pColor, pLife, useBlocks, Rotation, RandomlyRotate);
+					speck = new SpecksXYFloor(stage.mouseX+xOffset, stage.mouseY+yOffset,  pWidth, pHeight, sizeVariance, pColor, pLife, useBlocks, Rotation, RandomlyRotate);
 					//speck.dy = -10;
 					speck.setYFloor(yFloor);
 					pArray[speckCount] = speck;
 					addChild(speck);
+					speck.visible = true;
 				}else{
 					atMaxCapacity = true;
 					speckCount = speckCount % maxParticleCount;
@@ -94,6 +101,20 @@
 			if (particleLimit == 0) return true;
 			else if(particlesLaunched<particleLimit) return true;
 			return false;
+		}
+		
+		public function setFloor(floor:Number):void
+		{
+			this.yFloor = floor;
+		}
+		
+		// Clears are particles from the screen
+		public function clearParticles():void
+		{
+			for each(var speck:SpecksXYFloor in pArray)
+			{
+				speck.visible = false;
+			}
 		}
 	}
 	

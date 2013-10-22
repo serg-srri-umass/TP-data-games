@@ -6,6 +6,8 @@ package chainsaw.sound{
 	import flash.media.SoundTransform;
 	import common.SafeTimer;
 	import flash.utils.describeType;
+	
+	import mx.logging.*;
 
 	/* AdvancedSound adds functionality to the AS3 Sound class. Each AdvancedSound contains 
 	a regular Flash sound. This class adds the ability to fade sounds in and out based on a
@@ -41,6 +43,7 @@ package chainsaw.sound{
 		public static var nextSoundID:int = 0;
 		private var debugTimer:SafeTimer = new SafeTimer(46, 0); //for printing out things every frame
 
+		public static const logger:ILogger = Log.getLogger("Chainsaw");
 
 		//constructor
 		public function AdvancedSound(s:Sound, traceEveryFrame:Boolean = false){
@@ -96,9 +99,9 @@ package chainsaw.sound{
 			if(debug.getNumSounds() > 12){
 				throw new Error("there are more than twelve sounds instantiated");
 			}else{
-				trace("checkSounds: there are " + debug.getNumSounds() + " sounds instantiated");
+				logger.debug("checkSounds: there are " + debug.getNumSounds() + " sounds instantiated");
 			}
-			trace( where+": Num sounds playing "+debug.getNumSoundsPlaying());
+			logger.debug(where+": Num sounds playing "+debug.getNumSoundsPlaying());
 		}
 		
 		//setters and getters
