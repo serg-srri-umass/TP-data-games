@@ -147,13 +147,17 @@ package common
 		}
 		
 		// ask DG to delete event-level cases of finished games (where the game-level case has been closed). This helps keep the Graph clutter-free.
-		public function deletePreviousCaseData():void {
+		public function deletePreviousCaseData( iPreserveAllEventCases:Boolean=false ):void {
 			var doCommandObj:Object = {  
-				action: "deleteAllCaseData", // delete all closed cases
-				args: { preserveGameCollectionCases: true } // except for game collection cases (but not children of game collection cases)
+				action: "deleteAllCaseData", // delete all closed cases at all levels
+				args: { 
+					preserveAllGames: true,  // except preserve all cases at the Game level
+					preserveOpenEvents: iPreserveAllEventCases // if true delete event collection cases even if open
+				} 
 			};
-			var result:String = ScriptInterface.doCommand( JSON.encode( doCommandObj ));
-			debugTrace( "DG interface: deleteAllCaseData preserveGameCollectionCases:true" );
+			var json:String = JSON.encode( doCommandObj );
+			var result:String = ScriptInterface.doCommand( json );
+			debugTrace( "DG interface: deleteAllCaseData preserveAllGames:true preserveOpenEvents:"+iPreserveAllEventCases );
 		}
 		
 		// trace in debug mode only
