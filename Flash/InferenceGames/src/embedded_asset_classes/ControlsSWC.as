@@ -49,6 +49,8 @@ package embedded_asset_classes
 		// --- PUBLIC SECTION ---
 		// ----------------------
 		
+		var onEnterFrameTimer:Timer = new Timer(40, int.MAX_VALUE);
+		
 		// constructor
 		public function ControlsSWC(){
 			super();
@@ -66,6 +68,10 @@ package embedded_asset_classes
 			stopControlsMVC.userGuessMVC.okayBtn.addEventListener( MouseEvent.CLICK, validateGuess);
 			
 			_botEntryTimer.addEventListener( TimerEvent.TIMER, handleBotType);
+			
+			//ticks on frame to check if sample button exists yet
+			onEnterFrameTimer.addEventListener(TimerEvent.TIMER, listenSample);
+			onEnterFrameTimer.start();
 		}
 		
 		// starts the show animation, making this MovieClip visible.
@@ -238,6 +244,13 @@ package embedded_asset_classes
 		private function checkForEnter( triggerEvent:KeyboardEvent):void{
 			if( triggerEvent.keyCode == 13) // 13 = enter key
 				validateGuess();
+		}
+		
+		//checks if sample button exists, adds event listener to it once it does. solves issue with order of things being instantiated. 
+		private function listenSample(e:Event):void{
+			if(sendChunkMVC.theSampleButton){
+				sendChunkMVC.theSampleButton.addEventListener(MouseEvent.CLICK, Round.currentRound.addChunk);
+			}
 		}
 	}
 }

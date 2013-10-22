@@ -10,6 +10,7 @@ package
 	import embedded_asset_classes.PlayerAPI;
 	import embedded_asset_classes.UserPlayerSWC;
 	
+	import flash.events.Event;
 	import flash.utils.getTimer;
 	
 	public class Round
@@ -150,10 +151,11 @@ package
 				_chunkSize = ExpertAI.guessNumSamples / numChunks;
 				trace("Chunk Size set to: " + _chunkSize);
 			}
+			ControlsSWC.instance.sendChunkMVC.chunkSizeText.text = _chunkSize;
 		}
 		
 		//sends a chunk of data to DG. called from 'sample' mxml button
-		public function addChunk():void{
+		public function addChunk(e:Event):void{
 			for(var i:int = 0; i < _chunkSize; i++){
 				if( addData())
 					break; // stop sending data if expert guessed
