@@ -4,21 +4,31 @@ package odyssey
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.media.*;
+	import flash.text.TextFormat;
 	
 	public class TopBarMVC extends topBar_mvc
 	{
+		public static const DEFAULT_TITLE:String = "Choose a Mission";
+		
 		private static const LOW:int = 0;
 		private static const MEDIUM:int = 1;
 		private static const HIGH:int = 2;
 		
+		private static var yellowText:TextFormat = new TextFormat(); // the title color on mouse over.
+		private static var blackText:TextFormat = new TextFormat(); // the default title color
+		
 		private var _stage:Stage; // a reference to the application's stage, so its quality can be adjusted.
 		
-		private var _videoFunc:Function; 
+		private var _videoFunc:Function, _descriptionFunc:Function; 
+		
 		private var _quality:int = HIGH; // the current quality.
 		private var _muted:Boolean = false; // whether the game is muted.		
 		private var bouncingPrompt:Boolean = true; // whether or not the first bouncing prompt is still visible.
 		
-		public function TopBarMVC( videoFunction:Function):void{
+		public function TopBarMVC( videoFunction:Function, descriptionFunction:Function):void{
+			yellowText.color = 0xFFFF00;
+			blackText.color = 0xE5D8D0;
+			
 			quality.addEventListener(MouseEvent.CLICK, toggleQuality);			
 			soundIcon.addEventListener(MouseEvent.CLICK, toggleMuted);
 			videoBtn.addEventListener(MouseEvent.CLICK, toggleVideo);
@@ -29,6 +39,8 @@ package odyssey
 			quality.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
 			soundIcon.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
 			soundIcon.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			titleHit.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			titleHit.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
 			
 			// establish the initial sound volume:
 			var st:SoundTransform = SoundMixer.soundTransform;
@@ -36,6 +48,8 @@ package odyssey
 			SoundMixer.soundTransform = st;
 						
 			_videoFunc = videoFunction;
+			_descriptionFunc = descriptionFunction;
+			
 			mouseOverHelp.inner.gotoAndPlay("bob"); // make the intro movie button bob up and down.
 			
 			//helpBtn.addEventListener(MouseEvent.CLICK, doHelpFunction);
@@ -94,6 +108,7 @@ package odyssey
 		
 		private function showHidePrompt(e:MouseEvent = null):void{
 			if(e.type == MouseEvent.MOUSE_OUT){
+				title.setTextFormat(blackText);
 				if(bouncingPrompt){
 					bouncingPrompt = false;
 				}
@@ -119,6 +134,15 @@ package odyssey
 				}else if(e.target == soundIcon){
 					mouseOverHelp.gotoAndStop(3);
 					mouseOverHelp.promptTxt.text = ( !_muted ? "Volume: On" : "Volume: Off");
+				} else if(e.target == titleHit){
+					title.setTextFormat( yellowText);
+					if(title.text != DEFAULT_TITLE){
+						mouseOverHelp.gotoAndStop(4);
+						mouseOverHelp.promptTxt.text = _descriptionFunc();
+					} else {
+						mouseOverHelp.gotoAndStop(5);
+						mouseOverHelp.promptTxt.text = "Ahoy Matey! Choose a mission, then hit play to get started.";
+					}
 				}
 			}
 		}

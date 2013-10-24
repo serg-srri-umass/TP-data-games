@@ -29,6 +29,14 @@
 			super.nextFrame();
 		}
 		
+		public function prevFrame():void{
+			crane.gotoAndStop( crane.currentFrame - 1);
+			ring1.gotoAndStop( ring1.currentFrame - 1);
+			ring2.gotoAndStop( ring2.currentFrame - 1);
+			ring3.gotoAndStop( ring3.currentFrame - 1);
+			super.gotoAndStop( currentFrame - 1);
+		}
+		
 		override public function play():void{
 			crane.play();
 			ring1.play();

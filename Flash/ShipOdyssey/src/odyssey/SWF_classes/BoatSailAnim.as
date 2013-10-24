@@ -101,8 +101,8 @@
 			zoomCounter++;
 			
 			// bring the crane to stowed position
-			ToyBoat.crane.nextFrame();
-			ToyBoat.crane.nextFrame();
+			ToyBoat.crane.prevFrame();
+			ToyBoat.crane.prevFrame();
 						
 			if(zoomCounter == zoomTime){
 				dispatchEvent(new ZoomEvent(ZoomEvent.OUT));

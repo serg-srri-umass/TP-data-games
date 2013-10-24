@@ -91,7 +91,7 @@
 			//variables for holding loaded MovieClips
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle, closeGame);	
 			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
-			private var topBarMVC:TopBarMVC = new TopBarMVC( showVideo);
+			private var topBarMVC:TopBarMVC = new TopBarMVC( showVideo, getDescription);
 			private var shipControlsMVC:ShipControlsMVC = new ShipControlsMVC();
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
 			
@@ -1013,6 +1013,13 @@
 			
 			private function getCurrentMission():int{ 
 				return mCurrentMission.number; 
+			}
+			
+			private function getDescription():String{
+				if(!mCurrentMission){
+					return "";
+				}
+				return mCurrentMission.instructions;
 			}
 
 			// This function is called when the game starts. These objects will have the following listeners for the entirety of the play session:

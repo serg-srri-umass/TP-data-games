@@ -90,7 +90,7 @@ package odyssey
 		
 		// select what level will be played.
 		public function displayMissionMap(skipAnimation:Boolean = true):void {
-			game.setGameTitle("Choose a Mission");
+			game.setGameTitle( TopBarMVC.DEFAULT_TITLE);
 			
 			visible = true;
 			gotoAndStop("level");
