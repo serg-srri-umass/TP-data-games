@@ -785,7 +785,7 @@
 								attrs:	[
 									{ name: "Site", type: "nominal", description: "Site number"   } ,
 									{ name: "RatNumber", type: "numeric", precision: 0, description: "Rats sent so far in game"   } , 
-									{ name: "RatReading", type: "numeric", precision: 1, description: "Location estimate provided by rat"  }
+									{ name: "RatReading", type: "numeric", precision: 1, defaultMin: 0, defaultMax: 100, description: "Location estimate provided by rat"  }
 								],
 								labels: {
 									singleCase: "rat sent",
