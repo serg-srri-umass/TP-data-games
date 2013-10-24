@@ -319,7 +319,7 @@
 			// pressed.
 			protected function onClickSendRatsButton(event:MouseEvent = null):void{
 				if( shipControlsMVC.ratStepper.validate()){ // check if the stepper is valid #, based on how much $ you have.
-					if( mCurrentMission.ratCost >= bootyMeter.rats){
+					if( mCurrentMission.ratCost > bootyMeter.rats){
 						shipControlsMVC.ratStepper.gotoAndPlay("blink"); // make the stepper flash red if you can afford 0 rats.
 					} else{
 						if( mCurrentMission.ratCost > 0){ // pay if rats cost $
