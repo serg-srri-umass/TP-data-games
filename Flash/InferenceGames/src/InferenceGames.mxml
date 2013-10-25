@@ -150,7 +150,7 @@
 								name: kEventsCollectionName,
 								attrs:	[
 									{ name: "Round", type: "nominal", description: "Which round of the current game"   } ,
-									{ name: "Value", type: "numeric", precision: 0, description: "Value of data point generated"   }
+									{ name: "Value", type: "numeric", precision: 0, defaultMin: 0, defaultMax: 100, description: "Value of data point generated"   }
 								],
 								labels: {
 									singleCase: "value sent",
