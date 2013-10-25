@@ -844,9 +844,12 @@
 					dynamicLog3.enabled = true;
 					dynamicLog4.enabled = true;
 					
-					mFuelTimer.start(); // Start the timer, now that all variables are set up.
-					flashGasTank['initGasTank'](kTimeLimit * 24);
-					flashGasTank['startDrop']();
+					if(!practice)
+					{
+						mFuelTimer.start(); // Start the timer, now that all variables are set up.
+						flashGasTank['initGasTank'](kTimeLimit * 24);
+						flashGasTank['startDrop']();
+					}
 					
 					removeEventListener(MouseEvent.MOUSE_UP, onCountdownTimerFinish);
 				}
@@ -1219,7 +1222,6 @@
 			// onClickChangeLevelButton() allows the user to change the game level.
 			protected function onClickChangeLevelButton(event:MouseEvent):void
 			{
-				clearGame(); // Clear any remnants of last game and reset game.
 				chooseGameLevel();
 			}
 			
