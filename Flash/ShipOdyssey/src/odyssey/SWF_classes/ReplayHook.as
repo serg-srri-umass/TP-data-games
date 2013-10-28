@@ -8,7 +8,7 @@
 		private const HOOK_Y:Number = -56.75;	// the Y value at which to attach hooks.
 		private var _label:String;
 		
-		public function ReplayHook(position:Number = 0, treasure:Boolean = false, junk:String = null) {
+		public function ReplayHook(position:Number = 0, treasure:Boolean = false, junk:String = null, treasureOffset:Number = 0) {
 			x = position;
 			y = HOOK_Y;
 						
@@ -22,6 +22,8 @@
 				}else if(junk == "got_seaweed"){
 					junkMVC.gotoAndStop("seaweed");
 				}
+			}else{
+				Chest.chest.x = treasureOffset
 			}
 		}
 		

@@ -1,8 +1,8 @@
 ﻿package  {
 	import flash.display.MovieClip;
 	import flash.events.Event;
-	import flash.utils.Timer;
 	import flash.events.TimerEvent;
+	import flash.utils.Timer;
 
 	public class ReplayForeground extends MovieClip{
 		
@@ -15,6 +15,8 @@
 		private var hookArray:Array;	//where hook data is stored.
 		private var recycleArray:Array;	//is used to loop the animation.
 		private var removalArray:Array = new Array(); // used in unloading the movieclips.
+		
+		private var _x1Location:int = -1, _x2Location:int = -1;
 		
 		var startTimer:Timer = new Timer(1500, 1);
 		var interTimer:Timer = new Timer(500, 1);
@@ -38,6 +40,9 @@
 		}
 		
 		public function placeTreasure(treasure1_location:Number = -1, treasure2_location:Number = -1){
+			_x1Location = treasure1_location;
+			_x2Location = treasure2_location;
+			
 			if(treasure1_location > 0) {
 				x1.visible = true;
 				x1.x = getScalePosition(treasure1_location);
@@ -57,7 +62,26 @@
 		}
 		
 		public function addHook(pos:Number, treasure:Boolean = false, junk:String = null):void{
-			var h:ReplayHook = new ReplayHook(getScalePosition(pos), treasure, junk);
+			var treasureOffset:Number = 0;
+			
+			if(treasure){
+				var distToX1:Number = 1000, distToX2:Number = 1000;
+				if( _x1Location > -1)
+					distToX1 = Math.abs( _x1Location - pos);
+				if( _x2Location > -1)
+					distToX2 = Math.abs( _x2Location - pos);
+				
+				trace("x1: " + distToX1);
+				trace("x2: " + distToX2);
+				if( distToX1 < distToX2){
+					treasureOffset = (_x1Location - pos) * 5;
+				} else if( distToX1 > distToX2){
+					treasureOffset = (_x2Location - pos) * 5;
+				}
+				
+			}
+			
+			var h:ReplayHook = new ReplayHook(getScalePosition(pos), treasure, junk, treasureOffset);
 			addChild(h);
 			hookArray.push(h);
 			removalArray.push(h);

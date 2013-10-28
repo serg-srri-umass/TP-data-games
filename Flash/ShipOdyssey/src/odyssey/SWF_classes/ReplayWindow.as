@@ -34,7 +34,7 @@
 		}
 			
 		private function measure(ptX:Number, center:Boolean = false):void{
-			if(center || ptX < SCREEN_BUFFER || ptX > (SCREEN_WIDTH - SCREEN_BUFFER)){	// if the next hook is going to be off camera, or is a treasure chest.
+			if(ptX < SCREEN_BUFFER || ptX > (SCREEN_WIDTH - SCREEN_BUFFER)){	// if the next hook is going to be off camera, or is a treasure chest.
 				
 				targetPos = foreground.x + (200 - ptX);
 				if(targetPos < ReplayForeground.MIN_X)
