@@ -26,6 +26,7 @@
 		public var yOffset:Number = 0;
 		public var yFloor:Number = 410;
 		public var sizeVariance:Number = 0.5;
+		public var brightnessVariance:Number = 10;
 
 		public function ParticleLauncherXYFloor(xoffset:Number=0, yoffset:Number=0, floor:Number=0, color=0xFFFFFF):void
 		{
@@ -80,7 +81,7 @@
 			while(parts < maxParticlesPerFrame && checkLimit(parts)){
 				if(speckCount < maxParticleCount && !atMaxCapacity){
 					//trace("particle " + parts);
-					speck = new SpecksXYFloor(stage.mouseX+xOffset, stage.mouseY+yOffset,  pWidth, pHeight, sizeVariance, pColor, pLife, useBlocks, Rotation, RandomlyRotate);
+					speck = new SpecksXYFloor(stage.mouseX+xOffset, stage.mouseY+yOffset,  pWidth, pHeight, sizeVariance, pColor, brightnessVariance, pLife, useBlocks, Rotation, RandomlyRotate);
 					//speck.dy = -10;
 					speck.setYFloor(yFloor);
 					pArray[speckCount] = speck;

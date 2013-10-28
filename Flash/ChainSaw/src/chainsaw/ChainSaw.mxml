@@ -3,7 +3,7 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   minWidth="745" minHeight="410" 
-			   backgroundColor="#47B070"
+			   backgroundColor="#d2bfa4"
 			   creationComplete="testFlashPlayer()"
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
@@ -40,7 +40,7 @@
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4;	//the oldest version of flash player you can play this game on.
 			
 			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2013.10.11";
+			public static const VERSION:String   = "Chainsaw v.2013.10.23";
 			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
 			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
 			private function getVersion():String {
@@ -92,6 +92,12 @@
 			// Min and max accepted cut length in pixels.
 			public static const kMinCutLength:Number	= kReferenceLength * (1.0 - (kPercentAllowance / 100));	
 			public static const kMaxCutLength:Number	= kReferenceLength * (1.0 + (kPercentAllowance / 100));	
+			
+			// The y-positions for each log (these are fixed)
+			public static const logY1:int = 38;
+			public static const logY2:int = 120;
+			public static const logY3:int = 202;
+			public static const logY4:int = 284
 			
 			// Create a timer to update the fuel level display and game duration.
 			private var mFuelTimer:Timer = new Timer(kUpdateInterval, kTotalUpdates);
@@ -556,6 +562,12 @@
 					dynamicLog2['init'](0,dynamicLog3); // cut direction 1=LtoR, -1=RtoL, 0 = free
 					dynamicLog3['init'](0,dynamicLog4);
 					dynamicLog4['init'](0,null);
+					
+					// Set the floor of each sawdust emitter when the log thickness changes
+					sawdustParticlesLog1['setFloor'](logY1 + dynamicLog1['height'] + 54);
+					sawdustParticlesLog2['setFloor'](logY2 + dynamicLog2['height'] + 54);
+					sawdustParticlesLog3['setFloor'](logY3 + dynamicLog3['height'] + 54);
+					sawdustParticlesLog4['setFloor'](logY4 + dynamicLog4['height'] + 54);
 				}
 				
 				mLevelLabel.text = mLevelLabel.text.replace(" (practice)", "");
@@ -566,19 +578,19 @@
 			protected function randomizeLogSizePosition():void
 			{
 				dynamicLog1.x = Math.random()*120+40;
-				dynamicLog1.y = 38;
+				dynamicLog1.y = logY1;
 				dynamicLog1['drawNewLog'](pickLogLength());
 				
 				dynamicLog2.x = Math.random()*120+40;
-				dynamicLog2.y = 120;
+				dynamicLog2.y = logY2;
 				dynamicLog2['drawNewLog'](pickLogLength());
 				
 				dynamicLog3.x = Math.random()*120+40;
-				dynamicLog3.y = 202;
+				dynamicLog3.y = logY3;
 				dynamicLog3['drawNewLog'](pickLogLength());
 				
 				dynamicLog4.x = Math.random()*120+40;
-				dynamicLog4.y = 284;
+				dynamicLog4.y = logY4;
 				dynamicLog4['drawNewLog'](pickLogLength());
 			}
 			
@@ -1468,7 +1480,7 @@
 		<s:Label id="mScoreValue"    x="300" y="{300-46}" text="?" fontSize="30" fontWeight="bold" width="300" textAlign="right"/>
 	</s:BorderContainer>
 	
-	<s:Label id="mVersionLabel" x="580" y="386" width="165" color="#cdcdcd" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="580" y="386" width="165" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
 	
 	<!-- Contains startup video -->
 	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="#47B070" borderVisible="false">

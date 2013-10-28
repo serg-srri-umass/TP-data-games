@@ -1,6 +1,7 @@
 ﻿package chainsaw.sawdust {
 	import flash.display.*;
 	import flash.events.Event;
+	import flash.geom.ColorTransform;
 	
 	public class SpecksXYFloor extends Shape {
 		
@@ -38,7 +39,7 @@
 		 * @param alphaVal transparency
 		 */
 		public function SpecksXYFloor(X:Number, Y:Number, w:Number = 1, h:Number = 1,
-							   sizeVar:Number=0, c:Number = 0x000000, l:int = 24,
+							   sizeVar:Number=0, c:Number = 0x000000, varyBrightness=0, l:int = 24,
 							   block:Boolean = true, rot:Number = 0,
 							   randomlyRotate:Boolean = false, alphaVal:Number = 0.99) {
 			// constructor code
@@ -57,6 +58,10 @@
 			var size:Number = 1+(Math.random()*sizeVariance*2)-sizeVariance;
 			this.scaleX = size;
 			this.scaleY = size;
+			
+			//vary the brightness of the color
+			var offset:Number = ((Math.random()*2)-1) * varyBrightness; 
+			this.transform.colorTransform = new ColorTransform(1,1,1,1,offset,offset,offset,0);
 			
 			if (randomlyRotate){
 				rotateBy = (Math.random()-.5)*rot;
