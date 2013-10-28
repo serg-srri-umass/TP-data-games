@@ -60,10 +60,13 @@ package embedded_asset_classes
 			visible = false;
 			addEventListener(AnimationEvent.COMPLETE_HIDE, onCompleteHide); // handler for when hide animation is complete.
 			stopControlsMVC.stopStartBtn.pauseBtn.setClickFunctions(stopFunction, startFunction); // the stop/start button uses these methods on click.
+			stopControlsMVC.stopStartBtn.pauseBtn.look = 0;
 			stop();
 			
 			stopControlsMVC.stop();
 			stopControlsMVC.userGuessMVC.okayBtn.addEventListener( MouseEvent.CLICK, validateGuess);
+			
+			sendChunkMVC.visible = false; 
 			
 			_botEntryTimer.addEventListener( TimerEvent.TIMER, handleBotType);
 		}
@@ -71,12 +74,13 @@ package embedded_asset_classes
 		// starts the show animation, making this MovieClip visible.
 		public function show( triggerEvent:* = null):void{
 			visible = true;
-			stopControlsMVC.stopStartBtn.pauseBtn.look = 1; // set the button to 'start'
+			stopControlsMVC.stopStartBtn.pauseBtn.look = 0; // set the button to 'Guess'
 			stopControlsMVC.stopStartBtn.gotoAndStop( "ready");
-			stopControlsMVC.gotoAndStop( 1); // show the start button, not the guess entry.
+			stopControlsMVC.gotoAndStop( 1); // show the 'Guess' button, not the guess entry.
 			stopControlsMVC.botGuessMVC.visible = false;
 			stopControlsMVC.userGuessMVC.visible = false;
 			stopControlsMVC.userGuessMVC.invalidNumberMVC.visible = false;
+			sendChunkMVC.visible = true; 
 			
 			gotoAndPlay("show");
 			_isShowing = true;
@@ -113,6 +117,7 @@ package embedded_asset_classes
 		
 		// call this method when the bot hits the stop button.
 		public function botStopFunction():void{
+			trace("Bot stopped at sampleN of : " + ExpertAI.guessNumSamples + " and numSamples of : " + Round.currentRound.numDataSoFar);
 			DataCannonSWC.instance.stopCannon();
 			UserPlayerSWC.instance.hide();
 			
@@ -160,6 +165,7 @@ package embedded_asset_classes
 		private function stopFunction( triggerEvent:MouseEvent):void{
 			DataCannonSWC.instance.stopCannon();
 			BotPlayerSWC.instance.hide();
+			sendChunkMVC.visible = false; 
 			if( _autoGuess){
 				
 				Round.currentRound.guess = Round.currentRound.sampleMedian;
@@ -169,7 +175,7 @@ package embedded_asset_classes
 			} else {
 				stopControlsMVC.stopStartBtn.pauseBtn.enabled = false;
 				stopControlsMVC.gotoAndPlay("pressStop");
-				stopControlsMVC.stopStartBtn.gotoAndStop( "user");
+				//stopControlsMVC.stopStartBtn.gotoAndStop( "user"); //commented out to prevent button from changing back to 'Stop'
 				stopControlsMVC.userGuessMVC.visible = true;
 				stopControlsMVC.userGuessMVC.okayBtn.mouseEnabled = true;
 			

@@ -20,7 +20,9 @@ package embedded_asset_classes
 	import flash.display.MovieClip;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.events.TimerEvent;
 	import flash.geom.Rectangle;
+
 	//import flash.display.Stage;
 
 	public class DataCannonSWC extends dataCannonSWC
@@ -163,7 +165,7 @@ package embedded_asset_classes
 		
 		// this method is called whenever a point of data is unloaded. Pushes the data to DG.
 		private function pushData( triggerEvent:Event = null):void{
-			Round.currentRound.addData();
+			Round.currentRound.addData(new TimerEvent("timerComplete"));
 		}
 	}
 }

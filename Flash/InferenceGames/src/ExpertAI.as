@@ -90,7 +90,7 @@ package
 
 		// this method is called whenever data is added. The expert considers whether or not he wants to guess, and may guess.
 		public static function judgeData( sampleLength:int):Boolean {
-			var expertDidGuess:Boolean =( sampleLength >= guessNumSamples );
+			var expertDidGuess:Boolean = ( sampleLength >= _guessNumSamples );
 			if( expertDidGuess )
 				ControlsSWC.instance.botStopFunction();
 			return expertDidGuess;

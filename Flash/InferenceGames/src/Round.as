@@ -10,7 +10,11 @@ package
 	import embedded_asset_classes.PlayerAPI;
 	import embedded_asset_classes.UserPlayerSWC;
 	
+	import flash.events.Event;
+	import flash.events.MouseEvent;
+	import flash.events.TimerEvent;
 	import flash.utils.getTimer;
+	import flash.utils.Timer;
 	
 	public class Round
 	{
@@ -57,11 +61,20 @@ package
 		private var _isWon:Boolean = false; //whether or not this round has been won, calculated when we call for the results string
 		private var _lastBuzzer:PlayerAPI; // the player who buzzed in this round.
 		private var _level:int = 0; //level of this round
+		
+		private var dataTimer:Timer;
+		private const _dataDelayTime:int = 50; //delay time between sending points to DG in ms
+		
+		private var _expertGuessed:Boolean = false; 
 	
 		// constructor
 		public function Round( whichLevel:int ) {
 			DebugUtilities.assert( whichLevel >= 1 && whichLevel <= kLevelSettings.length, "whichLevel out of range" );
 			
+			//removing event listener from old round instance before we create a new one
+			if(_roundID != 0)
+			ControlsSWC.instance.sendChunkMVC.theSampleButton.removeEventListener(MouseEvent.CLICK, Round.currentRound.addChunk);
+
 			Round.currentRound = this;
 			
 			++_roundID;
@@ -115,11 +128,15 @@ package
 			
 			
 			ExpertAI.newRound( MathUtilities.IQR_to_SD(_IQR), _interval); // prepare the AI for the new round.
+			
+			//attaching sample button to THIS round's addChunk function
+			if(ControlsSWC.instance.sendChunkMVC.theSampleButton)
+			ControlsSWC.instance.sendChunkMVC.theSampleButton.addEventListener(MouseEvent.CLICK, Round.currentRound.addChunk);
 		}
 		
-		// create a point of data, send to DG and let the expert judge the data (guess or not)
+		// takes num points to make; sends to DG with delay added for performance reasons. lets the expert judge the data (guess or not)
 		// returns true if the expert guessed
-		public function addData():Boolean {
+		public function addData(e:TimerEvent):void {
 			
 			// generate random data value; note that mean and median are interchangable for a symmetrical normal curve.
 			var value:int = InferenceGames.instance.randomizer.normalWithMeanIQR( _median, _IQR );
@@ -130,15 +147,22 @@ package
 			_dataArray.push( [_roundID, value ]);
 			
 			var expertGuessed:Boolean = false;
-			if( true /*getTimer() - lastSendTime > SEND_TIME*/){
-				lastSendTime = getTimer();
-				InferenceGames.instance.sendEventData ( _dataArray );
-				_dataArray = new Array();
-				
-				_accuracy = calculateAccuracy();
-				expertGuessed = ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
-			}
-			return expertGuessed;
+			
+			InferenceGames.instance.sendEventData ( _dataArray );
+			_dataArray = new Array();
+			
+			_accuracy = calculateAccuracy();
+			expertGuessed = ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
+			
+			_expertGuessed = expertGuessed;
+		}
+		
+		//sends timer events based on _dataDelayTime to addData()
+		public function dataDelay():void{
+			var expertGuessed:Boolean;
+			dataTimer = new Timer(_dataDelayTime, 1)
+			dataTimer.addEventListener(TimerEvent.TIMER_COMPLETE, addData);
+			dataTimer.start();
 		}
 		
 		//sets size of data chunks to be sent to DG. Called at beginning of new round
@@ -150,13 +174,16 @@ package
 				_chunkSize = ExpertAI.guessNumSamples / numChunks;
 				trace("Chunk Size set to: " + _chunkSize);
 			}
+			ControlsSWC.instance.sendChunkMVC.chunkSizeText.text = _chunkSize;
 		}
 		
 		//sends a chunk of data to DG. called from 'sample' mxml button
-		public function addChunk():void{
+		public function addChunk(e:Event):void{
 			for(var i:int = 0; i < _chunkSize; i++){
-				if( addData())
+				if( _expertGuessed )
 					break; // stop sending data if expert guessed
+				else
+					dataDelay();
 			}
 		}
 		
