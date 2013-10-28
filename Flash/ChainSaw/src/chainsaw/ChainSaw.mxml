@@ -1414,7 +1414,7 @@
 	<s:Label id="mVersionLabel" x="580" y="386" width="165" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
 	
 	<!-- Contains startup video -->
-	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="#47B070" borderVisible="false">
+	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="#d2bfa4" borderVisible="false" depth="1000">
 		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="0"/>
 		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-30}">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
