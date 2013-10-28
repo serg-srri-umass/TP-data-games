@@ -28,7 +28,7 @@
 		public var sizeVariance:Number = 0.5;
 		public var brightnessVariance:Number = 10;
 
-		public function ParticleLauncherXYFloor(xoffset:Number=0, yoffset:Number=0, floor:Number=0, color=0xFFFFFF):void
+		public function ParticleLauncherXYFloor(xoffset:Number=0, yoffset:Number=0, floor:Number=0, color:uint=0xFFFFFF):void
 		{
 			//this.enabled = false;
 			this.mouseEnabled = false;

@@ -39,7 +39,7 @@
 		 * @param alphaVal transparency
 		 */
 		public function SpecksXYFloor(X:Number, Y:Number, w:Number = 1, h:Number = 1,
-							   sizeVar:Number=0, c:Number = 0x000000, varyBrightness=0, l:int = 24,
+							   sizeVar:Number=0, c:Number = 0x000000, varyBrightness:Number=0, l:int = 24,
 							   block:Boolean = true, rot:Number = 0,
 							   randomlyRotate:Boolean = false, alphaVal:Number = 0.99) {
 			// constructor code

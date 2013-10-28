@@ -32,19 +32,10 @@
 			import spark.components.CheckBox;
 			import spark.events.TextOperationEvent;
 			
-			// BUILD FOR TinkerPlots or DG: 
-			// edit true/false and rebuild to create a new build for each.
-			// export the DG version to ./bin-release
-			// export the TinkerPlots version to ./bin-release-tp
-			
-			private static const MINIMUM_REQUIREMENTS:Number = 11.4;	//the oldest version of flash player you can play this game on.
-			
-			private static const kUseDataGamesInterface:Boolean = true; // if TRUE use DG edition data interfaces, else use TinkerPlots 2.0-compatible data interface
-			public static const VERSION:String   = "Chainsaw v.2013.10.23";
-			public static const TP_suffix:String = " (fl-tp)" // edition: flash for TinkerPlots
-			public static const DG_suffix:String = " (fl-dg)" // edition: flash for DG
+			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
+			public static const  VERSION:String = "Chainsaw v.2013.10.28";
 			private function getVersion():String {
-				return( VERSION + (kUseDataGamesInterface ? DG_suffix : TP_suffix ));
+				return( VERSION );
 			}
 			
 			public var flashGasTank:MovieClip;
@@ -346,103 +337,67 @@
 				}
 			}
 
-			// Send the initial game data to TinkerPlots or DG.  The collections are the tables of cases and attributes.
+			// Send the initial game data to DG.  The collections are the tables of cases and attributes.
 			private	function	sendCollectionData( ):void	{
 				var	result:String;
-				
-				if( kUseDataGamesInterface ) 
-				{	// use the DG-compatible data interface for extra functionality; not compatible with TinkerPlots 2.0 Research Edition
-					var initGameObj:Object = {
-						action: "initGame",
-						args: {
-							name: "Chainsaw",
-							dimensions: { width: 745, height: 410 }, // should match 'Application' width and height
-							collections: [
-								{
-									name: kGamesCollectionName,
-									attrs:[
-										{ name: "Player" , type: "nominal" ,  description: "Name of the player"   } ,
-										{ name: "GameNumber" , type: "nominal" , precision: 0, description: "Game number"   } , 
-										{ name: "Score", type: "numeric", precision: 1, description: "Score for this game", editable: true },
-										{ name: "Rank", type: "numeric", precision: 0, description: "Rank of this game", editable: true },
-										{ name: "Level" , type: "nominal" ,  description: "Game level"   } ,	
-										{ name: "Strategy" , type: "nominal" ,  description: "Cut strategy used by the player"   } ,	
-										{ name: "Accepted" , type: "numeric" , precision: 0, description: "Number of pieces accepted"   } , 
-										{ name: "Remnant" , type: "numeric" , precision: 0, description: "Number of remnant pieces"   } , 
-										//{ name: "Pieces_Rejected" , type: "numeric" , precision: 0, description: "Number of pieces rejected"   } , 
-										{ name: "Short" , type: "numeric" , precision: 0, description: "Number of pieces rejected as short"   } , 
-										{ name: "Long" , type: "numeric" , precision: 0, description: "Number of pieces rejected as long"   } , 
-										{ name: "FuelLeft" , type: "numeric" , precision: 0, description: "Amount of fuel left"   } , 
-										{ name: "FuelLeftPercent" , type: "numeric" , precision: 1, description: "Percent of fuel left"   }			
-									] ,
-									childAttrName: "Cut_Record"
+				var initGameObj:Object = 
+				{
+					action: "initGame",
+					args: {
+						name: "Chainsaw",
+						dimensions: { width: 745, height: 410 }, // should match 'Application' width and height
+						collections: [
+							{
+								name: kGamesCollectionName,
+								attrs:[
+									{ name: "Player" , type: "nominal" ,  description: "Name of the player"   } ,
+									{ name: "GameNumber" , type: "nominal" , precision: 0, description: "Game number"   } , 
+									{ name: "Score", type: "numeric", precision: 1, description: "Score for this game", editable: true },
+									{ name: "Rank", type: "numeric", precision: 0, description: "Rank of this game", editable: true },
+									{ name: "Level" , type: "nominal" ,  description: "Game level"   } ,	
+									{ name: "Strategy" , type: "nominal" ,  description: "Cut strategy used by the player"   } ,	
+									{ name: "Accepted" , type: "numeric" , precision: 0, description: "Number of pieces accepted"   } , 
+									{ name: "Remnant" , type: "numeric" , precision: 0, description: "Number of remnant pieces"   } , 
+									//{ name: "Pieces_Rejected" , type: "numeric" , precision: 0, description: "Number of pieces rejected"   } , 
+									{ name: "Short" , type: "numeric" , precision: 0, description: "Number of pieces rejected as short"   } , 
+									{ name: "Long" , type: "numeric" , precision: 0, description: "Number of pieces rejected as long"   } , 
+									{ name: "FuelLeft" , type: "numeric" , precision: 0, description: "Amount of fuel left"   } , 
+									{ name: "FuelLeftPercent" , type: "numeric" , precision: 1, description: "Percent of fuel left"   }			
+								] ,
+								childAttrName: "Cut_Record"
+							},
+							{
+								name: kCutsCollectionName,
+								attrs:	[
+									{ name: "GameNumber" , type: "nominal" , precision: 0, description: "Game number"   } ,
+									{ name: "Length" , type: "numeric" , precision: 2, description: "Length of cut"   } , 
+									{ name: "Thickness" , type: "nominal" , description: "Thickness of log"  } , 
+									{ name: "IsAccepted" , type: "nominal" , description: "Is piece an acceptable length?",
+										colormap: { 
+											"Yes": 'green', 	// kAcceptString
+											"No-Short": 'red',	// kRejectShortString
+											"No-Long": 'red',	// kRejectLongString
+											"Remnant": 'yellow'	// kRemnantString
+										}},
+									{ name: "Log" , type: "numeric" , precision: 0, description: "Log number",
+										colormap: { 'attribute-color': '#6f4900'  // brown
+										}}
+								],
+								labels: {
+									singleCase: "piece",
+									pluralCase: "pieces",
+									singleCaseWithArticle: "a piece",
+									setOfCases: "cut record",
+									setOfCasesWithArticle: "a cut record"
 								},
-								{
-									name: kCutsCollectionName,
-									attrs:	[
-										{ name: "GameNumber" , type: "nominal" , precision: 0, description: "Game number"   } ,
-										{ name: "Length" , type: "numeric" , precision: 2, description: "Length of cut"   } , 
-										{ name: "Thickness" , type: "nominal" , description: "Thickness of log"  } , 
-										{ name: "IsAccepted" , type: "nominal" , description: "Is piece an acceptable length?",
-											colormap: { 
-												"Yes": 'green', 	// kAcceptString
-												"No-Short": 'red',	// kRejectShortString
-												"No-Long": 'red',	// kRejectLongString
-												"Remnant": 'yellow'	// kRemnantString
-											}},
-										{ name: "Log" , type: "numeric" , precision: 0, description: "Log number",
-											colormap: { 'attribute-color': '#6f4900'  // brown
-											}}
-									],
-									labels: {
-										singleCase: "piece",
-										pluralCase: "pieces",
-										singleCaseWithArticle: "a piece",
-										setOfCases: "cut record",
-										setOfCasesWithArticle: "a cut record"
-									},
-									defaults: { xAttr: "Length", yAttr: "GameNumber" }
-								}
-							] // collections
-						} // args
-					}; //initGameObj
-					var	initGameString:String = com.adobe.serialization.json.JSON.encode( initGameObj );
-					result = ScriptInterface.doCommand( initGameString );
-				}
-				else {
-					// use the old data interface compatible with TinkerPlots 2.0 Research Edition; 
-					// works less well with DG, does not give game dimensions, does not identify numeric/categorical type of attributes, etc.
-					// event collection and attributes
-					ScriptInterface.NewCollectionWithAttributes(
-						"Cuts",
-						[  // Note: "Player" used at cuts level in TP only (not DG)
-							"Player",			// Name of the player.
-							"Game",				// Game number starting with 1 since launch of application.
-							"Length",			// Length of cut piece.
-							"Thickness",		// Thin or thick depending on game type
-							"IsAccepted",			// True if cut piece is within accepted range of cut length.
-							"Log"				// Number of log from which piece was cut.
-						]
-					);
-					
-					// game collection and attributes
-					ScriptInterface.NewCollectionWithAttributes(
-						kGamesCollectionName,
-						[
-							"Player",			// Name of the player.
-							"Game",				// Game number starting with 1 since launch of application.
-							"Level",			// The current level type
-							"Strategy",			// The Cut Strategy Used by the player
-							"Accepted",			// Number of pieces accepted.
-							"Remnant",			// Number of remnant pieces
-							//"Pieces_Rejected",	// Number of pieces rejected.
-							"Short",			// Number of pieces rejected as short.
-							"Long",				// Number of pieces rejected as long.
-							"FuelLeft",			// Raw amount of fuel left.
-							"FuelLeftPercent"	// Percent of fuel left.
-						]
-					);
-				}
+								defaults: { xAttr: "Length", yAttr: "GameNumber" }
+							}
+						] // collections
+					} // args
+				}; //initGameObj
+				
+				var	initGameString:String = com.adobe.serialization.json.JSON.encode( initGameObj );
+				result = ScriptInterface.doCommand( initGameString );
 			}
 
 			
@@ -668,7 +623,7 @@
 				mStatusLabelHolder.addElement(statusLabel);
 			}
 			/*
-			Send a single piece data to DG/TinkerPlots/Fathom.
+			Send a single piece data to DG
 			*/
 			protected function transmitPieceStatus(pieceStatus:PieceStatus, pieceNumberBase:uint=0):void
 			{
@@ -680,40 +635,22 @@
 					var thickness:String = currentLog.getLogWidthLabel();
 					var acceptString:String = pieceStatus.getAcceptString();
 					
-					// Send info on cut pieces to TinkerPlots/Fathom.
-					if( kUseDataGamesInterface ) 
-					{
-						// send data for case in Cut collection to DG
-						var createCaseObj:Object = {
-							action: "createCase",
-							args: {
-								collection: kCutsCollectionName,
-								parent: this.parentCaseID,
-									values: [
-										mGameNumber,
-										lengthTwoDecimals,
-										thickness,
-										acceptString,
-										pieceStatus.mLogNumber
-									]
-							}
-						};
-						ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( createCaseObj ));
-					}
-					else {
-						// send data for case in Cut collection to TinkerPlots/Fathom
-						ScriptInterface.AddCaseToCollectionWithValues(		
-							kCutsCollectionName,
-							[
-								mPlayersName,		// Name of the player (Note: "Player" used at cuts level in TP only (not DG))
-								mGameNumber,		// Game number starting with 1 since launch of application.  Ignore practice levels.
-								lengthTwoDecimals,	// Piece length.
-								thickness,			// log label "thin" or "thick"
-								acceptString,		// Status of cut piece.
-								pieceStatus.mLogNumber			// Number of log from which piece was cut.
+					// Send info on cut pieces to DG
+					var createCaseObj:Object = {
+						action: "createCase",
+						args: {
+							collection: kCutsCollectionName,
+							parent: this.parentCaseID,
+							values: [
+								mGameNumber,
+								lengthTwoDecimals,
+								thickness,
+								acceptString,
+								pieceStatus.mLogNumber
 							]
-						);
-					}
+						}
+					};
+					ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( createCaseObj ));
 				}
 			}
 			
@@ -775,8 +712,8 @@
 							break;
 					}
 					
-					if( kUseDataGamesInterface )  {
-						// send data to open a case in Game collection to DG
+					// send data to open a case in Game collection to DG
+					{
 						var openGameCaseObj:Object = {
 								action: "openCase",
 								args: { 
@@ -793,10 +730,6 @@
 						var	resultString:String = ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( openGameCaseObj ));
 						var resultObj:Object = (resultString ? com.adobe.serialization.json.JSON.decode( resultString ) : null );
 						this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
-					}
-					else {
-						// send data to open a case in Game collection to TinkerPlots/Fathom
-						// (Nothing to do)
 					}
 					
 					//reset SoundHandler completely in case anything has broken during the round
@@ -896,8 +829,8 @@
 							break;
 					}
 					
-					// Send info on games to TinkerPlots/Fathom.
-					if( kUseDataGamesInterface )  {
+					// Send info on games to DG
+					{
 						// send data to close a case in Game collection to DG
 						var	closeGameCaseObj:Object = { 
 								action: "closeCase",
@@ -939,25 +872,6 @@
 								this.parentCaseScore = resultObj.values[0].toString(); // if numeric or string value for 'Score', use it
 							}
 						}
-					}
-					else {
-						// send data to close a case in Game collection to TinkerPlots/Fathom
-						ScriptInterface.AddCaseToCollectionWithValues(
-							kGamesCollectionName,
-							[
-								mPlayersName,		// Name of the player.
-								mGameNumber,		// Game number starting with 1 since launch of application.
-								levelName,			// Game Type
-								strategy,			// the determined cut strategy
-								mPiecesAccepted,	// Number of pieces accepted.
-								mPiecesRemnant,		// Number of pieces remnant.
-								//mPiecesRejected,	// Number of pieces rejected.
-								mPiecesShort,		// Number of pieces rejected as short.
-								mPiecesLong,		// Number of pieces rejected as long.
-								fuelLeftAmount,		// Raw amount of fuel left.
-								fuelLeftPercent		// Percent of fuel left.
-							]
-						);
 					}
 				}
 				
