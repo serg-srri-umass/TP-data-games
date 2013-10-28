@@ -200,8 +200,7 @@
 			// ********** TREASURE HUNT FUNCTIONS **********\			
 			
 			private function updateGameTitle():void{
-				setGameTitle( mCurrentMission.title + ", Site " + mSiteSerialNum);
-				//setGameTitle(Missions.getMissionTitle( mCurrentMission.number)+ ", Site " + mSiteSerialNum);
+				setGameTitle( mCurrentMission.title + "  (Game " + mGameSerialNum + ", Site " + mSiteSerialNum +")");
 			}
 			
 			// start a new game.

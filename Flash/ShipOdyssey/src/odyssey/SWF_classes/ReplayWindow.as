@@ -6,6 +6,11 @@
 	// this class handles the "camera" of the replay window.
 	public class ReplayWindow extends MovieClip{
 		
+		/* The Replay Window is the entirety of the "instant replay" screen. 
+		Methods within this class relate to the camera and panning.
+		(See also: ReplayForeground, where hook drops and treasure X's are placed)
+		*/
+		
 		static const SCREEN_BUFFER:int = 80;
 		static const SCREEN_WIDTH:Number = 415;
 		

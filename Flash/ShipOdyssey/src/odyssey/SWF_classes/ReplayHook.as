@@ -4,6 +4,12 @@
 	import flash.events.Event;
 	
 	public class ReplayHook extends MovieClip{
+		
+		/* MovieClip of a "hook" that drops
+		Instances of this class are created by the replay foreground.
+		Shows a hook dropping, grabbing, and reeling back up. Use the constructor to set what this hook will pull up.
+		*/		
+		
 		public static var HOOK_SIZE:int = 1;
 		private const HOOK_Y:Number = -56.75;	// the Y value at which to attach hooks.
 		private var _label:String;
@@ -23,7 +29,7 @@
 					junkMVC.gotoAndStop("seaweed");
 				}
 			}else{
-				Chest.chest.x = treasureOffset
+				Chest.chest.x = treasureOffset;
 			}
 		}
 		

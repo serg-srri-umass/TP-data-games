@@ -6,6 +6,10 @@
 
 	public class ReplayForeground extends MovieClip{
 		
+		/* The ReplayForeground contains the animated elements of the instant replay.
+		Set the treasure positions & hook drops from here.
+		*/
+		
 		public static const MAX_X:Number = 389;
 		public static const MIN_X:Number = 202.15;
 		
@@ -16,11 +20,11 @@
 		private var recycleArray:Array;	//is used to loop the animation.
 		private var removalArray:Array = new Array(); // used in unloading the movieclips.
 		
-		private var _x1Location:int = -1, _x2Location:int = -1;
+		private var _x1Location:int = -1, _x2Location:int = -1; // location of the two treasues, based on the yellow scale (from 0 - 100). -1 means the treasure doesn't exist. 
 		
-		var startTimer:Timer = new Timer(1500, 1);
-		var interTimer:Timer = new Timer(500, 1);
-		var completeTimer:Timer = new Timer(2000, 1);
+		var startTimer:Timer = new Timer(1500, 1);			// small pause before the replay begins
+		var interTimer:Timer = new Timer(500, 1);			// time to elapse between hook drops
+		var completeTimer:Timer = new Timer(2000, 1);		// larger pause at the end of the replay, before it loops
 		
 		public function peekAtNextHook():ReplayHook{
 			return hookArray[0];
