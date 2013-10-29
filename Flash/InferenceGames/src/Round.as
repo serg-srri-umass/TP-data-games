@@ -33,7 +33,7 @@ package
 			{ iqr:"?",	/*sd:15,*/		interval:"?"} // level 6
 		];
 		
-		public static const kIntervalWidth:Array = [4, 2, 1, 4, 6, 10]; // variable interval widths for levels with ?
+		public static const kIntervalWidth:Array = [3, 2, 1, 3, 4, 4]; // variable interval widths for levels with ?
 		
 		public static const kIQR:Array = [7, 3, 1, 7, 9, 12]; // variable IQRs for levels with ?
 		
@@ -170,7 +170,7 @@ package
 			if(_level == 1){
 				_chunkSize = 20;
 			} else {
-				var numChunks:int = _minNumChunks + (Math.random() * ((_maxNumChunks - _minNumChunks) + 1) as int);
+				var numChunks:int = randomRange(_maxNumChunks, _minNumChunks);
 				_chunkSize = ExpertAI.guessNumSamples / numChunks;
 				trace("Chunk Size set to: " + _chunkSize);
 			}
@@ -294,6 +294,11 @@ package
 		// generates an accuracy %, based on the sample size.
 		private function calculateAccuracy():Number {
 			return MathUtilities.calculateAreaUnderBellCurve( interval * 2, numDataSoFar, MathUtilities.IQR_to_SD(IQR)) * 100;
+		}
+		
+		//returns random number within range passed to function
+		private function randomRange(max:Number, min:Number = 0):Number{
+			return Math.random() * (max - min) + min;
 		}
 	}
 }
