@@ -33,7 +33,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.10.28";
+			public static const  VERSION:String = "Chainsaw v.2013.10.30";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -879,7 +879,7 @@
 				mAcceptedPiecesValue.text	= mPiecesAccepted.toString();
 				mFuelLeftValue.text			= fuelLeftAmount.toFixed() + " (" + fuelLeftPercent.toFixed() + "%)";
 				mCutStyleValue.text			= strategy;
-				mScoreValue.text			= this.parentCaseScore;
+				mScoreValue.text			= (parentCaseScore=="?") ? "?" : Number(parentCaseScore).toFixed(1); //round score to 1 decimal place; if score is "?", print "?"
 
 				mResultsOverlay.visible		= true;	// Display the results Overlay
 				
@@ -1411,7 +1411,7 @@
 		<s:Label id="mScoreValue"    x="300" y="{300-46}" text="?" fontSize="30" fontWeight="bold" width="300" textAlign="right"/>
 	</s:BorderContainer>
 	
-	<s:Label id="mVersionLabel" x="580" y="386" width="165" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="570" y="386" width="165" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
 	
 	<!-- Contains startup video -->
 	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="#d2bfa4" borderVisible="false" depth="1000">
