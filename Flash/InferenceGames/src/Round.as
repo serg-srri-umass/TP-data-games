@@ -146,15 +146,12 @@ package
 			// push this point of data into an array that stores all data not yet evaluated.
 			_dataArray.push( [_roundID, value ]);
 			
-			var expertGuessed:Boolean = false;
 			
 			InferenceGames.instance.sendEventData ( _dataArray );
 			_dataArray = new Array();
 			
 			_accuracy = calculateAccuracy();
-			expertGuessed = ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
 			
-			_expertGuessed = expertGuessed;
 		}
 		
 		//sends timer events based on _dataDelayTime to addData()
@@ -179,8 +176,19 @@ package
 		
 		//sends a chunk of data to DG. called from 'sample' mxml button
 		public function addChunk(e:Event):void{
+			
+			var expertGuessed:Boolean = false;
+			expertGuessed = ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
+			_expertGuessed = expertGuessed;
+			
+			//disable sample button if expert guesses 
+			if(_expertGuessed){
+				ControlsSWC.instance.sendChunkMVC.theSampleButton.enabled = false; 
+				ControlsSWC.instance.sendChunkMVC.theSampleButton.removeEventListener(MouseEvent.CLICK, Round.currentRound.addChunk);
+			}
+
 			for(var i:int = 0; i < _chunkSize; i++){
-				if( _expertGuessed )
+				if(_expertGuessed)
 					break; // stop sending data if expert guessed
 				else
 					dataDelay();
