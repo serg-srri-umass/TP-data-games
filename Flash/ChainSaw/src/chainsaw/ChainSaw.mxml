@@ -1349,8 +1349,9 @@
 			{
 				logger.info("Mouse UP");
 				mTapeMeasure.stopDrag();
-				moveTapeMeasure.xFrom = mouseX;
-				moveTapeMeasure.yFrom = mouseY;
+//				trace(e.currentTarget.mouseY);
+				moveTapeMeasure.xFrom = mouseX - e.currentTarget.mouseX;
+				moveTapeMeasure.yFrom = mouseY - e.currentTarget.mouseY - 46;
 				moveTapeMeasure.play();
 			}
 		]]>
@@ -1358,7 +1359,7 @@
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="15" yTo="20" duration="500" />
+		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="15" yTo="20" duration="400" />
 	</fx:Declarations>
 	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
