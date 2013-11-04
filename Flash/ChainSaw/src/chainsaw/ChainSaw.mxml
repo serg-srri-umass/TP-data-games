@@ -33,7 +33,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.10.30";
+			public static const  VERSION:String = "Chainsaw v.2013.11.04";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -877,7 +877,7 @@
 				
 				// Update the results screen
 				mAcceptedPiecesValue.text	= mPiecesAccepted.toString();
-				mFuelLeftValue.text			= fuelLeftAmount.toFixed() + " (" + fuelLeftPercent.toFixed() + "%)";
+				mFuelLeftValue.text			= Math.round(fuelLeftAmount).toString() + " (" + Math.round(fuelLeftPercent).toString() + "%)";
 				mCutStyleValue.text			= strategy;
 				mScoreValue.text			= (parentCaseScore=="?") ? "?" : Number(parentCaseScore).toFixed(1); //round score to 1 decimal place; if score is "?", print "?"
 
