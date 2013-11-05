@@ -241,12 +241,25 @@ package
 			return _accuracy;
 		}
 		
+		public function set accuracy(acc:Number):void{
+			_accuracy = acc;
+		}
+		
 		public function get isWon():Boolean{
 			return _isWon;
 		}
 		
 		public function get level():int{
 			return _level;
+		}
+		
+		// generates an accuracy %, based on the sample size.
+		public function calculateAccuracy():Number {
+			if(numDataSoFar == 0){
+				return _interval * 2; // if no samples, calculate chance of randomly guessing proper median given interval 
+			}else{
+				return MathUtilities.calculateAreaUnderBellCurve( interval * 2, numDataSoFar, MathUtilities.IQR_to_SD(IQR)) * 100;
+			}
 		}
 		
 		// true = win, false = lose
@@ -299,10 +312,6 @@ package
 		private var lastSendTime:Number = 0; // the time stamp of the last sent data point.
 		private const SEND_TIME:int = 150; // how many miliseconds between basket emptyings.
 																		// Whenever it ticks, the basket is emptied, and data is pushed to DG/analyzed by the expert.
-		// generates an accuracy %, based on the sample size.
-		private function calculateAccuracy():Number {
-			return MathUtilities.calculateAreaUnderBellCurve( interval * 2, numDataSoFar, MathUtilities.IQR_to_SD(IQR)) * 100;
-		}
 		
 		//returns random number within range passed to function
 		private function randomRange(max:Number, min:Number = 0):Number{

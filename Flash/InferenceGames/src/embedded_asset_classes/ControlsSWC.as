@@ -166,6 +166,8 @@ package embedded_asset_classes
 			DataCannonSWC.instance.stopCannon();
 			BotPlayerSWC.instance.hide();
 			sendChunkMVC.visible = false; 
+			Round.currentRound.accuracy = Round.currentRound.calculateAccuracy(); // makes sure we calc accuracy for case where there are no samples, 
+																				  // other call is inside addData, which wouldn't get hit with no sample case.
 			if( _autoGuess){
 				
 				Round.currentRound.guess = Round.currentRound.sampleMedian;
