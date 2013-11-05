@@ -33,17 +33,17 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.11.04";
+			public static const  VERSION:String = "Chainsaw v.2013.11.05";
 			private function getVersion():String {
 				return( VERSION );
 			}
 			
 			public var flashGasTank:MovieClip;
 
-			public var sawdustParticlesLog1:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (38+95), 0xD4B077);
-			public var sawdustParticlesLog2:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (120+95), 0xD4B077);
-			public var sawdustParticlesLog3:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (202+95), 0xD4B077);
-			public var sawdustParticlesLog4:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (284+95), 0xD4B077);
+			public var sawdustParticlesLog1:ParticleLauncher = new ParticleLauncher(10, 10, (logY1+95), 0xD4B077);
+			public var sawdustParticlesLog2:ParticleLauncher = new ParticleLauncher(10, 10, (logY2+95), 0xD4B077);
+			public var sawdustParticlesLog3:ParticleLauncher = new ParticleLauncher(10, 10, (logY3+95), 0xD4B077);
+			public var sawdustParticlesLog4:ParticleLauncher = new ParticleLauncher(10, 10, (logY4+95), 0xD4B077);
 			
 			public var dynamicLog1:MovieClip;
 			public var dynamicLog2:MovieClip;
