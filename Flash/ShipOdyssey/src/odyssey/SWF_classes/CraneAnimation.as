@@ -118,9 +118,9 @@
 			animateDraggingText( lastPos + newPos);
 		}
 		
-		public function calcMousePosition():int{
+		public function calcMousePosition( slowness:int = 1):int{
 			var pxWidth:Number = (SCALE_END - SCALE_START)/100;
-			var pos = (	(mouseX - SCALE_START)/pxWidth);
+			var pos = (	(mouseX - SCALE_START)/pxWidth) / slowness;
 			return pos;
 		}
 		
@@ -153,7 +153,7 @@
 		
 		public function movePopUp(e:MouseEvent):void {
 			Crane_mc.position.x = mouseX + 5;
-			Crane_mc.position.txt.text = limit(calcMousePosition());
+			Crane_mc.position.txt.text = limit(calcMousePosition()).toFixed(1);
 			if(isDraggingScale){
 				gotoPoint(e);
 			}
@@ -161,7 +161,7 @@
 		
 		public function animateDraggingText(txtInt:int):void {
 			Crane_mc.position.x = Crane_mc.mHook.x + 8; // the 8 centers the text.
-			Crane_mc.position.txt.text = limit( txtInt);
+			Crane_mc.position.txt.text = limit( txtInt).toFixed(1);
 		}
 		
 		public function CraneAnimation(){
