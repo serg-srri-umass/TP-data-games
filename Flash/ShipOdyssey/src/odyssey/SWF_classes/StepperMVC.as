@@ -73,7 +73,7 @@
 		}
 			
 		//Returns whether or not the value in the stepper is permitted. If not, forces it into the proper range.
-		public function validate():Boolean{
+		public function validate( triggerEvent:Event = null):Boolean{
 			var fixBadNumber:Boolean = false;
 			_value = setPrecision(_value, _precision);
 			if(_value < _minValue){
@@ -87,7 +87,12 @@
 				gotoAndPlay("blink");
 			}
 			valueWrapper.valueField.text = String(_value);
-			_changeFunction(new Event(MouseEvent.CLICK));
+			
+			if(triggerEvent){
+				_changeFunction(triggerEvent);
+			} else {
+				_changeFunction( new Event(MouseEvent.CLICK));
+			}
 			return !fixBadNumber;
 		}
 		
@@ -170,7 +175,7 @@
 		
 		private function checkForEnter(e:KeyboardEvent):void{
 			if(e.keyCode == ENTER_KEY){
-				validate();
+				validate( e);
 			}
 		}
 
