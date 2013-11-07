@@ -13,8 +13,8 @@ package
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
-	import flash.utils.getTimer;
 	import flash.utils.Timer;
+	import flash.utils.getTimer;
 	
 	public class Round
 	{
@@ -47,7 +47,7 @@ package
 		
 		private var _samples:Array; 	// array of numeric values generated for this round
 		private var _sampleMedian:Number;		
-		private var _median:int; 		// population median
+		private var _median:Number; 		// population median
 		private var _interval:Number;
 		private var _IQR:Number; 		// population inter-quartile range	
 		private var _chunkSize:int;
@@ -118,7 +118,7 @@ package
 					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
 			}
 			
-			_median 	= InferenceGames.instance.randomizer.uniformNtoM( 0, 100 );
+			_median 	= (Math.round(InferenceGames.instance.randomizer.uniformNtoM( 0, 100 ) * 10)/10);
 			_samples	= new Array; // forget about old samples
 			_sampleMedian = 0;
 			_level = whichLevel; 
@@ -169,6 +169,8 @@ package
 			} else {
 				var numChunks:int = randomRange(_maxNumChunks, _minNumChunks);
 				_chunkSize = ExpertAI.guessNumSamples / numChunks;
+				if(_chunkSize == 0)
+					_chunkSize = 1;
 				trace("Chunk Size set to: " + _chunkSize);
 			}
 			ControlsSWC.instance.sendChunkMVC.chunkSizeText.text = _chunkSize;
