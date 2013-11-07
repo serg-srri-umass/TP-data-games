@@ -154,14 +154,6 @@ package
 			
 		}
 		
-		//sends timer events based on _dataDelayTime to addData()
-		public function dataDelay():void{
-			var expertGuessed:Boolean;
-			dataTimer = new Timer(_dataDelayTime, 1)
-			dataTimer.addEventListener(TimerEvent.TIMER_COMPLETE, addData);
-			dataTimer.start();
-		}
-		
 		//sets size of data chunks to be sent to DG. Called at beginning of new round
 		public function setChunkSize():void{
 			if(_level == 1){
@@ -318,6 +310,14 @@ package
 		//returns random number within range passed to function
 		private function randomRange(max:Number, min:Number = 0):Number{
 			return Math.random() * (max - min) + min;
+		}
+		
+		//sends timer events based on _dataDelayTime to addData()
+		private function dataDelay():void{
+			var expertGuessed:Boolean;
+			dataTimer = new Timer(_dataDelayTime, 1)
+			dataTimer.addEventListener(TimerEvent.TIMER_COMPLETE, addData);
+			dataTimer.start();
 		}
 	}
 }
