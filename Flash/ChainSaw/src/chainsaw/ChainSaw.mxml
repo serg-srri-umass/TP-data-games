@@ -33,7 +33,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.11.05";
+			public static const  VERSION:String = "Chainsaw v.2013.11.08";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -445,6 +445,10 @@
 				
 				mLevelWindow["PracticeCheckBox"].addEventListener("change", togglePractice);
 				this.practice = (mLevelWindow["PracticeCheckBox"] as CheckBox).selected;
+				
+				mLevelWindow["mCancelButton"].addEventListener("click", function(){
+					PopUpManager.removePopUp(mLevelWindow);
+				});
 			}
 			
 			private function togglePractice(e:Event):void
