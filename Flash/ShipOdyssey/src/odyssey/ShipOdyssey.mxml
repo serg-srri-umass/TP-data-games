@@ -1048,27 +1048,7 @@
 				//topBarMVC.helpFunction = onClickHelpButton;
 				
 				addEventListener(MouseEvent.CLICK, handleFocus);
-				addEventListener(MouseEvent.MOUSE_OVER, handleMouseIn); // used for crane dragging
-				addEventListener(MouseEvent.MOUSE_OUT, handleMouseOut);	// used for crane dragging
 			}	
-			
-			private var _mouseOut:Boolean = false;
-			private function handleMouseIn(e:MouseEvent):void{ 
-				if( _mouseOut){ // if the mouse was dragged offscreen:
-					_mouseOut = false;
-					if(crane.isDragging){		// upon re-entering, there's no way to know if the mouse is down or not.
-						crane.stopDragging(e);	// so for safety, we assume that the user has let up, and stop the drag.
-					}
-				}
-			}
-			
-			private function handleMouseOut(e:MouseEvent):void{
-				if(crane.isDragging){
-					if(e.stageX < 0 || e.stageX > 518 || e.stageY < 0 || e.stageY > 410){ // if the mouse goes off screen
-						_mouseOut = true;
-					}
-				}
-			}
 			
 			//MXML's with multiple SWF's handle focus in a strange way. This keeps the focus working the way it should.
 			private function handleFocus(e:MouseEvent):void{

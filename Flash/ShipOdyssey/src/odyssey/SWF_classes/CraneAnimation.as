@@ -155,7 +155,7 @@
 		
 		public function movePopUp(e:MouseEvent):void {
 			Crane_mc.position.x = mouseX + 5;
-			Crane_mc.position.txt.text = int(limit(calcMousePosition())).toFixed(1);
+			Crane_mc.position.txt.text = limit(calcMousePosition()).toFixed(1);
 			if(isDraggingScale){
 				gotoPoint(e);
 			}
@@ -176,7 +176,7 @@
 			Crane_mc.missedInterval.visible = false;
 			
 			grabby.addEventListener(MouseEvent.MOUSE_OVER, highlightArrows);
-			//grabby.addEventListener(MouseEvent.MOUSE_OUT, stopDragging);
+			grabby.addEventListener(MouseEvent.MOUSE_OUT, stopDragging);
 			grabby.addEventListener(MouseEvent.MOUSE_DOWN, startDragging);
 			this.addEventListener(MouseEvent.MOUSE_UP, stopDragging);
 		
@@ -227,7 +227,7 @@
 
 		// for the crane to be able to drag to a decimal #, it needs a value independent of it's current frame (which is an int).
 		private var _value:Number = 100;
-		private var slowness:int = 5; // the bigger this #, the slower the crane will drag. Use it to control the precision.
+		private var slowness:int = 1; // the bigger this #, the slower the crane will drag. Use it to control the precision.
 		
 		public function set value( arg:Number):void{
 			_value = limit(arg);

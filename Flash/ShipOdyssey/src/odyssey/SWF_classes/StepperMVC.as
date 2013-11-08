@@ -86,7 +86,10 @@
 			if(fixBadNumber){
 				gotoAndPlay("blink");
 			}
-			valueWrapper.valueField.text = String(_value);
+			if( value < 100)
+				valueWrapper.valueField.text = String(_value.toFixed(1));
+			else
+				valueWrapper.valueField.text = String(_value.toFixed(0));
 			
 			if(triggerEvent){
 				_changeFunction(triggerEvent);
