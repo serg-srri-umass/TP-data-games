@@ -1364,7 +1364,7 @@
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="15" yTo="20" duration="400" />
+		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="10" yTo="0" duration="400" />
 	</fx:Declarations>
 	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
