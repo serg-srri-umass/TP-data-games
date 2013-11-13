@@ -446,7 +446,7 @@
 				mLevelWindow["PracticeCheckBox"].addEventListener("change", togglePractice);
 				this.practice = (mLevelWindow["PracticeCheckBox"] as CheckBox).selected;
 				
-				mLevelWindow["mCancelButton"].addEventListener("click", function(){
+				mLevelWindow["mCancelButton"].addEventListener("click", function():void{
 					PopUpManager.removePopUp(mLevelWindow);
 				});
 			}
