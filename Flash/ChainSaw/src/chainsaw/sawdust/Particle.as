@@ -3,23 +3,23 @@
 	import flash.events.Event;
 	import flash.geom.ColorTransform;
 	
-	public class SpecksXYFloor extends Shape {
+	public class Particle extends Shape {
 		
-		private var wd:Number;
-		private var ht:Number;
-		private var color:uint;
-		private var dx:Number;
-		public var dy:Number;
-		protected var dAlpha:Number = 1.0;
-		private var life:int;
-		private var frameCount:int;
-		private var isBlock:Boolean = true;
-		private var maxVel:Number = 10;
-		private var minVel:Number = 1;
-		private var alive:Boolean = true;
-		private var gravity:Number = .5;
-		private var rotateBy:Number = 0;
-		private var sizeVariance:Number = 0;
+		private var wd:Number;						// width
+		private var ht:Number;						// height
+		private var color:uint;						// particle color
+		private var dx:Number;						// amount to move each frame in the x direction
+		private var dy:Number;						// amount to move each frame in the y direction
+		private var dAlpha:Number = 1.0;			// particle transparency
+		private var life:int;						// life of the particle (in frames)
+		private var frameCount:int;					// how many frames have elapsed
+		private var isBlock:Boolean = true;			// should the particle be square shaped
+		private var maxVel:Number = 10;				// maximum velocity
+		private var minVel:Number = 1;				// minimum velocity
+		private var alive:Boolean = true;			// is the particle 'alive' (above the floor)
+		private var gravity:Number = .5;			// how much gravity should effect the particles
+		private var rotateBy:Number = 0;			// degrees to rotate each frame
+		private var sizeVariance:Number = 0;		// how much to vary the size
 		
 		private var relativeFloor:Boolean = false;
 		private var yFloor:Number = 9999999;
@@ -38,7 +38,7 @@
 		 * @param randomlyRotate
 		 * @param alphaVal transparency
 		 */
-		public function SpecksXYFloor(X:Number, Y:Number, w:Number = 1, h:Number = 1,
+		public function Particle(X:Number, Y:Number, w:Number = 1, h:Number = 1,
 							   sizeVar:Number=0, c:Number = 0x000000, varyBrightness:Number=0, l:int = 24,
 							   block:Boolean = true, rot:Number = 0,
 							   randomlyRotate:Boolean = false, alphaVal:Number = 0.99) {
@@ -85,7 +85,6 @@
 			dy = -(Math.random() * maxVel/1.5) + (maxVel/4);
 			dx = (Math.random()*maxVel) - (maxVel/2);
 			frameCount = 0;
-//			alpha = 1.0;
 			alpha = dAlpha;
 			visible = true;
 			alive = true;
@@ -97,13 +96,11 @@
 			this.x += dx;
 			this.y += (dy += gravity);
 			this.rotation += rotateBy;
-//			this.scaleX = this.scaleY = 5;
 			this.alpha *= dAlpha;
 			if (checkFloor()){
 				removeEventListener(Event.ENTER_FRAME, animate_frame);
 				alive = false;
 				//visible = false;
-				
 			}
 		}
 		

@@ -17,6 +17,9 @@
 	<s:Button id="mFreeCutButton" label="Thin Logs" width="227" enabled="true" fontSize="24" fontFamily="Georgia" fontStyle="italic" fontWeight="bold" chromeColor="#C09256"/>
 	<s:Button id="mHeavyFreeCutButton" label="Thick Logs" width="227" enabled="true" fontSize="24" fontFamily="Georgia" fontStyle="italic" fontWeight="bold" chromeColor="#C09256"/>
 	<s:Button id="mMixedFreeCutButton" label="Mixed Logs" width="227" enabled="true" fontSize="24" fontFamily="Georgia" fontStyle="italic" fontWeight="bold" chromeColor="#C09256"/>
-	<s:CheckBox id="PracticeCheckBox" label="Practice" />
+	<s:BorderContainer backgroundAlpha="0" borderAlpha="0">
+		<s:CheckBox id="PracticeCheckBox" label="Practice" />
+		<s:Button id="mCancelButton" label="Cancel" x="140" width="80" enabled="true" fontFamily="Georgia" />
+	</s:BorderContainer>
 
 </s:TitleWindow>
