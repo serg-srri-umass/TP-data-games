@@ -55,7 +55,7 @@
 		
 		public var grabbyX:Number;
 		public var grabbyY:Number;
-		public var snappingPoint:int;
+		public var snappingPoint:Number;
 		public var zeroed:Boolean; //whether the hook is being dragged to position zero.
 		
 		public function get frame():int{
@@ -138,7 +138,7 @@
 		public function gotoPoint(e:MouseEvent):void {
 			if(_canDrag){
 				snappingPoint = limit(calcMousePosition());
-				toFrame(snappingPoint);
+				toFrame( int(snappingPoint));
 				value = snappingPoint;
 				dispatchEvent(new Event("scaleClicked"));
 			}
