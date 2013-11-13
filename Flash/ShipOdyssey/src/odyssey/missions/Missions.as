@@ -59,14 +59,13 @@ package odyssey.missions
 					m.missesAllowed = 2;
 					m.variableTreasures = true;
 					
-					m.fixedRats = true;
 					m.ratsInStepper = 100;
 					
 					m.skyGradient = VisualVariables.daylight;
 					m.waterGradient = VisualVariables.clearWater;
 					m.cloudPattern = VisualVariables.grayClouds;
 					
-					m.instructions = "Send down 100 rats at a time to guess the treasure's location.  At each site, there may be 0, 1, or even 2 treasures.  Click the Next Site button when you think there are no more treasures at a site.";
+					m.instructions = "Send down as few rats as you can to guess the treasure's location.  At each site, there may be 0, 1, or 2 treasures.  Click 'Next Site' when you think there are no more treasures at a site. The game is over when you miss twice with the hook or use up your 500 rats.";
 					m.ratingArray = new Array(2, 3, 4, 5);
 					break;
 			

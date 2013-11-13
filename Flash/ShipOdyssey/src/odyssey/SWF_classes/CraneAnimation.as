@@ -86,11 +86,12 @@
 				lastPos = Crane_mc.currentFrame;
 				grabby.startDrag();
 				runTo(lastPos);
+				value = lastPos;
 				isDragging = true;
 				addEventListener(Event.ENTER_FRAME, animateWhileDragging);
 				Crane_mc.glowingArrows.visible = true;
 				Crane_mc.glowingArrows.gotoAndStop("on");
-				downPos = calcMousePosition();
+				downPos = calcMousePosition(slowness);
 			}
 		}
 		
@@ -111,21 +112,21 @@
 		
 		public function animateWhileDragging(e:Event):void{
 			dispatchEvent(new Event("dragging"));
-			var newPos = calcMousePosition() - downPos;
-			toFrame(lastPos + newPos);
-			zeroed = (lastPos + newPos) < 1;
-			
+			var newPos:Number = calcMousePosition(slowness) - downPos;
+			toFrame(lastPos + int(newPos));
+			value = lastPos + newPos;
+			zeroed = (lastPos + newPos) < 1;			
 			animateDraggingText( lastPos + newPos);
 		}
 		
-		public function calcMousePosition():int{
+		public function calcMousePosition( slowness:int = 1):Number{
 			var pxWidth:Number = (SCALE_END - SCALE_START)/100;
-			var pos = (	(mouseX - SCALE_START)/pxWidth);
+			var pos:Number = (	(mouseX - SCALE_START)/pxWidth) / slowness;
 			return pos;
 		}
 		
 		// clips arg so its between 0 and 100.
-		public function limit(arg:int):int{
+		public function limit( arg:Number):Number{
 			if(arg < 0)
 				arg = 0;
 			else if(arg > 100)
@@ -138,6 +139,7 @@
 			if(_canDrag){
 				snappingPoint = limit(calcMousePosition());
 				toFrame(snappingPoint);
+				value = snappingPoint;
 				dispatchEvent(new Event("scaleClicked"));
 			}
 		}
@@ -153,15 +155,15 @@
 		
 		public function movePopUp(e:MouseEvent):void {
 			Crane_mc.position.x = mouseX + 5;
-			Crane_mc.position.txt.text = limit(calcMousePosition());
+			Crane_mc.position.txt.text = limit(calcMousePosition()).toFixed(1);
 			if(isDraggingScale){
 				gotoPoint(e);
 			}
 		}
 		
-		public function animateDraggingText(txtInt:int):void {
+		public function animateDraggingText(txtInt:Number):void {
 			Crane_mc.position.x = Crane_mc.mHook.x + 8; // the 8 centers the text.
-			Crane_mc.position.txt.text = limit( txtInt);
+			Crane_mc.position.txt.text = limit( txtInt).toFixed(1);
 		}
 		
 		public function CraneAnimation(){
@@ -221,6 +223,18 @@
 		
 		public function resetTreasure():void{
 			Crane_mc.hoard.gotoAndStop(1);
+		}
+
+		// for the crane to be able to drag to a decimal #, it needs a value independent of it's current frame (which is an int).
+		private var _value:Number = 100;
+		private var slowness:int = 1; // the bigger this #, the slower the crane will drag. Use it to control the precision.
+		
+		public function set value( arg:Number):void{
+			_value = limit(arg);
+		}
+		
+		public function get value():Number{
+			return _value;
 		}
 	}
 }
