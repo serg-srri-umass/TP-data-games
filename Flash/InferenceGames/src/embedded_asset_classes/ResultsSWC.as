@@ -56,6 +56,7 @@ package embedded_asset_classes
 			setAccuracy( Round.currentRound.accuracy);			
 			this.setWon(Round.currentRound.isWon);
 			Round.currentRound.lastBuzzer.emotion = Round.currentRound.isWon ? BotPlayerSWC.HAPPY : BotPlayerSWC.SAD;
+			setLucky(Round.currentRound.accuracy);
 
 			_isShowing = true;
 		}
@@ -73,6 +74,12 @@ package embedded_asset_classes
 		// -----------------------
 		// --- PRIVATE SECTION ---
 		// -----------------------
+		
+		//------------------------
+		//----- PRIVATE VARS -----
+		//------------------------
+		private var _luckyPercent:int = 30; // if you guess right at this percent or less, you got lucky
+		private var _unluckyPercent:int = 70; // if you guess wrong at this percent or more, you got unlucky 
 		private var _isShowing:Boolean = false;
 		
 		private function onCompleteHide( triggerEvent:AnimationEvent):void{
@@ -127,6 +134,22 @@ package embedded_asset_classes
 				verdictMVC.winLoseMVC.popMedianMVC.visible = true;
 			} else {
 				verdictMVC.winLoseMVC.popMedianMVC.visible = false;
+			}
+		}
+		
+		//passed confidenceIntervalPercent. Sets lucky message according to percent.  
+		public function setLucky(accuracyPerc:int):void{
+			if((accuracyPerc <= _luckyPercent) && Round.currentRound.isWon){
+				luckyUnluckyMVC.luckyUnluckyText.text = "You got lucky! Try a new strategy.";
+				luckyUnluckyMVC.luckyUnluckyText.visible = true;
+
+			}else if((accuracyPerc >= _unluckyPercent) && !Round.currentRound.isWon){
+				luckyUnluckyMVC.luckyUnluckyText.text = "You got unlucky! Keep trying.";
+				luckyUnluckyMVC.luckyUnluckyText.visible = true;
+
+			}else{
+				luckyUnluckyMVC.luckyUnluckyText.text = "";
+				luckyUnluckyMVC.luckyUnluckyText.visible = false;
 			}
 		}
 	}
