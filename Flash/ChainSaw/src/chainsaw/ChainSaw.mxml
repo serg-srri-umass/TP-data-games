@@ -33,17 +33,17 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.10.28";
+			public static const  VERSION:String = "Chainsaw v.2013.11.08";
 			private function getVersion():String {
 				return( VERSION );
 			}
 			
 			public var flashGasTank:MovieClip;
 
-			public var sawdustParticlesLog1:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (38+95), 0xD4B077);
-			public var sawdustParticlesLog2:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (120+95), 0xD4B077);
-			public var sawdustParticlesLog3:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (202+95), 0xD4B077);
-			public var sawdustParticlesLog4:ParticleLauncherXYFloor = new ParticleLauncherXYFloor(10, 10, (284+95), 0xD4B077);
+			public var sawdustParticlesLog1:ParticleLauncher = new ParticleLauncher(10, 10, (logY1+95), 0xD4B077);
+			public var sawdustParticlesLog2:ParticleLauncher = new ParticleLauncher(10, 10, (logY2+95), 0xD4B077);
+			public var sawdustParticlesLog3:ParticleLauncher = new ParticleLauncher(10, 10, (logY3+95), 0xD4B077);
+			public var sawdustParticlesLog4:ParticleLauncher = new ParticleLauncher(10, 10, (logY4+95), 0xD4B077);
 			
 			public var dynamicLog1:MovieClip;
 			public var dynamicLog2:MovieClip;
@@ -445,6 +445,10 @@
 				
 				mLevelWindow["PracticeCheckBox"].addEventListener("change", togglePractice);
 				this.practice = (mLevelWindow["PracticeCheckBox"] as CheckBox).selected;
+				
+				mLevelWindow["mCancelButton"].addEventListener("click", function():void{
+					PopUpManager.removePopUp(mLevelWindow);
+				});
 			}
 			
 			private function togglePractice(e:Event):void
@@ -532,19 +536,19 @@
 			// randomizeLogSizePosition() randomly resorts the logs in the log array.
 			protected function randomizeLogSizePosition():void
 			{
-				dynamicLog1.x = Math.random()*120+40;
+				dynamicLog1.x = Math.random()*95+5;
 				dynamicLog1.y = logY1;
 				dynamicLog1['drawNewLog'](pickLogLength());
 				
-				dynamicLog2.x = Math.random()*120+40;
+				dynamicLog2.x = Math.random()*95+5;
 				dynamicLog2.y = logY2;
 				dynamicLog2['drawNewLog'](pickLogLength());
 				
-				dynamicLog3.x = Math.random()*120+40;
+				dynamicLog3.x = Math.random()*95+5;
 				dynamicLog3.y = logY3;
 				dynamicLog3['drawNewLog'](pickLogLength());
 				
-				dynamicLog4.x = Math.random()*120+40;
+				dynamicLog4.x = Math.random()*95+5;
 				dynamicLog4.y = logY4;
 				dynamicLog4['drawNewLog'](pickLogLength());
 			}
@@ -877,9 +881,10 @@
 				
 				// Update the results screen
 				mAcceptedPiecesValue.text	= mPiecesAccepted.toString();
-				mFuelLeftValue.text			= fuelLeftAmount.toFixed() + " (" + fuelLeftPercent.toFixed() + "%)";
-				mCutStyleValue.text			= strategy;
-				mScoreValue.text			= this.parentCaseScore;
+				mFuelLeftValue.text			= Math.round(fuelLeftAmount).toString();
+				mFuelLeftPercent.text		= Math.round(fuelLeftPercent).toString();
+//				mCutStyleValue.text			= strategy;
+				mScoreValue.text			= (parentCaseScore=="?") ? "?" : Number(parentCaseScore).toFixed(1); //round score to 1 decimal place; if score is "?", print "?"
 
 				mResultsOverlay.visible		= true;	// Display the results Overlay
 				
@@ -1349,8 +1354,9 @@
 			{
 				logger.info("Mouse UP");
 				mTapeMeasure.stopDrag();
-				moveTapeMeasure.xFrom = mouseX;
-				moveTapeMeasure.yFrom = mouseY;
+//				trace(e.currentTarget.mouseY);
+				moveTapeMeasure.xFrom = mouseX - e.currentTarget.mouseX;
+				moveTapeMeasure.yFrom = mouseY - e.currentTarget.mouseY - 46;
 				moveTapeMeasure.play();
 			}
 		]]>
@@ -1358,7 +1364,7 @@
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="15" yTo="20" duration="500" />
+		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="10" yTo="0" duration="400" />
 	</fx:Declarations>
 	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
@@ -1387,34 +1393,34 @@
 		<s:Group			id="mStatusLabelHolder" x="0" y="0" width="597" height="324" visible="false"/>
 	</s:BorderContainer>
 	
-	<s:BorderContainer id="UI_Elements" x="0" y="46" width="135" height="364" backgroundAlpha="0" borderVisible="false" depth="100">
-		<s:Label id="mReferenceLengthLabel" x="15" y="0" fontSize="16" fontWeight="bold" text="Target Length:"/>
-		<mx:Image id="mTapeMeasure" x="15" y="20" source="{mTapeMeasureImage}" mouseDown="onMouseDown(event)" mouseUp="onMouseUp(event)" depth="100"/>
-		<mx:Image id="mReferenceLengthImage" x="18" y="58" source="{mLengthImage}"/>
-		<s:Button id="mChangeLevelButton" x="20" y="100" width="100" height="30" label="Change Level" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
-		<s:Label id="mFuelLabel" x="18" y="145" fontSize="16" fontWeight="bold" text="Fuel:"/>
-		<s:SWFLoader id="mFuelIcon" x="18" y="165" width="106" height="118" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
-		<s:Button id="mStartStopButton" x="20" y="290" width="100" height="50" label="Start" mouseDown="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
+	<s:BorderContainer id="UI_Elements" x="0" y="36" width="135" height="364" backgroundAlpha="0" borderVisible="false" depth="100">
+		<mx:Image id="mTapeMeasure" x="10" y="0" source="{mTapeMeasureImage}" mouseDown="onMouseDown(event)" mouseUp="onMouseUp(event)" depth="100"/>
+		<mx:Image id="mReferenceLengthImage" x="13" y="38" source="{mLengthImage}"/>
+		<s:Label id="mReferenceLengthLabel" x="10" y="58" fontSize="14" fontWeight="bold" text="Target Length"/>
+		<s:Label id="mFuelLabel" x="10" y="100" fontSize="14" fontWeight="bold" text="Fuel"/>
+		<s:SWFLoader id="mFuelIcon" x="10" y="120" width="90" height="200" scaleY="1.2" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
+		<s:Button id="mChangeLevelButton" x="10" y="260" width="90" height="30" label="Levels" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold" />
+		<s:Button id="mStartStopButton" x="10" y="300" width="90" height="50" label="Start" mouseDown="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
 	</s:BorderContainer>
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
 	
-	<s:BorderContainer id="mResultsOverlay" x="135" y="46" width="{745-135}" height="{410-46}" backgroundAlpha="0" borderVisible="false" visible="false">
-		<s:Label id="mAcceptedPiecesLabel" x="10" y="{60-46}" text="Number of Accepted Pieces:" fontSize="20" fontWeight="bold" textAlign="left"/>
-		<s:Label id="mFuelLeftLabel" x="10" y="{145-46}" text="Fuel Left:" fontSize="20" fontWeight="bold" textAlign="left"/>
-		<s:Label id="mCutStyleLabel" x="10" y="{225-46}" text="Cut Strategy:" fontSize="20" fontWeight="bold" textAlign="left"/>
-		<s:Label id="mScoreLabel"    x="10" y="{300-46}" text="Score:" fontSize="30" fontWeight="bold" textAlign="left"/>
+	<s:BorderContainer id="mResultsOverlay" x="625" y="46" width="{115}" height="{410-mResultsOverlay.y}" backgroundAlpha="0" borderVisible="false" visible="false">
+		<s:Label id="mAcceptedPiecesLabel" x="0" y="{60-46}" text="Accepted:" fontSize="14" fontWeight="bold" textAlign="left"/>
+		<s:Label id="mFuelLeftLabel" x="0" y="{145-46}" text="Fuel:" fontSize="14" fontWeight="bold" textAlign="left"/>
+		<s:Label id="mCutStyleLabel" x="0" y="{225-46}" text="Fuel %:" fontSize="14" fontWeight="bold" textAlign="left"/>
+		<s:Label id="mScoreLabel"    x="0" y="{300-46}" text="Score:" fontSize="14" fontWeight="bold" textAlign="left"/>
 		
-		<s:Label id="mAcceptedPiecesValue" x="300" y="{60-46}" text="0" fontSize="20" fontWeight="bold" width="300" textAlign="right"/>
-		<s:Label id="mFuelLeftValue" x="300" y="{145-46}" text="0" fontSize="20" fontWeight="bold" width="300" textAlign="right"/>
-		<s:Label id="mCutStyleValue" x="300" y="{225-46}" text="Other" fontSize="20" fontWeight="bold" width="300" textAlign="right"/>
-		<s:Label id="mScoreValue"    x="300" y="{300-46}" text="?" fontSize="30" fontWeight="bold" width="300" textAlign="right"/>
+		<s:Label id="mAcceptedPiecesValue" x="70" y="{60-46}" text="0" fontSize="16" fontWeight="bold" width="45" textAlign="right"/>
+		<s:Label id="mFuelLeftValue" x="70" y="{145-46}" text="0" fontSize="16" fontWeight="bold" width="45" textAlign="right"/>
+		<s:Label id="mFuelLeftPercent" x="70" y="{225-46}" text="Other" fontSize="16" fontWeight="bold" width="45" textAlign="right"/>
+		<s:Label id="mScoreValue"    x="70" y="{300-46}" text="?" fontSize="16" fontWeight="bold" width="45" textAlign="right"/>
 	</s:BorderContainer>
 	
-	<s:Label id="mVersionLabel" x="580" y="386" width="165" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="570" y="386" width="165" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
 	
 	<!-- Contains startup video -->
-	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="#47B070" borderVisible="false">
+	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="#d2bfa4" borderVisible="false" depth="1000">
 		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="0"/>
 		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-30}">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />

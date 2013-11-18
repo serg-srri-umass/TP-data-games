@@ -33,7 +33,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.10.22";
+			private static const kVersion:String = "v.2013.11.07";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			
@@ -208,7 +208,10 @@
 
 				// create the new round
 				var thisRound:Round = new Round( mGameLevel); // accessed via Round.currentRound from here forward.
+				
+				//make buttons active
 				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
+				ControlsSWC.instance.sendChunkMVC.theSampleButton.enabled = true; 
 				
 				// update DG: open and send a new game case for each round
 				mDGInterface.sendLog( "newRound:"

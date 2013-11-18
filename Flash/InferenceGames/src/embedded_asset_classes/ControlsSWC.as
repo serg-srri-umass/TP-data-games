@@ -66,9 +66,13 @@ package embedded_asset_classes
 			stopControlsMVC.stop();
 			stopControlsMVC.userGuessMVC.okayBtn.addEventListener( MouseEvent.CLICK, validateGuess);
 			
+			stopControlsMVC.myCancelButton.enabled = false; // starts disabled, will enable once user hits 'guess' button
+			stopControlsMVC.myCancelButton.visible = false; 
+			
 			sendChunkMVC.visible = false; 
 			
 			_botEntryTimer.addEventListener( TimerEvent.TIMER, handleBotType);
+			
 		}
 		
 		// starts the show animation, making this MovieClip visible.
@@ -81,6 +85,9 @@ package embedded_asset_classes
 			stopControlsMVC.userGuessMVC.visible = false;
 			stopControlsMVC.userGuessMVC.invalidNumberMVC.visible = false;
 			sendChunkMVC.visible = true; 
+			
+			stopControlsMVC.myCancelButton.visible = false; 
+			stopControlsMVC.myCancelButton.enabled = false; 
 			
 			gotoAndPlay("show");
 			_isShowing = true;
@@ -152,6 +159,21 @@ package embedded_asset_classes
 			return _autoGuess;
 		}
 		
+		public function cancelHandler(e:Event):void{
+			this.show(); // show controls
+			BotPlayerSWC.instance.show(); // show the bot
+			
+			// re-enable buttons
+			stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
+			sendChunkMVC.theSampleButton.enabled = true; 
+			sendChunkMVC.visible = true;
+			
+			//disable cancel button
+			stopControlsMVC.myCancelButton.enabled = false; 
+			stopControlsMVC.myCancelButton.visible = false; 
+			stopControlsMVC.myCancelButton.removeEventListener(MouseEvent.CLICK, cancelHandler);
+		}
+		
 		// -----------------------
 		// --- PRIVATE SECTION ---
 		// -----------------------
@@ -166,6 +188,13 @@ package embedded_asset_classes
 			DataCannonSWC.instance.stopCannon();
 			BotPlayerSWC.instance.hide();
 			sendChunkMVC.visible = false; 
+			
+			stopControlsMVC.myCancelButton.addEventListener(MouseEvent.CLICK, cancelHandler); // link cancel to cancel function
+			stopControlsMVC.myCancelButton.enabled = true; // re-enable cancel button
+			stopControlsMVC.myCancelButton.visible = true; 
+			
+			Round.currentRound.accuracy = Round.currentRound.calculateAccuracy(); // makes sure we calc accuracy for case where there are no samples, 
+																				  // other call is inside addData, which wouldn't get hit with no sample case.
 			if( _autoGuess){
 				
 				Round.currentRound.guess = Round.currentRound.sampleMedian;

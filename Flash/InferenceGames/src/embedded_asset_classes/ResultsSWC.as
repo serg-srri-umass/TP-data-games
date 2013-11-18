@@ -99,7 +99,7 @@ package embedded_asset_classes
 		// sets which player buzzed in: either the user or the bot. 
 		// this method must be called BEFORE the other setters!
 		public function setActivePlayer( user:Boolean):void{
-			if( user){
+			if(user){
 				accuracyMVC.gotoAndStop("user");
 				verdictMVC.gotoAndStop("user");
 			} else {

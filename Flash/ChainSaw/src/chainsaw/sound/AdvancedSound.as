@@ -144,11 +144,13 @@ package chainsaw.sound{
 		
 		//works exactly like sound.play
 		public function play(startTime:Number = 0, loops:int = 0, sndTransform:SoundTransform = null):SoundChannel{
+			common.DebugUtilities.assert( sound!=null, "missing sound object" );
+			
 			if(_channel){
 				_channel.stop();
 			}
 			
-			if(_channel){
+			if(_channel && sound){
 			_channel = sound.play(startTime, loops, sndTransform);
 			}
 			

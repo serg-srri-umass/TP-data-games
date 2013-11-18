@@ -13,8 +13,8 @@ package
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
-	import flash.utils.getTimer;
 	import flash.utils.Timer;
+	import flash.utils.getTimer;
 	
 	public class Round
 	{
@@ -33,7 +33,7 @@ package
 			{ iqr:"?",	/*sd:15,*/		interval:"?"} // level 6
 		];
 		
-		public static const kIntervalWidth:Array = [4, 2, 1, 4, 6, 10]; // variable interval widths for levels with ?
+		public static const kIntervalWidth:Array = [3, 2, 1, 3, 4, 4]; // variable interval widths for levels with ?
 		
 		public static const kIQR:Array = [7, 3, 1, 7, 9, 12]; // variable IQRs for levels with ?
 		
@@ -47,7 +47,7 @@ package
 		
 		private var _samples:Array; 	// array of numeric values generated for this round
 		private var _sampleMedian:Number;		
-		private var _median:int; 		// population median
+		private var _median:Number; 		// population median
 		private var _interval:Number;
 		private var _IQR:Number; 		// population inter-quartile range	
 		private var _chunkSize:int;
@@ -118,7 +118,7 @@ package
 					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
 			}
 			
-			_median 	= InferenceGames.instance.randomizer.uniformNtoM( 0, 100 );
+			_median 	= (Math.round(InferenceGames.instance.randomizer.uniformNtoM( 0, 100 ) * 10)/10);
 			_samples	= new Array; // forget about old samples
 			_sampleMedian = 0;
 			_level = whichLevel; 
@@ -146,23 +146,12 @@ package
 			// push this point of data into an array that stores all data not yet evaluated.
 			_dataArray.push( [_roundID, value ]);
 			
-			var expertGuessed:Boolean = false;
 			
 			InferenceGames.instance.sendEventData ( _dataArray );
 			_dataArray = new Array();
 			
 			_accuracy = calculateAccuracy();
-			expertGuessed = ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
 			
-			_expertGuessed = expertGuessed;
-		}
-		
-		//sends timer events based on _dataDelayTime to addData()
-		public function dataDelay():void{
-			var expertGuessed:Boolean;
-			dataTimer = new Timer(_dataDelayTime, 1)
-			dataTimer.addEventListener(TimerEvent.TIMER_COMPLETE, addData);
-			dataTimer.start();
 		}
 		
 		//sets size of data chunks to be sent to DG. Called at beginning of new round
@@ -170,8 +159,10 @@ package
 			if(_level == 1){
 				_chunkSize = 20;
 			} else {
-				var numChunks:int = _minNumChunks + (Math.random() * ((_maxNumChunks - _minNumChunks) + 1) as int);
+				var numChunks:int = randomRange(_maxNumChunks, _minNumChunks);
 				_chunkSize = ExpertAI.guessNumSamples / numChunks;
+				if(_chunkSize == 0)
+					_chunkSize = 1;
 				trace("Chunk Size set to: " + _chunkSize);
 			}
 			ControlsSWC.instance.sendChunkMVC.chunkSizeText.text = _chunkSize;
@@ -179,8 +170,19 @@ package
 		
 		//sends a chunk of data to DG. called from 'sample' mxml button
 		public function addChunk(e:Event):void{
+			
+			var expertGuessed:Boolean = false;
+			expertGuessed = ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
+			_expertGuessed = expertGuessed;
+			
+			//disable sample button if expert guesses 
+			if(_expertGuessed){
+				ControlsSWC.instance.sendChunkMVC.theSampleButton.enabled = false; 
+				ControlsSWC.instance.sendChunkMVC.theSampleButton.removeEventListener(MouseEvent.CLICK, Round.currentRound.addChunk);
+			}
+
 			for(var i:int = 0; i < _chunkSize; i++){
-				if( _expertGuessed )
+				if(_expertGuessed)
 					break; // stop sending data if expert guessed
 				else
 					dataDelay();
@@ -233,12 +235,25 @@ package
 			return _accuracy;
 		}
 		
+		public function set accuracy(acc:Number):void{
+			_accuracy = acc;
+		}
+		
 		public function get isWon():Boolean{
 			return _isWon;
 		}
 		
 		public function get level():int{
 			return _level;
+		}
+		
+		// generates an accuracy %, based on the sample size.
+		public function calculateAccuracy():Number {
+			if(numDataSoFar == 0){
+				return _interval * 2; // if no samples, calculate chance of randomly guessing proper median given interval 
+			}else{
+				return MathUtilities.calculateAreaUnderBellCurve( interval * 2, numDataSoFar, MathUtilities.IQR_to_SD(IQR)) * 100;
+			}
 		}
 		
 		// true = win, false = lose
@@ -291,9 +306,18 @@ package
 		private var lastSendTime:Number = 0; // the time stamp of the last sent data point.
 		private const SEND_TIME:int = 150; // how many miliseconds between basket emptyings.
 																		// Whenever it ticks, the basket is emptied, and data is pushed to DG/analyzed by the expert.
-		// generates an accuracy %, based on the sample size.
-		private function calculateAccuracy():Number {
-			return MathUtilities.calculateAreaUnderBellCurve( interval * 2, numDataSoFar, MathUtilities.IQR_to_SD(IQR)) * 100;
+		
+		//returns random number within range passed to function
+		private function randomRange(max:Number, min:Number = 0):Number{
+			return Math.random() * (max - min) + min;
+		}
+		
+		//sends timer events based on _dataDelayTime to addData()
+		private function dataDelay():void{
+			var expertGuessed:Boolean;
+			dataTimer = new Timer(_dataDelayTime, 1)
+			dataTimer.addEventListener(TimerEvent.TIMER_COMPLETE, addData);
+			dataTimer.start();
 		}
 	}
 }
