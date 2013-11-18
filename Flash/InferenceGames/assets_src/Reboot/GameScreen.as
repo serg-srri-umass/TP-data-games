@@ -50,7 +50,7 @@
 		// scoring variables:
 		private const STARTING_LIFE:int = 3;
 		private var _life:int = STARTING_LIFE;
-		private var _score:int = 0, _printedScore:int = 0;
+		private var _score:int = 0;
 
 		// ----------------------
 		// --- PUBLIC METHODS ---
@@ -96,7 +96,7 @@
 			_median = median;
 			this.sampleSize = sampleSize;
 			setIQR(iqr);
-			setInterval(interval, true);
+			setInterval(interval);
 			
 			trace("The median is: " + median);
 			distributionMVC.x = numlineToStage(_median);
@@ -173,17 +173,16 @@
 		}
 		
 		// earn X points. This is pretty useless at the moment, because the score system shouldn't work like this.
-		public function earnScore( score:int):void{
-			_score += score;
-			myScoreMVC.gotoAndPlay(1);
+		public function earnPoint():void{
+			_score++;
+			myScoreMVC.gotoAndStop( _score + 1);
 			dispatchEvent( new InferenceEvent( InferenceEvent.EARN_POINT));
 		}
 		
 		// reset the score to its starting value.
 		public function resetScore():void{
 			_score = 0;
-			_printedScore = 0;
-			myScoreMVC.myScoreMVC.myScoreTxt.text = "00000"; // buffer = 5;
+			myScoreMVC.gotoAndStop(1);
 		}
 		
 		// reset the life to its starting value
@@ -231,7 +230,6 @@
 		
 		private function handleEnterFrame(triggerEvent:Event):void
 		{
-			handleScore();
 			handlePops();
 		}
 		
@@ -253,23 +251,6 @@
 					}
 				}
 				ticker++;
-			}
-		}
-		
-		// Checks if the score is higher than what's currently on screen. If so, bump it up.
-		private function handleScore():void{
-			if( _printedScore < _score){
-				_printedScore += ( (_score - _printedScore) / 4 ) + 1;
-				if(_printedScore > _score){
-					_printedScore = _score;
-				}
-				var rawScore:String = _printedScore.toString();
-				var buffer:String = "";
-				var runs:int = 5 - rawScore.length;
-				for( var i:int = 0; i < runs; i++){
-					buffer += "0";
-				}
-				myScoreMVC.myScoreMVC.myScoreTxt.text = buffer + rawScore;
 			}
 		}
 		
@@ -462,7 +443,7 @@
 			if ( Math.abs( _guess - _median) <= _interval)
 			{
 				distributionMVC.gotoAndPlay(	playAnimation ? "win" : "won");
-				earnScore(100);
+				earnPoint();
 				dispatchEvent( new InferenceEvent( InferenceEvent.CORRECT_GUESS));
 			}
 			else
