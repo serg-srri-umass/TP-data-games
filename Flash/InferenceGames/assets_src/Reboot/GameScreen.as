@@ -83,7 +83,7 @@
 			// PROXY SECTION. REMOVE ALL THIS BEFORE IT GOES LIVE.
 			startNewRound(); 
 			addEventListener( InferenceEvent.SAMPLE, doTheSamples);
-			backBtn.addEventListener( MouseEvent.CLICK, newGame);
+			topBarMVC.backBtn.addEventListener( MouseEvent.CLICK, newGame);
 		}
 		
 		// ----------- NEW ROUND / NEW GAME --------------
@@ -165,31 +165,28 @@
 		
 		// lose a point of "life", when you guess incorrectly, or overdraw.
 		public function loseLife( triggerEvent:Event = null):void{
-			lifeMVC.lostLifeMVC.hurtScoreTxt.text = _life;
 			_life--;
-			lifeMVC.myLifeTxt.text = _life;
-			lifeMVC.gotoAndPlay(1);
+			topBarMVC.loseLife(_life);
 			dispatchEvent( new InferenceEvent( InferenceEvent.LOSE_LIFE));
 		}
 		
 		// earn X points. This is pretty useless at the moment, because the score system shouldn't work like this.
 		public function earnPoint():void{
 			_score++;
-			myScoreMVC.gotoAndStop( _score + 1);
+			topBarMVC.earnPoint();
 			dispatchEvent( new InferenceEvent( InferenceEvent.EARN_POINT));
 		}
 		
 		// reset the score to its starting value.
 		public function resetScore():void{
 			_score = 0;
-			myScoreMVC.gotoAndStop(1);
+			topBarMVC.resetScore();
 		}
 		
 		// reset the life to its starting value
 		public function resetLife():void{
 			_life = STARTING_LIFE;
-			lifeMVC.myLifeTxt.text = _life;
-			lifeMVC.lostLifeMVC.hurtScoreTxt.text = _life;
+			topBarMVC.resetLife( STARTING_LIFE);
 		}
 		
 
