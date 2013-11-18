@@ -96,7 +96,7 @@
 			_median = median;
 			this.sampleSize = sampleSize;
 			setIQR(iqr);
-			setInterval(interval);
+			setInterval(interval, true);
 			
 			trace("The median is: " + median);
 			distributionMVC.x = numlineToStage(_median);
@@ -369,26 +369,42 @@
 		// ---------- PRIVATE SETTERS FOR IQR AND INTERVAL ------------------
 		
 		// sets the length of the IQR
-		private function setIQR( arg:Number):void
+		private function setIQR( arg:Number, secret:Boolean = false):void
 		{
 			_IQR = arg;
 
 			var myTween:Tween = new Tween(iqrLineMVC,"width",Elastic.easeOut,iqrLineMVC.width,(numlineToStage(arg) - startPoint),20);
-			//iqrLineMVC.width = numlineToStage(arg) - startPoint;
-
-			iqrTxt.text = arg.toString();
+			
 			distributionMVC.width = (numlineToStage(arg) - startPoint) * 3.472;
+			
+			if( !secret){
+				iqrLineMVC.visible = true;
+				iqrTxt.text = arg.toString();
+			} else {
+				// in secret mode, the IQR is hidden
+				iqrLineMVC.visible = false;
+				iqrTxt.text = "?";
+			}
 		}
 
 		// sets the length of the Interval
-		private function setInterval( arg:Number):void
+		private function setInterval( arg:Number, secret:Boolean = false):void
 		{
 			_interval = arg;
 
 			var myTween:Tween = new Tween(intervalLineMVC,"width",Elastic.easeOut,intervalLineMVC.width,(numlineToStage(arg) - startPoint) * 2,20);
-			//intervalLineMVC.width = numlineToStage(arg) - startPoint;
 			guessCursorMVC.cursor.width = (numlineToStage(arg) - startPoint) * 2;
-			intervalTxt.text = arg.toString();
+			
+			if( !secret){
+				intervalLineMVC.visible = true;
+				guessCursorMVC.cursor.alpha = 1;
+				intervalTxt.text = arg.toString();
+			} else {
+				// in secret mode, the interval is hidden
+				intervalLineMVC.visible = false;
+				guessCursorMVC.cursor.alpha = 0;
+				intervalTxt.text = "?";
+			}
 		}
 		
 		
@@ -455,9 +471,9 @@
 				loseLife();
 				dispatchEvent( new InferenceEvent( InferenceEvent.INCORRECT_GUESS));
 			}
-						
 			stage.addEventListener(MouseEvent.MOUSE_DOWN, finishRound);
 		}
+		
 
 
 
