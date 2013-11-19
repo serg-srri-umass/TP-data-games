@@ -146,3 +146,4 @@ package embedded_asset_classes
 			}
 		}
 	}
+}
