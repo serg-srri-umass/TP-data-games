@@ -28,11 +28,11 @@ package embedded_asset_classes
 		public static function get instance():ResultsSWC{
 			return SINGLETON_RESULTS;
 		}
-
+		
 		// ----------------------
 		// --- PUBLIC SECTION ---
 		// ----------------------
-			
+		
 		public function ResultsSWC()
 		{
 			super();
@@ -40,7 +40,7 @@ package embedded_asset_classes
 				SINGLETON_RESULTS = this;
 			else
 				throw new Error("ResultsSWC has already been created.");
-
+			
 			addEventListener(AnimationEvent.COMPLETE_HIDE, onCompleteHide); // handler for when hide animation is complete.
 			addEventListener(AnimationEvent.COMPLETE_SHOW, onCompleteShow); // handler for when the show animation is complete.
 			visible = false;
@@ -56,8 +56,8 @@ package embedded_asset_classes
 			setAccuracy( Round.currentRound.accuracy);			
 			this.setWon(Round.currentRound.isWon);
 			Round.currentRound.lastBuzzer.emotion = Round.currentRound.isWon ? BotPlayerSWC.HAPPY : BotPlayerSWC.SAD;
-			setLucky(Round.currentRound.accuracy);
-
+			setLuckyUnluckyFeedback(Round.currentRound.accuracy);
+			
 			_isShowing = true;
 		}
 		
@@ -86,10 +86,10 @@ package embedded_asset_classes
 			visible = false;
 			if(InferenceGames.instance.isInGame)
 				ControlsSWC.instance.show();
-				else 
+			else 
 				LevelSelectSWC.instance.show();
 		}
-
+		
 		// when the results finish displaying, if the game is over, show the winner.
 		private function onCompleteShow( triggerEvent:AnimationEvent):void{
 			Round.currentRound.handlePoints(); // update points for this game
@@ -136,21 +136,13 @@ package embedded_asset_classes
 				verdictMVC.winLoseMVC.popMedianMVC.visible = false;
 			}
 		}
-		
-		//passed confidenceIntervalPercent. Sets lucky message according to percent.  
-		public function setLucky(accuracyPerc:int):void{
-			if((accuracyPerc <= _luckyPercent) && Round.currentRound.isWon){
-				luckyUnluckyMVC.luckyUnluckyText.text = "You got lucky! Try a new strategy.";
-				luckyUnluckyMVC.luckyUnluckyText.visible = true;
-
-			}else if((accuracyPerc >= _unluckyPercent) && !Round.currentRound.isWon){
-				luckyUnluckyMVC.luckyUnluckyText.text = "You got unlucky! Keep trying.";
-				luckyUnluckyMVC.luckyUnluckyText.visible = true;
-
+		public function setLuckyUnluckyFeedback(accuracy:int):void{
+			if((accuracy <= _luckyPercent) && Round.currentRound.isWon){
+				luckyFeedbackMVC.luckyUnluckyText.text = "You got lucky! Try a different strategy.";
+			}else if((accuracy >= _unluckyPercent) && !Round.currentRound.isWon){
+				luckyFeedbackMVC.luckyUnluckyText.text = "You got unlucky! Keep trying.";
 			}else{
-				luckyUnluckyMVC.luckyUnluckyText.text = "";
-				luckyUnluckyMVC.luckyUnluckyText.visible = false;
+				luckyFeedbackMVC.luckyUnluckyText.text = "";
 			}
 		}
 	}
-}
