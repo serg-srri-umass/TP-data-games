@@ -19,14 +19,15 @@
 		}
 		
 		public function loseLife( newLifeTotal:int):void{
-			lifeMVC.lostLifeMVC.hurtScoreTxt.text = String(newLifeTotal + 1);
-			lifeMVC.myLifeTxt.text = newLifeTotal;
-			lifeMVC.gotoAndPlay(1);
+			lifeMVC.nextFrame();
 		}
 		
 		public function resetLife( startingLife:int):void{
-			lifeMVC.myLifeTxt.text = startingLife;
-			lifeMVC.lostLifeMVC.hurtScoreTxt.text = startingLife;
+			lifeMVC.gotoAndStop(1);
+		}
+		
+		public function setTitleMessage( arg:String):void{
+			levelTxt.text = arg;
 		}
 	}
 	
