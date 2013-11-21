@@ -767,11 +767,9 @@
 				}
 				
 				
-				if (!practice)
-				{
+				if (!practice){
 					var levelName:String;					
-					switch(mGameLevel)
-					{
+					switch(mGameLevel){
 						case kFreeCutLevel:
 							levelName = kLevelNameThinLogs;
 							break;
@@ -802,37 +800,21 @@
 						var resultObj:Object = (resultString ? com.adobe.serialization.json.JSON.decode( resultString ) : null );
 						this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
 					}
-					
-					//reset SoundHandler completely in case anything has broken during the round
-					mSoundHandler.shutDown();
-					mSoundHandler = new SoundHandler(); 
-					
-					//triggering onStart, simulates an onStart event by just directly calling the method 
-					mSoundHandler.onStart();
-					
-					//sending mouseDown, mouseUp, and mouseOutWindow to SoundHandler
-					addEventListener(MouseEvent.MOUSE_DOWN, mSoundHandler.onMouseDown);
-					addEventListener(MouseEvent.MOUSE_UP, mSoundHandler.onMouseUp);
-					addEventListener(MouseEvent.MOUSE_DOWN, mouseIsDown); //for setting boolean
-					addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
-					addEventListener(MouseEvent.MOUSE_UP, mouseIsUp); //for setting boolean
-					stage.addEventListener(ChainsawEvent.MOUSE_OUT_WINDOW, mSoundHandler.onMouseOutStage);
-				}else{ // it is practice mode, still want to enabled sounds
-					//reset SoundHandler completely in case anything has broken during the round
-					mSoundHandler.shutDown();
-					mSoundHandler = new SoundHandler(); 
-					
-					//triggering onStart, simulates an onStart event by just directly calling the method 
-					mSoundHandler.onStart();
-					
-					//sending mouseDown, mouseUp, and mouseOutWindow to SoundHandler
-					addEventListener(MouseEvent.MOUSE_DOWN, mSoundHandler.onMouseDown);
-					addEventListener(MouseEvent.MOUSE_UP, mSoundHandler.onMouseUp);
-					addEventListener(MouseEvent.MOUSE_DOWN, mouseIsDown); //for setting boolean
-					addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
-					addEventListener(MouseEvent.MOUSE_UP, mouseIsUp); //for setting boolean
-					stage.addEventListener(ChainsawEvent.MOUSE_OUT_WINDOW, mSoundHandler.onMouseOutStage);
 				}
+				//reset SoundHandler completely in case anything has broken during the round
+				mSoundHandler.shutDown();
+				mSoundHandler = new SoundHandler(); 
+				
+				//triggering onStart, simulates an onStart event by just directly calling the method 
+				mSoundHandler.onStart();
+				
+				//sending mouseDown, mouseUp, and mouseOutWindow to SoundHandler
+				addEventListener(MouseEvent.MOUSE_DOWN, mSoundHandler.onMouseDown);
+				addEventListener(MouseEvent.MOUSE_UP, mSoundHandler.onMouseUp);
+				addEventListener(MouseEvent.MOUSE_DOWN, mouseIsDown); //for setting boolean
+				addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
+				addEventListener(MouseEvent.MOUSE_UP, mouseIsUp); //for setting boolean
+				stage.addEventListener(ChainsawEvent.MOUSE_OUT_WINDOW, mSoundHandler.onMouseOutStage);
 			}
 			
 			//when mouse is down, start tracking the position for exiting stage
