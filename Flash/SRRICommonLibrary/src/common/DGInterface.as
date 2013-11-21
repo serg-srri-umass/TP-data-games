@@ -129,7 +129,7 @@ package common
 				action: "logAction", // delete all closed cases
 				args: { 
 					formatStr: logStatment + " [flash]", // the statement string, with optional use of %@
-						replaceArgs: stringParameters // optional array of values to replace %@ with
+					replaceArgs: stringParameters // optional array of values to replace %@ with
 				}
 			};
 			var result:String = ScriptInterface.doCommand( JSON.encode( doCommandObj ));
