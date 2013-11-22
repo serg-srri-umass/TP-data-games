@@ -13,22 +13,23 @@
 		<![CDATA[
 			import chainsaw.events.*;
 			import chainsaw.sawdust.*;
-			
 			import com.adobe.serialization.json.JSON;
-			
+			import common.DGInterface;
 			import common.ScriptInterface;
 			import common.VersionChecker;
 			
 			import flash.filters.GlowFilter;
 			import flash.media.SoundMixer;
+			import flash.external.*;
 			
 			import mx.core.UIComponent;
-			import mx.logging.*;
+			import mx.logging.ILogger;
+			import mx.logging.Log;
+			import mx.logging.LogEventLevel;
 			import mx.logging.targets.TraceTarget;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
 			import mx.managers.PopUpManager;
-			
 			import spark.components.CheckBox;
 			import spark.events.TextOperationEvent;
 			
@@ -155,6 +156,7 @@
 			private var volume:Number = 50;
 			
 			private var logger:ILogger;
+			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
 			
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
@@ -253,11 +255,15 @@
 					uic.mouseEnabled = false; //not quashing the mouse events from UIC was causing mouse events when its children particles were thrown in front of the mouse
 					uic.mouseChildren = false;
 					
-					this.sendCollectionData();		// send initGame data to TinkerPlots/DG
-					
 					levelSelected(kFreeCutLevel); //Start in free cut mode
 					
 					updateVolume(50); // start with volume at 50% level
+					
+					// set up DG interface for when ChainSaw.swf is embedded in a DG html doc.
+					ExternalInterface.addCallback( "doCommandFunc", doCommandFromDG ); // make {ChainSaw.swf}.doCommandFromDG() callable from javascript/DG
+					mDGInterface = new DGInterface( VersionChecker.isDebug );
+					this.sendCollectionData();		// send initGame data to TinkerPlots/DG
+					// NOTE: callback to restoreStateForDG() could happen here, which calls levelSelected() with new level, etc.
 				} else {
 					recheckTimer.reset();
 					recheckTimer.start();
@@ -344,6 +350,8 @@
 					args: {
 						name: "Chainsaw",
 						dimensions: { width: 745, height: 410 }, // should match 'Application' width and height
+						gameEmbedID: 'ChainSaw', // must match the ID of ChainSaw.swf embedded in the DG page by ChainSaw.html
+						gameEmbedFunc: 'doCommandFunc', // callback function name to be used by DG/javascript
 						collections: [
 							{
 								name: kGamesCollectionName,
@@ -397,7 +405,68 @@
 				var	initGameString:String = com.adobe.serialization.json.JSON.encode( initGameObj );
 				result = ScriptInterface.doCommand( initGameString );
 			}
-
+			
+			// handle a command from DG, such as 'restoreState' or 'saveState'.  
+			// this.startUp( ) registers this callback function with DG,
+			// so DG can ask for game state then restore that game state when a DG document is saved then later opened.
+			// expecting string from DG like: '{ operation: 'restoreState', args: { state: restoredGameState }}'
+			public function doCommandFromDG( commandString:String ):String {
+				var resultObj:Object = { success: false },
+					result:String,
+					commandObj:Object = com.adobe.serialization.json.JSON.decode( commandString );
+				
+				if( commandObj.operation == 'saveState' ) {
+					resultObj = this.saveStateforDG( commandObj.args );
+				} else if (commandObj.operation == 'restoreState' ) {
+					resultObj = this.restoreStateforDG( commandObj.args );
+				}		
+				if( resultObj )
+					result = com.adobe.serialization.json.JSON.encode( resultObj );
+				return result;
+			}
+			
+			// handle a 'saveState' command from DG, to stave this game in a document  
+			// 		We return information to be passed back to the this game with a restoreStateForDg() call.
+			private function saveStateforDG( args:Object ):Object {
+				var stateObj:Object = 
+				{
+					success: true,
+					state: {
+						playersName: this.mPlayersName,
+						gameLevel: this.mGameLevel,
+						gameNumber: this.mGameNumber
+					}
+				};
+				return stateObj;
+			}
+			
+			// handle a 'restoreState' command from DG, to restore a game saved in a document.  
+			// 		Handles parameters created by saveStateForDG()
+			// 		Returns { success: true/false }
+			private function restoreStateforDG( args:Object ):Object {
+				var iState:Object = args.state,
+					result:Object = { success: false };
+				if( iState ) {
+					if( iState.playersName ) {
+						this.mPlayersName = iState.playersName;
+						mPlayerTextInput.text = this.mPlayersName; // also update text display
+					}
+					if( iState.gameNumbr ) {
+						this.mGameNumber = iState.gameNumber;
+					}
+					switch( iState.gameLevel) {
+						case kFreeCutLevel:
+						case kHeavyFreeCutLevel:
+						case kMixedFreeCutLevel:
+							// set level and change level settings
+							levelSelected( iState.gameLevel );
+							break;
+						// else ignore invalid levels
+					}
+					result.success = true;
+				}
+				return result;
+			}
 			
 			// clearGame() resets the game according to the current level and clears remnants of
 			// the previous game, if any.
@@ -715,6 +784,21 @@
 						this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
 					}
 					
+					//reset SoundHandler completely in case anything has broken during the round
+					mSoundHandler.shutDown();
+					mSoundHandler = new SoundHandler(); 
+					
+					//triggering onStart, simulates an onStart event by just directly calling the method 
+					mSoundHandler.onStart();
+					
+					//sending mouseDown, mouseUp, and mouseOutWindow to SoundHandler
+					addEventListener(MouseEvent.MOUSE_DOWN, mSoundHandler.onMouseDown);
+					addEventListener(MouseEvent.MOUSE_UP, mSoundHandler.onMouseUp);
+					addEventListener(MouseEvent.MOUSE_DOWN, mouseIsDown); //for setting boolean
+					addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
+					addEventListener(MouseEvent.MOUSE_UP, mouseIsUp); //for setting boolean
+					stage.addEventListener(ChainsawEvent.MOUSE_OUT_WINDOW, mSoundHandler.onMouseOutStage);
+				}else{ // it is practice mode, still want to enabled sounds
 					//reset SoundHandler completely in case anything has broken during the round
 					mSoundHandler.shutDown();
 					mSoundHandler = new SoundHandler(); 
