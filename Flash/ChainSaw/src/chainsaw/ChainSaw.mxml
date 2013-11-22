@@ -11,7 +11,6 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import chainsaw.GameLevelWindow;
 			import chainsaw.events.*;
 			import chainsaw.sawdust.*;
 			
@@ -20,6 +19,7 @@
 			import common.ScriptInterface;
 			import common.VersionChecker;
 			
+			import flash.filters.GlowFilter;
 			import flash.media.SoundMixer;
 			
 			import mx.core.UIComponent;
@@ -33,7 +33,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.11.08";
+			public static const  VERSION:String = "Chainsaw v.2013.11.22";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -96,7 +96,6 @@
 			private var mFirstGame:Boolean			= true;	// Used for initial operations.
 			private var mGameLevel:uint				= 3;	// Current game level. --init as 3 to force it to go through init loops in game select
 			private var mPrevLevel:uint				= 3;	// Used to track level changes.
-			private var mLevelWindow:GameLevelWindow;		// The modal window for choosing a game level.
 			private var mLogsPerGame:uint			= 4;	// Number of logs being used in each game.
 			private var mFuelUsed:Number			= 0;	// Stores how many units of fuel have been used.
 			private var mChainsawCursorID:Number	= 0;	// Holds a cursor ID.
@@ -254,7 +253,6 @@
 					uic.mouseEnabled = false; //not quashing the mouse events from UIC was causing mouse events when its children particles were thrown in front of the mouse
 					uic.mouseChildren = false;
 					
-					mLevelWindow = new GameLevelWindow();
 					this.sendCollectionData();		// send initGame data to TinkerPlots/DG
 					
 					levelSelected(kFreeCutLevel); //Start in free cut mode
@@ -430,44 +428,26 @@
 				sawdustParticlesLog4.clearParticles();
 			}
 			
-			// chooseGameLevel() listens for clicks on the level dialog's level buttons.
-			private function chooseGameLevel():void 
-			{
-				var isModal:Boolean = true;
-				PopUpManager.addPopUp(mLevelWindow, this, isModal); 
-				
-				PopUpManager.centerPopUp(mLevelWindow);		// Center the window.
-				mLevelWindow.closeButton.visible = false;	// Hide the close button.
-				
-				mLevelWindow["mFreeCutButton"].addEventListener("click", freeCutLevel);
-				mLevelWindow["mHeavyFreeCutButton"].addEventListener("click", heavyFreeCutLevel);
-				mLevelWindow["mMixedFreeCutButton"].addEventListener("click", mixedFreeCutLevel);
-				
-				mLevelWindow["PracticeCheckBox"].addEventListener("change", togglePractice);
-				this.practice = (mLevelWindow["PracticeCheckBox"] as CheckBox).selected;
-				
-				mLevelWindow["mCancelButton"].addEventListener("click", function():void{
-					PopUpManager.removePopUp(mLevelWindow);
-				});
-			}
-			
+			// save the state of the practice checkbox
 			private function togglePractice(e:Event):void
 			{
-				var selected:Boolean = (e.currentTarget as CheckBox).selected;
-				this.practice = selected;
+				this.practice = practiceCheckBox.selected;
 			}
 			
 			// freeCutLevel() sets the current game level to free cut.
-			private function freeCutLevel(iEvent:Event):void 
+			private function thinFreeCutLevel(iEvent:Event):void
 			{
+				levelScreen.visible = false;
 				levelSelected(kFreeCutLevel);
 			}
-			private function heavyFreeCutLevel(iEvent:Event):void
+			private function thickFreeCutLevel(iEvent:Event):void
 			{
+				levelScreen.visible = false;
 				levelSelected(kHeavyFreeCutLevel);
 			}
 			private function mixedFreeCutLevel(iEvent:Event):void
 			{
+				levelScreen.visible = false;
 				levelSelected(kMixedFreeCutLevel);
 			}
 			
@@ -476,7 +456,6 @@
 			{
 				mPrevLevel = mGameLevel; // Track game level change.
 				mGameLevel = levelNum; // Set game level
-				PopUpManager.removePopUp(mLevelWindow); // Close the modal window
 				
 				// Only reset if user selects different level (Otherwise it will be reset when they click start)
 				if(mPrevLevel != mGameLevel) 
@@ -1138,12 +1117,6 @@
 				}
 			}
 			
-			// onClickChangeLevelButton() allows the user to change the game level.
-			protected function onClickChangeLevelButton(event:MouseEvent):void
-			{
-				chooseGameLevel();
-			}
-			
 			protected var allAssetsLoaded:Boolean = false;
 			protected var recheckTimer:Timer = new Timer(1000, 1);
 			
@@ -1347,17 +1320,49 @@
 			
 			private function onMouseDown(e:Event):void
 			{
-				logger.info("Mouse DOWN");
 				mTapeMeasure.startDrag();
 			}
 			private function onMouseUp(e:Event):void
 			{
-				logger.info("Mouse UP");
 				mTapeMeasure.stopDrag();
-//				trace(e.currentTarget.mouseY);
-				moveTapeMeasure.xFrom = mouseX - e.currentTarget.mouseX;
-				moveTapeMeasure.yFrom = mouseY - e.currentTarget.mouseY - 46;
+				
+				//animate the tape measure from its current position, back to it's starting position
+				//set the animation staring x and y to the cursor x/y minus the tape measure x/y and minus the offset of the UI_Elements container
+				moveTapeMeasure.xFrom = mouseX - e.currentTarget.mouseX - UI_Elements.x;
+				moveTapeMeasure.yFrom = mouseY - e.currentTarget.mouseY - UI_Elements.y;
 				moveTapeMeasure.play();
+			}
+			
+			private function initLevelsScreen(e:Event):void
+			{
+				practiceCheckBox.addEventListener("change", togglePractice);
+				
+				var filter:GlowFilter = new GlowFilter();
+				
+				thinLevelBtn.addEventListener(MouseEvent.MOUSE_OVER, mouseOverLevelBtn);
+				thinLevelBtn.addEventListener(MouseEvent.MOUSE_OUT, mouseOutLevelBtn);
+				thickLevelBtn.addEventListener(MouseEvent.MOUSE_OVER, mouseOverLevelBtn);
+				thickLevelBtn.addEventListener(MouseEvent.MOUSE_OUT, mouseOutLevelBtn);
+				mixedLevelBtn.addEventListener(MouseEvent.MOUSE_OVER, mouseOverLevelBtn);
+				mixedLevelBtn.addEventListener(MouseEvent.MOUSE_OUT, mouseOutLevelBtn);
+				
+				thinLevelBtn.addEventListener(MouseEvent.CLICK, thinFreeCutLevel);
+				thickLevelBtn.addEventListener(MouseEvent.CLICK, thickFreeCutLevel);
+				mixedLevelBtn.addEventListener(MouseEvent.CLICK, mixedFreeCutLevel);
+				
+				function mouseOverLevelBtn(e:Event)
+				{
+					e.target.filters = [filter];
+				}
+				function mouseOutLevelBtn(e:Event)
+				{
+					e.target.filters = [];
+				}
+			}
+			private function displayLevels(e:Event):void
+			{
+				initLevelsScreen(e);
+				levelScreen.visible = true;
 			}
 		]]>
 	</fx:Script>
@@ -1399,7 +1404,7 @@
 		<s:Label id="mReferenceLengthLabel" x="10" y="58" fontSize="14" fontWeight="bold" text="Target Length"/>
 		<s:Label id="mFuelLabel" x="10" y="100" fontSize="14" fontWeight="bold" text="Fuel"/>
 		<s:SWFLoader id="mFuelIcon" x="10" y="120" width="90" height="200" scaleY="1.2" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
-		<s:Button id="mChangeLevelButton" x="10" y="260" width="90" height="30" label="Levels" click="onClickChangeLevelButton(event)" enabled="true" fontSize="12" fontWeight="bold" />
+		<s:Button id="mChangeLevelButton" x="10" y="260" width="90" height="30" label="Levels" click="displayLevels(event)" enabled="true" fontSize="12" fontWeight="bold" />
 		<s:Button id="mStartStopButton" x="10" y="300" width="90" height="50" label="Start" mouseDown="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
 	</s:BorderContainer>
 	
@@ -1430,6 +1435,19 @@
 	</s:BorderContainer>
 	
 	<mx:UIComponent	id="videoBtnContainer" x="0" y="0"/>
+	
+	<!-- Levels Screen -->
+	<s:BorderContainer id="levelScreen" x="{0}" y="{StatusBar.height}" width="{this.minWidth}" height="{this.minHeight-StatusBar.height}" borderVisible="false" backgroundColor="#d2bfa4" visible="false" depth="1000">
+		<s:Image id="thinLevelBtn" x="300" y="100" source="embedded_assets/thinlog.png"/>
+		<s:Image id="thickLevelBtn" x="300" y="200" source="embedded_assets/thicklog.png"/>
+		<s:Image id="mixedLevelBtn" x="300" y="300" source="embedded_assets/thicklog.png"/>
+		<s:Label id="thinLevelLabel" x="{thinLevelBtn.x+60}" y="{thinLevelBtn.y+12}" text="Thin Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
+		<s:Label id="thickLevelLabel" x="{thickLevelBtn.x+60}" y="{thickLevelBtn.y+20}" text="Thick Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
+		<s:Label id="mixedLevelLabel" x="{mixedLevelBtn.x+60}" y="{mixedLevelBtn.y+20}" text="Mixed Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
+		
+		<s:CheckBox id="practiceCheckBox" x="330" y="390" label="Practice"/>
+		<s:Button id="closeLevelsButton" x="650" y="360" width="90" height="30" label="Close" click="levelScreen.visible=false;" enabled="true" fontSize="12" fontWeight="bold"/>
+	</s:BorderContainer>
 	
 	<!-- Loading Screen of Safety -->
 	<s:BorderContainer id="LoadWall"	x="0" y="0" width="{this.minWidth}" height="{this.minHeight}" visible="true" >
