@@ -1,4 +1,56 @@
-﻿package  {
+﻿/* |- SpaceRaceBody Public API
+		| *These methods must be called in the construction of SpaceRace*
+		|	| setSpaceRace( arg:*):void;
+		|	|	|	the body needs a reference to this. Arg must == this.
+		|	| setStage (arg:Stage):void;
+		|	|	|	the body needs a reference to Inference Games' Stage, so it can add listeners to it.
+		|
+		| moveDistributionTo( arg:Number):void;
+		|	moves the current distribution to the given # on the numberline.
+		|
+		| setSampleSize( arg:int):void;
+		|	sets how many samples will be drawn.
+		|
+		| sampleData( triggerEvent:Event = null):Vector.<Number>;
+		|	samples X data points, where X is the sample size. Returns a vector of their locations on the number line.
+		|	dispatches InferenceEvent.
+		|
+		| overdraw( triggerEvent:Event = null):void;
+		|	"Sample too big". Overdraws. Causes the loss of 1/2 heart. 
+		|	dispatches InferenceEvent.
+		|
+		| handleEnterFrame( triggerEvent:Event):void;
+		|	method that should be called every frame. Handles the "data pop" animations, as they are needed.
+		|
+		| deactivateButtons( triggerEvent:Event = null, canEscape:Boolean = false):void;
+		|	turns off the "sample" & "guess" buttons. 
+		|	If canEscape is true, pressing 'escape' will cancel this state. The guess button will say '[Esc] to cancel'
+		|	
+		| reactivateButtons( triggerEvent:Event = null):void;
+		|	turns on the "sample" & "guess" buttons
+		|
+		| setIQR( arg:int):void;
+		|	set the IQR length.
+		|
+		| setInterval( arg:int):void;
+		|	set the interval length.
+		|
+		| moveCursorToMousePosition( triggerEvent:MouseEvent):void;
+		|	moves the guess cursor to the mouse's current position.
+		|
+		| switchToGuessMode( triggerEvent:Event = null):void;
+		|	hides the mouse; shows the guess cursor. Sets up all event listeners to guess. When the player clicks, guess will be made.
+		|	dispatches InferenceEvent.
+		|
+		| switchToMouseMode( triggerEvent:Event = null):void;
+		|	hides the guess cursor; shows the mouse. Reactivates the buttons, sets up all that's needed to be in the 'standard mode'.
+		|	dispatches InferenceEvent. 
+		|
+		| isInGuessMode():Boolean;
+		|	returns true if in 'guess mode', returns false if in 'mouse mode'.
+*/
+
+package  {
 	
 	import flash.display.MovieClip;
 	import flash.events.Event;
@@ -14,66 +66,78 @@
 	import flash.geom.Point;
 	import flash.display.DisplayObject;
 	import flash.events.KeyboardEvent;
+	import flash.display.Stage;
+	import embedded_asset_classes.SpaceRace;
 	
-	
-	public class MainMVC extends MovieClip {
+	public class SpaceRaceBody extends MovieClip {
 		
-		public var main:GameScreen;
+		private var main:*; // the parent of SpaceRaceBody.
+		private var _inGuessMode:Boolean;
 		
 		// movie clip variables:
 		public var numberlineY:Number;			// the Y position of the number line
-		public var numberlineLength:Number;	// the length of the number line in px
+		public var numberlineLength:Number;		// the length of the number line in px
 		public var startPoint:Number;			// the X position of 0 on the number line
-		public var endPoint:Number;			// the X pos of 100 on the number line
+		public var endPoint:Number;				// the X pos of 100 on the number line
 		public var distributionScaleY:Number;	// the scaleY of the distribution
 		
 		// datapoint variables:
 		public var dataPopSpeed:Number = 3;	// determines how much time occurs between the arrival of data pops.
 		public var ticker:int = 0;				// used to handle the animation of data pops 
-		public var pm:ParkMiller = new ParkMiller();	// park miller generates a random normal.
+		private var pm:ParkMiller = new ParkMiller();	// park miller generates a random normal.
+		private var dataBladder:Vector.<Number> = new Vector.<Number>(); // holds data points that havent been drawn to screen yet.
 		
 		//timers
-		public var reactivateTimer:Timer = new Timer(500, 1); // half second delay between when the data finishes streaming and the buttons turn back on
-
+		private var reactivateTimer:Timer = new Timer(500, 1); // half second delay between when the data finishes streaming and the buttons turn back on
+		private var myStage:Stage;
 		
-		public function MainMVC() {
+		
+		// ----------- CONSTRUCTOR FUNCTIONS ----------
+		
+		public function SpaceRaceBody() {
 			numberlineY = start.y;
 			startPoint = start.x;
 			endPoint = end.x;
 			numberlineLength = endPoint - startPoint;
 			distributionScaleY = distributionMVC.scaleY;
-			main = parent as GameScreen;
+			//main = parent as SpaceRace;
 			
 			// event listener section:
 			reactivateTimer.addEventListener(TimerEvent.TIMER, reactivateButtons);
 			distributionMVC.addEventListener("animate", revealAnswer);	// when the distribution finishes "wiping" onscreen, it reveals the answer.;
 			
 			// disable the mouse on objects that should ignore it:
-			sampleTxt.mouseChildren = false;
+			dataTxt.mouseChildren = false;
 			guessTxt.mouseChildren = false;
 			guessTxt.mouseEnabled = false;
-			sampleTxt.mouseEnabled = false;
+			dataTxt.mouseEnabled = false;
 			distributionMVC.mouseChildren = false;
 			distributionMVC.mouseEnabled = false;
 			guessCursorMVC.mouseEnabled = false;
 		}
 		
+		public function setStage( arg:Stage):void{
+			myStage = arg;
+		}
+		
+		public function setSpaceRace( arg:*):void{
+			main = arg;
+		}
+		
 		// ---------- MOVIE CLIP MATH ---------------
 
 		// give this method a position on the numberline, and it will return a stage coordinate.
-		public function numlineToStage( arg:Number):Number
+		private function numlineToStage( arg:Number):Number
 		{
 			var percentageGain:Number = (arg / 100) * numberlineLength;
 			return startPoint + percentageGain;
 		}
 
 		// give this method a stage coordinate (X) and it will return a position on the numberline.
-		public function stageToNumline( arg:Number):Number
+		private function stageToNumline( arg:Number):Number
 		{
 			return (arg - startPoint) / numberlineLength * 100;
-		}
-		
-		
+		}		
 		
 		
 		// ------------ SAMPLING FUNCTIONS ------------------
@@ -83,16 +147,13 @@
 		}
 		
 		public function setSampleSize( arg:int):void{
-			sampleTxt.sampleTxt.text = "Sample " + arg + " dot";
+			dataTxt.txt.text = "Sample " + arg + " dot";
 			if(arg > 1)
-				sampleTxt.sampleTxt.text += "s";
+				dataTxt.txt.text += "s";
 		}
-		
-		private var dataBladder:Vector.<Number> = new Vector.<Number>();
-		
+				
 		// samples data of the chosen sample size.
 		public function sampleData( triggerEvent:Event = null):Vector.<Number>{
-			//dataPointsToSample += main.sampleSize;
 			var outputVector:Vector.<Number> = new Vector.<Number>();
 			for( var i:int = 0; i < main.sampleSize; i++){
 				var numToPush:Number =  pm.normalWithMeanIQR( main.median, main.iqr);
@@ -100,21 +161,24 @@
 				outputVector.push( numToPush);
 			}
 			deactivateButtons();
+			dispatchEvent( new Event( InferenceEvent.SAMPLE, true));
 			return outputVector;
 		}
 		
+		// overdraw causes the distribution to spring up, red, as an incorrect. Lose 1 life.
 		public function overdraw( triggerEvent:Event = null):void{
 			deactivateButtons();
 			dataBtn.enabled = false; // the button needs to be disabled, or else it will go to the '+' state.
 			dataBtn.gotoAndStop(4);	// red screen
 			dataBtn.alpha = 1;
-			sampleTxt.alpha = 1;
-			sampleTxt.sampleTxt.text = "Too many dots!";	// should say something else?
-			forceFailGuess( triggerEvent);
+			dataTxt.alpha = 1;
+			dataTxt.txt.text = "Too many dots!";	// should say something else?
+			dispatchEvent( new InferenceEvent( InferenceEvent.OVERDRAW, true));
+			forceFailGuess( triggerEvent); // lose life, when fail guess.
 		}
 		
 		// Checks if any data pops need to be added to the screen. 
-		public function handlePops():void{
+		public function handleEnterFrame( triggerEvent:Event):void{
 			if (dataBladder.length) // do any pops need to be added?
 			{
 				if ( ticker % dataPopSpeed == 0)
@@ -136,28 +200,29 @@
 		
 		// ---------------- SAMPLE & GUESS BUTTONS ----------------------
 		
-		// temporarily disables the buttons. When tweakGB is true, guess button becomes 'escape' prompt
-		public function deactivateButtons( tweakGuessButton:Boolean = false):void
+		// temporarily disables the buttons. When canEscape is true, guess button becomes 'escape' prompt
+		public function deactivateButtons( triggerEvent:Event = null, canEscape:Boolean = false):void
 		{
 			dataBtn.mouseEnabled = false;
 			guessBtn.mouseEnabled = false;
 			
 			// safety net that prevents buttons from not disappearing properly.;
 			dataBtn.removeEventListener( Event.ENTER_FRAME, appearInner);
-			sampleTxt.removeEventListener( Event.ENTER_FRAME, appearInner);
+			dataTxt.removeEventListener( Event.ENTER_FRAME, appearInner);
+			guessTxt.removeEventListener( Event.ENTER_FRAME, appearInner);
 			guessBtn.removeEventListener( Event.ENTER_FRAME, appearInner);
 
 			dataBtn.alpha = 0.1;
-			sampleTxt.alpha = 0.1;
+			dataTxt.alpha = 0.1;
 			
-			if( !tweakGuessButton){
+			if( !canEscape){
 				guessBtn.alpha = 0.1;
 				guessTxt.alpha = 0.1;
-				//guessTxt.sampleTxt.text = "Make a guess";
+				//guessTxt.txt.text = "Make a guess";
 			} else {
 				guessBtn.alpha = 0.1;
 				guessTxt.alpha = 0.6;
-				guessTxt.sampleTxt.text = "[Esc] to cancel";
+				guessTxt.txt.text = "[Esc] to cancel";
 			}
 		}
 		
@@ -169,11 +234,11 @@
 			dataBtn.gotoAndStop(1);
 			guessBtn.mouseEnabled = true;
 
-			appear( sampleTxt);
+			appear( dataTxt);
 			appear( dataBtn);
 			appear( guessBtn);
 			appear( guessTxt);
-			guessTxt.sampleTxt.text = "Make a guess";
+			guessTxt.txt.text = "Make a guess";
 		}
 		
 		// ------------ MODE SWITCHING --------------------
@@ -181,32 +246,39 @@
 		// switches to guess mode, reveals the guess cursor, hides the mouse.
 		public function switchToGuessMode(triggerEvent:Event = null):void
 		{
-			main.dispatchEvent( new InferenceEvent( InferenceEvent.ENTER_GUESS_MODE));
-			
+			_inGuessMode = true;
+			main.dispatchEvent( new InferenceEvent( InferenceEvent.ENTER_GUESS_MODE, true));
 			Mouse.hide();
 			appear( guessCursorMVC, 0);
-			stage.addEventListener( MouseEvent.MOUSE_MOVE, doCursor);
-			stage.addEventListener( MouseEvent.MOUSE_DOWN, makeGuess);
-			stage.addEventListener( KeyboardEvent.KEY_DOWN, handleKeys);	
+			myStage.addEventListener( MouseEvent.MOUSE_MOVE, moveCursorToMousePosition);
+			myStage.addEventListener( MouseEvent.MOUSE_DOWN, makeGuess);
+			myStage.addEventListener( KeyboardEvent.KEY_DOWN, handleKeys);	
 		}
 
 		// switches to normal mode, with guess cursor hidden and mouse showing.
 		public function switchToMouseMode(triggerEvent:Event = null):void
 		{
+			_inGuessMode = false;
 			if(guessCursorMVC.visible) // only dispatch the event when truely switching to mouse mode
-				main.dispatchEvent( new InferenceEvent( InferenceEvent.ENTER_MOUSE_MODE));
+				main.dispatchEvent( new InferenceEvent( InferenceEvent.ENTER_MOUSE_MODE, true));
 			
 			Mouse.show();
 			guessCursorMVC.visible = false;
-			stage.removeEventListener( MouseEvent.MOUSE_MOVE, doCursor);
-			stage.removeEventListener( MouseEvent.MOUSE_DOWN, makeGuess);
-			stage.removeEventListener(KeyboardEvent.KEY_DOWN, handleKeys);
+			if(!myStage)	return;
+			
+			myStage.removeEventListener( MouseEvent.MOUSE_MOVE, moveCursorToMousePosition);
+			myStage.removeEventListener( MouseEvent.MOUSE_DOWN, makeGuess);
+			myStage.removeEventListener(KeyboardEvent.KEY_DOWN, handleKeys);
+		}
+		
+		public function isInGuessMode():Boolean{
+			return _inGuessMode;
 		}
 		
 		// -------------- APPEAR / DISAPPEAR DISPLAY OBJECTS ---------------------
 		
 		// causes a movieclip to fade in
-		public function appear( mvc:DisplayObject, startingAlpha:Number = -1):void
+		private function appear( mvc:DisplayObject, startingAlpha:Number = -1):void
 		{
 			mvc.visible = true;
 			if ( startingAlpha >= 0)
@@ -216,7 +288,7 @@
 			mvc.removeEventListener(Event.ENTER_FRAME, disappearInner);
 			mvc.addEventListener(Event.ENTER_FRAME, appearInner);
 		}
-		public function appearInner(triggerEvent:Event):void
+		private function appearInner(triggerEvent:Event):void
 		{
 			triggerEvent.target.alpha +=  0.1;
 			if (triggerEvent.target.alpha >= 1)
@@ -226,7 +298,7 @@
 		}
 
 		// causes a movieclip to fade out
-		public function disappear( mvc:DisplayObject, startingAlpha:Number = -1):void
+		private function disappear( mvc:DisplayObject, startingAlpha:Number = -1):void
 		{
 			mvc.visible = true;
 			if ( startingAlpha >= 0)
@@ -237,7 +309,8 @@
 			mvc.addEventListener(Event.ENTER_FRAME, disappearInner);
 		}
 		
-		public function disappearInner(triggerEvent:Event):void
+		// called every frame, during disappear.
+		private function disappearInner(triggerEvent:Event):void
 		{
 			triggerEvent.target.alpha -=  0.1;
 			if (triggerEvent.target.alpha <= -0)
@@ -249,30 +322,28 @@
 		// ---------- SETTERS FOR IQR AND INTERVAL ------------------
 		
 		// sets the length of the IQR
-		public function setIQR( arg:Number, secret:Boolean):void{
-			var myTween:Tween = new Tween(iqrLineMVC,"width",Elastic.easeOut,iqrLineMVC.width,(numlineToStage(arg) - startPoint),20);
-			distributionMVC.width = (numlineToStage(arg) - startPoint) * 3.472;
+		public function setIQR( arg:Number, hiddenIQR:Boolean):void{
+			var myTween:Tween = new Tween(iqrLineMVC, "width", Elastic.easeOut,iqrLineMVC.width, (numlineToStage(arg) - startPoint), 20);
+			distributionMVC.width = (numlineToStage(arg) - startPoint) * 3.472;  // the distribution is 3.472 times widers than its IQR
 			
-			if( !secret){
+			if( !hiddenIQR){
 				iqrLineMVC.visible = true;
 				iqrTxt.text = arg.toString();
 			} else {
-				// in secret mode, the IQR is hidden
 				iqrLineMVC.visible = false;
 				iqrTxt.text = "?";
 			}
 		}
 		
-		public function setInterval( arg:Number, secret:Boolean):void{
+		public function setInterval( arg:Number, hiddenInterval:Boolean):void{
 			var myTween:Tween = new Tween(intervalLineMVC,"width",Elastic.easeOut,intervalLineMVC.width,(numlineToStage(arg) - startPoint) * 2,20);
 			guessCursorMVC.cursor.width = (numlineToStage(arg) - startPoint) * 2;
 			
-			if( !secret){
+			if( !hiddenInterval){
 				intervalLineMVC.visible = true;
 				guessCursorMVC.cursor.alpha = 1;
 				intervalTxt.text = arg.toString();
 			} else {
-				// in secret mode, the interval is hidden
 				intervalLineMVC.visible = false;
 				guessCursorMVC.cursor.alpha = 0;
 				intervalTxt.text = "?";
@@ -282,23 +353,19 @@
 		
 		// ---------------- GUESSING FUNCTIONS ---------------------
 		
-		// gets the guess, as per the text above the interval
-		public function getGuess():Number
-		{
-			return Number(guessCursorMVC.pos.text); 
-		}
-		
 		// places a guess based on the cursor's position. The distribution "wipes" on screen, then shows if it was correct or not.
-		public function makeGuess(triggerEvent:Event):void
+		private function makeGuess(triggerEvent:Event):void
 		{
 			deactivateButtons();
 			
-			main.guess = getGuess();
+			main.guess = Number(guessCursorMVC.pos.text);
 			Mouse.show();
 
 			// show the underlying distribution
 			distributionMVC.gotoAndStop("neutral");
 			distributionMVC.alpha = 1;
+			
+			// wipe direction is based on where the median was. 
 			if (main.median < 50)
 			{
 				distributionMVC.curveMVC.gotoAndPlay("enterRight");
@@ -308,13 +375,14 @@
 				distributionMVC.curveMVC.gotoAndPlay("enterLeft");
 			}
 
-			stage.removeEventListener( MouseEvent.MOUSE_DOWN, makeGuess);
-			stage.removeEventListener( MouseEvent.MOUSE_MOVE, doCursor);
-			stage.removeEventListener(KeyboardEvent.KEY_DOWN, handleKeys);
+			if(!myStage)	return;
+			myStage.removeEventListener( MouseEvent.MOUSE_DOWN, makeGuess);
+			myStage.removeEventListener( MouseEvent.MOUSE_MOVE, moveCursorToMousePosition);
+			myStage.removeEventListener(KeyboardEvent.KEY_DOWN, handleKeys);
 		}
 		
-		// this method guesses incorrectly and makes the distribution pop up in red, without "wiping" onscreen
-		public function forceFailGuess(triggerEvent:Event):void
+		// this method guesses incorrectly and makes the distribution pop up in red, without "wiping" onscreen. For when you overdraw (the expert guesses)
+		private function forceFailGuess(triggerEvent:Event):void
 		{
 			main.guess = -100;
 			Mouse.show();
@@ -328,23 +396,23 @@
 		}
 
 		// hides the distribution, and returns to mouse mode
-		public function clearGraph( triggerEvent:MouseEvent):void
+		private function clearGraph( triggerEvent:MouseEvent):void
 		{
-			stage.removeEventListener( MouseEvent.MOUSE_DOWN, clearGraph);
+			myStage.removeEventListener( MouseEvent.MOUSE_DOWN, clearGraph);
 			switchToMouseMode();
 			reactivateButtons( triggerEvent);
-			appear(iqrLineMVC);//iqrLineMVC.addEventListener(Event.ENTER_FRAME, appear);
+			appear(iqrLineMVC);
 		}
 
-		// turns the distribution red (lose) or green (lose), based on the guess
-		function revealAnswer( triggerEvent:Event, missedGuess:Boolean = true):void
+		// turns the distribution red (lose) or green (lose), based on the guess. Lose life if wrong, gain score if right.
+		private function revealAnswer( triggerEvent:Event, missedGuess:Boolean = true):void
 		{
 			trace(main.guess, main.median, main.interval);
 			if ( Math.abs( main.guess - main.median) <= main.interval)
 			{
 				distributionMVC.gotoAndPlay(	missedGuess ? "win" : "won");
 				main.earnPoint();
-				main.dispatchEvent( new InferenceEvent( InferenceEvent.CORRECT_GUESS));
+				main.dispatchEvent( new InferenceEvent( InferenceEvent.CORRECT_GUESS, true));
 			}
 			else
 			{
@@ -353,35 +421,35 @@
 				if( missedGuess)
 					main.loseLife(); // missing a guess costs 2 life
 					
-				main.dispatchEvent( new InferenceEvent( InferenceEvent.INCORRECT_GUESS));
+				main.dispatchEvent( new InferenceEvent( InferenceEvent.INCORRECT_GUESS, true));
 			}
-			stage.addEventListener(MouseEvent.MOUSE_DOWN, finishRound);
+			myStage.addEventListener(MouseEvent.MOUSE_DOWN, finishRound);
 		}
 		
 		// ------------- MISC ----------------------
 		
 		// handles the movement of the guess cursor.
-		public function doCursor( triggerEvent:MouseEvent):void
+		public function moveCursorToMousePosition( triggerEvent:MouseEvent):void
 		{
 			var goingPoint:Number;
-			if (triggerEvent.stageX < startPoint)
+			if (triggerEvent.stageX < startPoint)	// dont let the cursor go below 0 or above 100
 			{
-				goingPoint = startPoint;
+				goingPoint = startPoint; // 0
 			}
 			else if (triggerEvent.stageX > endPoint)
 			{
-				goingPoint = endPoint;
+				goingPoint = endPoint; // 100
 			}
 			else
 			{
-				goingPoint = triggerEvent.stageX;
-
+				goingPoint = triggerEvent.stageX; // mouse X
 			}
+			
 			guessCursorMVC.x = goingPoint;
-			guessCursorMVC.pos.text = stageToNumline(goingPoint).toFixed(1);
+			guessCursorMVC.pos.text = stageToNumline(goingPoint).toFixed(1); // text above guess cursor
 		}
 		
-		public function handleKeys( triggerEvent:KeyboardEvent):void{
+		private function handleKeys( triggerEvent:KeyboardEvent):void{
 			if(triggerEvent.keyCode == 27){ 	// escape
 				switchToMouseMode();
 				reactivateButtons( triggerEvent);
@@ -389,18 +457,18 @@
 		}
 		
 		// goes on to a new round
-		public function finishRound( triggerEvent:MouseEvent):void
+		private function finishRound( triggerEvent:MouseEvent):void
 		{
-			stage.removeEventListener( MouseEvent.MOUSE_DOWN, finishRound);
+			myStage.removeEventListener( MouseEvent.MOUSE_DOWN, finishRound);
 
 			disappear( distributionMVC);
 			disappear( guessCursorMVC);
 			main.newRoundTimer.reset();
 			
 			if( main.life <= 0)
-				main.dispatchEvent( new InferenceEvent( InferenceEvent.LOSE_GAME));
+				main.dispatchEvent( new InferenceEvent( InferenceEvent.LOSE_GAME, true));
 			else if( main.score >= main.WINNING_SCORE)
-				main.dispatchEvent( new InferenceEvent( InferenceEvent.WIN_GAME));
+				main.dispatchEvent( new InferenceEvent( InferenceEvent.WIN_GAME, true));
 			else
 				main.newRoundTimer.start();
 				

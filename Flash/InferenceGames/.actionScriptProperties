@@ -18,6 +18,7 @@
       <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/playerSWC.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/levelSelectSWC.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/debugConsoleSWC.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="src/embedded_assets/spaceRaceSWC.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
