@@ -13,14 +13,16 @@
 		<![CDATA[
 			import chainsaw.events.*;
 			import chainsaw.sawdust.*;
+			
 			import com.adobe.serialization.json.JSON;
+			
 			import common.DGInterface;
 			import common.ScriptInterface;
 			import common.VersionChecker;
 			
+			import flash.external.*;
 			import flash.filters.GlowFilter;
 			import flash.media.SoundMixer;
-			import flash.external.*;
 			
 			import mx.core.UIComponent;
 			import mx.logging.ILogger;
@@ -30,6 +32,7 @@
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
 			import mx.managers.PopUpManager;
+			
 			import spark.components.CheckBox;
 			import spark.events.TextOperationEvent;
 			
@@ -208,6 +211,16 @@
 			[Embed(source="../embedded_assets/remnant.png")]
 			[Bindable]
 			private var mRemnantImage:Class;
+			
+			// The level buttons
+			[Embed(source="../embedded_assets/thinlog.png")]
+			[Bindable]
+			private var mThinLogImage:Class;
+			
+			[Embed(source="../embedded_assets/thicklog.png")]
+			[Bindable]
+			private var mThickLogImage:Class;
+			
 			
 			// test flash player makes sure the player is meeting the minimum requirements.
 			private function testFlashPlayer():void
@@ -1416,11 +1429,11 @@
 				thickLevelBtn.addEventListener(MouseEvent.CLICK, thickFreeCutLevel);
 				mixedLevelBtn.addEventListener(MouseEvent.CLICK, mixedFreeCutLevel);
 				
-				function mouseOverLevelBtn(e:Event)
+				function mouseOverLevelBtn(e:Event):void
 				{
 					e.target.filters = [filter];
 				}
-				function mouseOutLevelBtn(e:Event)
+				function mouseOutLevelBtn(e:Event):void
 				{
 					e.target.filters = [];
 				}
@@ -1504,9 +1517,9 @@
 	
 	<!-- Levels Screen -->
 	<s:BorderContainer id="levelScreen" x="{0}" y="{StatusBar.height}" width="{this.minWidth}" height="{this.minHeight-StatusBar.height}" borderVisible="false" backgroundColor="#d2bfa4" visible="false" depth="1000">
-		<s:Image id="thinLevelBtn" x="300" y="100" source="embedded_assets/thinlog.png"/>
-		<s:Image id="thickLevelBtn" x="300" y="200" source="embedded_assets/thicklog.png"/>
-		<s:Image id="mixedLevelBtn" x="300" y="300" source="embedded_assets/thicklog.png"/>
+		<s:Image id="thinLevelBtn" x="300" y="100" source="{mThinLogImage}"/>
+		<s:Image id="thickLevelBtn" x="300" y="200" source="{mThickLogImage}"/>
+		<s:Image id="mixedLevelBtn" x="300" y="300" source="{mThickLogImage}"/>
 		<s:Label id="thinLevelLabel" x="{thinLevelBtn.x+60}" y="{thinLevelBtn.y+12}" text="Thin Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
 		<s:Label id="thickLevelLabel" x="{thickLevelBtn.x+60}" y="{thickLevelBtn.y+20}" text="Thick Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
 		<s:Label id="mixedLevelLabel" x="{mixedLevelBtn.x+60}" y="{mixedLevelBtn.y+20}" text="Mixed Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
