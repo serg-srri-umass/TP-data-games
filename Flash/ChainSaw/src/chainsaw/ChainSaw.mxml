@@ -34,7 +34,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.11.22";
+			public static const  VERSION:String = "Chainsaw v.2013.11.26";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -1494,16 +1494,16 @@
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
 	
-	<s:BorderContainer id="mResultsOverlay" x="625" y="46" width="{115}" height="{410-mResultsOverlay.y}" backgroundAlpha="0" borderVisible="false" visible="false">
-		<s:Label id="mAcceptedPiecesLabel" x="0" y="{60-46}" text="Accepted:" fontSize="14" fontWeight="bold" textAlign="left"/>
-		<s:Label id="mFuelLeftLabel" x="0" y="{145-46}" text="Fuel:" fontSize="14" fontWeight="bold" textAlign="left"/>
-		<s:Label id="mCutStyleLabel" x="0" y="{225-46}" text="Fuel %:" fontSize="14" fontWeight="bold" textAlign="left"/>
-		<s:Label id="mScoreLabel"    x="0" y="{300-46}" text="Score:" fontSize="14" fontWeight="bold" textAlign="left"/>
+	<s:BorderContainer id="mResultsOverlay" x="625" y="46" width="{115}" height="{410-mResultsOverlay.y-30}" backgroundAlpha="1" backgroundColor="#84602e" borderVisible="false" visible="false">
+		<s:Label id="mAcceptedPiecesLabel" x="5" y="{60-46}" text="Accepted:" fontSize="14" fontWeight="bold" textAlign="left" color="#ffffff"/>
+		<s:Label id="mFuelLeftLabel" x="5" y="{145-46}" text="Fuel:" fontSize="14" fontWeight="bold" textAlign="left" color="#ffffff"/>
+		<s:Label id="mCutStyleLabel" x="5" y="{225-46}" text="Fuel %:" fontSize="14" fontWeight="bold" textAlign="left" color="#ffffff"/>
+		<s:Label id="mScoreLabel"    x="5" y="{300-46}" text="Score:" fontSize="14" fontWeight="bold" textAlign="left" color="#ffffff"/>
 		
-		<s:Label id="mAcceptedPiecesValue" x="70" y="{60-46}" text="0" fontSize="16" fontWeight="bold" width="45" textAlign="right"/>
-		<s:Label id="mFuelLeftValue" x="70" y="{145-46}" text="0" fontSize="16" fontWeight="bold" width="45" textAlign="right"/>
-		<s:Label id="mFuelLeftPercent" x="70" y="{225-46}" text="Other" fontSize="16" fontWeight="bold" width="45" textAlign="right"/>
-		<s:Label id="mScoreValue"    x="70" y="{300-46}" text="?" fontSize="16" fontWeight="bold" width="45" textAlign="right"/>
+		<s:Label id="mAcceptedPiecesValue" x="65" y="{60-46}" text="0" fontSize="16" fontWeight="bold" width="45" textAlign="right" color="#ffffff"/>
+		<s:Label id="mFuelLeftValue" x="65" y="{145-46}" text="0" fontSize="16" fontWeight="bold" width="45" textAlign="right" color="#ffffff"/>
+		<s:Label id="mFuelLeftPercent" x="65" y="{225-46}" text="Other" fontSize="16" fontWeight="bold" width="45" textAlign="right" color="#ffffff"/>
+		<s:Label id="mScoreValue"    x="65" y="{300-46}" text="?" fontSize="16" fontWeight="bold" width="45" textAlign="right" color="#ffffff"/>
 	</s:BorderContainer>
 	
 	<s:Label id="mVersionLabel" x="570" y="386" width="165" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
