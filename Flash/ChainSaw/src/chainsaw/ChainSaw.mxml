@@ -17,11 +17,9 @@
 			import common.DGInterface;
 			import common.ScriptInterface;
 			import common.VersionChecker;
-			
 			import flash.filters.GlowFilter;
 			import flash.media.SoundMixer;
-			import flash.external.*;
-			
+			import flash.external.ExternalInterface;
 			import mx.core.UIComponent;
 			import mx.logging.ILogger;
 			import mx.logging.Log;
@@ -29,12 +27,12 @@
 			import mx.logging.targets.TraceTarget;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
-			import mx.managers.PopUpManager;
+			//import mx.managers.PopUpManager;
 			import spark.components.CheckBox;
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.11.22";
+			public static const  VERSION:String = "Chainsaw v.2013.11.26";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -110,7 +108,8 @@
 			private var mStartGameTimer:Timer       = new Timer(1850, 1);
 			
 			private var currentCutStartPoint:Number; // Holds the starting position for each cut.
-			private	var	parentCaseID:int = 0;
+			private var mCutStrategy:String = '';	// game strategy at end of game
+			//private	var	parentCaseID:int = 0;
 			private var parentCaseScore:String = ''; // Holds the last value of the Score attribute, if created by the user in the parent case (DG interface only)
 			private var practice:Boolean = false; // whether the game is in practice mode or not
 			
@@ -260,7 +259,6 @@
 					updateVolume(50); // start with volume at 50% level
 					
 					// set up DG interface for when ChainSaw.swf is embedded in a DG html doc.
-					ExternalInterface.addCallback( "doCommandFunc", doCommandFromDG ); // make {ChainSaw.swf}.doCommandFromDG() callable from javascript/DG
 					mDGInterface = new DGInterface( VersionChecker.isDebug );
 					this.sendCollectionData();		// send initGame data to TinkerPlots/DG
 					// NOTE: callback to restoreStateForDG() could happen here, which calls levelSelected() with new level, etc.
@@ -343,11 +341,7 @@
 
 			// Send the initial game data to DG.  The collections are the tables of cases and attributes.
 			private	function	sendCollectionData( ):void	{
-				var	result:String;
-				var initGameObj:Object = 
-				{
-					action: "initGame",
-					args: {
+				var initGameArgs:Object = {
 						name: "Chainsaw",
 						dimensions: { width: 745, height: 410 }, // should match 'Application' width and height
 						gameEmbedID: 'ChainSaw', // must match the ID of ChainSaw.swf embedded in the DG page by ChainSaw.html
@@ -399,17 +393,16 @@
 								defaults: { xAttr: "Length", yAttr: "GameNumber" }
 							}
 						] // collections
-					} // args
-				}; //initGameObj
+					}; // initGameArgs
 				
-				var	initGameString:String = com.adobe.serialization.json.JSON.encode( initGameObj );
-				result = ScriptInterface.doCommand( initGameString );
+				ExternalInterface.addCallback( "doCommandFunc", this.doCommandFromDG ); // make {ChainSaw.swf}.doCommandFromDG() callable from javascript/DG
+				this.mDGInterface.initGame( initGameArgs );
 			}
 			
 			// handle a command from DG, such as 'restoreState' or 'saveState'.  
-			// this.startUp( ) registers this callback function with DG,
-			// so DG can ask for game state then restore that game state when a DG document is saved then later opened.
-			// expecting string from DG like: '{ operation: 'restoreState', args: { state: restoredGameState }}'
+			// 		this.startUp( ) registers this callback function with DG,
+			// 		so DG can ask for game state then restore that game state when a DG document is saved then later opened.
+			// 		expecting string from DG like: '{ operation: 'restoreState', args: { state: restoredGameState }}'
 			public function doCommandFromDG( commandString:String ):String {
 				var resultObj:Object = { success: false },
 					result:String,
@@ -427,11 +420,14 @@
 			
 			// handle a 'saveState' command from DG, to stave this game in a document  
 			// 		We return information to be passed back to the this game with a restoreStateForDg() call.
+			//		Warning: must be compatible with different versions of restoreStateforDG()
+			//		Returns { success: true, state: {} }
 			private function saveStateforDG( args:Object ):Object {
 				var stateObj:Object = 
 				{
 					success: true,
 					state: {
+						stateVersion: 1, // increment only if needed by restoreStateForDG()
 						playersName: this.mPlayersName,
 						gameLevel: this.mGameLevel,
 						gameNumber: this.mGameNumber
@@ -441,7 +437,8 @@
 			}
 			
 			// handle a 'restoreState' command from DG, to restore a game saved in a document.  
-			// 		Handles parameters created by saveStateForDG()
+			// 		Handles parameters created by a previous save of saveStateForDG()
+			//		Warning: must be backward compatible with data created by older versions of saveStateForDG()
 			// 		Returns { success: true/false }
 			private function restoreStateforDG( args:Object ):Object {
 				var iState:Object = args.state,
@@ -451,7 +448,7 @@
 						this.mPlayersName = iState.playersName;
 						mPlayerTextInput.text = this.mPlayersName; // also update text display
 					}
-					if( iState.gameNumbr ) {
+					if( iState.gameNumber ) {
 						this.mGameNumber = iState.gameNumber;
 					}
 					switch( iState.gameLevel) {
@@ -459,7 +456,11 @@
 						case kHeavyFreeCutLevel:
 						case kMixedFreeCutLevel:
 							// set level and change level settings
-							levelSelected( iState.gameLevel );
+							if( this.mDGInterface.isGameCaseOpen()) {
+								trace("restoreStateforDG(): Ignoring restore of DG document's game level; can't do this in the middle of a game");
+							} else {
+								levelSelected( iState.gameLevel );
+							}
 							break;
 						// else ignore invalid levels
 					}
@@ -507,21 +508,21 @@
 			private function thinFreeCutLevel(iEvent:Event):void
 			{
 				levelScreen.visible = false;
-				levelSelected(kFreeCutLevel);
+				levelSelected( kFreeCutLevel, true );
 			}
 			private function thickFreeCutLevel(iEvent:Event):void
 			{
 				levelScreen.visible = false;
-				levelSelected(kHeavyFreeCutLevel);
+				levelSelected( kHeavyFreeCutLevel, true );
 			}
 			private function mixedFreeCutLevel(iEvent:Event):void
 			{
 				levelScreen.visible = false;
-				levelSelected(kMixedFreeCutLevel);
+				levelSelected( kMixedFreeCutLevel, true );
 			}
 			
 			//level select redirected from button calls with level number - sets up the play field for each level
-			private function levelSelected(levelNum:int):void
+			private function levelSelected( levelNum:int, logIt:Boolean=false ):void
 			{
 				mPrevLevel = mGameLevel; // Track game level change.
 				mGameLevel = levelNum; // Set game level
@@ -575,6 +576,10 @@
 					sawdustParticlesLog2['setFloor'](logY2 + dynamicLog2['height'] + 54);
 					sawdustParticlesLog3['setFloor'](logY3 + dynamicLog3['height'] + 54);
 					sawdustParticlesLog4['setFloor'](logY4 + dynamicLog4['height'] + 54);
+					
+					if( logIt ) {
+						mDGInterface.sendLog( "newLevel: number="+mGameLevel+" levelName='"+mLevelLabel.text+"', practice="+practice );
+					}
 				}
 				
 				mLevelLabel.text = mLevelLabel.text.replace(" (practice)", "");
@@ -686,23 +691,16 @@
 					var pieceNumber:uint 			= pieceStatus.mCutNumber+pieceNumberBase == 0 ? mPieceNumber : pieceStatus.mCutNumber+pieceNumberBase;
 					var thickness:String = currentLog.getLogWidthLabel();
 					var acceptString:String = pieceStatus.getAcceptString();
+					var casesNValues:Array = [[ // array of cases containing array of values
+							mGameNumber,
+							lengthTwoDecimals,
+							thickness,
+							acceptString,
+							pieceStatus.mLogNumber
+						]];
 					
 					// Send info on cut pieces to DG
-					var createCaseObj:Object = {
-						action: "createCase",
-						args: {
-							collection: kCutsCollectionName,
-							parent: this.parentCaseID,
-							values: [
-								mGameNumber,
-								lengthTwoDecimals,
-								thickness,
-								acceptString,
-								pieceStatus.mLogNumber
-							]
-						}
-					};
-					ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( createCaseObj ));
+					this.mDGInterface.createEventCases( kCutsCollectionName, casesNValues );
 				}
 			}
 			
@@ -745,41 +743,19 @@
 					// Set up the fuel timer and visual gas tank
 					mFuelTimer.addEventListener(TimerEvent.TIMER, timerListener);
 					mFuelTimer.reset();	// Reset the timer to run until fuel runs out.
-				}
+				}			
 				
-				
-				if (!practice){
-					var levelName:String;					
-					switch(mGameLevel){
-						case kFreeCutLevel:
-							levelName = kLevelNameThinLogs;
-							break;
-						case kHeavyFreeCutLevel:
-							levelName = kLevelNameThickLogs;
-							break;
-						case kMixedFreeCutLevel:
-							levelName = kLevelNameMixedLogs;
-							break;
-					}
-					
+				if (!practice) {				
 					// send data to open a case in Game collection to DG
 					{
-						var openGameCaseObj:Object = {
-								action: "openCase",
-								args: { 
-									collection: kGamesCollectionName,
-									values: [
+						var gameCaseValues:Array = [
 										mPlayersName,
 										mGameNumber,
 										'', // Score
 										'', // Rank
-										levelName
-									]
-								} 	
-							}
-						var	resultString:String = ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( openGameCaseObj ));
-						var resultObj:Object = (resultString ? com.adobe.serialization.json.JSON.decode( resultString ) : null );
-						this.parentCaseID = (resultObj && resultObj.success ? resultObj.caseID : -1 );
+										gameLevelToLevelName( mGameLevel )
+									];
+						this.mDGInterface.openGameCase( kGamesCollectionName, gameCaseValues );
 					}
 				}
 				//reset SoundHandler completely in case anything has broken during the round
@@ -852,84 +828,20 @@
 			protected function endGame():void
 			{
 				mSoundHandler.onGameEnd();
-				var strategy:String = "";
 				doEndGameStop();
-				checkFreeCuts();
-				strategy = determineCutStyle();
+				checkFreeCuts();  // create pieces and send data to DG (via timer)
+				mCutStrategy = determineCutStyle();
 				
-				var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates);
-				var fuelLeftAmount:Number	= fuelLeftFraction * kFuelCapacity;
-				var fuelLeftPercent:Number	= fuelLeftFraction * 100;
-				
-				//send game information to TinkerPlots/Fathom
-				if (!practice)
-				{
-					var levelName:String;					
-					switch(mGameLevel)
-					{
-						case kFreeCutLevel:
-							levelName = kLevelNameThinLogs;
-							break;
-						case kHeavyFreeCutLevel:
-							levelName = kLevelNameThickLogs;
-							break;
-						case kMixedFreeCutLevel:
-							levelName = kLevelNameMixedLogs;
-							break;
-					}
-					
-					// Send info on games to DG
-					{
-						// send data to close a case in Game collection to DG
-						var	closeGameCaseObj:Object = { 
-								action: "closeCase",
-								args: { 
-									collection: kGamesCollectionName,
-									caseID: this.parentCaseID,
-									values: [
-										mPlayersName,
-										mGameNumber,
-										'', //score
-										'', //rank
-										levelName,
-										strategy,
-										mPiecesAccepted,
-										mPiecesRemnant,
-										//mPiecesRejected,
-										mPiecesShort,
-										mPiecesLong,
-										fuelLeftAmount,
-										fuelLeftPercent
-									]
-								}
-							};
-						ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( closeGameCaseObj ));
-						// extract value of formula attribute 'score', if created by user in DG
-						var	requestAttributeValueObj:Object = {
-								action: "requestAttributeValues",
-								args: { 
-									collection: kGamesCollectionName,
-									caseID: this.parentCaseID,
-									attributeNames: ["Score"]
-								}
-							};
-						var	resultString:String = ScriptInterface.doCommand( com.adobe.serialization.json.JSON.encode( requestAttributeValueObj ));
-						var resultObj:Object = (resultString ? com.adobe.serialization.json.JSON.decode( resultString ) : null );
-						this.parentCaseScore = "?";
-						if( resultObj && resultObj.success && resultObj.values ) {
-							if( resultObj.values.length >= 1 && resultObj.values[0] != null ) {
-								this.parentCaseScore = resultObj.values[0].toString(); // if numeric or string value for 'Score', use it
-							}
-						}
-					}
-				}
+				var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates),
+					fuelLeftAmount:Number	= fuelLeftFraction * kFuelCapacity,
+					fuelLeftPercent:Number	= fuelLeftFraction * 100;
 				
 				// Update the results screen
 				mAcceptedPiecesValue.text	= mPiecesAccepted.toString();
 				mFuelLeftValue.text			= Math.round(fuelLeftAmount).toString();
 				mFuelLeftPercent.text		= Math.round(fuelLeftPercent).toString();
-//				mCutStyleValue.text			= strategy;
-				mScoreValue.text			= (parentCaseScore=="?") ? "?" : Number(parentCaseScore).toFixed(1); //round score to 1 decimal place; if score is "?", print "?"
+//				mCutStyleValue.text			= mCutStrategy;
+				mScoreValue.text = "..."; // will be updated again once closeGameCase() is called via timer
 
 				mResultsOverlay.visible		= true;	// Display the results Overlay
 				
@@ -960,6 +872,47 @@
 				
 				mChangeLevelButton.enabled		= true;
 				mPlayerTextInput.enabled		= true;
+			}
+			
+			// Update the game attribute values and close the Game Case, for DG
+			// we want to call this at the end of the game, after sending all of the cut data to DG
+			private function closeGameCase():void {
+				var fuelLeftFraction:Number	= 1 - (mFuelUsed / kTotalUpdates),
+					fuelLeftAmount:Number	= fuelLeftFraction * kFuelCapacity,
+					fuelLeftPercent:Number	= fuelLeftFraction * 100;
+				
+				// Send info on games to DG
+				if (!practice) {
+					// send data to close a case in Game collection to DG
+					var	caseID:int = this.mDGInterface.getParentCaseID(),
+						caseValues:Array = [
+							mPlayersName,
+							mGameNumber,
+							'', //score
+							'', //rank
+							gameLevelToLevelName( mGameLevel ),
+							mCutStrategy,
+							mPiecesAccepted,
+							mPiecesRemnant,
+							//mPiecesRejected,
+							mPiecesShort,
+							mPiecesLong,
+							fuelLeftAmount,
+							fuelLeftPercent
+						];
+					this.mDGInterface.updateOrCloseGameCase(  kGamesCollectionName, caseValues, true ); // update and close case
+					
+					// extract value of formula attribute 'score', if created by user in DG
+					this.parentCaseScore = "?";  // default for missing, non-numeric, non-string data
+					var attributeValues:Array = this.mDGInterface.requestGameAttributeValues( kGamesCollectionName, caseID, ["Score"] );
+					if( attributeValues && attributeValues.length >= 1 ) {
+						if( attributeValues[0] is Number )
+							this.parentCaseScore = attributeValues[0].toFixed(1); // show numeric Score to 1 decimal place
+						else if( attributeValues[0] is String && attributeValues[0].length > 0)
+							this.parentCaseScore = attributeValues[0]; // show string Score
+					}
+					mScoreValue.text = this.parentCaseScore;
+				}
 			}
 			
 			// sub-fucntion of endGame() to create and check pieces from free cut level
@@ -1071,8 +1024,12 @@
 					
 					start+=chunkSize;
 					end+=chunkSize;
-					if(end>pieceStatusArray.length) end=pieceStatusArray.length;
-					if(start>=end) clearInterval(intID);
+					if(end>pieceStatusArray.length) 
+						end=pieceStatusArray.length;
+					if(start>=end) {
+						clearInterval(intID);
+						closeGameCase();
+					}
 				} //End sendChunk()
 				
 			}
@@ -1416,11 +1373,11 @@
 				thickLevelBtn.addEventListener(MouseEvent.CLICK, thickFreeCutLevel);
 				mixedLevelBtn.addEventListener(MouseEvent.CLICK, mixedFreeCutLevel);
 				
-				function mouseOverLevelBtn(e:Event)
+				function mouseOverLevelBtn(e:Event):void
 				{
 					e.target.filters = [filter];
 				}
-				function mouseOutLevelBtn(e:Event)
+				function mouseOutLevelBtn(e:Event):void
 				{
 					e.target.filters = [];
 				}
@@ -1429,6 +1386,22 @@
 			{
 				initLevelsScreen(e);
 				levelScreen.visible = true;
+			}
+			
+			public function gameLevelToLevelName( iGameLevel:uint ):String {
+				var levelName:String;					
+				switch(mGameLevel) {
+					case kFreeCutLevel:
+						levelName = kLevelNameThinLogs;
+						break;
+					case kHeavyFreeCutLevel:
+						levelName = kLevelNameThickLogs;
+						break;
+					case kMixedFreeCutLevel:
+						levelName = kLevelNameMixedLogs;
+						break;
+				}
+				return levelName;
 			}
 		]]>
 	</fx:Script>
