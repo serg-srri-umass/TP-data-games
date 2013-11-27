@@ -14,6 +14,7 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.adobe.serialization.json.JSON;
 			import common.DGInterface;
 			import common.ParkMiller;
 			import common.ScriptInterface;
@@ -28,6 +29,7 @@
 			import embedded_asset_classes.ResultsSWC;
 			import embedded_asset_classes.UserPlayerSWC;
 			import embedded_asset_classes.SpaceRace;
+			import flash.external.ExternalInterface;
 			
 			// ----------------------
 			// --- PRIVATE SECTION ---
@@ -35,7 +37,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.11.07";
+			private static const kVersion:String = "v.2013.11.26";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			
@@ -138,6 +140,8 @@
 					{
 						name: "InferenceGames",
 						dimensions: { width: this.width, height: this.height },
+						gameEmbedID: 'InferenceGames', // must match the ID of ChainSaw.swf embedded in the DG page by ChainSaw.html
+						gameEmbedFunc: 'doCommandFunc', // callback function name to be used by DG/javascript
 						collections: [
 							{
 								name: kGamesCollectionName,
@@ -169,9 +173,79 @@
 							}
 						] // collections
 					};
+				ExternalInterface.addCallback( "doCommandFunc", doCommandFromDG ); // make {InferenceGames.swf}.doCommandFromDG() callable from javascript/DG
 				this.mDGInterface.initGame( initGameArgs );
 			}
 			
+			// handle a command from DG, such as 'restoreState' or 'saveState'.  
+			// 		this.startUp( ) registers this callback function with DG,
+			// 		so DG can ask for game state then restore that game state when a DG document is saved then later opened.
+			// 		expecting string from DG like: '{ operation: 'restoreState', args: { state: restoredGameState }}'
+			public function doCommandFromDG( commandString:String ):String {
+				var resultObj:Object = { success: false },
+					result:String,
+					commandObj:Object = com.adobe.serialization.json.JSON.decode( commandString );
+				
+				if( commandObj.operation == 'saveState' ) {
+					resultObj = this.saveStateforDG( commandObj.args );
+				} else if (commandObj.operation == 'restoreState' ) {
+					resultObj = this.restoreStateforDG( commandObj.args );
+				}		
+				if( resultObj )
+					result = com.adobe.serialization.json.JSON.encode( resultObj );
+				return result;
+			}
+			
+			// handle a 'saveState' command from DG, to stave this game in a document  
+			// 		We return information to be passed back to the this game with a restoreStateForDg() call.
+			//		Warning: must be compatible with different versions of restoreStateforDG()
+			//		Returns { success: true, state: {} }
+			private function saveStateforDG( args:Object ):Object {
+				var stateObj:Object = 
+					{
+						success: true,
+						state: {
+							stateVersion: 1, // increment only if needed by restoreStateForDG()
+							gameNumber:	this.mGameSerialNum,
+							gameLevel:	this.mGameLevel,
+							inGame:		this.isInGame,
+							unlockedTo:	this.unlockedLevels,
+							roundID:	Round.currentRound.roundID
+						}
+					};
+				return stateObj;
+			}
+			
+			// handle a 'restoreState' command from DG, to restore a game saved in a document.  
+			// 		Handles parameters created by a previous save of saveStateForDG()
+			//		Warning: must be backward compatible with data created by older versions of saveStateForDG()
+			// 		Returns { success: true/false }
+			private function restoreStateforDG( args:Object ):Object {
+				var iState:Object = args.state,
+					result:Object = { success: false };
+				if( iState )  // restore our parameters as independently as possible
+				{
+					if( iState.unlockedTo && iState.unlockedTo >= 1 ) {
+						this.unlockedLevels = iState.unlockedTo; // OK if unlockedTo is above Round.kLevelSettings.length
+					}
+					if( iState.roundID && iState.roundID >= 1 ) {
+						// TO-DO: Round.currentRound.setRoundID( iState.roundID );
+					}
+					if( iState.gameNumber ) {
+						this.mGameSerialNum = iState.gameNumber;
+						// TO-DO: check isInGame and do something different if in game?
+					}
+					if( iState.gameLevel) {
+						if( iState.gameLevel >= 0 && iState.gameLevel < Round.kLevelSettings.length ) { // must be a valid level for this version
+							// TO-DO: set the level (make sure we are at the start of a game)
+							// LevelSelectSWC.instance.getSelectedLevelNumber();
+						}
+						// else ignore invalid levels
+					}
+					result.success = true;
+				}
+				return result;
+			}			
 			
 			// get the game case data to send to DG, 
 			// returned as an array for use by sendGameDataOpen(),..Update(),...Close().
@@ -183,7 +257,7 @@
 					Round.currentRound.IQR,
 					Round.currentRound.numDataSoFar,
 					(iIsRoundOver ? Round.currentRound.getResultsString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
-					(iIsRoundOver ? Round.currentRound.accuracy : "") // if game is over, submit accuracy with current smaple size. Otherwise, submit the empty string. 
+					(iIsRoundOver ? Round.currentRound.accuracy : "") // if game is over, submit accuracy with current sample size. Otherwise, submit the empty string. 
 				];
 			}
 
