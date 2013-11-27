@@ -35,22 +35,26 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			
 			import common.*;
 			
 			import flash.display.*;
 			
-			import mx.controls.Alert;
-			import mx.events.CloseEvent;
-			import mx.flash.UIMovieClip;
-			import mx.managers.PopUpManager;
-			import mx.utils.StringUtil;
+			import flash.external.ExternalInterface;
+
+			//import mx.controls.Alert;
+			//import mx.events.CloseEvent;
+			//import mx.flash.UIMovieClip;
+			//import mx.managers.PopUpManager;
+			//import mx.utils.StringUtil;
 			
 			import odyssey.events.*;
 			import odyssey.missions.*;
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.10.28";
+			private static const kVersion:String = "v.2013.11.26";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -764,6 +768,8 @@
 					{
 						name: "ShipOdyssey",
 						dimensions: { width: this.width, height: this.height },
+						gameEmbedID: 'ShipOdyssey', // must match the ID of ChainSaw.swf embedded in the DG page by ChainSaw.html
+						gameEmbedFunc: 'doCommandFunc', // callback function name to be used by DG/javascript
 						collections: [
 							{
 								name: kGamesCollectionName,
@@ -795,8 +801,76 @@
 							}
 						] // collections
 					};
+				ExternalInterface.addCallback( "doCommandFunc", doCommandFromDG ); // make {InferenceGames.swf}.doCommandFromDG() callable from javascript/DG
 				this.mDGInterface.initGame( initGameArgs );
 			}
+			
+			// handle a command from DG, such as 'restoreState' or 'saveState'.  
+			// 		this.startUp( ) registers this callback function with DG,
+			// 		so DG can ask for game state then restore that game state when a DG document is saved then later opened.
+			// 		expecting string from DG like: '{ operation: 'restoreState', args: { state: restoredGameState }}'
+			public function doCommandFromDG( commandString:String ):String {
+				var resultObj:Object = { success: false },
+					result:String,
+					commandObj:Object = com.adobe.serialization.json.JSON.decode( commandString );
+				
+				if( commandObj.operation == 'saveState' ) {
+					resultObj = this.saveStateforDG( commandObj.args );
+				} else if (commandObj.operation == 'restoreState' ) {
+					resultObj = this.restoreStateforDG( commandObj.args );
+				}		
+				if( resultObj )
+					result = com.adobe.serialization.json.JSON.encode( resultObj );
+				return result;
+			}
+			
+			// handle a 'saveState' command from DG, to stave this game in a document  
+			// 		We return information to be passed back to the this game with a restoreStateForDg() call.
+			//		Warning: must be compatible with different versions of restoreStateforDG()
+			//		Returns { success: true, state: {} }
+			private function saveStateforDG( args:Object ):Object {
+				var stateObj:Object = 
+					{
+						success: true,
+						state: {
+							stateVersion: 1, // increment only if needed by restoreStateForDG()
+							gameNumber:	this.mGameSerialNum,
+							gameIsPlaying: this.mDGInterface.isGameCaseOpen(),
+							siteNumber: this.mSiteSerialNum
+							// mTreasuresFoundThisSite:uint= 0;	// Treasures found so far in current site (see BootyBarMVC.as for
+							// mSitesVisitedThisGame:uint = 0;		// Number of sites visited in current game.
+							// mSiteSerialNum:uint	= 0;			// Serial number of current site, beginning with 1 (does not reset for new game).
+							// mGameSerialNum:uint	= 0;			// Serial number of current game, beginning with 1
+						}
+					};
+				return stateObj;
+			}
+			
+			// handle a 'restoreState' command from DG, to restore a game saved in a document.  
+			// 		Handles parameters created by a previous save of saveStateForDG()
+			//		Warning: must be backward compatible with data created by older versions of saveStateForDG()
+			// 		Returns { success: true/false }
+			private function restoreStateforDG( args:Object ):Object {
+				var iState:Object = args.state,
+					result:Object = { success: false };
+				if( iState )  // restore our parameters as independently as possible
+				{
+					if( iState.gameNumber ) {
+						this.mGameSerialNum = iState.gameNumber;
+					}					
+					if( iState.siteNumber ) {
+						this.mSiteSerialNum = iState.siteNumber;
+					}
+					if( iState.gameLevel) {
+						if( iState.gameLevel >= 0 && iState.gameLevel < 999 ) { // must be a valid level for this version
+							// TO-DO: set the level if possile
+						}
+						// else ignore invalid levels
+					}
+					result.success = true;
+				}
+				return result;
+			}	
 			
 			// get the game case data to send to Tinkerplots/DG, 
 			// returned as an array for use by sendGameDataOpen(),..Update(),...Close().

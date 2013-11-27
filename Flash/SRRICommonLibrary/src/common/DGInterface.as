@@ -92,8 +92,38 @@ package common
 				this.mParentCaseID = -1;	// set to invalid ID after close so we can detect errors
 		}
 		
+		// Request the value of game attributes for the given case ID, returned as an array.
+		public function requestGameAttributeValues( iCollectionName:String, iCaseID:int, iAttributeNames:Array ):Array {
+			var	doCommandObj:Object = {
+						action: "requestAttributeValues",
+						args: { 
+							collection: iCollectionName,
+							caseID: iCaseID,
+							attributeNames: ["Score"]
+						}
+					},
+				resultString:String,
+				resultObj:Object;
+			
+			if( iCaseID >= 0 ) {
+				debugTrace( "DG interface: requestAttributeValues with parent case ID "+iCaseID );
+				resultString = ScriptInterface.doCommand( JSON.encode( doCommandObj ));
+			} else {
+				throw new Error("DG interface error: requestAttributeValues with invalid parent case ID (" + iCaseID + ")" );
+			}
+			resultObj = (resultString ? JSON.decode( resultString ) : null );
+			if( resultObj && resultObj.success && resultObj.values ) {
+				return resultObj.values;
+			}
+			return []; // return empty array on failure
+		}
+		
 		public function isGameCaseOpen():Boolean {
 			return( this.mParentCaseID >= 0);
+		}
+		
+		public function getParentCaseID():int {
+			return this.mParentCaseID;
 		}
 		
 		// Send event case data to DG, if connected to DG.
@@ -111,7 +141,7 @@ package common
 						parent: this.mParentCaseID,
 						values: iCaseValueArrays
 					}
-				};				
+				};
 			
 			if( this.mParentCaseID >= 0 ) {
 				debugTrace( "DG interface: createCases ("+iCaseValueArrays.length+") with parent case ID "+this.mParentCaseID );
@@ -129,7 +159,7 @@ package common
 				action: "logAction", // delete all closed cases
 				args: { 
 					formatStr: logStatment + " [flash]", // the statement string, with optional use of %@
-						replaceArgs: stringParameters // optional array of values to replace %@ with
+					replaceArgs: stringParameters // optional array of values to replace %@ with
 				}
 			};
 			var result:String = ScriptInterface.doCommand( JSON.encode( doCommandObj ));
