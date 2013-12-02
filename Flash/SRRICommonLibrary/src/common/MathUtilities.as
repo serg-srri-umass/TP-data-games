@@ -124,5 +124,86 @@ package common
 			ioArray.sort( Array.NUMERIC ); // ascending numeric sort()
 			return median( ioArray );
 		}
+		
+		
+		
+		
+		
+		// RANDOM NUMBER GENRATORS:
+		public static function randomBoolean():Boolean{
+			var i:int = Math.random() * 2;
+			return i == 0;
+		}
+		
+		// returns a random int ranging from the lowEnd (inclusive) to the highEnd (exclusive) 
+		public static function randomIntBetween( lowEndInclusive:int, highEndExclusive:int):int{
+			if( lowEndInclusive >= highEndExclusive){
+				throw new Error("Low end must be lower than high end.");
+			}
+			var spread:Number = highEndExclusive - lowEndInclusive;
+			var randomSeed:Number = Math.random();
+			return lowEndInclusive + (randomSeed * spread);
+		}
+		
+		// returns a random number ranging from the lowEnd (inclusive) to the highEnd (exclusive) 
+		public static function randomNumberBetween( lowEndInclusive:Number, highEndExclusive:Number):Number{
+			if( lowEndInclusive >= highEndExclusive){
+				throw new Error("Low end must be lower than high end.");
+			}
+			var spread:Number = highEndExclusive - lowEndInclusive;
+			var randomSeed:Number = Math.random();
+			return lowEndInclusive + (randomSeed * spread);
+		}
+		
+		// put utilities to test out the randomizers here.
+		public static function testRandomizers( testBoolean:Boolean = true, testInt:Boolean = true, testNumber:Boolean = true, runs:int = 10000000):void{
+			trace("-------------------");
+			trace("TESTING RANDOMIZERS");
+			trace("-------------------");
+			
+			var wins:int, i:int, current:Number;
+
+			if(testBoolean){
+				// boolean tester
+				wins = 0;
+				for(i = 0; i < runs; i++){
+					if( MathUtilities.randomBoolean()){
+						wins++;
+					}
+				}
+				trace( "Random Boolean Win %: ", wins / runs);
+				trace( "Test should return approx 0.5 ");
+				trace( "---------------------");
+			}
+			
+			if(testInt){
+			// int tester
+				wins = 0;
+				for( i = 0; i < runs; i++){
+					current = MathUtilities.randomIntBetween(0, 10);
+					if( current == 0){
+						wins++;
+					}
+				}
+				trace( "Random Int Win %: ", wins / runs);
+				trace( "Test should return approx 0.1");
+				trace( "---------------------");
+			}
+			
+			if(testNumber){
+				// number tester
+				wins = 0;
+				for( i = 0; i < runs; i++){
+					current = MathUtilities.randomNumberBetween(0, 10);
+					if( current < 1){
+						wins++;
+					}
+				}
+				trace( "Random Number Win %: ", wins / runs);
+				trace( "Test should return approx 0.099999");
+				trace( "---------------------");
+			}
+		}
+		
 	}
 }
