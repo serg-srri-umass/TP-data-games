@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.11.26";
+			public static const  VERSION:String = "Chainsaw v.2013.12.04";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -219,6 +219,10 @@
 			[Embed(source="../embedded_assets/thicklog.png")]
 			[Bindable]
 			private var mThickLogImage:Class;
+			
+			[Embed(source="../embedded_assets/mixedlog.png")]
+			[Bindable]
+			private var mMixedLogImage:Class;
 			
 			
 			// test flash player makes sure the player is meeting the minimum requirements.
@@ -1490,14 +1494,19 @@
 	
 	<!-- Levels Screen -->
 	<s:BorderContainer id="levelScreen" x="{0}" y="{StatusBar.height}" width="{this.minWidth}" height="{this.minHeight-StatusBar.height}" borderVisible="false" backgroundColor="#d2bfa4" visible="false" depth="1000">
-		<s:Image id="thinLevelBtn" x="300" y="100" source="{mThinLogImage}"/>
-		<s:Image id="thickLevelBtn" x="300" y="200" source="{mThickLogImage}"/>
-		<s:Image id="mixedLevelBtn" x="300" y="300" source="{mThickLogImage}"/>
+		<s:BorderContainer backgroundColor="#84602e" x="180" y="10" width="400" height="380" dropShadowVisible="true"></s:BorderContainer>
+	
+		<s:Image id="thinLevelBtn" x="250" y="60" source="{mThinLogImage}"/>
+		<s:Image id="thickLevelBtn" x="250" y="160" source="{mThickLogImage}"/>
+		<s:Image id="mixedLevelBtn" x="250" y="260" source="{mMixedLogImage}"/>
+		<!--
 		<s:Label id="thinLevelLabel" x="{thinLevelBtn.x+60}" y="{thinLevelBtn.y+12}" text="Thin Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
 		<s:Label id="thickLevelLabel" x="{thickLevelBtn.x+60}" y="{thickLevelBtn.y+20}" text="Thick Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
 		<s:Label id="mixedLevelLabel" x="{mixedLevelBtn.x+60}" y="{mixedLevelBtn.y+20}" text="Mixed Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
+		-->
+			
+		<s:CheckBox id="practiceCheckBox" x="356" y="360" label="Practice"/>
 		
-		<s:CheckBox id="practiceCheckBox" x="330" y="390" label="Practice"/>
 		<s:Button id="closeLevelsButton" x="650" y="360" width="90" height="30" label="Close" click="levelScreen.visible=false;" enabled="true" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 	
