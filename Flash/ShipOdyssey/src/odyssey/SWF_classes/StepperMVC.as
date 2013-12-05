@@ -87,7 +87,7 @@
 				gotoAndPlay("blink");
 			}
 			if( value < 100)
-				valueWrapper.valueField.text = String(_value.toFixed(1));
+				valueWrapper.valueField.text = String(_value.toFixed(_precision));
 			else
 				valueWrapper.valueField.text = String(_value.toFixed(0));
 			

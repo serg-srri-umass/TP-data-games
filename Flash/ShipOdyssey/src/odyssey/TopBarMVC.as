@@ -66,7 +66,7 @@ package odyssey
 		// set a reference to the stage.
 		public function setStage(arg:Stage):void{
 			_stage = arg;
-			_stage.addEventListener(MouseEvent.CLICK, closeBouncer); // the first mouse click will close the video prompt.
+			_stage.addEventListener(MouseEvent.MOUSE_DOWN, closeBouncer); // the first mouse click will close the video prompt.
 		}
 		
 		private function toggleQuality(e:MouseEvent = null):void{
@@ -147,13 +147,16 @@ package odyssey
 			}
 		}
 		
-		public function closeBouncer( e:Event = null):void{
+		public function closeBouncer( e:Event = null, instant:Boolean = false):void{
 			if(bouncingPrompt){
 				mouseOverHelp.gotoAndStop(1);
 				mouseOverHelp.inner.gotoAndPlay("close");
 				bouncingPrompt = false;
 			}
-			_stage.removeEventListener( MouseEvent.CLICK, closeBouncer);
+			_stage.removeEventListener( MouseEvent.MOUSE_DOWN, closeBouncer);
+			if(instant){
+				mouseOverHelp.visible = false;
+			}
 		}
 	}
 }

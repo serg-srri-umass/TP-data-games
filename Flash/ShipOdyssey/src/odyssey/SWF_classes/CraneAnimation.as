@@ -218,13 +218,12 @@
 		
 		public function addTreasure():void{
 			Crane_mc.hoard.nextFrame();
-			trace("ADDING A TREASURE!");
 		}
 		
 		public function resetTreasure():void{
 			Crane_mc.hoard.gotoAndStop(1);
 		}
-
+		
 		// for the crane to be able to drag to a decimal #, it needs a value independent of it's current frame (which is an int).
 		private var _value:Number = 100;
 		private var slowness:int = 1; // the bigger this #, the slower the crane will drag. Use it to control the precision.

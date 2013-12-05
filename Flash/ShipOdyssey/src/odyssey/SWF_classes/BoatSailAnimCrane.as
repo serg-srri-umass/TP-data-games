@@ -29,7 +29,7 @@
 			super.nextFrame();
 		}
 		
-		public function prevFrame():void{
+		override public function prevFrame():void{
 			crane.gotoAndStop( crane.currentFrame - 1);
 			ring1.gotoAndStop( ring1.currentFrame - 1);
 			ring2.gotoAndStop( ring2.currentFrame - 1);

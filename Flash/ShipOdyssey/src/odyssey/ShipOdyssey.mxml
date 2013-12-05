@@ -40,14 +40,7 @@
 			import common.*;
 			
 			import flash.display.*;
-			
 			import flash.external.ExternalInterface;
-
-			//import mx.controls.Alert;
-			//import mx.events.CloseEvent;
-			//import mx.flash.UIMovieClip;
-			//import mx.managers.PopUpManager;
-			//import mx.utils.StringUtil;
 			
 			import odyssey.events.*;
 			import odyssey.missions.*;
@@ -153,7 +146,26 @@
 				
 				mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
 				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
+				
+				// Note: restore state may be called here, if opening a saved DG document. 
+				// need a global variable to know if restore state was called. 
+				
 				mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
+				
+				/*var progress:Object = {
+					gameSerialNum: 1,
+					siteSerialNum: 4,
+					sitesVisitedThisGame: 2,
+					remainingRats: 52,
+					remainingMisses: 1,
+					treasuresFoundThisGame: 2,
+					treasuresFoundThisSite: 0,
+					treasuresRemaining: [98],
+					hooksDroppedArray: [[22, false, CraneEvent.GOT_NOTHING ]]
+				}
+				
+				restoreGame(Missions.getMission(6), progress);
+				*/
 				
 				initListeners();	// adds event listeners that exist for the entirety of the game.
 				initVisualElements(); // any visual elements of .swc format are init'd here
@@ -210,7 +222,7 @@
 			// start a new game.
 			private function newGame( mission:MissionData, stripBtnListeners:Boolean):void{
 				if(stripBtnListeners)
-					popUpScreen.stripMissionButtonListeners();	// if this is being called from the pop-up screen, strip the button listeners. 
+					popUpScreen.stripMissionButtonListeners();	// if this is being called from the pop-up screen, strip the button listeners off of that screen. 
 				
 				mCurrentMission = mission;
 				sailingMovie.hardReset();
@@ -250,8 +262,6 @@
 				
 				// start a new Game case in DG
 				sendGameDataOpen();
-				
-				closePrompt(new MouseEvent("click"));
 			}
 						
 			// randomLocation() creates a new location on the ocean floor based on a uniform
@@ -516,11 +526,8 @@
 					// Add treasure value to accumulated wealth.
 					bootyMeter.finishTreasureDrop(true);
 					mCashSound.play(); // Play cash register sound.	
-					
-					// Tell the player which treasure was found and how much it is worth.					
-					
+										
 					if(mCurrentMission.variableTreasures) {	// if on "Treasure or Not"
-						//var valueInDollars:String = TextFormatter.toCash(mTreasuresThisSite[mCurrentTreasureNum][kValue]);
 						if(bootyMeter.isOutOfHooks){
 							haveTreasure = true;
 							zoomOutAndSail(); 
@@ -547,11 +554,7 @@
 					}else{
 						popUpScreen.doReplay(hooksDroppedArray, mTreasuresThisSite, mCurrentMission.seaWall);
 						zoomOutAndSail();
-					}
-						
-					
-					// Send event data to TinkerPlots / Fathom.
-					//sendEventData("Hook", getEventCaseValues( "Miss" )); --Disabled
+					}				
 				}
 				
 				// send updated # of hooks dropped to DG game case
@@ -927,7 +930,7 @@
 			}
 			
 			// called when the sailing animation finishes zooming in. Enables the buttons and let's the user start playing.
-			private function zoomInTimerFinish(e:TimerEvent):void{
+			private function zoomInTimerFinish(e:TimerEvent = null):void{
 				crane.establish();
 				sailingMovie.visible = false;
 				enableAllButtons();
@@ -1207,13 +1210,129 @@
 				}
 			}
 			
-			// close the red 'click here' prompt that the video gives you.
-			private function closePrompt(e:MouseEvent):void{
-				mVideoButton.gotoAndPlay("close");
-				mVideoButton.removeEventListener( MouseEvent.CLICK, closePrompt);
-			//	mStartStopButton.removeEventListener( MouseEvent.CLICK, closePrompt);
-				//mChangeLevelButton.removeEventListener( MouseEvent.CLICK, closePrompt);
+			
+			
+			/* SAVING LOADING FUNCTIONS */
+			
+			private function loadOdyssey(progress:Object):void{
+				
 			}
+			
+			
+			// jump into the middle of a game. Similar to calling 'new game', but doesn't necessarily give a clean slate. 
+			private function restoreGame(mission:MissionData, progress:Object):void{											
+				mCurrentMission = mission;
+				sailingMovie.hardReset();
+				
+				// first update/close/delete old game case in DG, before we update mGameSerialNum, etc. for new game
+				if( mDGInterface.isGameCaseOpen()) {
+					sendGameDataClose();
+				}
+				
+				mGameSerialNum = progress.gameSerialNum;
+				mSitesVisitedThisGame = progress.sitesVisitedThisGame;
+				
+				Water.fill = mission.waterGradient;
+				Sky.backgroundFill = mission.skyGradient;
+				cHerder.cleanClouds();
+				cHerder.init( mission.cloudPattern);
+				cHerder.startClouds();
+				
+				bootyMeter.nextSiteBtn.visible = mission.variableTreasures;
+				
+				// when restore a variable treasures level, treasures per site needs to be resoted properly.
+				if(mission.variableTreasures){ 
+					numTreasuresPerSite = shuffleTreasuresPerSite();
+					for( var j:int = 1; j < progress.sitesVisitedThisGame + 1; j++){
+						if(numTreasuresPerSite.length > 0)
+							numTreasuresPerSite.shift();
+					}
+				}
+				
+				if(mission.seaWall){
+					posTreasuresPerSite = shufflePositionPerSite();
+					for( var k:int = 1; k < progress.sitesVisitedThisGame + 1; k++){
+						if(posTreasuresPerSite.length > 0)
+							posTreasuresPerSite.shift();
+					}
+				}
+				
+				bootyMeter.initialize( mission.startingRats, mission.missesAllowed);
+				bootyMeter.startMidgame( progress.remainingRats, progress.remainingMisses, progress.treasuresFoundThisGame);
+				
+				mDGInterface.sendLog( "loadGame: GameNumber="+mGameSerialNum+" Mission='"+mCurrentMission.title+"'" );
+				
+				setRatsToSend( mission.ratsInStepper);	// moving this down fixed a bug where the stepper did not properly take the starting # of rats in the stepper. (a very series issue for Mission 1)
+				shipControlsMVC.useLargeRatButton = mission.fixedRats; 	// if this mission has a fixed # of rats, use the big button instead of the stepper.
+				setHookSizes(mission.hookSize);
+				
+				// pile treasures up on the deck:
+				crane.resetTreasure();
+				for(var i:int = 0; i < progress.treasuresFoundThisGame; i++){
+					crane.addTreasure();
+					sailingMovie.addTreasure();
+				}
+				
+				// start a new Game case in DG
+				sendGameDataOpen();
+				restoreSite( progress); // the equivalent of calling 'new site'			
+			}	
+			
+			private function restoreSite( progress:Object):void{
+				readyToZoomIn();
+				disableAllButtons();
+				
+				// give some prompt to remind the player where they were. This masks the fact that we can't skip the 'zoom in' animation.
+				//popUpScreen.displayMessage("Welcome Back", "You were playing " + mCurrentMission.title + ". So far, you've been to " + progress.sitesVisitedThisGame + " site" + ( + progress.sitesVisitedThisGame > 1 ? "s":"") + " and found " + progress.treasuresFoundThisGame + " treasures.");
+				topBarMVC.closeBouncer(null);
+				
+				mSiteSerialNum			= progress.siteSerialNum; 
+				mTreasuresFoundThisSite	= progress.treasuresFoundThisSite;	
+				mRatsSentThisSite		= progress.remainingRats - mCurrentMission.startingRats;
+				
+				var numTreasuresThisSite:int = progress.treasuresRemaining.length; 
+				mTreasuresThisSite = new Vector.<Treasure>();
+				for( var i:int = 0; i < numTreasuresThisSite; i++)
+					mTreasuresThisSite.push( new Treasure( TreasureNamePicker.poolShift( mCurrentMission.number), progress.treasuresRemaining[i]));
+				
+				// add the already-found treasures:
+				if( mTreasuresFoundThisSite > 0){
+					for( i = 0; i < progress.hooksDroppedArray.length; i++){
+						if( progress.hooksDroppedArray[i][1]){ // this hook drop found a treasure
+							var myFoundTreasure:Treasure = new Treasure(  TreasureNamePicker.poolShift( mCurrentMission.number), progress.hooksDroppedArray[i][0]);
+							myFoundTreasure.found = true;
+							mTreasuresThisSite.push( myFoundTreasure); // add the treasure to the array
+						}
+					}
+				}
+				
+				
+				// Move hook to its starting position.
+				mCenterPosition						= 100;	
+				shipControlsMVC.hookStepper.value	= mCenterPosition;					// Set stepper to center position.
+				mMinHookRange						= mCenterPosition - mCurrentMission.hookRadius;	// Left edge of hook's grasp.
+				mMaxHookRange						= mCenterPosition + mCurrentMission.hookRadius; //mHookRadius;	// Right edge of hook's grasp.
+				shipControlsMVC.interval.text		= mMinHookRange.toFixed(1) + " – " + mMaxHookRange.toFixed(1);
+				hooksDroppedArray = progress.hooksDroppedArray;
+				
+				mDGInterface.sendLog( "loadSite: Site="+mSiteSerialNum+" SitesVisited="+mSitesVisitedThisGame );
+				
+				// THIS NEEDS TO BE HANDLED:
+				//if( mSitesVisitedThisGame >= 2){ // what is >= 2 for?
+					//sendGameDataUpdate(); // send updated SitesVisited to DG
+				//}
+				
+				updateRatLimit();
+				updateGameTitle();
+				
+				if(VersionChecker.isDebug && kDebugMode)
+				{
+					trace(treasuresFoundString());
+				}
+			}
+			
+			
+			
 		]]>
 	</fx:Script>
 	

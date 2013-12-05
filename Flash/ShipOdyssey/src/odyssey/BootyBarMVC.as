@@ -106,6 +106,18 @@ package odyssey
 				hooks["hook"+(i+1)].gotoAndStop(1);		//shows the correct # of hooks, from 1 - 4
 		}
 		
+		// this can be called after an initializer, to start mid-mission
+		public function startMidgame(remainingRats:int, remainingMisses:int, treasuresFoundSoFar:int):void{
+			_rats = remainingRats;
+			_misses = _missesAllowed - remainingMisses;
+			_treasuresFound = treasuresFoundSoFar;
+			
+			account();
+			for(var i:int = 0; i<_misses; i++)
+				hooks["hook"+(i+1)].gotoAndPlay(1);		// grey out the missed hooks
+			treasureDisplay.treasure.treasures.text = String(_treasuresFound);
+		}
+		
 		// call this method whenever you spend money
 		public function pay(cost:int):void{
 			_rats -= cost;
