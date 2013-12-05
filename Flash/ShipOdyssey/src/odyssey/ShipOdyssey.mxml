@@ -25,7 +25,7 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   width="518" height="410" 
 			   creationComplete="testFlashPlayer()" 
-			   currentState="StartPage"
+			   currentState="TreasureHunt"
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
 			   pageTitle="Ship Odyssey"
@@ -47,7 +47,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.11.26";
+			private static const kVersion:String = "v.2013.12.05";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -130,80 +130,85 @@
 			// test flash player makes sure the player is meeting the minimum requirements.
 			private function testFlashPlayer():void {
 				if( VersionChecker.isValid(kMinimumRequiredVersion)) {
-					startUp();
+					initPopUpScreen(); // the pop up screen has to be init'd before any other visual element, so we can show the word 'Loading'
+					recheckTimer.addEventListener(TimerEvent.TIMER, checkSWFLoaders); // this timer checks every second whether or not loading is complete.
+					checkSWFLoaders();
 				} else {
 					BrickWall.visible = true;
 				}
 			}
 			
-			// startUp() is called when the creation of this class is complete
-			// and sets up necessary parameters for game initiation.			
+			// startUp() is called when the creation of this class is complete & 1nce each second, until all assets have loaded.
+			// it sets up necessary parameters for game initiation.			
 			private	function startUp():void	
 			{
 				BrickWall.visible = false;
-				//topBarMVC.disableHelpButton();			// disable the info button, it won't be enabled until arriving at a site.
-				mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
 				
-				mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
-				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
-				
-				// Note: restore state may be called here, if opening a saved DG document. 
-				// need a global variable to know if restore state was called. 
-				
-				mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
-				
-				/*var progress:Object = {
-					gameSerialNum: 1,
-					siteSerialNum: 4,
-					sitesVisitedThisGame: 2,
-					remainingRats: 52,
-					remainingMisses: 1,
-					treasuresFoundThisGame: 2,
-					treasuresFoundThisSite: 0,
-					treasuresRemaining: [98],
-					hooksDroppedArray: [[22, false, CraneEvent.GOT_NOTHING ]]
-				}
-				
-				restoreGame(Missions.getMission(6), progress);
-				*/
-				
-				initListeners();	// adds event listeners that exist for the entirety of the game.
-				initVisualElements(); // any visual elements of .swc format are init'd here
-				DivingRatDirector.init( ratContainer);	// pass the DivingRatDirector the container it's going to draw into.
-				
-				currentState='TreasureHunt'; // TO-DO: Take out these states, if they're no longer being used.
-				
-				if(allAssetsLoaded)
-					popUpScreen.displayMissionMap(); // show level selection on start up and start the game (true = start game after level selection)
-				else
-					popUpScreen.showLoading();
-				
-				
-				//mVideoButton.addEventListener( MouseEvent.CLICK, closePrompt);	$WIP				
-				
-				//Embedded Youtube video
-				var videoID:String = "dDJ0oicZi1k";
-				// to add a new video:
-				// upload it to youtube using serg.srri.umass@gmail.com account
-				// copy the 11 digit ID string which is in the URL and embed code
-				
-				Security.allowDomain("http://youtube.com"); //Allow flash to load assets from youtube
-				Security.allowDomain("http://s.ytimg.com");
-
-				var loader:Loader = new Loader();
-				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
-				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
-				//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
-				function onLoaderInit(event:Event):void {
-					videoHolder.addChild(loader);
-					loader.content.addEventListener("onReady", onPlayerReady);
-					function onPlayerReady(event:Event):void {
-						videoPlayer = loader.content;
-						videoPlayer.setSize(518, 308);
-						videoPlayer.loadVideoById(videoID);
-						videoPlayer.pauseVideo();
-						videoPlayer.addEventListener("onStateChange", onVideoStateChange);
+				if(allAssetsLoaded){
+					trace("FULL STARTUP!");
+					recheckTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, checkSWFLoaders);
+					recheckTimer.stop();
+					
+					mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
+					
+					mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
+					this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
+					
+					// Note: restore state may be called here, if opening a saved DG document. 
+					// need a global variable to know if restore state was called. 
+					
+					mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
+					
+					/*var progress:Object = {
+						gameSerialNum: 1,
+						siteSerialNum: 4,
+						sitesVisitedThisGame: 2,
+						remainingRats: 52,
+						remainingMisses: 1,
+						treasuresFoundThisGame: 2,
+						treasuresFoundThisSite: 0,
+						treasuresRemaining: [98],
+						hooksDroppedArray: [[22, false, CraneEvent.GOT_NOTHING ]]
 					}
+					
+					restoreGame(Missions.getMission(6), progress);
+					*/
+					
+					initListeners();	// adds event listeners that exist for the entirety of the game.
+					initVisualElements(); // any visual elements of .swc format are init'd here
+					DivingRatDirector.init( ratContainer);	// pass the DivingRatDirector the container it's going to draw into.
+					
+					// TO DO: MAKE THIS READY FOR LOADING
+					popUpScreen.displayMissionMap(); // show level selection on start up and start the game (true = start game after level selection)
+										
+					//Embedded Youtube video
+					var videoID:String = "dDJ0oicZi1k";
+					// to add a new video:
+					// upload it to youtube using serg.srri.umass@gmail.com account
+					// copy the 11 digit ID string which is in the URL and embed code
+					
+					Security.allowDomain("http://youtube.com"); //Allow flash to load assets from youtube
+					Security.allowDomain("http://s.ytimg.com");
+	
+					var loader:Loader = new Loader();
+					loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
+					loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
+					//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
+					function onLoaderInit(event:Event):void {
+						videoHolder.addChild(loader);
+						loader.content.addEventListener("onReady", onPlayerReady);
+						function onPlayerReady(event:Event):void {
+							videoPlayer = loader.content;
+							videoPlayer.setSize(518, 308);
+							videoPlayer.loadVideoById(videoID);
+							videoPlayer.pauseVideo();
+							videoPlayer.addEventListener("onStateChange", onVideoStateChange);
+						}
+					}
+				} else {
+					recheckTimer.reset();
+					recheckTimer.start();
+					return; 
 				}
 			}
 			
@@ -998,7 +1003,9 @@
 			private var crane:MovieClip;			
 			private var sailingMovie:MovieClip;
 			private var cHerder:MovieClip;
+			
 			private var allAssetsLoaded:Boolean = false; // set to true when all SWF loaders are done.
+			protected var recheckTimer:Timer = new Timer(1000, 1)
 			
 			private var skyAreaMask:Shape;
 			private var sailMask:Shape;
@@ -1074,11 +1081,11 @@
 				checkSWFLoaders();
 			}
 
-			private function checkSWFLoaders():void{
+			private function checkSWFLoaders( e:Event = null):void{
 				if(crane && cHerder && sailingMovie) {
 					allAssetsLoaded = true;
-					popUpScreen.displayMissionMap(); // show level selection on start up and start the game (true = start game after level selection)
 				}
+				startUp();
 			}
 			
 			private function setGameTitle(arg:String):void {
@@ -1101,8 +1108,14 @@
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RELEASED, disableRatHookButton);
 				DivingRatDirector.dispatcher.addEventListener(RatEvent.RETURNED, finishRatDive);
 			}
-		
-			// attach the booty bar to the screen. And popups
+			
+			// init the popupscreen before all other visual elements, so it can show 'LOADING', while waiting for the rest to come in.
+			private function initPopUpScreen():void{
+				popUpContainer.addChild(popUpScreen);
+				popUpScreen.showLoading();
+			}
+			
+			// Add visual SWC files to the screen
 			private function initVisualElements():void{	
 				bootyMeterContainer.addChild(bootyMeter);
 				bootyMeter.nextSiteFunction = zoomOutAndSail;
@@ -1116,13 +1129,16 @@
 				shipControlsMVC.ratStepper.setOnChangeFunction(onChangeRatStepper);
 				shipControlsMVC.hookStepper.setOnChangeFunction(onChangeCenterPosition);
 				
-				popUpContainer.addChild(popUpScreen);
-				popUpScreen.visible = false;
-
+				if(popUpScreen.parent == popUpContainer){
+					popUpContainer.swapChildren(popUpScreen, shipControlsMVC); // put the pop-ups on top of everything else if they've already been loaded
+				} else {
+					popUpContainer.addChild(popUpScreen); // otherwise, add them here
+					popUpScreen.showLoading(); 
+				}
+				
 				topBarContainer.addChild(topBarMVC);
 				topBarMVC.setVersion(kVersion);
 				topBarMVC.setStage(this.systemManager.stage);
-				//topBarMVC.helpFunction = onClickHelpButton;
 				
 				addEventListener(MouseEvent.CLICK, handleFocus);
 			}	
@@ -1337,7 +1353,6 @@
 	</fx:Script>
 	
 	<s:states>
-		<s:State name="StartPage"/>
 		<s:State name="TreasureHunt"/>
 	</s:states>
 	
@@ -1391,7 +1406,7 @@
 				  height="50" fontFamily="Georgia" label="Upgrade Flash Player" click="VersionChecker.openAdobeWebsite()"
 				  enabled="true" fontSize="25"/>
 		<s:Button id="ignoreButton" x="{(GameScreen.TOTAL_SCREEN_WIDTH-350)/2}" y="310" width="350"
-				  height="30" fontFamily="Georgia" label="Ignore Warning" click="startUp()" enabled="true" fontSize="12"/>
+				  height="30" fontFamily="Georgia" label="Ignore Warning" click="checkSWFLoaders()" enabled="true" fontSize="12"/>
 	
 	</s:BorderContainer>
 	
