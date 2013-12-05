@@ -151,64 +151,83 @@
 					
 					mRandomNormal	= new ParkMiller();		// Create class that generates a normal distribution.
 					
-					mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
-					this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
-					
-					// Note: restore state may be called here, if opening a saved DG document. 
-					// need a global variable to know if restore state was called. 
-					
-					mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
-					
-					/*var progress:Object = {
-						gameSerialNum: 1,
-						siteSerialNum: 4,
-						sitesVisitedThisGame: 2,
-						remainingRats: 52,
-						remainingMisses: 1,
-						treasuresFoundThisGame: 2,
-						treasuresFoundThisSite: 0,
-						treasuresRemaining: [98],
-						hooksDroppedArray: [[22, false, CraneEvent.GOT_NOTHING ]]
-					}
-					
-					restoreGame(Missions.getMission(6), progress);
-					*/
-					
+
+					// INITIALIZE ALL THE VISUAL ELEMENTS:
 					initListeners();	// adds event listeners that exist for the entirety of the game.
 					initVisualElements(); // any visual elements of .swc format are init'd here
 					DivingRatDirector.init( ratContainer);	// pass the DivingRatDirector the container it's going to draw into.
-					
-					// TO DO: MAKE THIS READY FOR LOADING
 					popUpScreen.displayMissionMap(); // show level selection on start up and start the game (true = start game after level selection)
-										
-					//Embedded Youtube video
-					var videoID:String = "dDJ0oicZi1k";
-					// to add a new video:
-					// upload it to youtube using serg.srri.umass@gmail.com account
-					// copy the 11 digit ID string which is in the URL and embed code
+
+					// INITIALIZE DG:
+					// Note: Visual Elements are Init'd before the DG interface is created (so the game is ready to load a save file)
+					mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
+					this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
+					// Note: restore state may be called here, if opening a saved DG document. 
+					mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
 					
-					Security.allowDomain("http://youtube.com"); //Allow flash to load assets from youtube
-					Security.allowDomain("http://s.ytimg.com");
-	
-					var loader:Loader = new Loader();
-					loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
-					loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
-					//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
-					function onLoaderInit(event:Event):void {
-						videoHolder.addChild(loader);
-						loader.content.addEventListener("onReady", onPlayerReady);
-						function onPlayerReady(event:Event):void {
-							videoPlayer = loader.content;
-							videoPlayer.setSize(518, 308);
-							videoPlayer.loadVideoById(videoID);
-							videoPlayer.pauseVideo();
-							videoPlayer.addEventListener("onStateChange", onVideoStateChange);
-						}
+					// EMBED YOUTUBE VIDEO:
+					embedYoutubeVideo();
+					
+					
+					// PROXY:
+					/*var progress:Object = {
+						// VARS NEEDED TO RESTORE AN ODYSSEY:
+						ratings: [3, 3, 4, 2, 0, 5],			// the scores on all missions so far
+						deleteDataEachSite: false,				// whether or not the 'clear my graph' box was checked
+						wasInGame: true, 						// if this is false, nothing below this line matters:
+						
+						// VARS NEEDED TO RESTORE A GAME:
+						mission: 2,								// what mission ID we were playing (ie, 1: Hundreds o' Rats, 2: Rat Shortage, etc.)
+						gameSerialNum: 2,						// how many games have been played so far
+						siteSerialNum: 4,						// how many sites have been played so far
+						sitesVisitedThisGame: 1,				// how many sites have been visited this game
+						remainingRats: 52,						// rats remaining in booty meter
+						remainingMisses: 1,						// hook drops remaining in booty meter
+						treasuresFoundThisGame: 2,				// treasures found in booty meter
+						wasInSite: true, 						// if this is false, nothing below this line matters:
+						
+						// VARS NEEDED TO RESTORE A SITE:
+						treasuresFoundThisSite: 0,				// used in variable treasure levels
+						treasuresRemaining: [98],				// array of treasure locations
+						hooksDroppedArray: [[22, false, CraneEvent.GOT_NOTHING ]]	// array of hooks dropped so far, this game	
 					}
+					var progressWrapper:Object = {
+						state: progress
+					}
+					restoreStateforDG(progressWrapper); */					
+					// END PROXY
+					
 				} else {
 					recheckTimer.reset();
 					recheckTimer.start();
 					return; 
+				}
+			}
+			
+			private function embedYoutubeVideo():void{
+				//Embedded Youtube video
+				var videoID:String = "dDJ0oicZi1k";
+				// to add a new video:
+				// upload it to youtube using serg.srri.umass@gmail.com account
+				// copy the 11 digit ID string which is in the URL and embed code
+				
+				Security.allowDomain("http://youtube.com"); //Allow flash to load assets from youtube
+				Security.allowDomain("http://s.ytimg.com");
+				
+				var loader:Loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
+				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
+				//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
+				function onLoaderInit(event:Event):void {
+					videoHolder.addChild(loader);
+					loader.content.addEventListener("onReady", onPlayerReady);
+					function onPlayerReady(event:Event):void {
+						videoPlayer = loader.content;
+						videoPlayer.setSize(518, 308);
+						videoPlayer.loadVideoById(videoID);
+						videoPlayer.pauseVideo();
+						videoPlayer.addEventListener("onStateChange", onVideoStateChange);
+					}
 				}
 			}
 			
@@ -863,19 +882,23 @@
 					result:Object = { success: false };
 				if( iState )  // restore our parameters as independently as possible
 				{
-					if( iState.gameNumber ) {
-						this.mGameSerialNum = iState.gameNumber;
-					}					
-					if( iState.siteNumber ) {
-						this.mSiteSerialNum = iState.siteNumber;
-					}
-					if( iState.gameLevel) {
-						if( iState.gameLevel >= 0 && iState.gameLevel < 999 ) { // must be a valid level for this version
-							// TO-DO: set the level if possile
-						}
-						// else ignore invalid levels
-					}
 					result.success = true;
+					var validator:RestoreValidator = new RestoreValidator();	// this objects handles the restoration of save states.
+					if( validator.validateOdysseyRestore( iState)){								// CHECK IF ANYTHING CAN BE RESTORED (TOP LEVEL)
+						restoreOdyssey(iState);
+						if( iState.wasInGame && validator.validateGameRestore( iState)){			// CHECK IF A GAME WAS UNDERWAY, AND CAN BE RESTORED
+							restoreGame(iState);
+							if( iState.wasInSite && validator.validateSiteRestore( iState)){		// CHECK IF A SITE WAS UNDERWAY, AND CAN BE RESTORED
+								restoreSite(iState);
+							} else{
+								newSite(); // if a site isn't being restored, create a new site.
+							}
+						} else {
+							popUpScreen.displayMissionMap( true); // if a game isn't being restored, return to the map.
+						}
+					} else { // could not restore anything:
+						result.sucess = false;	// if nothing could be restored, this opperation was a failure.
+					}
 				}
 				return result;
 			}	
@@ -1030,7 +1053,7 @@
 				crane.addEventListener(CraneEvent.GOT_SEAWEED, handleGettingJunk);
 				crane.addEventListener(CraneEvent.GOT_NOTHING, handleGettingJunk);
 
-				checkSWFLoaders();
+				//checkSWFLoaders();
 			}
 			
 			private var lastHookItem:String;
@@ -1059,7 +1082,7 @@
 				skyAreaMask.graphics.drawRect(0,0,395,186);
 				uic.addChild(skyAreaMask);//have to add masks to display list or else RemovePopUp will hide them and the object they are masking
 				cHerder.mask = skyAreaMask;
-				checkSWFLoaders();
+				//checkSWFLoaders();
 			}
 			
 			//ties boat swf loader to code
@@ -1078,7 +1101,7 @@
 				sailingMovie.mask = sailMask;
 				//start sailing
 				sailingMovie.ToyBoat.startSail(); 
-				checkSWFLoaders();
+				//checkSWFLoaders();
 			}
 
 			private function checkSWFLoaders( e:Event = null):void{
@@ -1230,14 +1253,25 @@
 			
 			/* SAVING LOADING FUNCTIONS */
 			
-			private function loadOdyssey(progress:Object):void{
+			private function restoreOdyssey(progress:Object):void{				
+				// restore the star ratings:
+				Missions.getMission(1).bestRating = progress.ratings[0];
+				Missions.getMission(2).bestRating = progress.ratings[1];
+				Missions.getMission(3).bestRating = progress.ratings[2];
+				Missions.getMission(4).bestRating = progress.ratings[3];
+				Missions.getMission(5).bestRating = progress.ratings[4];
+				Missions.getMission(6).bestRating = progress.ratings[5];
 				
+				// restore the 'clear my graph' checkbox setting:
+				popUpScreen.deleteData = progress.deleteDataEachSite;
 			}
 			
 			
 			// jump into the middle of a game. Similar to calling 'new game', but doesn't necessarily give a clean slate. 
-			private function restoreGame(mission:MissionData, progress:Object):void{											
-				mCurrentMission = mission;
+			private function restoreGame(progress:Object):void{											
+				mCurrentMission = Missions.getMission(progress.mission);
+				popUpScreen.selectedLevel = progress.mission; 	// ensures the correct mission will be highlighted on the map when this game finishes.
+				popUpScreen.visible = false;
 				sailingMovie.hardReset();
 				
 				// first update/close/delete old game case in DG, before we update mGameSerialNum, etc. for new game
@@ -1246,18 +1280,19 @@
 				}
 				
 				mGameSerialNum = progress.gameSerialNum;
+				mSiteSerialNum = progress.siteSerialNum;
 				mSitesVisitedThisGame = progress.sitesVisitedThisGame;
 				
-				Water.fill = mission.waterGradient;
-				Sky.backgroundFill = mission.skyGradient;
+				Water.fill = mCurrentMission.waterGradient;
+				Sky.backgroundFill = mCurrentMission.skyGradient;
 				cHerder.cleanClouds();
-				cHerder.init( mission.cloudPattern);
+				cHerder.init( mCurrentMission.cloudPattern);
 				cHerder.startClouds();
 				
-				bootyMeter.nextSiteBtn.visible = mission.variableTreasures;
+				bootyMeter.nextSiteBtn.visible = mCurrentMission.variableTreasures;
 				
 				// when restore a variable treasures level, treasures per site needs to be resoted properly.
-				if(mission.variableTreasures){ 
+				if(mCurrentMission.variableTreasures){ 
 					numTreasuresPerSite = shuffleTreasuresPerSite();
 					for( var j:int = 1; j < progress.sitesVisitedThisGame + 1; j++){
 						if(numTreasuresPerSite.length > 0)
@@ -1265,7 +1300,7 @@
 					}
 				}
 				
-				if(mission.seaWall){
+				if(mCurrentMission.seaWall){
 					posTreasuresPerSite = shufflePositionPerSite();
 					for( var k:int = 1; k < progress.sitesVisitedThisGame + 1; k++){
 						if(posTreasuresPerSite.length > 0)
@@ -1273,14 +1308,14 @@
 					}
 				}
 				
-				bootyMeter.initialize( mission.startingRats, mission.missesAllowed);
+				bootyMeter.initialize( mCurrentMission.startingRats, mCurrentMission.missesAllowed);
 				bootyMeter.startMidgame( progress.remainingRats, progress.remainingMisses, progress.treasuresFoundThisGame);
 				
 				mDGInterface.sendLog( "loadGame: GameNumber="+mGameSerialNum+" Mission='"+mCurrentMission.title+"'" );
 				
-				setRatsToSend( mission.ratsInStepper);	// moving this down fixed a bug where the stepper did not properly take the starting # of rats in the stepper. (a very series issue for Mission 1)
-				shipControlsMVC.useLargeRatButton = mission.fixedRats; 	// if this mission has a fixed # of rats, use the big button instead of the stepper.
-				setHookSizes(mission.hookSize);
+				setRatsToSend( mCurrentMission.ratsInStepper);	// moving this down fixed a bug where the stepper did not properly take the starting # of rats in the stepper. (a very series issue for Mission 1)
+				shipControlsMVC.useLargeRatButton = mCurrentMission.fixedRats; 	// if this mission has a fixed # of rats, use the big button instead of the stepper.
+				setHookSizes(mCurrentMission.hookSize);
 				
 				// pile treasures up on the deck:
 				crane.resetTreasure();
@@ -1291,8 +1326,7 @@
 				
 				// start a new Game case in DG
 				sendGameDataOpen();
-				restoreSite( progress); // the equivalent of calling 'new site'			
-			}	
+			}
 			
 			private function restoreSite( progress:Object):void{
 				readyToZoomIn();

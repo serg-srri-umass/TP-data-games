@@ -52,6 +52,13 @@ package odyssey.missions
 			return _bestRating;
 		}
 		
+		public function set bestRating( arg:int):void{
+			if( arg < 0 || arg > 5){
+				throw new Error("Ratings range from 0 - 5");
+			}
+			_bestRating = arg;
+		}
+		
 		public function getRating(arg:int):int{
 			var output:int;
 			if(arg >= ratingArray[3])

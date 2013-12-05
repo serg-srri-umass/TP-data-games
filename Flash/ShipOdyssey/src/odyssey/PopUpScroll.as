@@ -11,7 +11,7 @@ package odyssey
 	public class PopUpScroll extends popUps
 	{
 		private var game:ShipMissionAPI;	//reference to the main. Allows this class to directly interact with the application.
-		private var selectedLevel:int = 1;
+		public var selectedLevel:int = 1;
 		
 		private var printedTreasures:int = 0; // how many treasures it says you have.
 		private var _treasuresFound:int = 0; // how many treasures you found this mission.
