@@ -56,6 +56,10 @@ package odyssey
 			return _treasuresFound;
 		}
 		
+		public function get missesRemaining():int{
+			return _missesAllowed - _misses;
+		}
+		
 		public function get isOutOfHooks():Boolean{
 			return _misses >= _missesAllowed;
 		}

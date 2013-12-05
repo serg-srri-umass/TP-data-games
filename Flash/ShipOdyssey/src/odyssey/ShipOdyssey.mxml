@@ -170,6 +170,9 @@
 					
 					
 					// PROXY:
+					
+					//saveStateforDG(null);
+
 					/*var progress:Object = {
 						// VARS NEEDED TO RESTORE AN ODYSSEY:
 						ratings: [3, 3, 4, 2, 0, 5],			// the scores on all missions so far
@@ -194,8 +197,9 @@
 					var progressWrapper:Object = {
 						state: progress
 					}
-					restoreStateforDG(progressWrapper); */					
-					// END PROXY
+					restoreStateforDG(progressWrapper); 	
+
+					// END PROXY */
 					
 				} else {
 					recheckTimer.reset();
@@ -856,21 +860,105 @@
 			//		Warning: must be compatible with different versions of restoreStateforDG()
 			//		Returns { success: true, state: {} }
 			private function saveStateforDG( args:Object ):Object {
-				var stateObj:Object = 
-					{
+				
+				var mWasInGame:Boolean = isInGame();
+				var mWasInSite:Boolean = isInSite();
+				var stateObj:Object;
+				
+				if( mWasInGame && mWasInSite){
+					stateObj = {
 						success: true,
 						state: {
-							stateVersion: 1, // increment only if needed by restoreStateForDG()
-							gameNumber:	this.mGameSerialNum,
-							gameIsPlaying: this.mDGInterface.isGameCaseOpen(),
-							siteNumber: this.mSiteSerialNum
-							// mTreasuresFoundThisSite:uint= 0;	// Treasures found so far in current site (see BootyBarMVC.as for
-							// mSitesVisitedThisGame:uint = 0;		// Number of sites visited in current game.
-							// mSiteSerialNum:uint	= 0;			// Serial number of current site, beginning with 1 (does not reset for new game).
-							// mGameSerialNum:uint	= 0;			// Serial number of current game, beginning with 1
+							// VARS NEEDED TO RESTORE AN ODYSSEY:
+							ratings: Missions.getBestRatings(),					// the scores on all missions so far
+							deleteDataEachSite: popUpScreen.deleteData,			// whether or not the 'clear my graph' box was checked
+							wasInGame: true, 								// if this is false, nothing below this line matters:
+							
+							// VARS NEEDED TO RESTORE A GAME:
+							mission: mCurrentMission.number,					// what mission ID we were playing (ie, 1: Hundreds o' Rats, 2: Rat Shortage, etc.)
+							gameSerialNum: mGameSerialNum,						// how many games have been played so far
+							siteSerialNum: mSiteSerialNum,						// how many sites have been played so far
+							sitesVisitedThisGame: mSitesVisitedThisGame,		// how many sites have been visited this game
+							remainingRats: bootyMeter.rats,						// rats remaining in booty meter
+							remainingMisses: bootyMeter.missesRemaining,			// hook drops remaining in booty meter
+							treasuresFoundThisGame: bootyMeter.treasuresFound,	// treasures found in booty meter
+							wasInSite: true, 								// if this is false, nothing below this line matters:
+							
+							// VARS NEEDED TO RESTORE A SITE:
+							treasuresFoundThisSite: mTreasuresFoundThisSite,	// used in variable treasure levels
+							treasuresRemaining: getTreasureRemainingArray(),	// array of treasure locations
+							hooksDroppedArray: hooksDroppedArray				// array of hooks dropped so far, this game	
 						}
 					};
+				} else if ( mWasInGame) {
+					stateObj = {
+						success: true,
+						state: {
+							// VARS NEEDED TO RESTORE AN ODYSSEY:
+							ratings: Missions.getBestRatings(),					// the scores on all missions so far
+							deleteDataEachSite: popUpScreen.deleteData,			// whether or not the 'clear my graph' box was checked
+							wasInGame: true, 								// if this is false, nothing below this line matters:
+								
+							// VARS NEEDED TO RESTORE A GAME:
+							mission: mCurrentMission.number,					// what mission ID we were playing (ie, 1: Hundreds o' Rats, 2: Rat Shortage, etc.)
+							gameSerialNum: mGameSerialNum,						// how many games have been played so far
+							siteSerialNum: mSiteSerialNum,						// how many sites have been played so far
+							sitesVisitedThisGame: mSitesVisitedThisGame,		// how many sites have been visited this game
+							remainingRats: bootyMeter.rats,						// rats remaining in booty meter
+							remainingMisses: bootyMeter.missesRemaining,		// hook drops remaining in booty meter
+							treasuresFoundThisGame: bootyMeter.treasuresFound,	// treasures found in booty meter
+							wasInSite: false								
+						}
+					};
+				} else {
+					stateObj = {
+						success: true,
+						state: {
+							// VARS NEEDED TO RESTORE AN ODYSSEY:
+							ratings: Missions.getBestRatings(),					// the scores on all missions so far
+							deleteDataEachSite: popUpScreen.deleteData,			// whether or not the 'clear my graph' box was checked
+							wasInGame: false 								// if this is false, nothing below this line matters:					
+						}
+					};
+				}
 				return stateObj;
+			}
+			
+			// this method checks if the player is 'in game'.
+			private function isInGame():Boolean{
+
+				if( popUpScreen.visible && popUpScreen.currentLabel == "level") // if the map selector is showing
+					return false;
+				
+				if( bootyMeter.isOutOfHooks) // if you're out of hooks, the game is over
+					return false;
+				
+				if( bootyMeter.isOutOfRats && !isInSite()) // if you're out of rats and not at a site, the game is over
+					return false;
+				
+				return true;
+			}
+
+			// this method checks if the player is in the middle of playing a site
+			private function isInSite():Boolean{
+				if( popUpScreen.visible && popUpScreen.currentLabel == "recap") // if the replay is showing
+					return false;
+				
+				if( bootyMeter.isOutOfHooks) // if you're out of hooks, the game is over
+					return false;
+				
+				if( haveTreasure)	// if you have a treasure on your hook, the site is over
+					return false;
+							
+				return true;
+			}
+			
+			private function getTreasureRemainingArray():Array{
+				var returnArray:Array = new Array();
+				for( var i:int = 0; i < mTreasuresThisSite.length; i++){
+					returnArray.push( mTreasuresThisSite[i].location);
+				}
+				return returnArray;
 			}
 			
 			// handle a 'restoreState' command from DG, to restore a game saved in a document.  
@@ -1180,10 +1268,9 @@
 			
 			// the user has confirmed that they want to end the game, now we show them their score.
 			// see also newGame().
-			private function endGameConfirmed(e:Event = null):void{								
+			private function endGameConfirmed(e:Event = null):void{					
 				sailingMovie.hardReset();	//the ship sailing movie will be zoomed out.
 				sailingMovie.visible = true;
-			//	topBarMVC.disableHelpButton();
 				crane.visible = false;
 				shipControlsMVC.hookStepper.value = 100;
 				onChangeCenterPosition(new Event("Stepper"));

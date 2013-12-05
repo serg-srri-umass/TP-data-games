@@ -142,5 +142,14 @@ package odyssey.missions
 		public static function getMissionTitle(arg:Number):String {
 			return getMission(arg).title;
 		}
+		
+		// returns an array of your score on all missions
+		public static function getBestRatings():Array{
+			var ratingArray:Array = new Array();
+			for( var i:int = 0; i < _missionArray.length; i++){
+				ratingArray.push(_missionArray[i].bestRating);
+			}
+			return ratingArray;
+		}
 	}
 }
