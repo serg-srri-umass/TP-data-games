@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.12.04";
+			public static const  VERSION:String = "Chainsaw v.2013.12.06";
 			private function getVersion():String {
 				return( VERSION );
 			}
