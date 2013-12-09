@@ -47,7 +47,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.12.05";
+			private static const kVersion:String = "v.2013.12.06.c";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -196,10 +196,10 @@
 					}
 					var progressWrapper:Object = {
 						state: progress
-					}
-					restoreStateforDG(progressWrapper); 	
+					}*/
+					//restoreStateforDG(progressWrapper); 	 
 
-					// END PROXY */
+					// END PROXY 
 					
 				} else {
 					recheckTimer.reset();
@@ -953,10 +953,12 @@
 				return true;
 			}
 			
+			// creates an array of the positions of all treasures that are live:
 			private function getTreasureRemainingArray():Array{
 				var returnArray:Array = new Array();
 				for( var i:int = 0; i < mTreasuresThisSite.length; i++){
-					returnArray.push( mTreasuresThisSite[i].location);
+					if( !mTreasuresThisSite[i].found)
+						returnArray.push( mTreasuresThisSite[i].location);
 				}
 				return returnArray;
 			}
@@ -1361,11 +1363,6 @@
 				popUpScreen.visible = false;
 				sailingMovie.hardReset();
 				
-				// first update/close/delete old game case in DG, before we update mGameSerialNum, etc. for new game
-				if( mDGInterface.isGameCaseOpen()) {
-					sendGameDataClose();
-				}
-				
 				mGameSerialNum = progress.gameSerialNum;
 				mSiteSerialNum = progress.siteSerialNum;
 				mSitesVisitedThisGame = progress.sitesVisitedThisGame;
@@ -1456,7 +1453,7 @@
 				
 				// THIS NEEDS TO BE HANDLED:
 				//if( mSitesVisitedThisGame >= 2){ // what is >= 2 for?
-					//sendGameDataUpdate(); // send updated SitesVisited to DG
+				//sendGameDataUpdate(); // send updated SitesVisited to DG
 				//}
 				
 				updateRatLimit();
