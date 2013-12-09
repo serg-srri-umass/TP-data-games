@@ -138,7 +138,7 @@
 			
 			//draw the log;
 			graphics.lineStyle(2, 0x704A00);
-			var colors:Array = [0xdcbc84,0x794F00,0xBFA681];
+			var colors:Array = [0xBFA681,0x794F00,0xBFA681];
 			var alphas:Array = [1,1,1];
 			var ratios:Array = [0,255,0];
 			var matrix:Matrix = new Matrix();
