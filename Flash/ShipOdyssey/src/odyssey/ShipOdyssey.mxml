@@ -87,10 +87,11 @@
 			
 			//variables for holding loaded MovieClips
 			private var popUpAPI:ShipMissionAPI = new ShipMissionAPI( newGame, getCurrentMission, setGameTitle, closeGame);	
-			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI);
-			private var topBarMVC:TopBarMVC = new TopBarMVC( showVideo, getDescription);
+			private var popUpScreen:PopUpScroll = new PopUpScroll(popUpAPI as ShipMissionAPI);
+			private var topBarMVC:TopBarMVC = new TopBarMVC( showVideo, getDescription, showHideAbout);
 			private var shipControlsMVC:ShipControlsMVC = new ShipControlsMVC();
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
+			private var aboutScreen:CreditsScreenMVC = new CreditsScreenMVC( "Credits");
 			
 			// the button on the top-bar that prompts you to watch the instructional video.
 			private var mVideoButton:MovieClip = new videoMVC();
@@ -1249,6 +1250,8 @@
 					popUpScreen.showLoading(); 
 				}
 				
+				popUpContainer.addChild( aboutScreen);
+				
 				topBarContainer.addChild(topBarMVC);
 				topBarMVC.setVersion(kVersion);
 				topBarMVC.setStage(this.systemManager.stage);
@@ -1338,7 +1341,11 @@
 				}
 			}
 			
-			
+			/* CREDITS FUNCTIONS */
+			// toggles the visibility of the credits screen
+			private function showHideAbout():void{
+				aboutScreen.visible = ! aboutScreen.visible;
+			}
 			
 			/* SAVING LOADING FUNCTIONS */
 			

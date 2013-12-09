@@ -19,28 +19,31 @@ package odyssey
 		
 		private var _stage:Stage; // a reference to the application's stage, so its quality can be adjusted.
 		
-		private var _videoFunc:Function, _descriptionFunc:Function; 
+		private var _videoFunc:Function, _descriptionFunc:Function, _aboutFunc:Function; 
 		
 		private var _quality:int = HIGH; // the current quality.
 		private var _muted:Boolean = false; // whether the game is muted.		
 		private var bouncingPrompt:Boolean = true; // whether or not the first bouncing prompt is still visible.
 		
-		public function TopBarMVC( videoFunction:Function, descriptionFunction:Function):void{
+		public function TopBarMVC( videoFunction:Function, descriptionFunction:Function, aboutFunction:Function):void{
 			yellowText.color = 0xFFFF00;
 			blackText.color = 0xE5D8D0;
 			
-			quality.addEventListener(MouseEvent.CLICK, toggleQuality);			
-			soundIcon.addEventListener(MouseEvent.CLICK, toggleMuted);
+			qualityBtn.addEventListener(MouseEvent.CLICK, toggleQuality);			
+			soundBtn.addEventListener(MouseEvent.CLICK, toggleMuted);
 			videoBtn.addEventListener(MouseEvent.CLICK, toggleVideo);
+			aboutBtn.addEventListener(MouseEvent.CLICK, toggleAbout);
 			
 			videoBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
 			videoBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
-			quality.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
-			quality.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
-			soundIcon.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
-			soundIcon.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			qualityBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
+			qualityBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			soundBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
+			soundBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
 			titleHit.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
 			titleHit.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
+			aboutBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			aboutBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
 			
 			// establish the initial sound volume:
 			var st:SoundTransform = SoundMixer.soundTransform;
@@ -49,6 +52,7 @@ package odyssey
 						
 			_videoFunc = videoFunction;
 			_descriptionFunc = descriptionFunction;
+			_aboutFunc = aboutFunction;
 			
 			mouseOverHelp.inner.gotoAndPlay("bob"); // make the intro movie button bob up and down.
 			
@@ -100,6 +104,11 @@ package odyssey
 			showHidePrompt(e);
 		}
 		
+		private function toggleAbout(e:MouseEvent = null):void{
+			_aboutFunc();
+			mouseOverHelp.visible = false;
+		}
+		
 		private function toggleVideo(e:MouseEvent = null):void{
 			mouseOverHelp.gotoAndStop(1);
 			mouseOverHelp.inner.gotoAndPlay("close");
@@ -122,7 +131,7 @@ package odyssey
 				
 				if(e.target == videoBtn){
 					mouseOverHelp.gotoAndStop(1);
-				}else if(e.target == quality){
+				}else if(e.target == qualityBtn){
 					mouseOverHelp.gotoAndStop(2);
 					if(_quality == LOW){
 						mouseOverHelp.promptTxt.text = "Quality: Low";
@@ -131,7 +140,7 @@ package odyssey
 					} else if(_quality == HIGH){
 						mouseOverHelp.promptTxt.text = "Quality: High";
 					}
-				}else if(e.target == soundIcon){
+				}else if(e.target == soundBtn){
 					mouseOverHelp.gotoAndStop(3);
 					mouseOverHelp.promptTxt.text = ( !_muted ? "Volume: On" : "Volume: Off");
 				} else if(e.target == titleHit){
@@ -143,6 +152,9 @@ package odyssey
 						mouseOverHelp.gotoAndStop(5);
 						mouseOverHelp.promptTxt.text = "Ahoy Matey! Choose a mission, then hit play to get started.";
 					}
+				} else if(e.target == aboutBtn){
+					mouseOverHelp.gotoAndStop("about");
+					mouseOverHelp.promptTxt.text = "About";
 				}
 			}
 		}
