@@ -67,7 +67,7 @@ package embedded_asset_classes
 			InferenceGames.stage.addEventListener(MouseEvent.MOUSE_UP, stopDragMVC);
 			//To-Do: lose focus code, taken from Ship Odyssey.
 			
-			addEventListener(AnimationEvent.PUSH_DATA, pushData);
+			//addEventListener(AnimationEvent.PUSH_DATA, pushData);
 			
 			calculateSpeedPercent(); // calculate the speed on load.
 		}
@@ -164,8 +164,8 @@ package embedded_asset_classes
 		}
 		
 		// this method is called whenever a point of data is unloaded. Pushes the data to DG.
-		private function pushData( triggerEvent:Event = null):void{
-			Round.currentRound.addData(new TimerEvent("timerComplete"));
-		}
+//		private function pushData( triggerEvent:Event = null):void{
+//			Round.currentRound.addData(new TimerEvent("timerComplete"));
+//		}
 	}
 }

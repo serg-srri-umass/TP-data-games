@@ -147,7 +147,7 @@ package
 			_dataArray.push( [_roundID, value ]);
 			
 			
-			InferenceGames.instance.sendEventData ( _dataArray );
+			//InferenceGames.instance.sendEventData ( _dataArray );
 			_dataArray = new Array();
 			
 			_accuracy = calculateAccuracy();
@@ -228,6 +228,10 @@ package
 		
 		public function set guess( arg:Number):void{
 			_guess = arg;
+		}
+		
+		public function get chunkSize():int{
+			return _chunkSize;
 		}
 		
 		// get the accuracy of the current guess, based on the sample size:

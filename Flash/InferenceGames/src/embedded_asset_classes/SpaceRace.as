@@ -133,9 +133,9 @@ package embedded_asset_classes
 
 			// DEBUG SECTION. REMOVE ALL THIS BEFORE IT GOES LIVE.
 			if(standAloneDebug){
-				startNewRoundDebug(); 
+				//startNewRoundDebug(); 
 				addEventListener( InferenceEvent.REQUEST_SAMPLE, doTheSamples);
-				addEventListener( InferenceEvent.REQUEST_NEW_ROUND, startNewRoundDebug);
+				//addEventListener( InferenceEvent.REQUEST_NEW_ROUND, startNewRoundDebug);
 				topBarMVC.backBtn.addEventListener( MouseEvent.CLICK, newGame);
 			}
 		}
