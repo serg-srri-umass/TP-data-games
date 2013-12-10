@@ -55,7 +55,7 @@ package embedded_asset_classes{
 			BottomBarSWC.instance.levelNameTxt.text = "Guess the Median |";
 			
 			// only enable unlocked levels: 
-			for( var i:int = 0; i < 6; i++){
+			for( var i:int = 0; i < Round.kLevelSettings.length; i++){
 				if(_radioBtnGroup.selectedButton.number != i + 1)
 					levelsMVC["level" + (i+1) + "Btn"].enabled = InferenceGames.instance.unlockedLevels > i;
 			}
@@ -91,7 +91,7 @@ package embedded_asset_classes{
 		
 		private function establishRadioButtons():void{
 			_radioBtnGroup = new RadioBtnGroup( levelsMVC.level1Btn, levelsMVC.level2Btn, levelsMVC.level3Btn, levelsMVC.level4Btn, levelsMVC.level5Btn, levelsMVC.level6Btn );     
-			for( var i:int = 0; i < 6; i++){
+			for( var i:int = 0; i < Round.kLevelSettings.length; i++){
 				levelsMVC["level" + (i+1) + "Btn"].levelMVC.txt.text = i + 1;
 				levelsMVC["level" + (i+1) + "Btn"].intervalMVC.txt.text = "±" + Round.kLevelSettings[i].interval;
 				levelsMVC["level" + (i+1) + "Btn"].iqrMVC.txt.text = Round.kLevelSettings[i].iqr;

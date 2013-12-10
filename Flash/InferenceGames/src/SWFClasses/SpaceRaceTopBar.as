@@ -3,10 +3,10 @@
 	import flash.display.MovieClip;
 	
 	
-	public class TopBarMVC extends MovieClip {
+	public class SpaceRaceTopBar extends MovieClip {
 		
 		
-		public function TopBarMVC() {
+		public function SpaceRaceTopBar() {
 			// constructor code
 		}
 		
