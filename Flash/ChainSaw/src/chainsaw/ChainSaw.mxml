@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.12.06";
+			public static const  VERSION:String = "Chainsaw v.2013.12.10";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -1511,7 +1511,8 @@
 	
 	<!-- Levels Screen -->
 	<s:BorderContainer id="levelScreen" x="{0}" y="{StatusBar.height}" width="{this.minWidth}" height="{this.minHeight-StatusBar.height}" borderVisible="false" backgroundColor="#dcd0c0" visible="false" depth="1000">
-		<s:BorderContainer backgroundColor="#84602e" x="180" y="10" width="400" height="380" dropShadowVisible="true"></s:BorderContainer>
+		<s:BorderContainer backgroundColor="#84602e" x="180" y="10" width="400" height="380" cornerRadius="3">
+		</s:BorderContainer>
 	
 		<s:Image id="thinLevelBtn" x="250" y="60" source="{mThinLogImage}"/>
 		<s:Image id="thickLevelBtn" x="250" y="160" source="{mThickLogImage}"/>
@@ -1522,9 +1523,9 @@
 		<s:Label id="mixedLevelLabel" x="{mixedLevelBtn.x+60}" y="{mixedLevelBtn.y+20}" text="Mixed Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
 		-->
 			
-		<s:CheckBox id="practiceCheckBox" x="356" y="360" label="Practice"/>
+		<s:CheckBox id="practiceCheckBox" x="256" y="360" label="Practice (no time limit, no data saved)"/>
 		
-		<s:Button id="closeLevelsButton" x="650" y="360" width="90" height="30" label="Close" click="levelScreen.visible=false;" enabled="true" fontSize="12" fontWeight="bold"/>
+		<s:Button id="closeLevelsButton" x="600" y="360" width="90" height="30" label="cancel" click="levelScreen.visible=false;" enabled="true" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 	
 	<!-- Loading Screen of Safety -->
