@@ -3,7 +3,7 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   minWidth="745" minHeight="410" 
-			   backgroundColor="#d2bfa4"
+			   backgroundColor="#dcd0c0"
 			   creationComplete="testFlashPlayer()"
 			   activate="ScriptInterface.signalActivation()" 
 			   deactivate="ScriptInterface.signalDeactivation()"
@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.12.06";
+			public static const  VERSION:String = "Chainsaw v.2013.12.10b";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -418,7 +418,7 @@
 									setOfCases: "cut record",
 									setOfCasesWithArticle: "a cut record"
 								},
-								defaults: { xAttr: "Length", yAttr: "GameNumber" }
+								defaults: { xAttr: "Length", yAttr: "GameNumber", legendAttr: "IsAccepted" }
 							}
 						] // collections
 					}; // initGameArgs
@@ -1449,9 +1449,9 @@
 		
 		<s:Label id="mLevelLabel" x="5" y="3" text="PRACTICE LEVEL" width="318" textAlign="left" height="26" fontSize="14" verticalAlign="middle" fontWeight="bold" fontFamily="Arial" fontStyle="normal" />
 		
-		<s:Label id="mPlayersNameLabel" x="280" y="8" fontFamily="Arial" fontSize="16" fontWeight="bold" text="Player's Name:" />
+		<s:Label id="mPlayersNameLabel" x="200" y="8" width="194" fontFamily="Arial" fontSize="14" fontWeight="normal" text="Player's Name" textAlign="right" />
 		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput()" enabled="true"
-					 fontSize="16" fontWeight="bold" text="Player" textAlign="left"/>
+					 fontSize="14" fontWeight="bold" text="Player" textAlign="left"/>
 				
 		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}" click="toggleMute()" />
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
@@ -1468,8 +1468,8 @@
 	<s:BorderContainer id="UI_Elements" x="0" y="36" width="135" height="364" backgroundAlpha="0" borderVisible="false" depth="100">
 		<mx:Image id="mTapeMeasure" x="10" y="0" source="{mTapeMeasureImage}" mouseDown="onMouseDown(event)" mouseUp="onMouseUp(event)" depth="100"/>
 		<mx:Image id="mReferenceLengthImage" x="13" y="38" source="{mLengthImage}"/>
-		<s:Label id="mReferenceLengthLabel" x="10" y="58" fontSize="14" fontWeight="bold" text="Target Length"/>
-		<s:Label id="mFuelLabel" x="10" y="100" fontSize="14" fontWeight="bold" text="Fuel"/>
+		<s:Label id="mReferenceLengthLabel" x="10" y="58" fontSize="14" fontWeight="normal" text="Target Length"/>
+		<s:Label id="mFuelLabel" x="10" y="100" fontSize="14" fontWeight="normal" text="Fuel"/>
 		<s:SWFLoader id="mFuelIcon" x="10" y="120" width="90" height="200" scaleY="1.2" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
 		<s:Button id="mChangeLevelButton" x="10" y="260" width="90" height="30" label="Levels" click="displayLevels(event)" enabled="true" fontSize="12" fontWeight="bold" />
 		<s:Button id="mStartStopButton" x="10" y="300" width="90" height="50" label="Start" mouseDown="onClickStartStopButton(event)" enabled="true" fontSize="14" fontWeight="bold"/>
@@ -1477,22 +1477,28 @@
 	
 	<mx:UIComponent	id="uic" x="0" y="0"/>
 	
-	<s:BorderContainer id="mResultsOverlay" x="625" y="46" width="{115}" height="{410-mResultsOverlay.y-30}" backgroundAlpha="1" backgroundColor="#84602e" borderVisible="false" visible="false">
-		<s:Label id="mAcceptedPiecesLabel" x="5" y="{60-46}" text="Accepted:" fontSize="14" fontWeight="bold" textAlign="left" color="#ffffff"/>
-		<s:Label id="mFuelLeftLabel" x="5" y="{145-46}" text="Fuel:" fontSize="14" fontWeight="bold" textAlign="left" color="#ffffff"/>
-		<s:Label id="mCutStyleLabel" x="5" y="{225-46}" text="Fuel %:" fontSize="14" fontWeight="bold" textAlign="left" color="#ffffff"/>
-		<s:Label id="mScoreLabel"    x="5" y="{300-46}" text="Score:" fontSize="14" fontWeight="bold" textAlign="left" color="#ffffff"/>
+	<s:BorderContainer id="mResultsOverlay" x="625" y="46" width="{115}" height="{410-mResultsOverlay.y-30}" cornerRadius="3" backgroundAlpha="1" backgroundColor="#dfdfdf" visible="false">
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xf0f0f0"/>
+				<s:GradientEntry color="0xd8d8d8"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		<s:Label id="mAcceptedPiecesLabel" x="8" y="{60-46}" text="Accepted:" fontSize="14" fontWeight="normal" textAlign="left" color="#0"/>
+		<s:Label id="mFuelLeftLabel" x="8" y="{145-46}" text="Fuel:" fontSize="14" fontWeight="normal" textAlign="left" color="#0"/>
+		<s:Label id="mCutStyleLabel" x="8" y="{225-46}" text="Fuel %:" fontSize="14" fontWeight="normal" textAlign="left" color="#0"/>
+		<s:Label id="mScoreLabel"    x="8" y="{300-46}" text="Score:" fontSize="14" fontWeight="normal" textAlign="left" color="#0"/>
 		
-		<s:Label id="mAcceptedPiecesValue" x="65" y="{60-46}" text="0" fontSize="16" fontWeight="bold" width="45" textAlign="right" color="#ffffff"/>
-		<s:Label id="mFuelLeftValue" x="65" y="{145-46}" text="0" fontSize="16" fontWeight="bold" width="45" textAlign="right" color="#ffffff"/>
-		<s:Label id="mFuelLeftPercent" x="65" y="{225-46}" text="Other" fontSize="16" fontWeight="bold" width="45" textAlign="right" color="#ffffff"/>
-		<s:Label id="mScoreValue"    x="65" y="{300-46}" text="?" fontSize="16" fontWeight="bold" width="45" textAlign="right" color="#ffffff"/>
+		<s:Label id="mAcceptedPiecesValue" x="62" y="{60-46}" text="0" fontSize="14" fontWeight="bold" width="45" textAlign="right" color="#0"/>
+		<s:Label id="mFuelLeftValue" x="62" y="{145-46}" text="0" fontSize="14" fontWeight="bold" width="45" textAlign="right" color="#0"/>
+		<s:Label id="mFuelLeftPercent" x="62" y="{225-46}" text="Other" fontSize="14" fontWeight="bold" width="45" textAlign="right" color="#0"/>
+		<s:Label id="mScoreValue"    x="62" y="{300-46}" text="?" fontSize="14" fontWeight="bold" width="45" textAlign="right" color="#0"/>
 	</s:BorderContainer>
 	
-	<s:Label id="mVersionLabel" x="570" y="386" width="165" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="570" y="386" width="165" fontSize="10" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
 	
 	<!-- Contains startup video -->
-	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="#d2bfa4" borderVisible="false" depth="1000">
+	<s:BorderContainer id="StartupVideo" x="0" y="30" width="{this.minWidth}" height="{this.minHeight-30}" visible="false" backgroundColor="#dcd0c0" borderVisible="false" depth="1000">
 		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="0"/>
 		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-30}">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
@@ -1504,21 +1510,22 @@
 	<mx:UIComponent	id="videoBtnContainer" x="0" y="0"/>
 	
 	<!-- Levels Screen -->
-	<s:BorderContainer id="levelScreen" x="{0}" y="{StatusBar.height}" width="{this.minWidth}" height="{this.minHeight-StatusBar.height}" borderVisible="false" backgroundColor="#d2bfa4" visible="false" depth="1000">
-		<s:BorderContainer backgroundColor="#84602e" x="180" y="10" width="400" height="380" dropShadowVisible="true"></s:BorderContainer>
+	<s:BorderContainer id="levelScreen" x="{0}" y="{StatusBar.height}" width="{this.minWidth}" height="{this.minHeight-StatusBar.height}" borderVisible="false" backgroundColor="#dcd0c0" visible="false" depth="1000">
+		<s:BorderContainer backgroundColor="#84602e" x="180" y="10" width="400" height="{levelScreen.height-30}" cornerRadius="3">
+		</s:BorderContainer>
 	
-		<s:Image id="thinLevelBtn" x="250" y="60" source="{mThinLogImage}"/>
-		<s:Image id="thickLevelBtn" x="250" y="160" source="{mThickLogImage}"/>
-		<s:Image id="mixedLevelBtn" x="250" y="260" source="{mMixedLogImage}"/>
+		<s:Image id="thinLevelBtn" x="250" y="40" source="{mThinLogImage}"/>
+		<s:Image id="thickLevelBtn" x="250" y="130" source="{mThickLogImage}"/>
+		<s:Image id="mixedLevelBtn" x="250" y="230" source="{mMixedLogImage}"/>
 		<!--
 		<s:Label id="thinLevelLabel" x="{thinLevelBtn.x+60}" y="{thinLevelBtn.y+12}" text="Thin Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
 		<s:Label id="thickLevelLabel" x="{thickLevelBtn.x+60}" y="{thickLevelBtn.y+20}" text="Thick Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
 		<s:Label id="mixedLevelLabel" x="{mixedLevelBtn.x+60}" y="{mixedLevelBtn.y+20}" text="Mixed Logs" fontSize="20" color="#FFFFFF" fontWeight="bold"/>
 		-->
 			
-		<s:CheckBox id="practiceCheckBox" x="356" y="360" label="Practice"/>
+		<s:CheckBox id="practiceCheckBox" x="256" y="330" label="Practice (no time limit, no data saved)"/>
 		
-		<s:Button id="closeLevelsButton" x="650" y="360" width="90" height="30" label="Close" click="levelScreen.visible=false;" enabled="true" fontSize="12" fontWeight="bold"/>
+		<s:Button id="closeLevelsButton" x="595" y="330" width="90" height="30" label="cancel" click="levelScreen.visible=false;" enabled="true" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 	
 	<!-- Loading Screen of Safety -->
