@@ -48,16 +48,16 @@
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
 			private static const kVersion:String = "v.2013.11.26";
-			private static const kCreditsTextHTML:String = 
-				"<b>Ship Odyssey</b> is a <a href='http://www.srri.umass.edu/datagames'>Data Game</a>"+
-				"created by the <a href='http://www.srri.umass.edu/serg'>Statistics Education Research Group</a>"+
-				"at srri.umass.edu. Contributers to the concept, design and development include the "+
-				"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong;"+
+			private static const kAboutTextHTML:String = 
+				"<b>Ship Odyssey</b> is a <font color='#2C4877'><u><a href='http://www.srri.umass.edu/datagames' target='shipInfo'>Data Game</a></u></font>"+
+				" created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='shipInfo'>Statistics Education Research Group</a></u></font>"+". "+
+				"Contributers to the concept, design and development include the "+
+				"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong; "+
 				"Developers: Craig D. Miller, Laurel Shortell; "+
 				"Student Programmers: Tristan Warneke, Ryan McCann, Russ Phelan, Mike Salyh. "+
 				"Funded by the National Science Foundation, award "+
-				"<a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false'>DRL-0918653</a> (2009-2014). "+
-				"Ship Odyssey is open source on <a href='https://github.com/serg-srri-umass/TP-data-games/wiki'>Github</a>."+
+				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='shipInfo'>DRL-0918653</a></u></font> (2009-2014). "+
+				"Ship Odyssey is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='shipInfo'>Github</a></u></font>. "+
 				"Copyright (c) 2011<span class='x'>-2013 by University of Massachusetts Amherst.";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
@@ -102,7 +102,7 @@
 			private var topBarMVC:TopBarMVC = new TopBarMVC( showVideo, getDescription, showHideAbout);
 			private var shipControlsMVC:ShipControlsMVC = new ShipControlsMVC();
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
-			private var aboutScreen:CreditsScreenMVC = new CreditsScreenMVC( "Credits");
+			private var aboutScreen:AboutScreenMVC = new AboutScreenMVC( kAboutTextHTML);
 			
 			// the button on the top-bar that prompts you to watch the instructional video.
 			private var mVideoButton:MovieClip = new videoMVC();
@@ -1352,8 +1352,8 @@
 				}
 			}
 			
-			/* CREDITS FUNCTIONS */
-			// toggles the visibility of the credits screen
+			/* ABOUT FUNCTIONS */
+			// toggles the visibility of the about screen
 			private function showHideAbout():void{
 				aboutScreen.visible = ! aboutScreen.visible;
 			}
