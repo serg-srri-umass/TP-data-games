@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "Chainsaw v.2013.12.11";
+			public static const  VERSION:String = "Chainsaw v.2013.12.12";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -1531,16 +1531,21 @@
 	</s:BorderContainer>
 	
 	<!-- About Screen -->
-	<s:BorderContainer id="aboutScreen" x="{20}" y="{20}" width="{this.minWidth-40}" height="{this.minHeight-40}" cornerRadius="5" visible="false" depth="1000">
+	<s:BorderContainer id="aboutScreen" x="{40}" y="{40}" width="{this.minWidth-(2*aboutScreen.x)}" height="{this.minHeight-(2*aboutScreen.y)}" cornerRadius="5" visible="false" depth="1000">
+		<s:filters>
+			<s:DropShadowFilter 
+				blurX="25" blurY="25" 
+				alpha="0.8" />
+		</s:filters>
 		<s:backgroundFill>
 			<s:LinearGradient rotation="90">
 				<s:GradientEntry color="0xf0f0f0"/>
 				<s:GradientEntry color="0xd8d8d8"/>
 			</s:LinearGradient>
 		</s:backgroundFill>
-		<s:Label text="About ChainSaw" width="{aboutScreen.width}" y="20" fontSize="20" fontWeight="bold" textAlign="center"/>
-		<mx:Text selectable="true" x="8" y="50" width="{aboutScreen.width-16}" htmlText="{kCreditsTextHTML}" />
-		<s:Button x="595" y="330" width="90" height="30" label="Close" click="aboutScreen.visible=false;" fontSize="12" fontWeight="bold"/>
+		<s:Label text="About Chainsaw" width="{aboutScreen.width}" y="20" fontSize="28" fontWeight="bold" textAlign="center"/>
+		<mx:Text selectable="true" x="12" y="60" width="{aboutScreen.width-24}" htmlText="{kCreditsTextHTML}" fontSize="14" />
+		<s:Button x="{(aboutScreen.width-90)/2}" y="250" width="90" height="30" label="OK" click="aboutScreen.visible=false;" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 	
 	<!-- Loading Screen of Safety -->
