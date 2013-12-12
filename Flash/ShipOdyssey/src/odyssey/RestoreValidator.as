@@ -16,13 +16,20 @@ package odyssey
 				return false;
 			}
 			
-			if(iState.wasInGame == undefined){
-				trace(" VALIDATE ODYSSEY FAILED AT iState.wasInGame");
+			if(iState.gameSerialNum == undefined){
+				trace(" VALIDATE ODYSSEY FAILED AT iState.gameSerialNum");
 				return false;
 			}
+			
+			if(iState.siteSerialNum == undefined){
+				trace(" VALIDATE ODYSSEY FAILED AT iState.siteSerialNum");
+				return false;
+			}
+			
 			return true;
 		}
 		
+		/*
 		public function validateGameRestore( iState:Object):Boolean{
 			if(iState.mission == undefined){
 				trace(" VALIDATE ODYSSEY FAILED AT iState.mission");
@@ -84,6 +91,6 @@ package odyssey
 			}
 			
 			return true;
-		}
+		}*/
 	}
 }

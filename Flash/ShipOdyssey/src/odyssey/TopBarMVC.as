@@ -54,6 +54,8 @@ package odyssey
 			_descriptionFunc = descriptionFunction;
 			_aboutFunc = aboutFunction;
 			
+			titleHit.useHandCursor = false;
+			
 			mouseOverHelp.inner.gotoAndPlay("bob"); // make the intro movie button bob up and down.
 			
 			//helpBtn.addEventListener(MouseEvent.CLICK, doHelpFunction);

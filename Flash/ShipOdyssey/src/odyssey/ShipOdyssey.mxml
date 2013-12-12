@@ -47,14 +47,15 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.11.26";
+			private static const kVersion:String = "v.1.0";
 			private static const kAboutTextHTML:String = 
 				"<b>Ship Odyssey</b> is a <font color='#2C4877'><u><a href='http://www.srri.umass.edu/datagames' target='shipInfo'>Data Game</a></u></font>"+
 				" created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='shipInfo'>Statistics Education Research Group</a></u></font>"+". "+
 				"Contributers to the concept, design and development include the "+
 				"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong; "+
 				"Developers: Craig D. Miller, Laurel Shortell; "+
-				"Student Programmers: Tristan Warneke, Ryan McCann, Russ Phelan, Mike Salyh. "+
+				"Student Programmers: Tristan Warneke, Ryan McCann, Russ Phelan, Mike Salyh; "+ 
+				"Artists: Josh Konold, Tristan Warneke, Mike Salyh. " +
 				"Funded by the National Science Foundation, award "+
 				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='shipInfo'>DRL-0918653</a></u></font> (2009-2014). "+
 				"Ship Odyssey is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='shipInfo'>Github</a></u></font>. "+
@@ -103,6 +104,7 @@
 			private var shipControlsMVC:ShipControlsMVC = new ShipControlsMVC();
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
 			private var aboutScreen:AboutScreenMVC = new AboutScreenMVC( kAboutTextHTML);
+			private var movieControls:VideoControlsMVC = new VideoControlsMVC(playPauseVideo, replayVideo, hideVideo);
 			
 			// the button on the top-bar that prompts you to watch the instructional video.
 			private var mVideoButton:MovieClip = new videoMVC();
@@ -180,38 +182,22 @@
 					// EMBED YOUTUBE VIDEO:
 					embedYoutubeVideo();
 					
-					
-					// PROXY:
-					
+					/*PROXY:
 					//saveStateforDG(null);
-
-					/*var progress:Object = {
+					
+					var progress:Object = {
 						// VARS NEEDED TO RESTORE AN ODYSSEY:
 						ratings: [3, 3, 4, 2, 0, 5],			// the scores on all missions so far
 						deleteDataEachSite: false,				// whether or not the 'clear my graph' box was checked
-						wasInGame: true, 						// if this is false, nothing below this line matters:
-						
-						// VARS NEEDED TO RESTORE A GAME:
-						mission: 2,								// what mission ID we were playing (ie, 1: Hundreds o' Rats, 2: Rat Shortage, etc.)
 						gameSerialNum: 2,						// how many games have been played so far
-						siteSerialNum: 4,						// how many sites have been played so far
-						sitesVisitedThisGame: 1,				// how many sites have been visited this game
-						remainingRats: 52,						// rats remaining in booty meter
-						remainingMisses: 1,						// hook drops remaining in booty meter
-						treasuresFoundThisGame: 2,				// treasures found in booty meter
-						wasInSite: true, 						// if this is false, nothing below this line matters:
-						
-						// VARS NEEDED TO RESTORE A SITE:
-						treasuresFoundThisSite: 0,				// used in variable treasure levels
-						treasuresRemaining: [98],				// array of treasure locations
-						hooksDroppedArray: [[22, false, CraneEvent.GOT_NOTHING ]]	// array of hooks dropped so far, this game	
+						siteSerialNum: 4						// how many sites have been played so far
 					}
 					var progressWrapper:Object = {
 						state: progress
-					}*/
-					//restoreStateforDG(progressWrapper); 	 
-
-					// END PROXY 
+					}
+					restoreStateforDG(progressWrapper); 	 
+					
+					END PROXY */
 					
 				} else {
 					recheckTimer.reset();
@@ -756,18 +742,6 @@
 				return 1;
 			}
 			
-			// Toggles the Instructions scroll
-			private function onClickHelpButton():void
-			{
-				if(popUpScreen.isShowingHelp())
-				{
-					popUpScreen.hideHelp();
-				}
-				else
-				{
-					popUpScreen.displayHelp();
-				}
-			}
 			
 			// TO-DO: should we change this, or make it work? It's not being called at all right now.
 			private function updateProfitAfterSail():void{
@@ -873,66 +847,17 @@
 			//		Returns { success: true, state: {} }
 			private function saveStateforDG( args:Object ):Object {
 				
-				var mWasInGame:Boolean = isInGame();
-				var mWasInSite:Boolean = isInSite();
-				var stateObj:Object;
-				
-				if( mWasInGame && mWasInSite){
-					stateObj = {
-						success: true,
-						state: {
-							// VARS NEEDED TO RESTORE AN ODYSSEY:
-							ratings: Missions.getBestRatings(),					// the scores on all missions so far
-							deleteDataEachSite: popUpScreen.deleteData,			// whether or not the 'clear my graph' box was checked
-							wasInGame: true, 								// if this is false, nothing below this line matters:
-							
-							// VARS NEEDED TO RESTORE A GAME:
-							mission: mCurrentMission.number,					// what mission ID we were playing (ie, 1: Hundreds o' Rats, 2: Rat Shortage, etc.)
-							gameSerialNum: mGameSerialNum,						// how many games have been played so far
-							siteSerialNum: mSiteSerialNum,						// how many sites have been played so far
-							sitesVisitedThisGame: mSitesVisitedThisGame,		// how many sites have been visited this game
-							remainingRats: bootyMeter.rats,						// rats remaining in booty meter
-							remainingMisses: bootyMeter.missesRemaining,			// hook drops remaining in booty meter
-							treasuresFoundThisGame: bootyMeter.treasuresFound,	// treasures found in booty meter
-							wasInSite: true, 								// if this is false, nothing below this line matters:
-							
-							// VARS NEEDED TO RESTORE A SITE:
-							treasuresFoundThisSite: mTreasuresFoundThisSite,	// used in variable treasure levels
-							treasuresRemaining: getTreasureRemainingArray(),	// array of treasure locations
-							hooksDroppedArray: hooksDroppedArray				// array of hooks dropped so far, this game	
-						}
-					};
-				} else if ( mWasInGame) {
-					stateObj = {
-						success: true,
-						state: {
-							// VARS NEEDED TO RESTORE AN ODYSSEY:
-							ratings: Missions.getBestRatings(),					// the scores on all missions so far
-							deleteDataEachSite: popUpScreen.deleteData,			// whether or not the 'clear my graph' box was checked
-							wasInGame: true, 								// if this is false, nothing below this line matters:
-								
-							// VARS NEEDED TO RESTORE A GAME:
-							mission: mCurrentMission.number,					// what mission ID we were playing (ie, 1: Hundreds o' Rats, 2: Rat Shortage, etc.)
-							gameSerialNum: mGameSerialNum,						// how many games have been played so far
-							siteSerialNum: mSiteSerialNum,						// how many sites have been played so far
-							sitesVisitedThisGame: mSitesVisitedThisGame,		// how many sites have been visited this game
-							remainingRats: bootyMeter.rats,						// rats remaining in booty meter
-							remainingMisses: bootyMeter.missesRemaining,		// hook drops remaining in booty meter
-							treasuresFoundThisGame: bootyMeter.treasuresFound,	// treasures found in booty meter
-							wasInSite: false								
-						}
-					};
-				} else {
-					stateObj = {
-						success: true,
-						state: {
-							// VARS NEEDED TO RESTORE AN ODYSSEY:
-							ratings: Missions.getBestRatings(),					// the scores on all missions so far
-							deleteDataEachSite: popUpScreen.deleteData,			// whether or not the 'clear my graph' box was checked
-							wasInGame: false 								// if this is false, nothing below this line matters:					
-						}
-					};
-				}
+				var stateObj:Object;				
+				stateObj = {
+					success: true,
+					state: {
+						// VARS NEEDED TO RESTORE AN ODYSSEY:
+						ratings: Missions.getBestRatings(),					// the scores on all missions so far
+						deleteDataEachSite: popUpScreen.deleteData,			// whether or not the 'clear my graph' box was checked
+						gameSerialNum: mGameSerialNum,						// how many games have been played so far
+						siteSerialNum: mSiteSerialNum						// how many sites have been played so far
+					}
+				};
 				return stateObj;
 			}
 			
@@ -988,16 +913,7 @@
 					var validator:RestoreValidator = new RestoreValidator();	// this objects handles the restoration of save states.
 					if( validator.validateOdysseyRestore( iState)){								// CHECK IF ANYTHING CAN BE RESTORED (TOP LEVEL)
 						restoreOdyssey(iState);
-						if( iState.wasInGame && validator.validateGameRestore( iState)){			// CHECK IF A GAME WAS UNDERWAY, AND CAN BE RESTORED
-							restoreGame(iState);
-							if( iState.wasInSite && validator.validateSiteRestore( iState)){		// CHECK IF A SITE WAS UNDERWAY, AND CAN BE RESTORED
-								restoreSite(iState);
-							} else{
-								newSite(); // if a site isn't being restored, create a new site.
-							}
-						} else {
-							popUpScreen.displayMissionMap( true); // if a game isn't being restored, return to the map.
-						}
+						popUpScreen.displayMissionMap( true);
 					} else { // could not restore anything:
 						result.sucess = false;	// if nothing could be restored, this opperation was a failure.
 					}
@@ -1268,6 +1184,9 @@
 				topBarMVC.setStage(this.systemManager.stage);
 				
 				addEventListener(MouseEvent.CLICK, handleFocus);
+				
+				videoHolder.addChild( movieControls);
+				movieControls.y = 315;
 			}	
 			
 			//MXML's with multiple SWF's handle focus in a strange way. This keeps the focus working the way it should.
@@ -1323,11 +1242,11 @@
 					return true;
 				}
 			}
-			private function hideVideo():void{
+			private function hideVideo( triggerEvent:Event = null):void{
 				StartupVideo.visible = false;
 				videoPlayer.pauseVideo();
 			}
-			private function playPauseVideo():void{
+			private function playPauseVideo( triggerEvent:Event = null):void{
 				var PLAYING_VIDEO:Number = 1;
 				if(videoPlayer.getPlayerState() == PLAYING_VIDEO) {
 					videoPlayer.pauseVideo();
@@ -1335,7 +1254,7 @@
 					videoPlayer.playVideo();
 				}
 			}
-			private function replayVideo():void{
+			private function replayVideo( triggerEvent:Event = null):void{
 				videoPlayer.seekTo(0, true);
 				videoPlayer.playVideo();
 			}
@@ -1346,9 +1265,9 @@
 				switch(state)
 				{
 					case PLAY:
-						playPauseBtn.label = "Pause"; break;
+						movieControls.mainBtn.look = 1; break; //"play"
 					case PAUSE:
-						playPauseBtn.label = "Play"; break;
+						movieControls.mainBtn.look = 0; break; //"pause"
 				}
 			}
 			
@@ -1371,9 +1290,15 @@
 				
 				// restore the 'clear my graph' checkbox setting:
 				popUpScreen.deleteData = progress.deleteDataEachSite;
+				
+				// restore serial #'s:
+				mGameSerialNum = progress.gameSerialNum;
+				mSiteSerialNum = progress.siteSerialNum;
+				
+				topBarMVC.closeBouncer(null, true);
 			}
 			
-			
+			// UN-USED BECAUSE WE CANNOT RE-HOOK INTO CLOSED DG CASES:
 			// jump into the middle of a game. Similar to calling 'new game', but doesn't necessarily give a clean slate. 
 			private function restoreGame(progress:Object):void{											
 				mCurrentMission = Missions.getMission(progress.mission);
@@ -1430,6 +1355,7 @@
 				sendGameDataOpen();
 			}
 			
+			// UN-USED BECAUSE WE CANNOT RE-HOOK INTO CLOSED DG CASES:
 			private function restoreSite( progress:Object):void{
 				readyToZoomIn();
 				disableAllButtons();
@@ -1549,11 +1475,6 @@
 	<!-- Contains startup video -->
 	<s:BorderContainer id="StartupVideo" x="0" y="27" width="518" height="443" visible="false" backgroundColor="0x294867" borderVisible="false">
 		<mx:UIComponent	id="videoHolder" x="0" y="20"/>
-		<s:Group id="videoControlsContainer" x="160" y="350">
-			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
-			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width}"/>
-			<s:Button id="skipBtn" label="Close" chromeColor="#eac42d" color="0x000000" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
-		</s:Group>
 	</s:BorderContainer>
 	
 	<mx:UIComponent	id="topBarContainer" x="0" y="0"/>

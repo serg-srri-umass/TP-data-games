@@ -192,32 +192,6 @@ package odyssey
 			okayFunc(e);
 		}
 		
-		// display the help
-		public function displayHelp():void {
-			visible = true;
-			gotoAndStop("help");
-			title.text = getCurrentLevelTitle();
-			body.text = getCurrentLevelDescription();
-			okayBtn.addEventListener(MouseEvent.CLICK, hide);
-		}
-		
-		public function displayMessage(title:String, message:String):void{
-			visible = true;
-			gotoAndStop("help");
-			this.title.text = title;
-			body.text = message;
-			okayBtn.addEventListener(MouseEvent.CLICK, hide);
-		}
-		
-		public function hideHelp():void{
-			if(isShowingHelp())
-				hide();
-		}
-		
-		public function isShowingHelp():Boolean{
-			return (visible && currentFrameLabel == "help");
-		}
-		
 		// returns the name of the current level
 		public function getCurrentLevelTitle(arg:int = -1):String
 		{
