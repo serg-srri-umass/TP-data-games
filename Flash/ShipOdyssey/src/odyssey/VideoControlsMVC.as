@@ -5,7 +5,7 @@ package odyssey
 	public class VideoControlsMVC extends videoControlsMVC
 	{
 		private var _playPauseFunc:Function, _replayFunc:Function, _closeFunc:Function;
-		public function VideoControlsMVC( playPauseFunc, replayFunc, closeFunc)
+		public function VideoControlsMVC( playPauseFunc:Function, replayFunc:Function, closeFunc:Function)
 		{
 			super();
 			_playPauseFunc = playPauseFunc;

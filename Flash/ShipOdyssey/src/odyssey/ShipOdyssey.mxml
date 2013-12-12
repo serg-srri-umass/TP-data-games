@@ -47,7 +47,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.11.26";
+			private static const kVersion:String = "v.1.0";
 			private static const kAboutTextHTML:String = 
 				"<b>Ship Odyssey</b> is a <font color='#2C4877'><u><a href='http://www.srri.umass.edu/datagames' target='shipInfo'>Data Game</a></u></font>"+
 				" created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='shipInfo'>Statistics Education Research Group</a></u></font>"+". "+
