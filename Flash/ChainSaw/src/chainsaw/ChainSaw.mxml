@@ -314,6 +314,8 @@
 				this.systemManager.stage.addEventListener(MouseEvent.CLICK, closePrompt);
 				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OVER, showHidePrompt);
 				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OUT, showHidePrompt);
+				mVideoButton.aboutBtn.addEventListener( MouseEvent.MOUSE_OVER, hideBouncePrompt);
+				mVideoButton.aboutBtn.addEventListener( MouseEvent.CLICK, showHideAboutScreen);
 				
 				// this is the method that will be called when the button is clicked on.
 				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
@@ -341,6 +343,11 @@
 				}
 			}
 			
+			// toggles the visibilty of the about screen
+			private function showHideAboutScreen( triggerEvent:MouseEvent):void{
+				aboutScreen.visible = !aboutScreen.visible;
+			}
+			
 			private function initLogger():void
 			{
 				var logTarget:TraceTarget = new TraceTarget();
@@ -363,8 +370,16 @@
 					mVideoButton.promptMVC.gotoAndStop(1);
 					mVideoButton.promptMVC.visible = true;
 				} else {
-					mVideoButton.gotoAndPlay(1);
+					//mVideoButton.gotoAndPlay(1);
+					mVideoButton.promptMVC.visible = false;
 				}
+			}
+			
+			private function hideBouncePrompt(e:MouseEvent):void{
+				mVideoButton.aboutBtn.removeEventListener(MouseEvent.MOUSE_OVER, hideBouncePrompt);
+				mVideoButton.gotoAndStop(1);
+				mVideoButton.promptMVC.gotoAndStop(1);
+				mVideoButton.promptMVC.visible = false;
 			}
 
 			// Send the initial game data to DG.  The collections are the tables of cases and attributes.
@@ -1452,9 +1467,7 @@
 		<s:Label id="mPlayersNameLabel" x="200" y="8" width="194" fontFamily="Arial" fontSize="14" fontWeight="normal" text="Player's Name" textAlign="right" />
 		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput()" enabled="true"
 					 fontSize="14" fontWeight="bold" text="Player" textAlign="left"/>
-		
-		<s:Button x="550" y="3" width="25" label="i" click="aboutScreen.visible=true" />
-				
+						
 		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}" click="toggleMute()" />
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
 	</s:BorderContainer>
