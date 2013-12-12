@@ -181,38 +181,22 @@
 					// EMBED YOUTUBE VIDEO:
 					embedYoutubeVideo();
 					
-					
-					// PROXY:
-					
+					/*PROXY:
 					//saveStateforDG(null);
-
-					/*var progress:Object = {
+					
+					var progress:Object = {
 						// VARS NEEDED TO RESTORE AN ODYSSEY:
 						ratings: [3, 3, 4, 2, 0, 5],			// the scores on all missions so far
 						deleteDataEachSite: false,				// whether or not the 'clear my graph' box was checked
-						wasInGame: true, 						// if this is false, nothing below this line matters:
-						
-						// VARS NEEDED TO RESTORE A GAME:
-						mission: 2,								// what mission ID we were playing (ie, 1: Hundreds o' Rats, 2: Rat Shortage, etc.)
 						gameSerialNum: 2,						// how many games have been played so far
-						siteSerialNum: 4,						// how many sites have been played so far
-						sitesVisitedThisGame: 1,				// how many sites have been visited this game
-						remainingRats: 52,						// rats remaining in booty meter
-						remainingMisses: 1,						// hook drops remaining in booty meter
-						treasuresFoundThisGame: 2,				// treasures found in booty meter
-						wasInSite: true, 						// if this is false, nothing below this line matters:
-						
-						// VARS NEEDED TO RESTORE A SITE:
-						treasuresFoundThisSite: 0,				// used in variable treasure levels
-						treasuresRemaining: [98],				// array of treasure locations
-						hooksDroppedArray: [[22, false, CraneEvent.GOT_NOTHING ]]	// array of hooks dropped so far, this game	
+						siteSerialNum: 4						// how many sites have been played so far
 					}
 					var progressWrapper:Object = {
 						state: progress
-					}*/
-					//restoreStateforDG(progressWrapper); 	 
-
-					// END PROXY 
+					}
+					restoreStateforDG(progressWrapper); 	 
+					
+					END PROXY */
 					
 				} else {
 					recheckTimer.reset();
@@ -862,66 +846,17 @@
 			//		Returns { success: true, state: {} }
 			private function saveStateforDG( args:Object ):Object {
 				
-				var mWasInGame:Boolean = isInGame();
-				var mWasInSite:Boolean = isInSite();
-				var stateObj:Object;
-				
-				if( mWasInGame && mWasInSite){
-					stateObj = {
-						success: true,
-						state: {
-							// VARS NEEDED TO RESTORE AN ODYSSEY:
-							ratings: Missions.getBestRatings(),					// the scores on all missions so far
-							deleteDataEachSite: popUpScreen.deleteData,			// whether or not the 'clear my graph' box was checked
-							wasInGame: true, 								// if this is false, nothing below this line matters:
-							
-							// VARS NEEDED TO RESTORE A GAME:
-							mission: mCurrentMission.number,					// what mission ID we were playing (ie, 1: Hundreds o' Rats, 2: Rat Shortage, etc.)
-							gameSerialNum: mGameSerialNum,						// how many games have been played so far
-							siteSerialNum: mSiteSerialNum,						// how many sites have been played so far
-							sitesVisitedThisGame: mSitesVisitedThisGame,		// how many sites have been visited this game
-							remainingRats: bootyMeter.rats,						// rats remaining in booty meter
-							remainingMisses: bootyMeter.missesRemaining,			// hook drops remaining in booty meter
-							treasuresFoundThisGame: bootyMeter.treasuresFound,	// treasures found in booty meter
-							wasInSite: true, 								// if this is false, nothing below this line matters:
-							
-							// VARS NEEDED TO RESTORE A SITE:
-							treasuresFoundThisSite: mTreasuresFoundThisSite,	// used in variable treasure levels
-							treasuresRemaining: getTreasureRemainingArray(),	// array of treasure locations
-							hooksDroppedArray: hooksDroppedArray				// array of hooks dropped so far, this game	
-						}
-					};
-				} else if ( mWasInGame) {
-					stateObj = {
-						success: true,
-						state: {
-							// VARS NEEDED TO RESTORE AN ODYSSEY:
-							ratings: Missions.getBestRatings(),					// the scores on all missions so far
-							deleteDataEachSite: popUpScreen.deleteData,			// whether or not the 'clear my graph' box was checked
-							wasInGame: true, 								// if this is false, nothing below this line matters:
-								
-							// VARS NEEDED TO RESTORE A GAME:
-							mission: mCurrentMission.number,					// what mission ID we were playing (ie, 1: Hundreds o' Rats, 2: Rat Shortage, etc.)
-							gameSerialNum: mGameSerialNum,						// how many games have been played so far
-							siteSerialNum: mSiteSerialNum,						// how many sites have been played so far
-							sitesVisitedThisGame: mSitesVisitedThisGame,		// how many sites have been visited this game
-							remainingRats: bootyMeter.rats,						// rats remaining in booty meter
-							remainingMisses: bootyMeter.missesRemaining,		// hook drops remaining in booty meter
-							treasuresFoundThisGame: bootyMeter.treasuresFound,	// treasures found in booty meter
-							wasInSite: false								
-						}
-					};
-				} else {
-					stateObj = {
-						success: true,
-						state: {
-							// VARS NEEDED TO RESTORE AN ODYSSEY:
-							ratings: Missions.getBestRatings(),					// the scores on all missions so far
-							deleteDataEachSite: popUpScreen.deleteData,			// whether or not the 'clear my graph' box was checked
-							wasInGame: false 								// if this is false, nothing below this line matters:					
-						}
-					};
-				}
+				var stateObj:Object;				
+				stateObj = {
+					success: true,
+					state: {
+						// VARS NEEDED TO RESTORE AN ODYSSEY:
+						ratings: Missions.getBestRatings(),					// the scores on all missions so far
+						deleteDataEachSite: popUpScreen.deleteData,			// whether or not the 'clear my graph' box was checked
+						gameSerialNum: mGameSerialNum,						// how many games have been played so far
+						siteSerialNum: mSiteSerialNum						// how many sites have been played so far
+					}
+				};
 				return stateObj;
 			}
 			
@@ -977,16 +912,7 @@
 					var validator:RestoreValidator = new RestoreValidator();	// this objects handles the restoration of save states.
 					if( validator.validateOdysseyRestore( iState)){								// CHECK IF ANYTHING CAN BE RESTORED (TOP LEVEL)
 						restoreOdyssey(iState);
-						if( iState.wasInGame && validator.validateGameRestore( iState)){			// CHECK IF A GAME WAS UNDERWAY, AND CAN BE RESTORED
-							restoreGame(iState);
-							if( iState.wasInSite && validator.validateSiteRestore( iState)){		// CHECK IF A SITE WAS UNDERWAY, AND CAN BE RESTORED
-								restoreSite(iState);
-							} else{
-								newSite(); // if a site isn't being restored, create a new site.
-							}
-						} else {
-							popUpScreen.displayMissionMap( true); // if a game isn't being restored, return to the map.
-						}
+						popUpScreen.displayMissionMap( true);
 					} else { // could not restore anything:
 						result.sucess = false;	// if nothing could be restored, this opperation was a failure.
 					}
@@ -1360,9 +1286,15 @@
 				
 				// restore the 'clear my graph' checkbox setting:
 				popUpScreen.deleteData = progress.deleteDataEachSite;
+				
+				// restore serial #'s:
+				mGameSerialNum = progress.gameSerialNum;
+				mSiteSerialNum = progress.siteSerialNum;
+				
+				topBarMVC.closeBouncer(null, true);
 			}
 			
-			
+			// UN-USED BECAUSE WE CANNOT RE-HOOK INTO CLOSED DG CASES:
 			// jump into the middle of a game. Similar to calling 'new game', but doesn't necessarily give a clean slate. 
 			private function restoreGame(progress:Object):void{											
 				mCurrentMission = Missions.getMission(progress.mission);
@@ -1419,6 +1351,7 @@
 				sendGameDataOpen();
 			}
 			
+			// UN-USED BECAUSE WE CANNOT RE-HOOK INTO CLOSED DG CASES:
 			private function restoreSite( progress:Object):void{
 				readyToZoomIn();
 				disableAllButtons();
