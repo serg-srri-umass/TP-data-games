@@ -104,6 +104,7 @@
 			private var shipControlsMVC:ShipControlsMVC = new ShipControlsMVC();
 			private var bootyMeter:BootyBarMVC = new BootyBarMVC();
 			private var aboutScreen:AboutScreenMVC = new AboutScreenMVC( kAboutTextHTML);
+			private var movieControls:VideoControlsMVC = new VideoControlsMVC(playPauseVideo, replayVideo, hideVideo);
 			
 			// the button on the top-bar that prompts you to watch the instructional video.
 			private var mVideoButton:MovieClip = new videoMVC();
@@ -1183,6 +1184,9 @@
 				topBarMVC.setStage(this.systemManager.stage);
 				
 				addEventListener(MouseEvent.CLICK, handleFocus);
+				
+				videoHolder.addChild( movieControls);
+				movieControls.y = 315;
 			}	
 			
 			//MXML's with multiple SWF's handle focus in a strange way. This keeps the focus working the way it should.
@@ -1238,11 +1242,11 @@
 					return true;
 				}
 			}
-			private function hideVideo():void{
+			private function hideVideo( triggerEvent:Event = null):void{
 				StartupVideo.visible = false;
 				videoPlayer.pauseVideo();
 			}
-			private function playPauseVideo():void{
+			private function playPauseVideo( triggerEvent:Event = null):void{
 				var PLAYING_VIDEO:Number = 1;
 				if(videoPlayer.getPlayerState() == PLAYING_VIDEO) {
 					videoPlayer.pauseVideo();
@@ -1250,7 +1254,7 @@
 					videoPlayer.playVideo();
 				}
 			}
-			private function replayVideo():void{
+			private function replayVideo( triggerEvent:Event = null):void{
 				videoPlayer.seekTo(0, true);
 				videoPlayer.playVideo();
 			}
@@ -1261,9 +1265,9 @@
 				switch(state)
 				{
 					case PLAY:
-						playPauseBtn.label = "Pause"; break;
+						movieControls.mainBtn.look = 1; break; //"play"
 					case PAUSE:
-						playPauseBtn.label = "Play"; break;
+						movieControls.mainBtn.look = 0; break; //"pause"
 				}
 			}
 			
@@ -1471,11 +1475,6 @@
 	<!-- Contains startup video -->
 	<s:BorderContainer id="StartupVideo" x="0" y="27" width="518" height="443" visible="false" backgroundColor="0x294867" borderVisible="false">
 		<mx:UIComponent	id="videoHolder" x="0" y="20"/>
-		<s:Group id="videoControlsContainer" x="160" y="350">
-			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
-			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width}"/>
-			<s:Button id="skipBtn" label="Close" chromeColor="#eac42d" color="0x000000" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
-		</s:Group>
 	</s:BorderContainer>
 	
 	<mx:UIComponent	id="topBarContainer" x="0" y="0"/>
