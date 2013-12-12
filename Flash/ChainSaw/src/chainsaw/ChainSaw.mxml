@@ -13,17 +13,17 @@
 		<![CDATA[
 			import chainsaw.events.*;
 			import chainsaw.sawdust.*;
-
+			
 			import com.adobe.serialization.json.JSON;
-
+			
 			import common.DGInterface;
 			import common.ScriptInterface;
 			import common.VersionChecker;
-
+			
 			import flash.external.ExternalInterface;
 			import flash.filters.GlowFilter;
 			import flash.media.SoundMixer;
-
+			
 			import mx.core.UIComponent;
 			import mx.logging.ILogger;
 			import mx.logging.Log;
@@ -31,7 +31,7 @@
 			import mx.logging.targets.TraceTarget;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
-
+			
 			import spark.components.CheckBox;
 			import spark.events.TextOperationEvent;
 			
@@ -169,7 +169,10 @@
 			private var volume:Number = 50;
 			
 			private var logger:ILogger;
-			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
+			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)
+			
+			//Used to make sure the tape measure can only be dragged when it is valid
+			private var isTapeMeasureDraggable:Boolean = true;
 			
 			// Embed the cursor symbol.
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
@@ -1386,7 +1389,12 @@
 			
 			private function onMouseDown(e:Event):void
 			{
-				mTapeMeasure.startDrag();
+				if(isTapeMeasureDraggable)
+				{
+					mTapeMeasure.startDrag();
+					isTapeMeasureDraggable = false;
+					mTapeMeasure.filters = [];
+				}
 			}
 			private function onMouseUp(e:Event):void
 			{
@@ -1397,6 +1405,20 @@
 				moveTapeMeasure.xFrom = mouseX - e.currentTarget.mouseX - UI_Elements.x;
 				moveTapeMeasure.yFrom = mouseY - e.currentTarget.mouseY - UI_Elements.y;
 				moveTapeMeasure.play();
+			}
+			private function onTapeMeasureMoveFinish(e:Event):void
+			{
+				isTapeMeasureDraggable = true; //allow the tape measure to be dragged again once the animation finishes
+			}
+			private function onMouseOverTapeMeasure(e:Event):void
+			{
+				var filter:GlowFilter = new GlowFilter();
+				
+				mTapeMeasure.filters = [filter];
+			}
+			private function onMouseOutTapeMeasure(e:Event):void
+			{
+				mTapeMeasure.filters = [];
 			}
 			
 			private function initLevelsScreen(e:Event):void
@@ -1451,7 +1473,7 @@
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="10" yTo="0" duration="400" />
+		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="10" yTo="0" duration="400" effectEnd="onTapeMeasureMoveFinish(event)"/>
 	</fx:Declarations>
 	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
@@ -1481,7 +1503,7 @@
 	</s:BorderContainer>
 	
 	<s:BorderContainer id="UI_Elements" x="0" y="36" width="135" height="364" backgroundAlpha="0" borderVisible="false" depth="100">
-		<mx:Image id="mTapeMeasure" x="10" y="0" source="{mTapeMeasureImage}" mouseDown="onMouseDown(event)" mouseUp="onMouseUp(event)" depth="100"/>
+		<mx:Image id="mTapeMeasure" x="10" y="0" source="{mTapeMeasureImage}" mouseDown="onMouseDown(event)" mouseUp="onMouseUp(event)" depth="100" mouseOver="onMouseOverTapeMeasure(event)" mouseOut="onMouseOutTapeMeasure(event)" buttonMode="true" useHandCursor="true"/>
 		<mx:Image id="mReferenceLengthImage" x="13" y="38" source="{mLengthImage}"/>
 		<s:Label id="mReferenceLengthLabel" x="10" y="58" fontSize="14" fontWeight="normal" text="Target Length"/>
 		<s:Label id="mFuelLabel" x="10" y="100" fontSize="14" fontWeight="normal" text="Fuel"/>
