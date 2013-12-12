@@ -50,7 +50,8 @@
 			private static const kVersion:String = "v.1.0";
 			private static const kAboutTextHTML:String = 
 				"<b>Ship Odyssey</b> is a <font color='#2C4877'><u><a href='http://www.srri.umass.edu/datagames' target='shipInfo'>Data Game</a></u></font>"+
-				" created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='shipInfo'>Statistics Education Research Group</a></u></font>"+". "+
+				" created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='shipInfo'>Statistics Education Research Group</a></u></font> "+
+				"at <font color='#2C4877'><u><a href='http://www.srri.umass.edu' target='shipInfo'>SRRI</a></u></font>. "+
 				"Contributers to the concept, design and development include the "+
 				"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong; "+
 				"Developers: Craig D. Miller, Laurel Shortell; "+
