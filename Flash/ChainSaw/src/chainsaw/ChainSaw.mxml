@@ -315,11 +315,12 @@
 				// all the things that will make the 'click here' prompt go away go here.
 				// they need matching 'removeEventListeners' in the closePrompt method.
 				
-				this.systemManager.stage.addEventListener(MouseEvent.CLICK, closePrompt);
+				this.systemManager.stage.addEventListener(MouseEvent.MOUSE_DOWN, closePrompt);
 				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OVER, showHidePrompt);
 				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OUT, showHidePrompt);
 				mVideoButton.aboutBtn.addEventListener( MouseEvent.MOUSE_OVER, hideBouncePrompt);
 				mVideoButton.aboutBtn.addEventListener( MouseEvent.CLICK, showHideAboutScreen);
+				mVideoButton.muteMVC.visible = false;
 				
 				// this is the method that will be called when the button is clicked on.
 				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
@@ -1494,7 +1495,7 @@
 		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput()" enabled="true"
 					 fontSize="14" fontWeight="bold" text="Player" textAlign="left"/>
 						
-		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}" click="toggleMute()" />
+		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}" click="toggleMute()" mouseOver="mVideoButton.muteMVC.visible=true" mouseOut="mVideoButton.muteMVC.visible=false"/>
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
 	</s:BorderContainer>
 	
