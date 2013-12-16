@@ -1415,10 +1415,7 @@
 			}
 			private function onMouseOverTapeMeasure(e:Event):void
 			{
-				var filter:GlowFilter = new GlowFilter();
-				
-				filter.color = 0xb81e19;
-				mTapeMeasure.filters = [filter];
+				mTapeMeasure.filters = [glowFilter];
 			}
 			private function onMouseOutTapeMeasure(e:Event):void
 			{
@@ -1433,10 +1430,6 @@
 			
 			private function initLevelsScreen(e:Event):void
 			{
-				var filter:GlowFilter = new GlowFilter();
-				
-				filter.color = 0xb81e19;
-				
 				thinLevelBtn.addEventListener(MouseEvent.MOUSE_OVER, mouseOverLevelBtn);
 				thinLevelBtn.addEventListener(MouseEvent.MOUSE_OUT, mouseOutLevelBtn);
 				thickLevelBtn.addEventListener(MouseEvent.MOUSE_OVER, mouseOverLevelBtn);
@@ -1450,7 +1443,7 @@
 				
 				function mouseOverLevelBtn(e:Event):void
 				{
-					e.target.filters = [filter];
+					e.target.filters = [glowFilter];
 				}
 				function mouseOutLevelBtn(e:Event):void
 				{
@@ -1484,6 +1477,7 @@
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="10" yTo="5" duration="400" effectEnd="onTapeMeasureMoveFinish(event)"/>
+		<mx:GlowFilter id="glowFilter" color="0xb81e19" />
 	</fx:Declarations>
 	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
