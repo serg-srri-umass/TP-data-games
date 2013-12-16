@@ -1416,7 +1416,8 @@
 			{
 				var filter:GlowFilter = new GlowFilter();
 				
-				filter.color = 0x5ac286;
+				filter.color = 0xF5F0EA;
+				filter.strength = 50;
 				mTapeMeasure.filters = [filter];
 			}
 			private function onMouseOutTapeMeasure(e:Event):void
@@ -1430,7 +1431,9 @@
 				
 				var filter:GlowFilter = new GlowFilter();
 				
-				filter.color = 0x5ac286;
+				filter.color = 0xF5F0EA;
+				filter.blurX = filter.blurY = 6;
+				filter.strength = 110;
 				
 				thinLevelBtn.addEventListener(MouseEvent.MOUSE_OVER, mouseOverLevelBtn);
 				thinLevelBtn.addEventListener(MouseEvent.MOUSE_OUT, mouseOutLevelBtn);
