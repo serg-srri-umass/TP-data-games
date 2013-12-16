@@ -315,11 +315,12 @@
 				// all the things that will make the 'click here' prompt go away go here.
 				// they need matching 'removeEventListeners' in the closePrompt method.
 				
-				this.systemManager.stage.addEventListener(MouseEvent.CLICK, closePrompt);
+				this.systemManager.stage.addEventListener(MouseEvent.MOUSE_DOWN, closePrompt);
 				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OVER, showHidePrompt);
 				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OUT, showHidePrompt);
 				mVideoButton.aboutBtn.addEventListener( MouseEvent.MOUSE_OVER, hideBouncePrompt);
 				mVideoButton.aboutBtn.addEventListener( MouseEvent.CLICK, showHideAboutScreen);
+				mVideoButton.muteMVC.visible = false;
 				
 				// this is the method that will be called when the button is clicked on.
 				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
@@ -1477,7 +1478,7 @@
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="10" yTo="0" duration="400" effectEnd="onTapeMeasureMoveFinish(event)"/>
+		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="10" yTo="5" duration="400" effectEnd="onTapeMeasureMoveFinish(event)"/>
 	</fx:Declarations>
 	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
@@ -1494,7 +1495,7 @@
 		<s:TextInput id="mPlayerTextInput" x="400" y="2" width="110" height="24" change="onChangePlayerTextInput()" enabled="true"
 					 fontSize="14" fontWeight="bold" text="Player" textAlign="left"/>
 						
-		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}" click="toggleMute()" />
+		<s:Image id="mVolumeImage" x="620" y="6" source="{mVolumeIcon}" click="toggleMute()" mouseOver="mVideoButton.muteMVC.visible=true" mouseOut="mVideoButton.muteMVC.visible=false"/>
 		<s:HSlider id="mVolumeSlider" x="645" y="9" width="80" change="updateVolume(mVolumeSlider.value)" dataTipPrecision="0" maximum="100" value="50"/>
 	</s:BorderContainer>
 	
@@ -1507,9 +1508,9 @@
 	</s:BorderContainer>
 	
 	<s:BorderContainer id="UI_Elements" x="0" y="36" width="135" height="364" backgroundAlpha="0" borderVisible="false" depth="100">
-		<mx:Image id="mTapeMeasure" x="10" y="0" source="{mTapeMeasureImage}" mouseDown="onMouseDown(event)" mouseUp="onMouseUp(event)" depth="100" mouseOver="onMouseOverTapeMeasure(event)" mouseOut="onMouseOutTapeMeasure(event)" buttonMode="true" useHandCursor="true"/>
-		<mx:Image id="mReferenceLengthImage" x="13" y="38" source="{mLengthImage}"/>
-		<s:Label id="mReferenceLengthLabel" x="10" y="58" fontSize="14" fontWeight="normal" text="Target Length"/>
+		<mx:Image id="mTapeMeasure" x="10" y="5" source="{mTapeMeasureImage}" mouseDown="onMouseDown(event)" mouseUp="onMouseUp(event)" depth="100" mouseOver="onMouseOverTapeMeasure(event)" mouseOut="onMouseOutTapeMeasure(event)" buttonMode="true" useHandCursor="true"/>
+		<mx:Image id="mReferenceLengthImage" x="13" y="43" source="{mLengthImage}"/>
+		<s:Label id="mReferenceLengthLabel" x="10" y="63" fontSize="14" fontWeight="normal" text="Target Length"/>
 		<s:Label id="mFuelLabel" x="10" y="100" fontSize="14" fontWeight="normal" text="Fuel"/>
 		<s:SWFLoader id="mFuelIcon" x="10" y="120" width="90" height="200" scaleY="1.2" complete="initGasTank()" source="chainsaw_assets/GasTank.swf" />
 		<s:Button id="mChangeLevelButton" x="10" y="260" width="90" height="30" label="Levels" click="displayLevels(event)" enabled="true" fontSize="12" fontWeight="bold" />
