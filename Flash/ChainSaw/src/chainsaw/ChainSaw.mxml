@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "v.2013.12.16";
+			public static const  VERSION:String = "v.2013.12.17";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -324,6 +324,8 @@
 				
 				// this is the method that will be called when the button is clicked on.
 				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
+				
+				systemManager.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave);
 				
 				//Embedded Youtube video
 				var videoID:String = "UjjfK0Mb3dg";
@@ -1420,6 +1422,20 @@
 			private function onMouseOutTapeMeasure(e:Event):void
 			{
 				mTapeMeasure.filters = [];
+			}
+			private function onMouseLeave(e:Event):void
+			{
+				mTapeMeasure.stopDrag();
+				
+				mTapeMeasure.x = 10;
+				
+				mTapeMeasure.y = 0;
+				mTapeMeasure.y = 5;
+				/* This fixes a strange bug where the sprite is not visible after setting its y value.
+				It is fixed by setting its value twice to different values.
+				*/
+				
+				isTapeMeasureDraggable = true;
 			}
 			
 			private function onClickCancelLevelsButton(e:Event):void
