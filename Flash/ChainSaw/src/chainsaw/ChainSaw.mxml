@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "v.2013.12.17";
+			public static const  VERSION:String = "v.1.0";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -48,6 +48,7 @@
 				"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong; "+
 				"Developers: Craig D. Miller, Laurel Shortell; "+
 				"Student Programmers: Tristan Warneke, Dylan Pyle, Ryan McCann, Russ Phelan, Mike Salyh. "+
+				"Artists: Tristan Warneke, Mike Salyh, Ryan McCann. "+
 				"Funded by the National Science Foundation, award "+
 				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='chainsawInfo'>DRL-0918653</a></u></font> (2009-2014). "+
 				"Chainsaw is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='chainsawInfo'>Github</a></u></font>. "+
@@ -1608,6 +1609,7 @@
 		</s:backgroundFill>
 		<s:Label text="About Chainsaw" width="{aboutScreen.width}" y="35" fontSize="28" fontWeight="normal" textAlign="center"/>
 		<mx:Text selectable="true" x="50" y="80" width="{aboutScreen.width-100}" htmlText="{kCreditsTextHTML}" fontSize="14" />
+		<s:Image x="370" y="236" source="{mChainsawCursor}" />
 		<s:Button x="{(aboutScreen.width-90)/2}" y="250" width="90" height="30" label="OK" click="aboutScreen.visible=false;" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 	
