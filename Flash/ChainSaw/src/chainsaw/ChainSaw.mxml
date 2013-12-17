@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "v.2013.12.16";
+			public static const  VERSION:String = "v.2013.12.17";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -325,6 +325,8 @@
 				// this is the method that will be called when the button is clicked on.
 				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
 				
+				systemManager.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave);
+				
 				//Embedded Youtube video
 				var videoID:String = "UjjfK0Mb3dg";
 				
@@ -478,7 +480,8 @@
 						stateVersion: 1, // increment only if needed by restoreStateForDG()
 						playersName: this.mPlayersName,
 						gameLevel: this.mGameLevel,
-						gameNumber: this.mGameNumber
+						gameNumber: this.mGameNumber,
+						isPractice: this.practice
 					}
 				};
 				return stateObj;
@@ -498,6 +501,10 @@
 					}
 					if( iState.gameNumber ) {
 						this.mGameNumber = iState.gameNumber;
+					}
+					if( iState.isPractice ) {
+						this.practice = iState.isPractice;
+						this.practiceCheckBox.selected = iState.isPractice;
 					}
 					switch( iState.gameLevel) {
 						case kFreeCutLevel:
@@ -546,12 +553,6 @@
 				sawdustParticlesLog4.clearParticles();
 			}
 			
-			// save the state of the practice checkbox
-			private function togglePractice(e:Event):void
-			{
-				this.practice = practiceCheckBox.selected;
-			}
-			
 			// freeCutLevel() sets the current game level to free cut.
 			private function thinFreeCutLevel(iEvent:Event):void
 			{
@@ -572,6 +573,8 @@
 			//level select redirected from button calls with level number - sets up the play field for each level
 			private function levelSelected( levelNum:int, logIt:Boolean=false ):void
 			{
+				practice = practiceCheckBox.selected;
+				
 				mPrevLevel = mGameLevel; // Track game level change.
 				mGameLevel = levelNum; // Set game level
 				
@@ -1414,24 +1417,35 @@
 			}
 			private function onMouseOverTapeMeasure(e:Event):void
 			{
-				var filter:GlowFilter = new GlowFilter();
-				
-				filter.color = 0xb81e19;
-				mTapeMeasure.filters = [filter];
+				mTapeMeasure.filters = [glowFilter];
 			}
 			private function onMouseOutTapeMeasure(e:Event):void
 			{
 				mTapeMeasure.filters = [];
 			}
+			private function onMouseLeave(e:Event):void
+			{
+				mTapeMeasure.stopDrag();
+				
+				mTapeMeasure.x = 10;
+				
+				mTapeMeasure.y = 0;
+				mTapeMeasure.y = 5;
+				/* This fixes a strange bug where the sprite is not visible after setting its y value.
+				It is fixed by setting its value twice to different values.
+				*/
+				
+				isTapeMeasureDraggable = true;
+			}
+			
+			private function onClickCancelLevelsButton(e:Event):void
+			{
+				levelScreen.visible = false;
+				practiceCheckBox.selected = practice;
+			}
 			
 			private function initLevelsScreen(e:Event):void
 			{
-				practiceCheckBox.addEventListener("change", togglePractice);
-				
-				var filter:GlowFilter = new GlowFilter();
-				
-				filter.color = 0xb81e19;
-				
 				thinLevelBtn.addEventListener(MouseEvent.MOUSE_OVER, mouseOverLevelBtn);
 				thinLevelBtn.addEventListener(MouseEvent.MOUSE_OUT, mouseOutLevelBtn);
 				thickLevelBtn.addEventListener(MouseEvent.MOUSE_OVER, mouseOverLevelBtn);
@@ -1445,7 +1459,7 @@
 				
 				function mouseOverLevelBtn(e:Event):void
 				{
-					e.target.filters = [filter];
+					e.target.filters = [glowFilter];
 				}
 				function mouseOutLevelBtn(e:Event):void
 				{
@@ -1479,6 +1493,7 @@
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 		<s:Move id="moveTapeMeasure" target="{mTapeMeasure}" xTo="10" yTo="5" duration="400" effectEnd="onTapeMeasureMoveFinish(event)"/>
+		<mx:GlowFilter id="glowFilter" color="0xb81e19" />
 	</fx:Declarations>
 	
 	<s:BorderContainer id="StatusBar" x="5" y="0" width="{this.minWidth - 10}" height="30" cornerRadius="3">
@@ -1575,7 +1590,7 @@
 			
 		<s:CheckBox id="practiceCheckBox" x="220" y="320" label="Practice (no time limit, no data saved)"/>
 		
-		<s:Button id="closeLevelsButton" x="493" y="310" width="90" height="30" label="Cancel" click="levelScreen.visible=false;" enabled="true" fontSize="12" fontWeight="bold"/>
+		<s:Button id="closeLevelsButton" x="493" y="310" width="90" height="30" label="Cancel" click="onClickCancelLevelsButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 	
 	<!-- About Screen -->
