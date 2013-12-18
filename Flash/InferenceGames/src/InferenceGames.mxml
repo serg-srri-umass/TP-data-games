@@ -32,6 +32,7 @@
 			import embedded_asset_classes.UserPlayerSWC;
 			
 			import flash.external.ExternalInterface;
+			import flash.utils.Timer;
 			
 			// ----------------------
 			// --- PRIVATE SECTION ---
@@ -300,7 +301,19 @@
 					convertArray.push([Round.currentRound.roundID, elem]);
 				}
 				
-				mDGInterface.createEventCases( kEventsCollectionName, convertArray );
+				var timer:Timer = new Timer(220);
+				timer.addEventListener(TimerEvent.TIMER, sendSingleDataPoint);
+				timer.start();
+				
+				var count:int = 0;
+				function sendSingleDataPoint(e:Event):void {
+					if(count+1 >= convertArray.length) {
+						timer.stop();
+					}
+					count++;
+					mDGInterface.createEventCases( kEventsCollectionName, [convertArray[count]] );
+				}
+				
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
 			}
 			
