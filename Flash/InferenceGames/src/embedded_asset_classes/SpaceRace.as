@@ -56,6 +56,9 @@
 			| isInGuessMode():Boolean;
 			|	returns true if in 'guess mode', returns false if in 'mouse mode'.
 			|
+			| public var dataPopSpeed:Number
+			|	determines how much time occurs between the arrival of data pops.
+			|
 	|
 	|- topBarMVC (Controlled by SpaceRaceTopBar.as)
 	|	| NOTE: The top bar is visual only. It has no bearing on actual gameplay.
@@ -132,12 +135,13 @@ package embedded_asset_classes
 			mainMVC.switchToMouseMode();
 
 			// DEBUG SECTION. REMOVE ALL THIS BEFORE IT GOES LIVE.
-			if(standAloneDebug){
+			/*if(standAloneDebug){
 				//startNewRoundDebug(); 
 				addEventListener( InferenceEvent.REQUEST_SAMPLE, doTheSamples);
 				//addEventListener( InferenceEvent.REQUEST_NEW_ROUND, startNewRoundDebug);
 				topBarMVC.backBtn.addEventListener( MouseEvent.CLICK, newGame);
 			}
+			*/
 		}
 		
 		
@@ -215,6 +219,11 @@ package embedded_asset_classes
 			mainMVC.overdraw( triggerEvent);
 		}
 		
+		// return time between single data samples in milliseconds
+		public function getDataSpeed():uint {
+			return (1000 / 24) * mainMVC.dataPopSpeed; // (1000ms / 24 frames) * frames per sample
+		}
+		
 		// ----------- SCORING ------------------
 		
 		public function get life():int{		return _life;	}
@@ -281,6 +290,7 @@ package embedded_asset_classes
 		
 		// -----------DEBUG SECTION!! -------------------
 		//	REMOVE ALL THIS BEFORE PUBLISH.
+		/*
 		private function startNewRoundDebug( triggerEvent:InferenceEvent = null):void
 		{
 			newRound( Math.random() * 10 + 7, Math.random() * 10 + 1, Math.random() * 100, Math.random() * 10 + 1);
@@ -293,5 +303,6 @@ package embedded_asset_classes
 				trace(sampleData(triggerEvent));
 			}
 		}
+		*/
 	}
 }

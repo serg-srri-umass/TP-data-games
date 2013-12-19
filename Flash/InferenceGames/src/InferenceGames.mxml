@@ -40,7 +40,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.12.10";
+			private static const kVersion:String = "v.2013.12.19";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -50,6 +50,7 @@
 									"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong;"+
 									"Developers: Craig D. Miller; "+
 									"Student Programmers: Russ Phelan, Mike Salyh, Ryan McCann. "+
+									"Artist: Mike Salyh. "+
 									"Funded by the National Science Foundation, award "+
 									"<a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false'>DRL-0918653</a> (2009-2014)."+ 
 									"Inference Games is open source on <a href='https://github.com/serg-srri-umass/TP-data-games/wiki'>Github</a>."+
@@ -112,7 +113,7 @@
 			
 			//handles requestSample events from SpaceRace interface
 			private function requestSampleHandler(e:InferenceEvent):void{
-				InferenceGames.instance.sendEventData( sSpaceRace.sampleData() ); //send vector of data to DG
+				InferenceGames.instance.sendEventData( sSpaceRace.sampleData(), sSpaceRace.getDataSpeed() ); //send vector of data to DG
 			}
 			
 			private function initVisualElements():void{	
@@ -293,7 +294,8 @@
 			// Send event case data to DG, if connected to DG.
 			// 		Event data "data point generated" events, with one array value per Event attribute
 			// 		caseValueArrays is an array of cases, and each case is a array of attribute values for that case (corresponding to the attributes previously sent)
-			public function sendEventData( caseValueArrays:Vector.<Number> ):void {
+			//		dataSpeed is the time between single cases in milliseconds; we want sending of data to match data appearance in game
+			public function sendEventData( caseValueArrays:Vector.<Number>, dataSpeedinMS:uint ):void {
 				
 				//converts number vector from SpaceRace into array for DG
 				var convertArray:Array = new Array();
@@ -301,17 +303,17 @@
 					convertArray.push([Round.currentRound.roundID, elem]);
 				}
 				
-				var timer:Timer = new Timer(220);
+				var timer:Timer = new Timer(dataSpeedinMS);
 				timer.addEventListener(TimerEvent.TIMER, sendSingleDataPoint);
 				timer.start();
 				
 				var count:int = 0;
 				function sendSingleDataPoint(e:Event):void {
-					if(count+1 >= convertArray.length) {
+					if(count >= convertArray.length) {
 						timer.stop();
 					}
-					count++;
 					mDGInterface.createEventCases( kEventsCollectionName, [convertArray[count]] );
+					count++;
 				}
 				
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
@@ -462,7 +464,7 @@
 	<!-- the UI component that holds all the game's SWC's -->
 	<mx:UIComponent id="gameContainer" x="0" y="0"/>
 	
-	<s:Label id="mVersionLabel" x="460" y="280" color="0x000000" initialize="mVersionLabel.text=kVersion" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="{575-200-10}" y="{325-50-10}" color="0xFFFFFF" width="200" height="50" initialize="mVersionLabel.text=kVersion" textAlign="right" verticalAlign="bottom"/>
 	
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall" visible="false" x="0" y="0"
