@@ -44,17 +44,18 @@
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
-									"<b>Inference Games</b> is a <a href='http://www.srri.umass.edu/datagames'>Data Game</a>"+
-									"created by the <a href='http://www.srri.umass.edu/serg'>Statistics Education Research Group</a>"+
-									"at srri.umass.edu. Contributers to the concept, design and development include the "+
-									"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong;"+
-									"Developers: Craig D. Miller; "+
-									"Student Programmers: Russ Phelan, Mike Salyh, Ryan McCann. "+
-									"Artist: Mike Salyh. "+
-									"Funded by the National Science Foundation, award "+
-									"<a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false'>DRL-0918653</a> (2009-2014)."+ 
-									"Inference Games is open source on <a href='https://github.com/serg-srri-umass/TP-data-games/wiki'>Github</a>."+
-									"Copyright (c) 2011<span class='x'>-2013 by University of Massachusetts Amherst.";
+				"<b>Inference</b> is a <font color='#2C4877'><u><a href='http://www.srri.umass.edu/datagames' target='chainsawInfo'>Data Game</a></u></font> "+
+				"created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='chainsawInfo'>Statistics Education Research Group</a></u></font> "+
+				"at <font color='#2C4877'><u><a href='http://www.srri.umass.edu' target='shipInfo'>SRRI</a></u></font>. "+
+				"Contributers to the concept, design and development include the " +
+				"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong; "+
+				"Developers: Craig D. Miller; "+
+				"Student Programmers: Russ Phelan, Mike Salyh, Ryan McCann. "+
+				"Artist: Mike Salyh. "+
+				"Funded by the National Science Foundation, award "+
+				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='chainsawInfo'>DRL-0918653</a></u></font> (2009-2014). "+
+				"Chainsaw is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='chainsawInfo'>Github</a></u></font>. "+
+				"Copyright (c) 2011<span class='x'>-2013 by University of Massachusetts Amherst.";
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
@@ -446,6 +447,11 @@
 				if(sResults.isShowing)
 					sResults.hide();
 			}
+			
+			// toggles the visibilty of the about screen
+			private function showHideAboutScreen( triggerEvent:MouseEvent):void{
+				aboutScreen.visible = !aboutScreen.visible;
+			}
 		]]>
 	</fx:Script>
 	
@@ -464,7 +470,9 @@
 	<!-- the UI component that holds all the game's SWC's -->
 	<mx:UIComponent id="gameContainer" x="0" y="0"/>
 	
-	<s:Label id="mVersionLabel" x="{575-200-10}" y="{325-50-10}" color="0xFFFFFF" width="200" height="50" initialize="mVersionLabel.text=kVersion" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="{575-200-10}" y="{325-50-10}" width="200" height="50"
+			 color="0xFFFFFF" initialize="mVersionLabel.text=kVersion" textAlign="right"
+			 verticalAlign="bottom" click="aboutScreen.visible=true;"/>
 	
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall" visible="false" x="0" y="0"
@@ -493,7 +501,24 @@
 				  enabled="true" fontSize="25"/>
 		<s:Button id="ignoreButton" x="{(575-350)/2}" y="250" width="350"
 				  height="30" fontFamily="Georgia" label="Ignore Warning" click="startUp()" enabled="true" fontSize="12"/>
-		
+	</s:BorderContainer>
+
+	<!-- About Screen -->
+	<s:BorderContainer id="aboutScreen" x="{30}" y="{30}" width="{this.width-(2*aboutScreen.x)}" height="{this.height-(2*aboutScreen.y)}" cornerRadius="5" visible="false" depth="888">
+		<s:filters>
+			<s:DropShadowFilter 
+				blurX="25" blurY="25" 
+				alpha="0.8" />
+		</s:filters>
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xf0f0f0"/>
+				<s:GradientEntry color="0xd8d8d8"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		<s:Label text="About Inference" width="{aboutScreen.width}" y="20" fontSize="22" fontWeight="normal" textAlign="center"/>
+		<mx:Text selectable="true" x="50" y="50" width="{aboutScreen.width-100}" htmlText="{kCreditsTextHTML}" fontSize="13" />
+		<s:Button x="{(aboutScreen.width-90)/2}" y="215" width="90" height="30" label="OK" click="aboutScreen.visible=false;" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 
 </s:Application>
