@@ -56,6 +56,9 @@
 			| isInGuessMode():Boolean;
 			|	returns true if in 'guess mode', returns false if in 'mouse mode'.
 			|
+			| public var dataPopSpeed:Number
+			|	determines how much time occurs between the arrival of data pops.
+			|
 	|
 	|- topBarMVC (Controlled by SpaceRaceTopBar.as)
 	|	| NOTE: The top bar is visual only. It has no bearing on actual gameplay.
@@ -122,6 +125,8 @@ package embedded_asset_classes
 		{
 			// event listener section:
 			/*this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
+			topBarMVC.backBtn.addEventListener(MouseEvent.CLICK, clickLevelsButton);
+
 			mainMVC.dataBtn.addEventListener(MouseEvent.CLICK, clickSampleButton);	// click the sample more data button;
 			mainMVC.guessBtn.addEventListener(MouseEvent.CLICK, clickGuessButton);		// click the guess button;
 			newRoundTimer.addEventListener(TimerEvent.TIMER, requestNewRound);	// when the new round timer completes, the new round starts.;
@@ -130,14 +135,7 @@ package embedded_asset_classes
 			mainMVC.setSpaceRace(this);
 						
 			mainMVC.switchToMouseMode();
-
-			// DEBUG SECTION. REMOVE ALL THIS BEFORE IT GOES LIVE.
-			if(standAloneDebug){
-				//startNewRoundDebug(); 
-				addEventListener( InferenceEvent.REQUEST_SAMPLE, doTheSamples);
-				//addEventListener( InferenceEvent.REQUEST_NEW_ROUND, startNewRoundDebug);
-				topBarMVC.backBtn.addEventListener( MouseEvent.CLICK, newGame);
-			}*/
+			*/
 		}
 		
 		
@@ -216,10 +214,18 @@ package embedded_asset_classes
 //			mainMVC.overdraw( triggerEvent);
 		}
 		
+		// return time between single data samples in milliseconds
+		public function getDataSpeed():uint {
+			return (1000 / 24) * mainMVC.dataPopSpeed; // (1000ms / 24 frames) * frames per sample
+		}
+		
 		// ----------- SCORING ------------------
 		
 		public function get life():int{		return _life;	}
 		public function get score():int{	return _score;	}
+		
+		public function set life(arg:int):void { _life=arg; }
+		public function set score(arg:int):void { _score=arg; }
 		
 		// lose a point of "life", when you guess incorrectly, or overdraw.
 		public function loseLife( triggerEvent:Event = null):void{
@@ -258,6 +264,19 @@ package embedded_asset_classes
 			mainMVC.handleEnterFrame( triggerEvent);
 		}
 		
+		// function called when clicking the levels button
+		private function clickLevelsButton( triggerEvent:Event ):void
+		{
+			if(alpha == 0) alpha = 1;
+			else alpha = 0;
+			
+			ControlsSWC.instance.visible = false;
+			
+			BotPlayerSWC.instance.visible = false;
+			
+			LevelSelectSWC.instance.show(triggerEvent);
+		}
+		
 		// ---------------- SAMPLE & GUESS BUTTONS ----------------------
 		// function that's called when you want to sample more data
 		private function clickSampleButton( triggerEvent:Event):void
@@ -277,22 +296,6 @@ package embedded_asset_classes
 		// ------ REQUEST NEW ROUND --------------
 		private function requestNewRound( triggerEvent:Event = null):void{
 			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_NEW_ROUND));
-		}
-		
-		
-		// -----------DEBUG SECTION!! -------------------
-		//	REMOVE ALL THIS BEFORE PUBLISH.
-		private function startNewRoundDebug( triggerEvent:InferenceEvent = null):void
-		{
-			newRound( Math.random() * 10 + 7, Math.random() * 10 + 1, Math.random() * 100, Math.random() * 10 + 1);
-		}
-	
-		private function doTheSamples( triggerEvent:InferenceEvent):void{
-			if(Math.random() * 20 < 1){
-				overdraw();
-			}else{
-				trace(sampleData(triggerEvent));
-			}
-		} */
+		}*/
 	}
 }

@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "v.1.0";
+			public static const  VERSION:String = "v.1.01";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -180,7 +180,8 @@
 			// From http://www.rw-designer.com/cursor-download.php?id=2222 on 12/11/2010
 			// Converted from .ani format to .png.
 			[Embed(source="../embedded_assets/Chainsaw Cursor 2.png")]
-			private var mChainsawCursor:Class;
+			[Bindable] // so we can also use cursor image in the About window
+			public var mChainsawCursor:Class;
 			
 			// Embed the reference length image file.
 			[Embed(source="../embedded_assets/Reference Length 75 Pixels.png")]
@@ -309,6 +310,10 @@
 				mCountDownMVC.y = 410/2;
 				
 				// init the 'play video' button & prompt.
+				initVideoPlayer();
+			}
+			
+			private function initVideoPlayer():void {
 				videoBtnContainer.addChild(mVideoButton);
 				mVideoButton.x = 600;
 				mVideoButton.y = 15;
@@ -333,11 +338,12 @@
 				
 				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
 				Security.allowDomain("s.ytimg.com");
-
+				
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
 				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
 				//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
+				
 				function onLoaderInit(event:Event):void {
 					videoHolder.addChild(loader);
 					loader.content.addEventListener("onReady", onPlayerReady);
@@ -1348,23 +1354,23 @@
 			//Video functions
 			private function showVideo(e:Event = null):void
 			{
-				if(StartupVideo.visible == true)
+				if(IntroVideo.visible == true)
 				{
 					if(videoPlayer != null)
 						videoPlayer.pauseVideo();
 					
-					StartupVideo.visible = false;
+					IntroVideo.visible = false;
 				}
 				else
 				{
-					StartupVideo.visible = true;
+					IntroVideo.visible = true;
 					videoPlayer.playVideo();
 				}
 			}
 			private function hideVideo():void
 			{
 				videoPlayer.pauseVideo();
-				StartupVideo.visible = false;
+				IntroVideo.visible = false;
 			}
 			private function playPauseVideo():void
 			{
@@ -1555,18 +1561,6 @@
 	
 	<s:Label id="mVersionLabel" x="570" y="386" width="165" fontSize="10" color="#666666" initialize="mVersionLabel.text=getVersion()" textAlign="right" verticalAlign="bottom"/>
 	
-	<!-- Contains startup video -->
-	<s:BorderContainer id="StartupVideo" x="0" y="25" width="{this.minWidth}" height="{this.minHeight-25}" visible="false" backgroundColor="#dcd0c0" borderVisible="false" depth="1000">
-		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="0"/>
-		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-25}">
-			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
-			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width + 5}"/>
-			<s:Button id="closeVideoBtn" label="Close" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
-		</s:Group>
-	</s:BorderContainer>
-	
-	<mx:UIComponent	id="videoBtnContainer" x="0" y="0"/>
-	
 	<!-- Levels Screen -->
 	<s:BorderContainer id="levelScreen" x="{0}" y="{StatusBar.height}" width="{this.minWidth}" height="{this.minHeight-StatusBar.height}" borderVisible="false" backgroundColor="#dcd0c0" visible="false" depth="1000">
 		<s:BorderContainer backgroundColor="#e0d4c3" x="{(this.minWidth-460)/2}" y="10" width="460" height="{levelScreen.height-30}" cornerRadius="3">
@@ -1594,6 +1588,18 @@
 		<s:Button id="closeLevelsButton" x="493" y="310" width="90" height="30" label="Cancel" click="onClickCancelLevelsButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 	
+	<!-- Contains Intro video -->
+	<s:BorderContainer id="IntroVideo" x="0" y="25" width="{this.minWidth}" height="{this.minHeight-25}" visible="false" backgroundColor="#dcd0c0" borderVisible="false" depth="1000">
+		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="0"/>
+		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-25}">
+			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
+			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width + 5}"/>
+			<s:Button id="closeVideoBtn" label="Close" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
+		</s:Group>
+	</s:BorderContainer>
+	
+	<mx:UIComponent	id="videoBtnContainer" x="0" y="0"/>
+	
 	<!-- About Screen -->
 	<s:BorderContainer id="aboutScreen" x="{40}" y="{40}" width="{this.minWidth-(2*aboutScreen.x)}" height="{this.minHeight-(2*aboutScreen.y)}" cornerRadius="5" visible="false" depth="1000">
 		<s:filters>
@@ -1609,8 +1615,8 @@
 		</s:backgroundFill>
 		<s:Label text="About Chainsaw" width="{aboutScreen.width}" y="35" fontSize="28" fontWeight="normal" textAlign="center"/>
 		<mx:Text selectable="true" x="50" y="80" width="{aboutScreen.width-100}" htmlText="{kCreditsTextHTML}" fontSize="14" />
-		<s:Image x="370" y="236" source="{mChainsawCursor}" />
 		<s:Button x="{(aboutScreen.width-90)/2}" y="250" width="90" height="30" label="OK" click="aboutScreen.visible=false;" fontSize="12" fontWeight="bold"/>
+		<s:Image x="367" y="237" source="{mChainsawCursor}" />
 	</s:BorderContainer>
 	
 	<!-- Loading Screen of Safety -->

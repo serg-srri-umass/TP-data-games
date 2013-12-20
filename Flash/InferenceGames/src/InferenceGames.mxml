@@ -32,6 +32,7 @@
 			import embedded_asset_classes.UserPlayerSWC;
 			
 			import flash.external.ExternalInterface;
+			import flash.utils.Timer;
 			
 			// ----------------------
 			// --- PRIVATE SECTION ---
@@ -39,20 +40,22 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.12.10";
+			private static const kVersion:String = "v.2013.12.19";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
-									"<b>Inference Games</b> is a <a href='http://www.srri.umass.edu/datagames'>Data Game</a>"+
-									"created by the <a href='http://www.srri.umass.edu/serg'>Statistics Education Research Group</a>"+
-									"at srri.umass.edu. Contributers to the concept, design and development include the "+
-									"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong;"+
-									"Developers: Craig D. Miller; "+
-									"Student Programmers: Russ Phelan, Mike Salyh, Ryan McCann. "+
-									"Funded by the National Science Foundation, award "+
-									"<a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false'>DRL-0918653</a> (2009-2014)."+ 
-									"Inference Games is open source on <a href='https://github.com/serg-srri-umass/TP-data-games/wiki'>Github</a>."+
-									"Copyright (c) 2011<span class='x'>-2013 by University of Massachusetts Amherst.";
+				"<b>Inference</b> is a <font color='#2C4877'><u><a href='http://www.srri.umass.edu/datagames' target='chainsawInfo'>Data Game</a></u></font> "+
+				"created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='chainsawInfo'>Statistics Education Research Group</a></u></font> "+
+				"at <font color='#2C4877'><u><a href='http://www.srri.umass.edu' target='shipInfo'>SRRI</a></u></font>. "+
+				"Contributers to the concept, design and development include the " +
+				"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong; "+
+				"Developers: Craig D. Miller; "+
+				"Student Programmers: Russ Phelan, Mike Salyh, Ryan McCann. "+
+				"Artist: Mike Salyh. "+
+				"Funded by the National Science Foundation, award "+
+				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='chainsawInfo'>DRL-0918653</a></u></font> (2009-2014). "+
+				"Chainsaw is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='chainsawInfo'>Github</a></u></font>. "+
+				"Copyright (c) 2011<span class='x'>-2013 by University of Massachusetts Amherst.";
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
@@ -65,6 +68,8 @@
 			private var sLevelSelect:LevelSelectSWC;
 			private var sDebugConsole:DebugConsoleSWC;
 			private var sSpaceRace:SpaceRace;
+			private var videoPlayer:Object;	// The Youtube video player for the intro video
+			//private var mVideoButton:MovieClip = new videoMVC();  // the button on the top-bar that prompts you to watch the instructional video.
 
 			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
 			private var mGameSerialNum:int	= 0; // first game starts with serial number 1.
@@ -89,12 +94,12 @@
 				
 				this.randomizer = new ParkMiller(); // must instantiate just once to set random seed according to current date-time.
 				BrickWall.visible = false;
+				
+				initVisualElements();
 
 				mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
 				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
 				mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
-				
-				initVisualElements();
 				
 				//listen for events from Space Race Module 
 				//sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_ROUND, newRoundHandler);
@@ -111,7 +116,7 @@
 			
 			//handles requestSample events from SpaceRace interface
 			private function requestSampleHandler(e:Event):void{
-				//InferenceGames.instance.sendEventData( sSpaceRace.sampleData() ); //send vector of data to DG
+				//InferenceGames.instance.sendEventData( sSpaceRace.sampleData(), sSpaceRace.getDataSpeed() ); //send vector of data to DG
 			}
 			
 			private function initVisualElements():void{	
@@ -154,8 +159,56 @@
 				sDebugConsole.y = 25;
 				
 				sSpaceRace = new SpaceRace( staticStage);
-				
 				//gameContainer.addChild(sSpaceRace);
+				
+				initVideoPlayer();
+			}
+			
+			// init the 'play video' button & prompt.
+			private function initVideoPlayer():void {
+				/*
+				videoBtnContainer.addChild(mVideoButton);
+				mVideoButton.x = 600;
+				mVideoButton.y = 15;
+				
+				// all the things that will make the 'click here' prompt go away go here.
+				// they need matching 'removeEventListeners' in the closePrompt method.
+				
+				this.systemManager.stage.addEventListener(MouseEvent.MOUSE_DOWN, closePrompt);
+				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OVER, showHidePrompt);
+				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OUT, showHidePrompt);
+				mVideoButton.aboutBtn.addEventListener( MouseEvent.MOUSE_OVER, hideBouncePrompt);
+				mVideoButton.aboutBtn.addEventListener( MouseEvent.CLICK, showHideAboutScreen);
+				mVideoButton.muteMVC.visible = false;
+				
+				// this is the method that will be called when the button is clicked on.
+				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
+				*/
+				
+				//systemManager.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave);
+				
+				//Embedded Youtube video
+				var videoID:String = "UjjfK0Mb3dg";
+				
+				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
+				Security.allowDomain("s.ytimg.com");
+				
+				var loader:Loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
+				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
+				//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
+				
+				function onLoaderInit(event:Event):void {
+					videoHolder.addChild(loader);
+					loader.content.addEventListener("onReady", onPlayerReady);
+					function onPlayerReady(event:Event):void {
+						videoPlayer = loader.content;
+						videoPlayer.setSize(570, 360);
+						videoPlayer.loadVideoById(videoID);
+						videoPlayer.pauseVideo();
+						videoPlayer.addEventListener("onStateChange", onVideoStateChange);
+					}
+				}
 			}
 			
 			// ------------------
@@ -240,6 +293,8 @@
 							inGame:		this.isInGame,
 							unlockedTo:	this.unlockedLevels,
 							roundID:	Round.currentRound.roundID
+							//score:		this.sSpaceRace.score,
+							//life:		this.sSpaceRace.life
 						}
 					};
 				return stateObj;
@@ -271,6 +326,19 @@
 						}
 						// else ignore invalid levels
 					}
+					if( iState.score ) {
+//						Alert.show("s2 " +sSpaceRace.score);
+						//sSpaceRace.score = iState.score;
+						for(var i:int=0; i<iState.score; i++){
+						//	sSpaceRace.earnPoint();
+						}
+					}
+					if( iState.life ) {
+					//	sSpaceRace.life = iState.life;
+						for(var j:int=0; j<iState.life; j++){
+					//		sSpaceRace.loseLife();
+						}
+					}
 					result.success = true;
 				}
 				return result;
@@ -293,7 +361,8 @@
 			// Send event case data to DG, if connected to DG.
 			// 		Event data "data point generated" events, with one array value per Event attribute
 			// 		caseValueArrays is an array of cases, and each case is a array of attribute values for that case (corresponding to the attributes previously sent)
-			public function sendEventData( caseValueArrays:Vector.<Number> ):void {
+			//		dataSpeed is the time between single cases in milliseconds; we want sending of data to match data appearance in game
+			public function sendEventData( caseValueArrays:Vector.<Number>, dataSpeedinMS:uint ):void {
 				
 				//converts number vector from SpaceRace into array for DG
 				var convertArray:Array = new Array();
@@ -301,7 +370,19 @@
 					convertArray.push([Round.currentRound.roundID, elem]);
 				}
 				
-				mDGInterface.createEventCases( kEventsCollectionName, convertArray );
+				var timer:Timer = new Timer(dataSpeedinMS);
+				timer.addEventListener(TimerEvent.TIMER, sendSingleDataPoint);
+				timer.start();
+				
+				var count:int = 0;
+				function sendSingleDataPoint(e:Event):void {
+					if(count >= convertArray.length) {
+						timer.stop();
+					}
+					mDGInterface.createEventCases( kEventsCollectionName, [convertArray[count]] );
+					count++;
+				}
+				
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
 			}
 			
@@ -432,6 +513,59 @@
 				if(sResults.isShowing)
 					sResults.hide();
 			}
+			
+			//Video functions
+			private function showVideo(e:Event = null):void
+			{
+				if(IntroVideo.visible == true)
+				{
+					if(videoPlayer != null)
+						videoPlayer.pauseVideo();
+					
+					IntroVideo.visible = false;
+				}
+				else
+				{
+					IntroVideo.visible = true;
+					videoPlayer.playVideo();
+				}
+			}
+			private function hideVideo():void
+			{
+				videoPlayer.pauseVideo();
+				IntroVideo.visible = false;
+			}
+			private function playPauseVideo():void
+			{
+				var PLAYING_VIDEO:Number = 1;
+				if(videoPlayer.getPlayerState() == PLAYING_VIDEO) {
+					videoPlayer.pauseVideo();
+				} else {
+					videoPlayer.playVideo();
+				}
+			}
+			private function replayVideo():void
+			{
+				videoPlayer.seekTo(0, true);
+				videoPlayer.playVideo();
+			}
+			private function onVideoStateChange(e:Event):void
+			{
+				var PLAY:int=1, PAUSE:int=2;
+				var state:int = Object(e).data;
+				switch(state)
+				{
+					case PLAY:
+						playPauseBtn.label = "Pause"; break;
+					case PAUSE:
+						playPauseBtn.label = "Play"; break;
+				}
+			}			
+			
+			// toggles the visibilty of the about screen
+			private function showHideAboutScreen( triggerEvent:MouseEvent):void{
+				aboutScreen.visible = !aboutScreen.visible;
+			}
 		]]>
 	</fx:Script>
 	
@@ -450,8 +584,43 @@
 	<!-- the UI component that holds all the game's SWC's -->
 	<mx:UIComponent id="gameContainer" x="0" y="0"/>
 	
-	<s:Label id="mVersionLabel" x="460" y="280" color="0x000000" initialize="mVersionLabel.text=kVersion" textAlign="right" verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="{575-100-10}" y="{325-50-10}" width="100" height="50"
+			 color="0xFFFFFF" initialize="mVersionLabel.text=kVersion" textAlign="right"
+			 verticalAlign="bottom" click="aboutScreen.visible=true;"/>
+	<s:Label id="tempVideoButton" x="{575-100-10}" y="{325-50-10-50}" width="100" height="50"
+			 color="0xFFFFFF" text="intro video" textAlign="right"
+			 verticalAlign="bottom" click="showVideo();"/>
 	
+	<!-- Contains Intro video -->
+	<s:BorderContainer id="IntroVideo" x="0" y="25" width="{this.width}" height="{this.height-25}" visible="false" backgroundColor="#dcd0c0" borderVisible="false" depth="700">
+		<mx:UIComponent	id="videoHolder" x="{(this.width-570)/2}" y="0"/>
+		<s:Group id="videoControlsContainer" x="{(this.width-this.videoControlsContainer.width)/2}" y="{this.height-this.videoControlsContainer.height-25}">
+			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
+			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width + 5}"/>
+			<s:Button id="closeVideoBtn" label="Close" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
+		</s:Group>
+	</s:BorderContainer>
+	
+	<mx:UIComponent	id="videoBtnContainer" x="0" y="0"/>
+
+	<!-- About Screen -->
+	<s:BorderContainer id="aboutScreen" x="{30}" y="{30}" width="{this.width-(2*aboutScreen.x)}" height="{this.height-(2*aboutScreen.y)}" cornerRadius="5" visible="false" depth="800">
+		<s:filters>
+			<s:DropShadowFilter 
+				blurX="25" blurY="25" 
+				alpha="0.8" />
+		</s:filters>
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xf0f0f0"/>
+				<s:GradientEntry color="0xd8d8d8"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		<s:Label text="About Inference" width="{aboutScreen.width}" y="20" fontSize="22" fontWeight="normal" textAlign="center"/>
+		<mx:Text selectable="true" x="50" y="50" width="{aboutScreen.width-100}" htmlText="{kCreditsTextHTML}" fontSize="13" />
+		<s:Button x="{(aboutScreen.width-90)/2}" y="215" width="90" height="30" label="OK" click="aboutScreen.visible=false;" fontSize="12" fontWeight="bold"/>
+	</s:BorderContainer>
+
 	<!-- Error message for bad version of flash player -->	
 	<s:BorderContainer id="BrickWall" visible="false" x="0" y="0"
 					   width="575"
@@ -479,7 +648,6 @@
 				  enabled="true" fontSize="25"/>
 		<s:Button id="ignoreButton" x="{(575-350)/2}" y="250" width="350"
 				  height="30" fontFamily="Georgia" label="Ignore Warning" click="startUp()" enabled="true" fontSize="12"/>
-		
 	</s:BorderContainer>
-
+	
 </s:Application>
