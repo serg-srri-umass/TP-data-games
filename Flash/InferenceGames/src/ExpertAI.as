@@ -1,8 +1,6 @@
 ﻿// This singleton class handles the AI of the "Statistician Expert"
 package 
-{
-	import embedded_asset_classes.ControlsSWC;
-	
+{	
 	public class ExpertAI
 	{
 		// ----------------------
@@ -91,8 +89,6 @@ package
 		// this method is called whenever data is added. The expert considers whether or not he wants to guess, and may guess.
 		public static function judgeData( sampleLength:int):Boolean {
 			var expertDidGuess:Boolean = ( sampleLength >= _guessNumSamples );
-			if( expertDidGuess )
-				ControlsSWC.instance.botStopFunction();
 			return expertDidGuess;
 		}
 	}

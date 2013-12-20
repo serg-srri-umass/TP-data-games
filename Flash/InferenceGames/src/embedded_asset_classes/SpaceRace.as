@@ -43,9 +43,10 @@
 		// ----------------------
 
 		// constructor
-		public function SpaceRace( stage:Stage, aboutFunc:Function, videoFunc:Function)
+		public function SpaceRace( stage:Stage, levelsFunc:Function, aboutFunc:Function, videoFunc:Function)
 		{
 			topBarMVC.setStage( stage);
+			topBarMVC.backFunction = levelsFunc;
 			topBarMVC.aboutFunction = aboutFunc;
 			topBarMVC.videoFunction = videoFunc;
 			
@@ -53,7 +54,6 @@
 			bodyMVC.setSpaceRace( this);
 			
 			// event listener section:
-			topBarMVC.backFunction = clickLevelsButton;
 			this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
 			newRoundTimer.addEventListener(TimerEvent.TIMER, requestNewRound);	// when the new round timer completes, the new round starts.;
 			
@@ -206,21 +206,6 @@
 		private function handleEnterFrame(triggerEvent:Event):void
 		{
 			bodyMVC.handleEnterFrame( triggerEvent);
-		}
-		
-		// function called when clicking the levels button. WIP
-		private function clickLevelsButton( triggerEvent:Event ):void
-		{
-			if(alpha == 0) 
-				alpha = 1;
-			else 
-				alpha = 0;
-			
-			ControlsSWC.instance.visible = false;
-			
-			BotPlayerSWC.instance.visible = false;
-			
-			LevelSelectSWC.instance.show(triggerEvent);
 		}
 		
 		// ---------------- SAMPLE & GUESS BUTTONS ----------------------

@@ -52,8 +52,6 @@ package embedded_asset_classes{
 			_isShowing = true;
 			visible = true;
 			
-			BottomBarSWC.instance.levelNameTxt.text = "Guess the Median |";
-			
 			// only enable unlocked levels: 
 			for( var i:int = 0; i < Round.kLevelSettings.length; i++){
 				if(_radioBtnGroup.selectedButton.number != i + 1)

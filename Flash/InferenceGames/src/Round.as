@@ -5,11 +5,6 @@ package
 	import common.DebugUtilities;
 	import common.MathUtilities;
 	
-	import embedded_asset_classes.BotPlayerSWC;
-	import embedded_asset_classes.ControlsSWC;
-	import embedded_asset_classes.PlayerAPI;
-	import embedded_asset_classes.UserPlayerSWC;
-	
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
@@ -59,7 +54,6 @@ package
 		private var _accuracy:int; 		// the chances of guessing correctly at the current sample size.
 		
 		private var _isWon:Boolean = false; //whether or not this round has been won, calculated when we call for the results string
-		private var _lastBuzzer:PlayerAPI; // the player who buzzed in this round.
 		private var _level:int = 0; //level of this round
 		
 		private var dataTimer:Timer;
@@ -73,7 +67,6 @@ package
 			
 			//removing event listener from old round instance before we create a new one
 			if(_roundID != 0)
-			ControlsSWC.instance.sendChunkMVC.theSampleButton.removeEventListener(MouseEvent.CLICK, Round.currentRound.addChunk);
 
 			Round.currentRound = this;
 			
@@ -85,37 +78,37 @@ package
 					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
 					_IQR = kLevelSettings[ whichLevel-1 ].iqr;
 					_interval = kIntervalWidth[_intervalIndex];
-					ControlsSWC.instance.interval = _interval; // update the GUI.
-					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
+					//TODO update interval display
+					//TODO update IQR display
 					break;
 				case 4:
 					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
 					_interval = kLevelSettings[ whichLevel-1 ].interval;
 					_IQR	  = kIQR[_IQRIndex];
-					ControlsSWC.instance.interval = _interval; // update the GUI.
-					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
+					//TODO update interval display
+					//TODO update IQR display
 					break;
 				case 5: 
 					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
 					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
 					_interval = kIntervalWidth[_intervalIndex];
 					_IQR	  = kIQR[_IQRIndex];
-					ControlsSWC.instance.interval = _interval; // update the GUI.
-					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
+					//TODO update interval display
+					//TODO update IQR display
 					break;
 				case 6:
 					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
 					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
 					_interval = kIntervalWidth[_intervalIndex];
 					_IQR	  = kIQR[_IQRIndex];
-					ControlsSWC.instance.interval = _interval; // update the GUI.
-					ControlsSWC.instance.IQR = "?"; // update the GUI.
+					//TODO update interval display
+					//TODO update IQR display
 					break;
 				default:
 					_interval 	= kLevelSettings[ whichLevel-1 ].interval;
 					_IQR 		= kLevelSettings[ whichLevel-1 ].iqr;
-					ControlsSWC.instance.interval = _interval; // update the GUI.
-					ControlsSWC.instance.IQR = _IQR.toFixed(0); // update the GUI.
+					//TODO update interval display
+					//TODO update IQR display
 			}
 			
 			_median 	= (Math.round(InferenceGames.instance.randomizer.uniformNtoM( 0, 100 ) * 10)/10);
@@ -128,10 +121,6 @@ package
 			
 			
 			ExpertAI.newRound( MathUtilities.IQR_to_SD(_IQR), _interval); // prepare the AI for the new round.
-			
-			//attaching sample button to THIS round's addChunk function
-			if(ControlsSWC.instance.sendChunkMVC.theSampleButton)
-			ControlsSWC.instance.sendChunkMVC.theSampleButton.addEventListener(MouseEvent.CLICK, Round.currentRound.addChunk);
 		}
 		
 		// takes num points to make; sends to DG with delay added for performance reasons. lets the expert judge the data (guess or not)
@@ -165,7 +154,6 @@ package
 					_chunkSize = 1;
 				trace("Chunk Size set to: " + _chunkSize);
 			}
-			ControlsSWC.instance.sendChunkMVC.chunkSizeText.text = _chunkSize;
 		}
 		
 		//sends a chunk of data to DG. called from 'sample' mxml button
@@ -174,12 +162,6 @@ package
 			var expertGuessed:Boolean = false;
 			expertGuessed = ExpertAI.judgeData( _samples.length); // the expert judges the data, and may guess.
 			_expertGuessed = expertGuessed;
-			
-			//disable sample button if expert guesses 
-			if(_expertGuessed){
-				ControlsSWC.instance.sendChunkMVC.theSampleButton.enabled = false; 
-				ControlsSWC.instance.sendChunkMVC.theSampleButton.removeEventListener(MouseEvent.CLICK, Round.currentRound.addChunk);
-			}
 
 			for(var i:int = 0; i < _chunkSize; i++){
 				if(_expertGuessed)
@@ -187,14 +169,6 @@ package
 				else
 					dataDelay();
 			}
-		}
-		
-		public function get lastBuzzer():PlayerAPI{
-			return _lastBuzzer;
-		}
-		
-		public function set lastBuzzer(player:PlayerAPI):void{
-			_lastBuzzer = player;
 		}
 		
 		public function get roundID():int {
@@ -273,25 +247,13 @@ package
 		// get the result string showing who won or lost for this round
 		public function getResultsString():String {
 			calculateWinLose();
-			// returning results string based on win/loss, and who last hit buzzer
-			if( this.lastBuzzer == UserPlayerSWC.instance ){
-				return(_isWon ? "You were correct" : "You were incorrect"); 
-			} else if( this.lastBuzzer == BotPlayerSWC.instance ){
-				return(_isWon ? "Expert was correct" : "Expert was incorrect" );
-			} else {
-				return("the lastBuzzer variable is not set to the player, or the bot");
-			}
+			return("the lastBuzzer variable is not set to the player, or the bot");
 		}
 		
 		// Give points to the winner of the current round. 
 		// This is called from the results screen, when it finishes animating.
 		public function handlePoints():void{
-			if(isWon){
-				lastBuzzer.earnPoint(); // if the last buzzer was correct, he or she earns a point.
-			} else {
-				lastBuzzer.otherPlayer.earnPoint(); // otherwise, the opponent earns 2 points.
-				lastBuzzer.otherPlayer.earnPoint();
-			}
+			
 		}
 		
 		// auto-generate a guess based on the median of the current sample.

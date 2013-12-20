@@ -21,16 +21,10 @@
 			import common.ScriptInterface;
 			import common.VersionChecker;
 			
-			import embedded_asset_classes.BotPlayerSWC;
-			import embedded_asset_classes.BottomBarSWC;
-			import embedded_asset_classes.ControlsSWC;
-			import embedded_asset_classes.DataCannonSWC;
 			import embedded_asset_classes.DebugConsoleSWC;
 			import embedded_asset_classes.LevelSelectSWC;
-			import embedded_asset_classes.ResultsSWC;
 			import embedded_asset_classes.SpaceRace;
 			import embedded_asset_classes.InferenceEvent;
-			import embedded_asset_classes.UserPlayerSWC;
 			
 			import flash.external.ExternalInterface;
 			import flash.utils.Timer;
@@ -60,12 +54,6 @@
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
-			private var sControls:ControlsSWC;
-			private var sResults:ResultsSWC;
-			private var sBottomBar:BottomBarSWC;
-			private var sDataCannon:DataCannonSWC;
-			private var sUserPlayer:UserPlayerSWC;
-			private var sBotPlayer:BotPlayerSWC;
 			private var sLevelSelect:LevelSelectSWC;
 			private var sDebugConsole:DebugConsoleSWC;
 			private var sSpaceRace:SpaceRace;
@@ -127,39 +115,13 @@
 				gameContainer.addChild(sLevelSelect);
 				sLevelSelect.x = 342.75;
 				sLevelSelect.y = 167.5;
-
-				sControls = new ControlsSWC();
-				gameContainer.addChild(sControls);
-				sControls.x = 293.1;
-				sControls.y = 173.4;
-				
-				sResults = new ResultsSWC();
-				gameContainer.addChild(sResults);
-				sResults.x = 335;
-				sResults.y = 103;
-		
-				sUserPlayer = new UserPlayerSWC();
-				sBotPlayer = new BotPlayerSWC();
-				gameContainer.addChild(sUserPlayer);
-				gameContainer.addChild(sBotPlayer);
-				sBotPlayer.x = 575;
-				
-				sBottomBar = new BottomBarSWC();
-				gameContainer.addChild(sBottomBar);
-				sBottomBar.x = 287.55;
-				sBottomBar.y = 324.95;
-				sBottomBar.gameOverMVC.visible = false; // hide the dialoge that is win/lose.
-
-				sDataCannon = new DataCannonSWC();
-				//gameContainer.addChild(sDataCannon);
-				sDataCannon.speed = .25;	// set the starting speed
 				
 				sDebugConsole = new DebugConsoleSWC();
 				gameContainer.addChild(sDebugConsole);
 				sDebugConsole.x = 86;
 				sDebugConsole.y = 25;
 				
-				sSpaceRace = new SpaceRace( staticStage, toggleAboutScreen, showVideo);
+				sSpaceRace = new SpaceRace( staticStage, onClickLevelsButton, toggleAboutScreen, showVideo);
 				gameContainer.addChild(sSpaceRace);
 				
 				initVideoPlayer();
@@ -407,10 +369,6 @@
 				// create the new round
 				var thisRound:Round = new Round( mGameLevel); // accessed via Round.currentRound from here forward.
 				
-				//make buttons active
-				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
-				ControlsSWC.instance.sendChunkMVC.theSampleButton.enabled = true; 
-				
 				// update DG: open and send a new game case for each round
 				mDGInterface.sendLog( "newRound:"
 					+" round="+Round.currentRound.roundID
@@ -436,29 +394,13 @@
 			
 			// when the old round ends, we reset the players here.
 			public function resetPlayers():void{
-				// if one of the two player avatars is hidden, show it.
-				if(!sUserPlayer.isShowing)
-					sUserPlayer.show(); 
-				if(!sBotPlayer.isShowing)
-					sBotPlayer.show();
 				
-				// if one of the player's has a reaction face, reset it.
-				sUserPlayer.emotion = UserPlayerSWC.NEUTRAL;
-				sBotPlayer.emotion = BotPlayerSWC.NEUTRAL;
 			}			
 			
 			// hit the buzzer, to bring up the recap.
 			public function hitBuzzer( user:Boolean = true):void{
-				sControls.hide();
-				
 				Round.currentRound.calculateWinLose();
-				if( user){
-					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "user");
-					Round.currentRound.lastBuzzer = UserPlayerSWC.instance;
-				} else {
-					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
-					Round.currentRound.lastBuzzer = BotPlayerSWC.instance;
-				}
+				
 				// show result in DG
 				mDGInterface.sendLog( "hitBuzzer: Result='"+Round.currentRound.getResultsString()+"'");
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
@@ -466,7 +408,7 @@
 
 			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' display
 			public function winLoseGame( user:Boolean = true):void{
-				sBottomBar.showWinner( user);
+//				sBottomBar.showWinner( user);
 				if(user && mGameLevel == unlockedLevels) // if the player beats their current level, unlock the next.
 					unlockedLevels++;
 			}
@@ -478,16 +420,9 @@
 				
 				mGameLevel = LevelSelectSWC.instance.getSelectedLevelNumber();
 				
-				if(!sUserPlayer.isShowing)
-					sUserPlayer.show(); // the players start each game hidden. Show them.
-				if(!sBotPlayer.isShowing)
-					sBotPlayer.show();
-				sControls.show();
-				
 				mDGInterface.sendLog( "newGame: GameNumber="+mGameSerialNum+" Level="+mGameLevel );
 				 
 				newRound();
-				sBottomBar.levelNameTxt.text = "Guess the Median | Level " + mGameLevel;
 			}
 
 			// called when 'end game' btn is clicked. Clears the stage, and resets the scores.
@@ -499,20 +434,17 @@
 				}
 				
 				isInGame = false;
-				sUserPlayer.reset();
-				sBotPlayer.reset();
-				sBottomBar.reset();
-				sDataCannon.stopCannon();
+			}
+			
+			// function called when clicking the levels button. WIP
+			private function onClickLevelsButton( triggerEvent:Event ):void
+			{
+				if(sSpaceRace.alpha == 0)
+					sSpaceRace.alpha = 1;
+				else 
+					sSpaceRace.alpha = 0;
 				
-				if(!sUserPlayer.isShowing)
-					sUserPlayer.show();
-				
-				if(sBotPlayer.isShowing)
-					sBotPlayer.hide();
-				if(sControls.isShowing)
-					sControls.hide();
-				if(sResults.isShowing)
-					sResults.hide();
+				LevelSelectSWC.instance.show(triggerEvent);
 			}
 			
 			//Video functions
