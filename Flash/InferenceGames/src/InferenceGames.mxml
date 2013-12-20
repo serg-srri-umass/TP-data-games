@@ -52,7 +52,7 @@
 				"Funded by the National Science Foundation, award "+
 				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='chainsawInfo'>DRL-0918653</a></u></font> (2009-2014). "+
 				"Chainsaw is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='chainsawInfo'>Github</a></u></font>. "+
-				"Copyright (c) 2011<span class='x'>-2014 by University of Massachusetts Amherst.";
+				"Copyright (c) 2013<span class='x'>-2014 by University of Massachusetts Amherst.";
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
