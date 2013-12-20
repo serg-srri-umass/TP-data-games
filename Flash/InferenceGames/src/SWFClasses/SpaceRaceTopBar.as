@@ -26,7 +26,7 @@
 
 		
 		public function SpaceRaceTopBar() {
-			/*INSTANCE = this;
+			INSTANCE = this;
 			
 			scoreMVC.redScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
 			scoreMVC.greenScoreMVC.bulbMVC1.gotoAndPlay("turnOn");			
@@ -57,7 +57,6 @@
 			scoreMVC.redScoreMVC.addEventListener( MouseEvent.CLICK, earnRedPoint);
 			scoreMVC.greenScoreMVC.addEventListener( MouseEvent.CLICK, earnGreenPoint);
 			scoreMVC.centerBulbMVC.addEventListener( MouseEvent.CLICK, resetScore);
-			setStage(parent.stage);*/
 		}
 		
 		// set a reference to the stage.

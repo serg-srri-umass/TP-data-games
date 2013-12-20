@@ -159,7 +159,7 @@
 				sDebugConsole.y = 25;
 				
 				sSpaceRace = new SpaceRace( staticStage);
-				//gameContainer.addChild(sSpaceRace);
+				gameContainer.addChild(sSpaceRace);
 				
 				initVideoPlayer();
 			}
@@ -195,7 +195,7 @@
 				
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
-				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
+				//loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
 				//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
 				
 				function onLoaderInit(event:Event):void {
