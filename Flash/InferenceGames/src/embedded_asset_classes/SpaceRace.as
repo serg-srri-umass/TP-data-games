@@ -125,6 +125,7 @@ package embedded_asset_classes
 		{
 			// event listener section:
 			this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
+			topBarMVC.backBtn.addEventListener(MouseEvent.CLICK, clickLevelsButton);
 			mainMVC.dataBtn.addEventListener(MouseEvent.CLICK, clickSampleButton);	// click the sample more data button;
 			mainMVC.guessBtn.addEventListener(MouseEvent.CLICK, clickGuessButton);		// click the guess button;
 			newRoundTimer.addEventListener(TimerEvent.TIMER, requestNewRound);	// when the new round timer completes, the new round starts.;
@@ -267,6 +268,19 @@ package embedded_asset_classes
 		private function handleEnterFrame(triggerEvent:Event):void
 		{
 			mainMVC.handleEnterFrame( triggerEvent);
+		}
+		
+		// function called when clicking the levels button
+		private function clickLevelsButton( triggerEvent:Event ):void
+		{
+			if(alpha == 0) alpha = 1;
+			else alpha = 0;
+			
+			ControlsSWC.instance.visible = false;
+			
+			BotPlayerSWC.instance.visible = false;
+			
+			LevelSelectSWC.instance.show(triggerEvent);
 		}
 		
 		// ---------------- SAMPLE & GUESS BUTTONS ----------------------
