@@ -1,34 +1,212 @@
 ﻿package  {
 	
 	import flash.display.MovieClip;
+	import flash.events.Event;
+	import flash.events.MouseEvent;
+	import flash.media.*;
+	import flash.display.Stage;
 	
 	
 	public class SpaceRaceTopBar extends MovieClip {
 		
+		public static var INSTANCE:SpaceRaceTopBar;
+		
+		private const WINNING_SCORE:int = 6;
+		
+		private var redScore:int = 1; 
+		private var greenScore:int = 1;
+		
+		private var _stage:Stage; // a reference to the MXML's stage
+		private var _muted:Boolean = false;
+		private var bouncingPrompt:Boolean = true; // whether or not the first bouncing prompt is still visible.
+		
+		private var _aboutFunc:Function = new Function();
+		private var _videoFunc:Function = new Function();
+		private var _backFunc:Function = new Function();
+
 		
 		public function SpaceRaceTopBar() {
-			// constructor code
+			/*INSTANCE = this;
+			
+			scoreMVC.redScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
+			scoreMVC.greenScoreMVC.bulbMVC1.gotoAndPlay("turnOn");			
+			
+			soundBtn.setClickFunctions( mute, unmute);
+			
+			
+			// establish the initial sound volume:
+			var st:SoundTransform = SoundMixer.soundTransform;
+			st.volume = 1;			
+			SoundMixer.soundTransform = st;
+			
+			mouseOverHelp.inner.gotoAndPlay("bob"); // make the intro movie button bob up and down.
+			videoBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
+			videoBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			soundBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
+			soundBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			aboutBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			aboutBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
+			backBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
+			backBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			
+			videoBtn.addEventListener(MouseEvent.CLICK, toggleVideo);
+			aboutBtn.addEventListener(MouseEvent.CLICK, toggleAbout);
+			backBtn.addEventListener(MouseEvent.CLICK, clickBack);
+			
+			//proxy:
+			scoreMVC.redScoreMVC.addEventListener( MouseEvent.CLICK, earnRedPoint);
+			scoreMVC.greenScoreMVC.addEventListener( MouseEvent.CLICK, earnGreenPoint);
+			scoreMVC.centerBulbMVC.addEventListener( MouseEvent.CLICK, resetScore);
+			setStage(parent.stage);*/
 		}
 		
-		public function earnPoint():void{
-			myScoreMVC.nextFrame();
+		// set a reference to the stage.
+		public function setStage(arg:Stage):void{
+			_stage = arg;
+			_stage.addEventListener(MouseEvent.MOUSE_DOWN, closeBouncer); // the first mouse click will close the video prompt.
 		}
 		
-		public function resetScore():void{
-			myScoreMVC.gotoAndStop(1);
+		
+		// earns a point. If playerOne is true, p1 earns the point. Otherwise, p2 ear
+		public function earnPoint( playerOne:Boolean = true):void{
+			if( playerOne)
+				earnRedPoint();
+			else
+				earnGreenPoint();
 		}
 		
-		public function loseLife( newLifeTotal:int):void{
-			lifeMVC.nextFrame();
-		}
-		
-		public function resetLife( startingLife:int):void{
-			lifeMVC.gotoAndStop(1);
+		public function resetScore( triggerEvent:Event = null):void{
+			for( var i:int = 1; i <= WINNING_SCORE; i++){
+				if( redScore >= i)
+					scoreMVC.redScoreMVC["bulbMVC" + i].gotoAndPlay("turnOff"); // turn off the active bulbs
+				if ( greenScore >= i)
+					scoreMVC.greenScoreMVC["bulbMVC" + i].gotoAndPlay("turnOff"); // turn off the active bulbs
+			}
+			
+			// reset the starting positions
+			greenScore = redScore = 1;
+			scoreMVC.redScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
+			scoreMVC.greenScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
+			
+			// make the bulb white and fade it out
+			scoreMVC.centerBulbMVC.gotoAndStop("white");
+			scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOff");	// turn off centre bulb
+			
 		}
 		
 		public function setTitleMessage( arg:String):void{
 			levelTxt.text = arg;
 		}
+		
+		// this method sets the color of the trim. 
+		public function setTrim( arg:String):void{
+			if( arg != "white" && arg != "red" && arg != "green")
+				throw new Error("invalid string. Valid strings are 'white', 'red' and 'green'");
+				
+			var Mc:MovieClip = trimMVC["trimMVC" + arg];	// the trim that's going to go on top
+			if(trimMVC.getChildIndex(Mc) < Mc.parent.numChildren-1){ // check if that trim isn't already on top
+				trimMVC.setChildIndex(Mc, Mc.parent.numChildren-1);
+				Mc.gotoAndPlay("off");	// if it wasn't on top, animate it on.
+			}
+		}
+		
+		// closes the bouncing prompt
+		public function closeBouncer( e:Event = null, instant:Boolean = false):void{
+			if(bouncingPrompt){
+				mouseOverHelp.gotoAndStop(1);
+				mouseOverHelp.inner.gotoAndPlay("close");
+				bouncingPrompt = false;
+			}
+			_stage.removeEventListener( MouseEvent.MOUSE_DOWN, closeBouncer);
+			if(instant){
+				mouseOverHelp.visible = false;
+			}
+		}
+		
+		
+		// --------- PRIVATE METHODS ---------
+		private function earnRedPoint( triggerEvent:Event = null):void{
+			if( redScore == WINNING_SCORE){	// when the score equals the # of bulbs a player has
+				scoreMVC.centerBulbMVC.gotoAndStop("red");
+				scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOn");	// light up the center one
+			}else{
+				redScore++;
+				scoreMVC.redScoreMVC["bulbMVC" + redScore].gotoAndPlay("turnOn"); // otherwise, turn on the next bulb in sequence
+			}
+		}
+		
+		private function earnGreenPoint( triggerEvent:Event = null):void{
+			if( greenScore == WINNING_SCORE){	// when the score equals the # of bulbs a player has
+				scoreMVC.centerBulbMVC.gotoAndStop("green");
+				scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOn");	// light up the center one
+			}else{
+				greenScore++;
+				scoreMVC.greenScoreMVC["bulbMVC" + greenScore].gotoAndPlay("turnOn"); // otherwise, turn on the next bulb in sequence
+			}
+		}
+		
+		
+		private function toggleAbout(e:MouseEvent = null):void{
+			mouseOverHelp.visible = false;
+			_aboutFunc();
+		}
+		
+		private function toggleVideo(e:MouseEvent = null):void{
+			mouseOverHelp.visible = false;
+			_videoFunc();
+		}
+		
+		private function clickBack(e:MouseEvent = null):void{
+			mouseOverHelp.visible = false;
+			_backFunc();
+		}
+		
+		// this method handles the pop-up help prompt. ("About", "Intro Video", etc)
+		private function showHidePrompt(e:MouseEvent = null):void{
+			if(e.type == MouseEvent.MOUSE_OUT){
+				if(bouncingPrompt){
+					bouncingPrompt = false;
+				}
+				mouseOverHelp.visible = false;
+				if(e.target == videoBtn){
+					mouseOverHelp.gotoAndStop(1);
+					mouseOverHelp.inner.gotoAndStop("still");
+				}
+			} else {
+				mouseOverHelp.visible = true;
+				if(e.target == videoBtn){
+					mouseOverHelp.gotoAndStop(1);
+				}else if(e.target == soundBtn){
+					mouseOverHelp.gotoAndStop(3);
+					mouseOverHelp.promptTxt.text = ( !_muted ? "Volume: On" : "Volume: Off");
+				} else if(e.target == aboutBtn){
+					mouseOverHelp.gotoAndStop("about");
+					mouseOverHelp.promptTxt.text = "About";
+				} else if(e.target == backBtn){
+					mouseOverHelp.gotoAndStop("back");
+					mouseOverHelp.promptTxt.text = "End Game";
+				}
+			}
+		}
+		
+		
+		private function mute( triggerEvent:MouseEvent):void{
+			soundBtn.look = 1;
+			_muted = true;
+			var st:SoundTransform = SoundMixer.soundTransform;
+			st.volume = 0; // [0-1] (volume level)	
+			SoundMixer.soundTransform = st;
+			mouseOverHelp.promptTxt.text = ( !_muted ? "Volume: On" : "Volume: Off");
+
+		}
+		
+		private function unmute( triggerEvent:MouseEvent):void{
+			soundBtn.look = 0;
+			_muted = false;
+			var st:SoundTransform = SoundMixer.soundTransform;
+			st.volume = 1;			
+			SoundMixer.soundTransform = st;
+			mouseOverHelp.promptTxt.text = ( !_muted ? "Volume: On" : "Volume: Off");
+		}
 	}
-	
 }

@@ -97,21 +97,21 @@
 				initVisualElements();
 				
 				//listen for events from Space Race Module 
-				sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_ROUND, newRoundHandler);
-				sSpaceRace.addEventListener(InferenceEvent.REQUEST_SAMPLE, requestSampleHandler);
+				//sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_ROUND, newRoundHandler);
+				//sSpaceRace.addEventListener(InferenceEvent.REQUEST_SAMPLE, requestSampleHandler);
 				
 				newGame();
 			}
 			
 			//handles requestNewRound events from SpaceRace interface
-			private function newRoundHandler(e:InferenceEvent):void{
+			private function newRoundHandler(e:Event):void{
 				endGame();
 				newRound();
 			}
 			
 			//handles requestSample events from SpaceRace interface
-			private function requestSampleHandler(e:InferenceEvent):void{
-				InferenceGames.instance.sendEventData( sSpaceRace.sampleData() ); //send vector of data to DG
+			private function requestSampleHandler(e:Event):void{
+				//InferenceGames.instance.sendEventData( sSpaceRace.sampleData() ); //send vector of data to DG
 			}
 			
 			private function initVisualElements():void{	
@@ -154,7 +154,8 @@
 				sDebugConsole.y = 25;
 				
 				sSpaceRace = new SpaceRace( staticStage);
-				gameContainer.addChild(sSpaceRace);
+				
+				//gameContainer.addChild(sSpaceRace);
 			}
 			
 			// ------------------
@@ -339,7 +340,7 @@
 				mDGInterface.deletePreviousCaseData(); // deletes old graph data to reduce clutter
 				
 				//send new round info to Space Race
-				sSpaceRace.newRound(Round.currentRound.IQR, Round.currentRound.interval, Round.currentRound.populationMedian, Round.currentRound.chunkSize);
+				//sSpaceRace.newRound(Round.currentRound.IQR, Round.currentRound.interval, Round.currentRound.populationMedian, Round.currentRound.chunkSize);
 			}
 			
 			// when the old round ends, we do the final update of the Round data sent to DG

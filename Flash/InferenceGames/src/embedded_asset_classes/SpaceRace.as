@@ -121,7 +121,7 @@ package embedded_asset_classes
 		public function SpaceRace( stage:Stage)
 		{
 			// event listener section:
-			this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
+			/*this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
 			mainMVC.dataBtn.addEventListener(MouseEvent.CLICK, clickSampleButton);	// click the sample more data button;
 			mainMVC.guessBtn.addEventListener(MouseEvent.CLICK, clickGuessButton);		// click the guess button;
 			newRoundTimer.addEventListener(TimerEvent.TIMER, requestNewRound);	// when the new round timer completes, the new round starts.;
@@ -137,14 +137,14 @@ package embedded_asset_classes
 				addEventListener( InferenceEvent.REQUEST_SAMPLE, doTheSamples);
 				//addEventListener( InferenceEvent.REQUEST_NEW_ROUND, startNewRoundDebug);
 				topBarMVC.backBtn.addEventListener( MouseEvent.CLICK, newGame);
-			}
+			}*/
 		}
 		
 		
 		// ----------- NEW ROUND / NEW GAME --------------
 		
 		// start a new round. Give it an IQR, interval, the distribution median, & sample size.
-		public function newRound( iqr:int, interval:int, median:Number, sampleSize:int, hiddenIQR:Boolean = false, hiddenInterval:Boolean = false):void
+		/*public function newRound( iqr:int, interval:int, median:Number, sampleSize:int, hiddenIQR:Boolean = false, hiddenInterval:Boolean = false):void
 		{
 			mainMVC.switchToMouseMode(); // ensure the round starts in mouse-mode
 			mainMVC.reactivateButtons();
@@ -181,21 +181,21 @@ package embedded_asset_classes
 		
 		// WARNING: THIS DOES NOT MAKE A GUESS. IT MERELY RESETS THE POSITION OF THE LAST PLACED GUESS.
 		public function set guess( arg:Number):void{
-			_guess = arg;
+//			_guess = arg;
 		}
 		
 		// sets the length of the IQR
 		public function setIQR( arg:int, hidden:Boolean = false):void
 		{
 			_IQR = arg;
-			mainMVC.setIQR( arg, hidden);
+//			mainMVC.setIQR( arg, hidden);
 		}
 
 		// sets the length of the Interval
 		public function setInterval( arg:int, hidden:Boolean = false):void
 		{
 			_interval = arg;
-			mainMVC.setInterval( arg, hidden);
+//			mainMVC.setInterval( arg, hidden);
 		}
 		
 		public function set median( arg:Number):void{
@@ -207,12 +207,13 @@ package embedded_asset_classes
 		
 		// samples data of the chosen sample size.
 		public function sampleData( triggerEvent:Event = null):Vector.<Number>{
-			return mainMVC.sampleData( triggerEvent);
+//			return mainMVC.sampleData( triggerEvent);
+			return null;
 		}
 		
 		// call this method when the player attempts to draw too much data
 		public function overdraw( triggerEvent:Event = null):void{
-			mainMVC.overdraw( triggerEvent);
+//			mainMVC.overdraw( triggerEvent);
 		}
 		
 		// ----------- SCORING ------------------
@@ -223,25 +224,25 @@ package embedded_asset_classes
 		// lose a point of "life", when you guess incorrectly, or overdraw.
 		public function loseLife( triggerEvent:Event = null):void{
 			_life--;
-			topBarMVC.loseLife(_life);			
+//			topBarMVC.loseLife(_life);			
 		}
 		
 		// earn X points. This is pretty useless at the moment, because the score system shouldn't work like this.
 		public function earnPoint():void{
 			_score++;
-			topBarMVC.earnPoint();
+//			topBarMVC.earnPoint();
 		}
 		
 		// reset the score to its starting value.
 		public function resetScore():void{
 			_score = 0;
-			topBarMVC.resetScore();
+//			topBarMVC.resetScore();
 		}
 		
 		// reset the life to its starting value
 		public function resetLife():void{
 			_life = STARTING_LIFE;
-			topBarMVC.resetLife( STARTING_LIFE);
+//			topBarMVC.resetLife( STARTING_LIFE);
 		}
 		
 		
@@ -252,7 +253,7 @@ package embedded_asset_classes
 		// ---------------- ON ENTER FRAME --------------
 		// the methods in this section are called every frame (@24 fps)
 		
-		private function handleEnterFrame(triggerEvent:Event):void
+		/*private function handleEnterFrame(triggerEvent:Event):void
 		{
 			mainMVC.handleEnterFrame( triggerEvent);
 		}
@@ -292,6 +293,6 @@ package embedded_asset_classes
 			}else{
 				trace(sampleData(triggerEvent));
 			}
-		}
+		} */
 	}
 }
