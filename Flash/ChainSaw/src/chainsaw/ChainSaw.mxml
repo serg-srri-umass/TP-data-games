@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "v.1.0";
+			public static const  VERSION:String = "v.1.01";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -310,6 +310,10 @@
 				mCountDownMVC.y = 410/2;
 				
 				// init the 'play video' button & prompt.
+				initVideoPlayer();
+			}
+			
+			private function initVideoPlayer():void {
 				videoBtnContainer.addChild(mVideoButton);
 				mVideoButton.x = 600;
 				mVideoButton.y = 15;
@@ -334,11 +338,12 @@
 				
 				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
 				Security.allowDomain("s.ytimg.com");
-
+				
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
 				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
 				//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
+				
 				function onLoaderInit(event:Event):void {
 					videoHolder.addChild(loader);
 					loader.content.addEventListener("onReady", onPlayerReady);
@@ -1349,23 +1354,23 @@
 			//Video functions
 			private function showVideo(e:Event = null):void
 			{
-				if(StartupVideo.visible == true)
+				if(IntroVideo.visible == true)
 				{
 					if(videoPlayer != null)
 						videoPlayer.pauseVideo();
 					
-					StartupVideo.visible = false;
+					IntroVideo.visible = false;
 				}
 				else
 				{
-					StartupVideo.visible = true;
+					IntroVideo.visible = true;
 					videoPlayer.playVideo();
 				}
 			}
 			private function hideVideo():void
 			{
 				videoPlayer.pauseVideo();
-				StartupVideo.visible = false;
+				IntroVideo.visible = false;
 			}
 			private function playPauseVideo():void
 			{
@@ -1583,8 +1588,8 @@
 		<s:Button id="closeLevelsButton" x="493" y="310" width="90" height="30" label="Cancel" click="onClickCancelLevelsButton(event)" enabled="true" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 	
-	<!-- Contains startup video -->
-	<s:BorderContainer id="StartupVideo" x="0" y="25" width="{this.minWidth}" height="{this.minHeight-25}" visible="false" backgroundColor="#dcd0c0" borderVisible="false" depth="1000">
+	<!-- Contains Intro video -->
+	<s:BorderContainer id="IntroVideo" x="0" y="25" width="{this.minWidth}" height="{this.minHeight-25}" visible="false" backgroundColor="#dcd0c0" borderVisible="false" depth="1000">
 		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="0"/>
 		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-25}">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
