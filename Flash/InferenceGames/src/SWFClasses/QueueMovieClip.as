@@ -26,6 +26,7 @@ package {
 		
 		public function gotoQueuedFrame():Boolean{
 			if( _queueFunc != null){
+				stop();
 				_queueFunc();
 				_queueFunc = null;
 				return true;

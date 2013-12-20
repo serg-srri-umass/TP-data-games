@@ -3,6 +3,8 @@
 	import flash.display.MovieClip;
 	import flash.events.*;
 	import flashx.textLayout.operations.MoveChildrenOperation;
+	import flash.utils.Timer;
+	import embedded_asset_classes.InferenceEvent;
 	
 	public class SpaceRaceControls extends MovieClip {
 		
@@ -24,6 +26,10 @@
 			controlsGreenMVC.cancelBtn.addEventListener( MouseEvent.CLICK, cancelInputGreen);
 			controlsGreenMVC.passBtn.addEventListener( MouseEvent.CLICK, passGreen);
 			controlsGreenMVC.inputMVC.okBtn.addEventListener( MouseEvent.CLICK, makeGuess);
+			
+			feedbackMVC.newRoundBtnGreen.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
+			feedbackMVC.newRoundBtnRed.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
+			feedbackMVC.visible = false;
 		}		
 				
 		public function hideRed( triggerEvent:Event = null):void{
@@ -54,7 +60,7 @@
 		
 		public function passRed( triggerEvent:Event = null):void{
 			controlsRedMVC.gotoAndPlay("closeGuessPass");
-			controlsRedMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnNeutral;
+			controlsRedMVC.queueFunction = SpaceRaceBody.INSTANCE.startDataSampling;
 		}
 		
 		
@@ -87,15 +93,12 @@
 		
 		public function passGreen( triggerEvent:Event = null):void{
 			controlsGreenMVC.gotoAndPlay("closeGuessPass");
-			controlsGreenMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnNeutral;
+			controlsGreenMVC.queueFunction = SpaceRaceBody.INSTANCE.startDataSampling;
 		}
-		
-		
-		
 		
 		// checks if the currently entered guess is valid. If it is, it returns true. Otherwise, it returns false & promps the user
 		public function validateGuess( triggerEvent:Event = null):Number{
-			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC)
+			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
 			var textNum:Number = Number( activeControls.inputMVC.inputTxt.text)
 			if ( isNaN( textNum ) || activeControls.inputMVC.inputTxt.text.length == 0){
 				//controlsGreenMVC.inputMVC.invalidNumberMVC.visible = true;
@@ -108,9 +111,42 @@
 		
 		public function makeGuess( triggerEvent:Event = null):void{
 			var myGuess:Number = validateGuess();
-			if(myGuess >= 0){
-				SpaceRaceBody.INSTANCE.makeGuess(myGuess);
+			if(myGuess >= 0 && myGuess <=100){ // a valid guess:
+				SpaceRaceBody.INSTANCE.guess = myGuess; // set the guess value
+				SpaceRaceBody.INSTANCE.promptTxt.text = "";
+				var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
+				activeControls.gotoAndPlay("closeInputCancel");
+				activeControls.queueFunction = delayedMakeGuess;
 			}
+		}
+		
+		// a delay occurs between when the guess prompt hides itself, and the answer is revealed.
+		public function delayedMakeGuess( triggerEvent:Event = null):void{
+			var delayTimer:Timer = new Timer( 600, 1); // delay time
+			delayTimer.addEventListener(TimerEvent.TIMER, SpaceRaceBody.INSTANCE.makeGuess);
+			delayTimer.start();
+		}
+		
+		
+		public function showFeedback(header:String, body:String = ""):void{
+			hideGreen();
+			hideRed();
+			feedbackMVC.visible = true;
+			feedbackMVC.headerTxt.text = header;
+			feedbackMVC.bodyTxt.text = body;
+			
+			if(activePlayerIsRed){
+				feedbackMVC.newRoundBtnGreen.visible = false;
+				feedbackMVC.newRoundBtnRed.visible = true;
+			} else {
+				feedbackMVC.newRoundBtnGreen.visible = true;
+				feedbackMVC.newRoundBtnRed.visible = false;
+			}
+		}
+		
+		private function dispatchRequestNewRound(triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_NEW_ROUND, true));
+			feedbackMVC.visible = false;
 		}
 		
 		

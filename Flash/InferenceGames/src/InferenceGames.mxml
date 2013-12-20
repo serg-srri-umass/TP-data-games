@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.12.19";
+			private static const kVersion:String = "v.2013.12.20";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -50,7 +50,7 @@
 				"Funded by the National Science Foundation, award "+
 				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='chainsawInfo'>DRL-0918653</a></u></font> (2009-2014). "+
 				"Chainsaw is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='chainsawInfo'>Github</a></u></font>. "+
-				"Copyright (c) 2011<span class='x'>-2013 by University of Massachusetts Amherst.";
+				"Copyright (c) 2013<span class='x'>-2014 by University of Massachusetts Amherst.";
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
@@ -91,10 +91,34 @@
 				
 				//listen for events from Space Race Module 
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_ROUND, newRoundHandler);
-				//sSpaceRace.addEventListener(InferenceEvent.REQUEST_SAMPLE, requestSampleHandler);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_SAMPLE, requestSampleHandler);
+				sSpaceRace.addEventListener(InferenceEvent.CORRECT_GUESS, handleCorrectGuess);
+				sSpaceRace.addEventListener(InferenceEvent.INCORRECT_GUESS, handleIncorrectGuess);
 				
 				newGame();
 			}
+			
+			private function handleCorrectGuess( triggerEvent:Event = null):void{
+				sSpaceRace.bodyMVC.showFeedback("Hello, Good Job.", "testing.");	// bring up the feedback screen
+				if(sSpaceRace.activePlayerIsRed){
+					sSpaceRace.earnPointRed();
+				} else {
+					sSpaceRace.earnPointGreen();
+				}
+			}
+			
+			
+			private function handleIncorrectGuess( triggerEvent:Event = null):void{
+				sSpaceRace.bodyMVC.showFeedback("Sorry Mate", "testing.");
+				if(sSpaceRace.activePlayerIsRed){
+					sSpaceRace.earnPointGreen();
+					sSpaceRace.earnPointGreen();
+				} else {
+					sSpaceRace.earnPointRed();
+					sSpaceRace.earnPointRed();
+				}
+			}
+			
 			
 			//handles requestNewRound events from SpaceRace interface
 			private function newRoundHandler(e:Event):void{
@@ -117,6 +141,8 @@
 				
 				sSpaceRace = new SpaceRace( staticStage, onClickLevelsButton, toggleAboutScreen, showVideo);
 				gameContainer.addChild(sSpaceRace);
+				sSpaceRace.playerNameGreen = "Nick";
+				sSpaceRace.playerNameRed = "Erica";
 				
 				initVideoPlayer();
 			}
@@ -415,7 +441,9 @@
 //				mGameLevel = LevelSelectSWC.instance.getSelectedLevelNumber();
 				
 				mDGInterface.sendLog( "newGame: GameNumber="+mGameSerialNum+" Level="+mGameLevel );
-				 
+				
+				//sSpaceRace.newGame( [8, 6, 4], 6, [6, 4, 2, 1], 4);
+				
 				newRound();
 			}
 
