@@ -91,12 +91,12 @@
 				
 				this.randomizer = new ParkMiller(); // must instantiate just once to set random seed according to current date-time.
 				BrickWall.visible = false;
+				
+				initVisualElements();
 
 				mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
 				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
 				mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
-				
-				initVisualElements();
 				
 				//listen for events from Space Race Module 
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_ROUND, newRoundHandler);
@@ -240,7 +240,9 @@
 							gameLevel:	this.mGameLevel,
 							inGame:		this.isInGame,
 							unlockedTo:	this.unlockedLevels,
-							roundID:	Round.currentRound.roundID
+							roundID:	Round.currentRound.roundID,
+							score:		this.sSpaceRace.score,
+							life:		this.sSpaceRace.life
 						}
 					};
 				return stateObj;
@@ -271,6 +273,19 @@
 							// LevelSelectSWC.instance.getSelectedLevelNumber();
 						}
 						// else ignore invalid levels
+					}
+					if( iState.score ) {
+//						Alert.show("s2 " +sSpaceRace.score);
+						sSpaceRace.score = iState.score;
+						for(var i:int=0; i<iState.score; i++){
+							sSpaceRace.earnPoint();
+						}
+					}
+					if( iState.life ) {
+						sSpaceRace.life = iState.life;
+						for(var j:int=0; j<iState.life; j++){
+							sSpaceRace.loseLife();
+						}
 					}
 					result.success = true;
 				}

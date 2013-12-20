@@ -229,6 +229,9 @@ package embedded_asset_classes
 		public function get life():int{		return _life;	}
 		public function get score():int{	return _score;	}
 		
+		public function set life(arg:int):void { _life=arg; }
+		public function set score(arg:int):void { _score=arg; }
+		
 		// lose a point of "life", when you guess incorrectly, or overdraw.
 		public function loseLife( triggerEvent:Event = null):void{
 			_life--;
