@@ -1,4 +1,4 @@
-﻿package  {
+﻿package embedded_asset_classes  {
 	import flash.events.Event;
 	
 	public class InferenceEvent extends Event{

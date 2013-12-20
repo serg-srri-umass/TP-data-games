@@ -30,6 +30,7 @@
 			import embedded_asset_classes.LevelSelectSWC;
 			import embedded_asset_classes.ResultsSWC;
 			import embedded_asset_classes.SpaceRace;
+			import embedded_asset_classes.InferenceEvent;
 			import embedded_asset_classes.UserPlayerSWC;
 			
 			import flash.external.ExternalInterface;
@@ -103,7 +104,7 @@
 				mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
 				
 				//listen for events from Space Race Module 
-				//sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_ROUND, newRoundHandler);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_ROUND, newRoundHandler);
 				//sSpaceRace.addEventListener(InferenceEvent.REQUEST_SAMPLE, requestSampleHandler);
 				
 				newGame();
@@ -117,7 +118,7 @@
 			
 			//handles requestSample events from SpaceRace interface
 			private function requestSampleHandler(e:Event):void{
-				//InferenceGames.instance.sendEventData( sSpaceRace.sampleData(), sSpaceRace.getDataSpeed() ); //send vector of data to DG
+				InferenceGames.instance.sendEventData( sSpaceRace.sampleData(), sSpaceRace.getDataSpeed() ); //send vector of data to DG
 			}
 			
 			private function initVisualElements():void{	
@@ -293,9 +294,9 @@
 							gameLevel:	this.mGameLevel,
 							inGame:		this.isInGame,
 							unlockedTo:	this.unlockedLevels,
-							roundID:	Round.currentRound.roundID
-							//score:		this.sSpaceRace.score,
-							//life:		this.sSpaceRace.life
+							roundID:	Round.currentRound.roundID,
+							redScore:		this.sSpaceRace.redScore,
+							greenScore:		this.sSpaceRace.greenScore
 						}
 					};
 				return stateObj;
@@ -329,15 +330,15 @@
 					}
 					if( iState.score ) {
 //						Alert.show("s2 " +sSpaceRace.score);
-						//sSpaceRace.score = iState.score;
-						for(var i:int=0; i<iState.score; i++){
-						//	sSpaceRace.earnPoint();
+						sSpaceRace.redScore = iState.redScore;
+						for(var i:int=0; i<iState.redScore; i++){
+							sSpaceRace.earnPointRed();
 						}
 					}
 					if( iState.life ) {
-					//	sSpaceRace.life = iState.life;
-						for(var j:int=0; j<iState.life; j++){
-					//		sSpaceRace.loseLife();
+						sSpaceRace.greenScore = iState.greenScore;
+						for(var j:int=0; j<iState.greenScore; j++){
+							sSpaceRace.earnPointGreen();
 						}
 					}
 					result.success = true;
@@ -422,7 +423,7 @@
 				mDGInterface.deletePreviousCaseData(); // deletes old graph data to reduce clutter
 				
 				//send new round info to Space Race
-				//sSpaceRace.newRound(Round.currentRound.IQR, Round.currentRound.interval, Round.currentRound.populationMedian, Round.currentRound.chunkSize);
+				sSpaceRace.newRound(Round.currentRound.IQR, Round.currentRound.interval, Round.currentRound.populationMedian, Round.currentRound.chunkSize);
 			}
 			
 			// when the old round ends, we do the final update of the Round data sent to DG
