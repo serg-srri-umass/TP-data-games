@@ -61,9 +61,9 @@
 		}
 		
 		
-		// earns a point. If playerOne is true, p1 earns the point. Otherwise, p2 ear
-		public function earnPoint( playerOne:Boolean = true):void{
-			if( playerOne)
+		// earns a point. If redPlayer is true, p1 earns the point. Otherwise, p2 ear
+		public function earnPoint( redPlayer:Boolean = true):void{
+			if( redPlayer)
 				earnRedPoint();
 			else
 				earnGreenPoint();
@@ -123,6 +123,10 @@
 		
 		public function set aboutFunction( arg:Function):void{
 			_aboutFunc = arg;
+		}
+		
+		public function set backFunction( arg:Function):void{
+			_backFunc = arg;
 		}
 		
 		

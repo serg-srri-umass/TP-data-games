@@ -1,55 +1,4 @@
-﻿/* |- SpaceRaceBody Public API
-		| *These methods must be called in the construction of SpaceRace*
-		|	| setSpaceRace( arg:*):void;
-		|	|	|	the body needs a reference to this. Arg must == this.
-		|	| setStage (arg:Stage):void;
-		|	|	|	the body needs a reference to Inference Games' Stage, so it can add listeners to it.
-		|
-		| moveDistributionTo( arg:Number):void;
-		|	moves the current distribution to the given # on the numberline.
-		|
-		| setSampleSize( arg:int):void;
-		|	sets how many samples will be drawn.
-		|
-		| sampleData( triggerEvent:Event = null):Vector.<Number>;
-		|	samples X data points, where X is the sample size. Returns a vector of their locations on the number line.
-		|	dispatches InferenceEvent.
-		|
-		| overdraw( triggerEvent:Event = null):void;
-		|	"Sample too big". Overdraws. Causes the loss of 1/2 heart. 
-		|	dispatches InferenceEvent.
-		|
-		| handleEnterFrame( triggerEvent:Event):void;
-		|	method that should be called every frame. Handles the "data pop" animations, as they are needed.
-		|
-		| deactivateButtons( triggerEvent:Event = null, canEscape:Boolean = false):void;
-		|	turns off the "sample" & "guess" buttons. 
-		|	If canEscape is true, pressing 'escape' will cancel this state. The guess button will say '[Esc] to cancel'
-		|	
-		| reactivateButtons( triggerEvent:Event = null):void;
-		|	turns on the "sample" & "guess" buttons
-		|
-		| setIQR( arg:int):void;
-		|	set the IQR length.
-		|
-		| setInterval( arg:int):void;
-		|	set the interval length.
-		|
-		| moveCursorToMousePosition( triggerEvent:MouseEvent):void;
-		|	moves the guess cursor to the mouse's current position.
-		|
-		| switchToGuessMode( triggerEvent:Event = null):void;
-		|	hides the mouse; shows the guess cursor. Sets up all event listeners to guess. When the player clicks, guess will be made.
-		|	dispatches InferenceEvent.
-		|
-		| switchToMouseMode( triggerEvent:Event = null):void;
-		|	hides the guess cursor; shows the mouse. Reactivates the buttons, sets up all that's needed to be in the 'standard mode'.
-		|	dispatches InferenceEvent. 
-		|
-		| isInGuessMode():Boolean;
-		|	returns true if in 'guess mode', returns false if in 'mouse mode'.
-*/
-package {
+﻿package {
 	import flash.display.MovieClip;
 	import flash.events.*;
 	import flash.display.Stage;
@@ -94,27 +43,11 @@ package {
 			numberlineLength = endPoint - startPoint;
 			distributionScaleY = distributionMVC.scaleY;
 			
-			addEventListener(Event.ENTER_FRAME, handleEnterFrame);
 			reactivateTimer.addEventListener(TimerEvent.TIMER, finishTurnNeutral);
 			distributionMVC.addEventListener("animate", revealAnswer);	// when the distribution finishes "wiping" onscreen, it reveals the answer.;
 			
 			establishHelpButtons();
 			controlsMVC.establish();
-			
-			// proxy
-			/*main = { 	playerNameGreen:"Juan",
-						playerNameRed:"Erica",
-						sampleSize:6,
-						median: 50,
-						iqr: 12,
-						interval:9,
-						guess:-1
-						}
-			
-			moveDistributionTo( main.median);
-			setPossibleIQRs( 12);
-			setPossibleIntervals( 9);			
-			setSampleSize( main.sampleSize);*/
 		}
 		
 		public function setStage( arg:Stage):void{
@@ -211,7 +144,7 @@ package {
 		}
 		
 		// sets the text that says how much sampling is going on
-		public function setSampleSize( arg:int):void{
+		public function setSampleSizeText( arg:int):void{
 			sampleTxt.text = "Sampling " + arg + " at a time.";
 		}
 				
