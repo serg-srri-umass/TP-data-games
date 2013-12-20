@@ -97,6 +97,9 @@
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_SAMPLE, requestSampleHandler);
 				sSpaceRace.addEventListener(InferenceEvent.CORRECT_GUESS, handleCorrectGuess);
 				sSpaceRace.addEventListener(InferenceEvent.INCORRECT_GUESS, handleIncorrectGuess);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_GREEN, sSpaceRace.prepareGuessGreen);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_RED, sSpaceRace.prepareGuessRed);
+				
 				
 				newGame();
 			}

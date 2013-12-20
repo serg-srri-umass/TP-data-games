@@ -152,6 +152,18 @@
 			return (1000 / 24) * bodyMVC.dataPopSpeed; // (1000ms / 24 frames) * frames per sample
 		}
 		
+		
+		// ----------- GUESSING ----------------
+		public function prepareGuessRed( triggerEvent:Event = null):void{
+			bodyMVC.controlsMVC.openInputCancelRed();
+			bodyMVC.promptTxt.text = "Place your guess on the numberline, or type it in.";
+		}
+		
+		public function prepareGuessGreen( triggerEvent:Event = null):void{
+			bodyMVC.controlsMVC.openInputCancelGreen();
+			bodyMVC.promptTxt.text = "Place your guess on the numberline, or type it in.";
+		}
+		
 		// ----------- SCORING ------------------
 		
 		public function get greenScore():int{		return _greenScore;	}

@@ -103,16 +103,6 @@
 			promptTxt.text = "It's " + main.playerNameRed + "'s turn.";
 		}
 		
-		public function prepareGuessRed( triggerEvent:Event = null):void{
-			controlsMVC.openInputCancelRed();
-			promptTxt.text = "Place your guess on the numberline, or type it in.";
-		}
-		
-		public function prepareGuessGreen( triggerEvent:Event = null):void{
-			controlsMVC.openInputCancelGreen();
-			promptTxt.text = "Place your guess on the numberline, or type it in.";
-		}
-		
 		// this mode gets entered when more data has to be sampled
 		public function startDataSampling( triggerEvent:Event = null):void{
 			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_SAMPLE, true));

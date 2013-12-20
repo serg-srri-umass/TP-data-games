@@ -6,8 +6,8 @@
 		public static const REQUEST_SAMPLE:String = "req_sample";
 		public static const REQUEST_NEW_ROUND:String = "req_new_round";
 		
-		public static const ENTER_GUESS_MODE:String = "egm";
-		public static const ENTER_MOUSE_MODE:String = "emm";
+		public static const REQUEST_GUESS_MODE_RED:String = "egm";
+		public static const REQUEST_GUESS_MODE_GREEN:String = "egmg";
 		
 		public static const SAMPLE:String = "sample";
 		public static const OVERDRAW:String = "overdraw";

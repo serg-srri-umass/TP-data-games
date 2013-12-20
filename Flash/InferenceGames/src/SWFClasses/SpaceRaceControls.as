@@ -50,7 +50,7 @@
 		
 		public function closeGuessPassRed( triggerEvent:Event = null):void{
 			controlsRedMVC.gotoAndPlay("closeGuessPass");
-			controlsRedMVC.queueFunction = SpaceRaceBody.INSTANCE.prepareGuessRed;
+			controlsRedMVC.queueFunction = dispatchRedGuessRequest;
 		}
 		
 		public function cancelInputRed( triggerEvent:Event = null):void{
@@ -83,7 +83,7 @@
 		
 		public function closeGuessPassGreen( triggerEvent:Event = null):void{
 			controlsGreenMVC.gotoAndPlay("closeGuessPass");
-			controlsGreenMVC.queueFunction = SpaceRaceBody.INSTANCE.prepareGuessGreen;
+			controlsGreenMVC.queueFunction = dispatchGreenGuessRequest;
 		}
 		
 		public function cancelInputGreen( triggerEvent:Event = null):void{
@@ -101,23 +101,22 @@
 			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
 			var textNum:Number = Number( activeControls.inputMVC.inputTxt.text)
 			if ( isNaN( textNum ) || activeControls.inputMVC.inputTxt.text.length == 0){
-				//controlsGreenMVC.inputMVC.invalidNumberMVC.visible = true;
-				//controlsGreenMVC.inputMVC.invalidNumberMVC.gotoAndPlay(1);
 				activeControls.inputMVC.inputTxt.text = "";
-				return -1;
+				return Number.NaN;
 			}
 			return textNum;
 		}
 		
 		public function makeGuess( triggerEvent:Event = null):void{
 			var myGuess:Number = validateGuess();
-			if(myGuess >= 0 && myGuess <=100){ // a valid guess:
-				SpaceRaceBody.INSTANCE.guess = myGuess; // set the guess value
-				SpaceRaceBody.INSTANCE.promptTxt.text = "";
-				var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
-				activeControls.gotoAndPlay("closeInputCancel");
-				activeControls.queueFunction = delayedMakeGuess;
-			}
+			if( isNaN(myGuess))
+				return; // don't allow invalid guesses.
+				
+			SpaceRaceBody.INSTANCE.guess = myGuess; // set the guess value
+			SpaceRaceBody.INSTANCE.promptTxt.text = "";
+			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
+			activeControls.gotoAndPlay("closeInputCancel");
+			activeControls.queueFunction = delayedMakeGuess;
 		}
 		
 		// a delay occurs between when the guess prompt hides itself, and the answer is revealed.
@@ -127,7 +126,7 @@
 			delayTimer.start();
 		}
 		
-		
+		// this method shows the feedback & next round button that appear after playing a round
 		public function showFeedback(header:String, body:String = ""):void{
 			hideGreen();
 			hideRed();
@@ -144,12 +143,21 @@
 			}
 		}
 		
+		// dispatch a request for the new round, and hide the 'new round button'
 		private function dispatchRequestNewRound(triggerEvent:Event = null):void{
 			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_NEW_ROUND, true));
 			feedbackMVC.visible = false;
 		}
 		
+		// dispatch a request for a green guess
+		private function dispatchGreenGuessRequest(triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_GREEN, true));
+		}
 		
+		// dispatch a request for a red guess
+		private function dispatchRedGuessRequest(triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_RED, true));
+		}
 	}
 	
 }
