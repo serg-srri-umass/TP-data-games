@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- fonts/DeviceFont.mxml -->
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
@@ -21,16 +22,11 @@
 			import common.ScriptInterface;
 			import common.VersionChecker;
 			
-			import embedded_asset_classes.BotPlayerSWC;
-			import embedded_asset_classes.BottomBarSWC;
-			import embedded_asset_classes.ControlsSWC;
-			import embedded_asset_classes.DataCannonSWC;
 			import embedded_asset_classes.DebugConsoleSWC;
 			import embedded_asset_classes.InferenceEvent;
 			import embedded_asset_classes.LevelSelectSWC;
-			import embedded_asset_classes.ResultsSWC;
 			import embedded_asset_classes.SpaceRace;
-			import embedded_asset_classes.UserPlayerSWC;
+			import embedded_asset_classes.InferenceEvent;
 			
 			import flash.external.ExternalInterface;
 			import flash.utils.Timer;
@@ -60,12 +56,6 @@
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
-			private var sControls:ControlsSWC;
-			private var sResults:ResultsSWC;
-			private var sBottomBar:BottomBarSWC;
-			private var sDataCannon:DataCannonSWC;
-			private var sUserPlayer:UserPlayerSWC;
-			private var sBotPlayer:BotPlayerSWC;
 			private var sLevelSelect:LevelSelectSWC;
 			private var sDebugConsole:DebugConsoleSWC;
 			private var sSpaceRace:SpaceRace;
@@ -151,39 +141,13 @@
 				gameContainer.addChild(sLevelSelect);
 				sLevelSelect.x = 342.75;
 				sLevelSelect.y = 167.5;
-
-				sControls = new ControlsSWC();
-				gameContainer.addChild(sControls);
-				sControls.x = 293.1;
-				sControls.y = 173.4;
-				
-				sResults = new ResultsSWC();
-				gameContainer.addChild(sResults);
-				sResults.x = 335;
-				sResults.y = 103;
-		
-				sUserPlayer = new UserPlayerSWC();
-				sBotPlayer = new BotPlayerSWC();
-				gameContainer.addChild(sUserPlayer);
-				gameContainer.addChild(sBotPlayer);
-				sBotPlayer.x = 575;
-				
-				sBottomBar = new BottomBarSWC();
-				gameContainer.addChild(sBottomBar);
-				sBottomBar.x = 287.55;
-				sBottomBar.y = 324.95;
-				sBottomBar.gameOverMVC.visible = false; // hide the dialoge that is win/lose.
-
-				sDataCannon = new DataCannonSWC();
-				//gameContainer.addChild(sDataCannon);
-				sDataCannon.speed = .25;	// set the starting speed
 				
 				sDebugConsole = new DebugConsoleSWC();
 				gameContainer.addChild(sDebugConsole);
 				sDebugConsole.x = 86;
 				sDebugConsole.y = 25;
 				
-				sSpaceRace = new SpaceRace( staticStage, toggleAboutScreen, showVideo);
+				sSpaceRace = new SpaceRace( staticStage, onClickLevelsButton, toggleAboutScreen, showVideo);
 				gameContainer.addChild(sSpaceRace);
 				sSpaceRace.playerNameGreen = "Nick";
 				sSpaceRace.playerNameRed = "Erica";
@@ -215,7 +179,7 @@
 				//systemManager.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave);
 				
 				//Embedded Youtube video
-				var videoID:String = "UjjfK0Mb3dg";
+				var videoID:String = "RnjgJVm4GX0";  // youtube.com video ID (v=) on https://www.youtube.com/user/sergsrri
 				
 				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
 				Security.allowDomain("s.ytimg.com");
@@ -433,10 +397,6 @@
 				// create the new round
 				var thisRound:Round = new Round( mGameLevel); // accessed via Round.currentRound from here forward.
 				
-				//make buttons active
-				sControls.stopControlsMVC.stopStartBtn.pauseBtn.enabled = true;
-				ControlsSWC.instance.sendChunkMVC.theSampleButton.enabled = true; 
-				
 				// update DG: open and send a new game case for each round
 				mDGInterface.sendLog( "newRound:"
 					+" round="+Round.currentRound.roundID
@@ -462,29 +422,13 @@
 			
 			// when the old round ends, we reset the players here.
 			public function resetPlayers():void{
-				// if one of the two player avatars is hidden, show it.
-				if(!sUserPlayer.isShowing)
-					sUserPlayer.show(); 
-				if(!sBotPlayer.isShowing)
-					sBotPlayer.show();
 				
-				// if one of the player's has a reaction face, reset it.
-				sUserPlayer.emotion = UserPlayerSWC.NEUTRAL;
-				sBotPlayer.emotion = BotPlayerSWC.NEUTRAL;
 			}			
 			
 			// hit the buzzer, to bring up the recap.
 			public function hitBuzzer( user:Boolean = true):void{
-				sControls.hide();
-				
 				Round.currentRound.calculateWinLose();
-				if( user){
-					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "user");
-					Round.currentRound.lastBuzzer = UserPlayerSWC.instance;
-				} else {
-					sControls.stopControlsMVC.stopStartBtn.gotoAndStop( "bot");
-					Round.currentRound.lastBuzzer = BotPlayerSWC.instance;
-				}
+				
 				// show result in DG
 				mDGInterface.sendLog( "hitBuzzer: Result='"+Round.currentRound.getResultsString()+"'");
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
@@ -492,7 +436,7 @@
 
 			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' display
 			public function winLoseGame( user:Boolean = true):void{
-				sBottomBar.showWinner( user);
+//				sBottomBar.showWinner( user);
 				if(user && mGameLevel == unlockedLevels) // if the player beats their current level, unlock the next.
 					unlockedLevels++;
 			}
@@ -504,18 +448,11 @@
 				
 				mGameLevel = LevelSelectSWC.instance.getSelectedLevelNumber();
 				
-				if(!sUserPlayer.isShowing)
-					sUserPlayer.show(); // the players start each game hidden. Show them.
-				if(!sBotPlayer.isShowing)
-					sBotPlayer.show();
-				sControls.show();
-				
 				mDGInterface.sendLog( "newGame: GameNumber="+mGameSerialNum+" Level="+mGameLevel );
 				
 				//sSpaceRace.newGame( [8, 6, 4], 6, [6, 4, 2, 1], 4);
 				
 				newRound();
-				sBottomBar.levelNameTxt.text = "Guess the Median | Level " + mGameLevel;
 			}
 
 			// called when 'end game' btn is clicked. Clears the stage, and resets the scores.
@@ -527,20 +464,17 @@
 				}
 				
 				isInGame = false;
-				sUserPlayer.reset();
-				sBotPlayer.reset();
-				sBottomBar.reset();
-				sDataCannon.stopCannon();
+			}
+			
+			// function called when clicking the levels button. WIP
+			private function onClickLevelsButton( triggerEvent:Event ):void
+			{
+				if(sSpaceRace.alpha == 0)
+					sSpaceRace.alpha = 1;
+				else 
+					sSpaceRace.alpha = 0;
 				
-				if(!sUserPlayer.isShowing)
-					sUserPlayer.show();
-				
-				if(sBotPlayer.isShowing)
-					sBotPlayer.hide();
-				if(sControls.isShowing)
-					sControls.hide();
-				if(sResults.isShowing)
-					sResults.hide();
+				LevelSelectSWC.instance.show(triggerEvent);
 			}
 			
 			//Video functions
@@ -603,6 +537,13 @@
 		]]>
 	</fx:Script>
 	
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		.sansFontClass {
+			fontFamily: Arial, Helvetica, "_sans";
+			fontSize: 12;
+		}
+	</fx:Style>
 	
 	<!-- the game's background -->
 	<s:BorderContainer id="background" y="36" width="575" height="255">
@@ -618,12 +559,12 @@
 	<!-- the UI component that holds all the game's SWC's -->
 	<mx:UIComponent id="gameContainer" x="0" y="0"/>
 	
-	<s:Label id="mVersionLabel" x="{575-100-10}" y="{325-50-10}" width="100" height="50"
-			 color="0xFFFFFF" initialize="mVersionLabel.text=kVersion" textAlign="right"
-			 verticalAlign="bottom"/>
+	<s:Label id="mVersionLabel" x="{this.width-mVersionLabel.width-19}" y="50" width="100" height="50"
+			 color="0x8fa0c1" initialize="mVersionLabel.text=kVersion" 
+			 fontFamily="_sans" fontSize="9" textAlign="right" verticalAlign="top"/>
 	
 	<!-- Contains Intro video -->
-	<s:BorderContainer id="IntroVideo" x="0" y="25" width="{this.width}" height="{this.height-25}" visible="false" backgroundColor="#dcd0c0" borderVisible="false" depth="700">
+	<s:BorderContainer id="IntroVideo" x="0" y="25" width="{this.width}" height="{this.height-25}" visible="false" backgroundColor="#dcd0c0" styleName="sansFontClass" borderVisible="false" depth="700">
 		<mx:UIComponent	id="videoHolder" x="{(this.width-570)/2}" y="0"/>
 		<s:Group id="videoControlsContainer" x="{(this.width-this.videoControlsContainer.width)/2}" y="{this.height-this.videoControlsContainer.height-25}">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
@@ -635,7 +576,7 @@
 	<mx:UIComponent	id="videoBtnContainer" x="0" y="0"/>
 
 	<!-- About Screen -->
-	<s:BorderContainer id="aboutScreen" x="{30}" y="{30}" width="{this.width-(2*aboutScreen.x)}" height="{this.height-(2*aboutScreen.y)}" cornerRadius="5" visible="false" depth="800">
+	<s:BorderContainer id="aboutScreen" x="{30}" y="{30}" width="{this.width-(2*aboutScreen.x)}" height="{this.height-(2*aboutScreen.y)}" cornerRadius="5" styleName="sansFontClass" visible="false" depth="800">
 		<s:filters>
 			<s:DropShadowFilter 
 				blurX="25" blurY="25" 
@@ -647,7 +588,7 @@
 				<s:GradientEntry color="0xd8d8d8"/>
 			</s:LinearGradient>
 		</s:backgroundFill>
-		<s:Label text="About Inference" width="{aboutScreen.width}" y="20" fontSize="22" fontWeight="normal" textAlign="center"/>
+		<s:Label text="About Inference" width="{aboutScreen.width}" y="20" fontSize="22" textAlign="center"/>
 		<mx:Text selectable="true" x="50" y="50" width="{aboutScreen.width-100}" htmlText="{kCreditsTextHTML}" fontSize="13" />
 		<s:Button x="{(aboutScreen.width-90)/2}" y="215" width="90" height="30" label="OK" click="aboutScreen.visible=false;" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>

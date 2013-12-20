@@ -31,17 +31,11 @@ package embedded_asset_classes
 		// -------------------------
 		
 		private function earnPointPlayer():void{
-			if(InferenceGames.instance.isInGame)
-				UserPlayerSWC.instance.earnPoint();
-			else
-				println( "Must be in game to use this command");
+			
 		}
 		
 		private function earnPointBot():void{
-			if(InferenceGames.instance.isInGame)
-				BotPlayerSWC.instance.earnPoint();
-			else
-				println( "Must be in game to use this command");
+			
 		}
 		
 		private function expertIsWrong( on:Boolean):void{
@@ -52,7 +46,7 @@ package embedded_asset_classes
 		}
 		
 		private function guessForMe( on:Boolean):void{
-			ControlsSWC.instance.DEBUG_autoGuess = on;
+//			ControlsSWC.instance.DEBUG_autoGuess = on;
 			var rider:String = on ? "enabled" : "disabled";
 			println( "Auto Guess: " + rider);
 		}
@@ -112,7 +106,6 @@ package embedded_asset_classes
 			inputTxt.text = "";
 			inputTxt.addEventListener(KeyboardEvent.KEY_UP, evaluateEnter);
 			
-			ControlsSWC.instance.stopControlsMVC.userGuessMVC.guessTxt.text = ""; // wipe out the input text, because they may have typed 'debug' into it.
 			println(""); // put a new line in the output window.
 		}
 		
