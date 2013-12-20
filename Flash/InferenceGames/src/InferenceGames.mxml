@@ -23,9 +23,8 @@
 			import common.VersionChecker;
 			
 			import embedded_asset_classes.DebugConsoleSWC;
-			import embedded_asset_classes.LevelSelectSWC;
-			import embedded_asset_classes.SpaceRace;
 			import embedded_asset_classes.InferenceEvent;
+			import embedded_asset_classes.SpaceRace;
 			
 			import flash.external.ExternalInterface;
 			import flash.utils.Timer;
@@ -55,7 +54,6 @@
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
-			private var sLevelSelect:LevelSelectSWC;
 			private var sDebugConsole:DebugConsoleSWC;
 			private var sSpaceRace:SpaceRace;
 			private var videoPlayer:Object;	// The Youtube video player for the intro video
@@ -111,11 +109,6 @@
 			
 			private function initVisualElements():void{	
 				staticStage = systemManager.stage;
-				
-				sLevelSelect = new LevelSelectSWC();
-				gameContainer.addChild(sLevelSelect);
-				sLevelSelect.x = 342.75;
-				sLevelSelect.y = 167.5;
 				
 				sDebugConsole = new DebugConsoleSWC();
 				gameContainer.addChild(sDebugConsole);
@@ -419,7 +412,7 @@
 				++mGameSerialNum;
 				isInGame = true;
 				
-				mGameLevel = LevelSelectSWC.instance.getSelectedLevelNumber();
+//				mGameLevel = LevelSelectSWC.instance.getSelectedLevelNumber();
 				
 				mDGInterface.sendLog( "newGame: GameNumber="+mGameSerialNum+" Level="+mGameLevel );
 				 
@@ -438,14 +431,41 @@
 			}
 			
 			// function called when clicking the levels button. WIP
-			private function onClickLevelsButton( triggerEvent:Event ):void
+			private function onClickLevelsButton(e:Event = null):void
 			{
-				if(sSpaceRace.alpha == 0)
-					sSpaceRace.alpha = 1;
-				else 
-					sSpaceRace.alpha = 0;
-				
-				LevelSelectSWC.instance.show(triggerEvent);
+				levelScreen.visible = !levelScreen.visible;
+			}
+			
+			//WIP, we'll use a more elegant solution for the final levels screen
+			private function click_lvl1Btn(e:Event):void{
+				mGameLevel = 1;
+				newGame();
+				levelScreen.visible = false;
+			}
+			private function click_lvl2Btn(e:Event):void{
+				mGameLevel = 2;
+				newGame();
+				levelScreen.visible = false;
+			}
+			private function click_lvl3Btn(e:Event):void{
+				mGameLevel = 3;
+				newGame();
+				levelScreen.visible = false;
+			}
+			private function click_lvl4Btn(e:Event):void{
+				mGameLevel = 4;
+				newGame();
+				levelScreen.visible = false;
+			}
+			private function click_lvl5Btn(e:Event):void{
+				mGameLevel = 5;
+				newGame();
+				levelScreen.visible = false;
+			}
+			private function click_lvl6Btn(e:Event):void{
+				mGameLevel = 6;
+				newGame();
+				levelScreen.visible = false;
 			}
 			
 			//Video functions
@@ -533,6 +553,29 @@
 	<s:Label id="mVersionLabel" x="{this.width-mVersionLabel.width-19}" y="50" width="100" height="50"
 			 color="0x8fa0c1" initialize="mVersionLabel.text=kVersion" 
 			 fontFamily="_sans" fontSize="9" textAlign="right" verticalAlign="top"/>
+	
+	<!-- Level Selection screen (temporary) -->
+	<s:BorderContainer id="levelScreen" x="{30}" y="{30}" width="{this.width-(2*levelScreen.x)}" height="{this.height-(2*levelScreen.y)}" cornerRadius="5" styleName="sansFontClass" visible="false" depth="800">
+		<s:filters>
+			<s:DropShadowFilter 
+				blurX="25" blurY="25" 
+				alpha="0.8" />
+		</s:filters>
+		<s:backgroundFill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xf0f0f0"/>
+				<s:GradientEntry color="0xd8d8d8"/>
+			</s:LinearGradient>
+		</s:backgroundFill>
+		<s:Label text="Levels" width="{levelScreen.width}" y="20" fontSize="22" textAlign="center"/>
+		
+		<s:Button id="lvl1Btn" label="Level 1   ( Interval: {Round.kLevelSettings[0].interval}, IQR: {Round.kLevelSettings[0].iqr} )" enabled="{unlockedLevels >= 1}" click="click_lvl1Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="50" />
+		<s:Button id="lvl2Btn" label="Level 2   ( Interval: {Round.kLevelSettings[1].interval}, IQR: {Round.kLevelSettings[1].iqr} )" enabled="{unlockedLevels >= 2}" click="click_lvl2Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl1Btn.y + 30}"/>
+		<s:Button id="lvl3Btn" label="Level 3   ( Interval: {Round.kLevelSettings[2].interval}, IQR: {Round.kLevelSettings[2].iqr} )" enabled="{unlockedLevels >= 3}" click="click_lvl3Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl2Btn.y + 30}"/>
+		<s:Button id="lvl4Btn" label="Level 4   ( Interval: {Round.kLevelSettings[3].interval}, IQR: {Round.kLevelSettings[3].iqr} )" enabled="{unlockedLevels >= 4}" click="click_lvl4Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl3Btn.y + 30}"/>
+		<s:Button id="lvl5Btn" label="Level 5   ( Interval: {Round.kLevelSettings[4].interval}, IQR: {Round.kLevelSettings[4].iqr} )" enabled="{unlockedLevels >= 5}" click="click_lvl5Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl4Btn.y + 30}"/>
+		<s:Button id="lvl6Btn" label="Level 6   ( Interval: {Round.kLevelSettings[5].interval}, IQR: {Round.kLevelSettings[5].iqr} )" enabled="{unlockedLevels >= 6}" click="click_lvl6Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl5Btn.y + 30}"/>
+	</s:BorderContainer>
 	
 	<!-- Contains Intro video -->
 	<s:BorderContainer id="IntroVideo" x="0" y="25" width="{this.width}" height="{this.height-25}" visible="false" backgroundColor="#dcd0c0" styleName="sansFontClass" borderVisible="false" depth="700">

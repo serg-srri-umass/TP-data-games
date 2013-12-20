@@ -54,8 +54,6 @@ package embedded_asset_classes
 		private function unlockAllLevels():void{
 			InferenceGames.instance.unlockedLevels = 6; // all levels are now unlocked.	
 			println("All levels unlocked.");
-			if(LevelSelectSWC.instance.isShowing)
-				LevelSelectSWC.instance.show();
 		}
 		
 		private function showPopMedian():void{
