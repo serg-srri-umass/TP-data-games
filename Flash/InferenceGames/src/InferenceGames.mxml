@@ -189,7 +189,7 @@
 				//systemManager.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave);
 				
 				//Embedded Youtube video
-				var videoID:String = "UjjfK0Mb3dg";
+				var videoID:String = "RnjgJVm4GX0";  // youtube.com video ID (v=) on https://www.youtube.com/user/sergsrri
 				
 				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
 				Security.allowDomain("s.ytimg.com");
