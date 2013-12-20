@@ -52,11 +52,6 @@
 			videoBtn.addEventListener(MouseEvent.CLICK, toggleVideo);
 			aboutBtn.addEventListener(MouseEvent.CLICK, toggleAbout);
 			backBtn.addEventListener(MouseEvent.CLICK, clickBack);
-			
-			//proxy:
-			scoreMVC.redScoreMVC.addEventListener( MouseEvent.CLICK, earnRedPoint);
-			scoreMVC.greenScoreMVC.addEventListener( MouseEvent.CLICK, earnGreenPoint);
-			scoreMVC.centerBulbMVC.addEventListener( MouseEvent.CLICK, resetScore);
 		}
 		
 		// set a reference to the stage.
@@ -120,6 +115,14 @@
 			if(instant){
 				mouseOverHelp.visible = false;
 			}
+		}
+		
+		public function set videoFunction( arg:Function):void{
+			_videoFunc = arg;
+		}
+		
+		public function set aboutFunction( arg:Function):void{
+			_aboutFunc = arg;
 		}
 		
 		

@@ -88,7 +88,7 @@ package {
 		public function SpaceRaceBody(){
 			INSTANCE = this;
 
-			/*numberlineY = start.y;
+			numberlineY = start.y;
 			startPoint = start.x;
 			endPoint = end.x;
 			numberlineLength = endPoint - startPoint;
@@ -99,10 +99,10 @@ package {
 			distributionMVC.addEventListener("animate", revealAnswer);	// when the distribution finishes "wiping" onscreen, it reveals the answer.;
 			
 			establishHelpButtons();
-			//controlsMVC.establish();
+			controlsMVC.establish();
 			
 			// proxy
-			main = { 	playerNameGreen:"Juan",
+			/*main = { 	playerNameGreen:"Juan",
 						playerNameRed:"Erica",
 						sampleSize:6,
 						median: 50,

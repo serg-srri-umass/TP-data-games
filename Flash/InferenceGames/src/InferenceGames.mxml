@@ -158,7 +158,7 @@
 				sDebugConsole.x = 86;
 				sDebugConsole.y = 25;
 				
-				sSpaceRace = new SpaceRace( staticStage);
+				sSpaceRace = new SpaceRace( staticStage, toggleAboutScreen, showVideo);
 				gameContainer.addChild(sSpaceRace);
 				
 				initVideoPlayer();
@@ -195,7 +195,7 @@
 				
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
-				//loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
+				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
 				//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
 				
 				function onLoaderInit(event:Event):void {
@@ -535,6 +535,11 @@
 				videoPlayer.pauseVideo();
 				IntroVideo.visible = false;
 			}
+			
+			private function toggleAboutScreen(e:Event = null):void{
+				aboutScreen.visible = !aboutScreen.visible;
+			}
+			
 			private function playPauseVideo():void
 			{
 				var PLAYING_VIDEO:Number = 1;
@@ -586,10 +591,7 @@
 	
 	<s:Label id="mVersionLabel" x="{575-100-10}" y="{325-50-10}" width="100" height="50"
 			 color="0xFFFFFF" initialize="mVersionLabel.text=kVersion" textAlign="right"
-			 verticalAlign="bottom" click="aboutScreen.visible=true;"/>
-	<s:Label id="tempVideoButton" x="{575-100-10}" y="{325-50-10-50}" width="100" height="50"
-			 color="0xFFFFFF" text="intro video" textAlign="right"
-			 verticalAlign="bottom" click="showVideo();"/>
+			 verticalAlign="bottom"/>
 	
 	<!-- Contains Intro video -->
 	<s:BorderContainer id="IntroVideo" x="0" y="25" width="{this.width}" height="{this.height-25}" visible="false" backgroundColor="#dcd0c0" borderVisible="false" depth="700">

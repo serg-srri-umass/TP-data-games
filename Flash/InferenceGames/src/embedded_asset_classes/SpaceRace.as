@@ -121,8 +121,12 @@ package embedded_asset_classes
 		// ----------------------
 
 		// constructor
-		public function SpaceRace( stage:Stage)
+		public function SpaceRace( stage:Stage, aboutFunc:Function, videoFunc:Function)
 		{
+			topBarMVC.setStage( stage);
+			topBarMVC.aboutFunction = aboutFunc;
+			topBarMVC.videoFunction = videoFunc;
+			
 			// event listener section:
 			/*this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
 			topBarMVC.backBtn.addEventListener(MouseEvent.CLICK, clickLevelsButton);
