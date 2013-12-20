@@ -56,29 +56,8 @@
 			topBarMVC.backFunction = clickLevelsButton;
 			this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
 			newRoundTimer.addEventListener(TimerEvent.TIMER, requestNewRound);	// when the new round timer completes, the new round starts.;
-			
-			// proxy:
-			addEventListener( InferenceEvent.REQUEST_NEW_ROUND, fakeNewRound);
-
-			sampleSize = 5;
-			playerNameGreen = "Tim";
-			playerNameRed = "The Destroyer";
-			median = 2;
-			newGame( [8, 6, 4], 6, [6, 4, 2, 1], 4);
-			
-			// end proxy
-			
-
-						
 		}
-		
-		//PROXY 
-		public function fakeNewRound(e:Event):void{
-			newRound( 6, 4, 25, 10);
-			bodyMVC.startTurnGreen();
-			trace("faking round...");
-		}
-		// END PROXY
+
 		
 		
 		// ----------- NEW ROUND / NEW GAME --------------
@@ -86,6 +65,7 @@
 		// start a new round. Give it an IQR, interval, the distribution median, & sample size.
 		public function newRound( iqr:int, interval:int, median:Number, sampleSize:int):void
 		{
+			trace("WE GOTS A NEW ROUND!!!!!!");
 			this.median = median;
 			this.sampleSize = sampleSize;
 			this.setIQR(iqr);
@@ -93,10 +73,14 @@
 			
 			trace("The median is: " + median);
 			bodyMVC.moveDistributionTo(_median);
+			bodyMVC.distributionMVC.alpha = 0;
+			bodyMVC.controlsMVC.hideGreen();
+			bodyMVC.controlsMVC.hideRed();
+			bodyMVC.startDataSampling();
 		}
 		
 		// start a new game.
-		public function newGame( possibleIQRs:Array, startingIQR, possibleIntervals:Array, startingInterval):void{
+		public function newGame( possibleIQRs:Array, startingIQR:Number, possibleIntervals:Array, startingInterval:Number):void{
 			resetScore();
 			bodyMVC.setPossibleIQRs(possibleIQRs[0], possibleIQRs[1], possibleIQRs[2], possibleIQRs[3]);
 			bodyMVC.setPossibleIntervals(possibleIntervals[0], possibleIntervals[1], possibleIntervals[2], possibleIntervals[3]);
@@ -183,8 +167,13 @@
 			topBarMVC.earnPoint( true);
 		}
 		
+		
+		public function get activePlayerIsRed():Boolean{
+			return bodyMVC.controlsMVC.activePlayerIsRed;
+		}
+		
 		// earn X points. This is pretty useless at the moment, because the score system shouldn't work like this.
-		public function earnPointGreen():void{
+		public function earnPointGreen( triggerEvent:Event = null):void{
 			greenScore++;
 			topBarMVC.earnPoint( false);
 		}

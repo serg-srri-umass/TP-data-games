@@ -26,10 +26,10 @@
 			import embedded_asset_classes.ControlsSWC;
 			import embedded_asset_classes.DataCannonSWC;
 			import embedded_asset_classes.DebugConsoleSWC;
+			import embedded_asset_classes.InferenceEvent;
 			import embedded_asset_classes.LevelSelectSWC;
 			import embedded_asset_classes.ResultsSWC;
 			import embedded_asset_classes.SpaceRace;
-			import embedded_asset_classes.InferenceEvent;
 			import embedded_asset_classes.UserPlayerSWC;
 			
 			import flash.external.ExternalInterface;
@@ -104,10 +104,34 @@
 				
 				//listen for events from Space Race Module 
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_ROUND, newRoundHandler);
-				//sSpaceRace.addEventListener(InferenceEvent.REQUEST_SAMPLE, requestSampleHandler);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_SAMPLE, requestSampleHandler);
+				sSpaceRace.addEventListener(InferenceEvent.CORRECT_GUESS, handleCorrectGuess);
+				sSpaceRace.addEventListener(InferenceEvent.INCORRECT_GUESS, handleIncorrectGuess);
 				
 				newGame();
 			}
+			
+			private function handleCorrectGuess( triggerEvent:Event = null):void{
+				sSpaceRace.bodyMVC.showFeedback("Hello, Good Job.", "testing.");	// bring up the feedback screen
+				if(sSpaceRace.activePlayerIsRed){
+					sSpaceRace.earnPointRed();
+				} else {
+					sSpaceRace.earnPointGreen();
+				}
+			}
+			
+			
+			private function handleIncorrectGuess( triggerEvent:Event = null):void{
+				sSpaceRace.bodyMVC.showFeedback("Sorry Mate", "testing.");
+				if(sSpaceRace.activePlayerIsRed){
+					sSpaceRace.earnPointGreen();
+					sSpaceRace.earnPointGreen();
+				} else {
+					sSpaceRace.earnPointRed();
+					sSpaceRace.earnPointRed();
+				}
+			}
+			
 			
 			//handles requestNewRound events from SpaceRace interface
 			private function newRoundHandler(e:Event):void{
@@ -161,6 +185,8 @@
 				
 				sSpaceRace = new SpaceRace( staticStage, toggleAboutScreen, showVideo);
 				gameContainer.addChild(sSpaceRace);
+				sSpaceRace.playerNameGreen = "Nick";
+				sSpaceRace.playerNameRed = "Erica";
 				
 				initVideoPlayer();
 			}
@@ -485,7 +511,9 @@
 				sControls.show();
 				
 				mDGInterface.sendLog( "newGame: GameNumber="+mGameSerialNum+" Level="+mGameLevel );
-				 
+				
+				//sSpaceRace.newGame( [8, 6, 4], 6, [6, 4, 2, 1], 4);
+				
 				newRound();
 				sBottomBar.levelNameTxt.text = "Guess the Median | Level " + mGameLevel;
 			}

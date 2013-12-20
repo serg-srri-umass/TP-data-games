@@ -3,6 +3,10 @@
 	import flash.events.*;
 	import flash.display.Stage;
 	import flash.utils.Timer;
+	import fl.transitions.Tween;
+	import fl.transitions.easing.Elastic;
+	import embedded_asset_classes.InferenceEvent;
+
 	import common.ParkMiller;
 	
 	public class SpaceRaceBody extends MovieClip{
@@ -43,10 +47,9 @@
 			numberlineLength = endPoint - startPoint;
 			distributionScaleY = distributionMVC.scaleY;
 			
-			reactivateTimer.addEventListener(TimerEvent.TIMER, finishTurnNeutral);
+			reactivateTimer.addEventListener(TimerEvent.TIMER, finishDataSampling);
 			distributionMVC.addEventListener("animate", revealAnswer);	// when the distribution finishes "wiping" onscreen, it reveals the answer.;
 			
-			establishHelpButtons();
 			controlsMVC.establish();
 		}
 		
@@ -100,32 +103,6 @@
 			promptTxt.text = "It's " + main.playerNameRed + "'s turn.";
 		}
 		
-		
-		// this mode gets entered when more data has to be sampled
-		public function startTurnNeutral( triggerEvent:Event = null):void{
-			var sampleTimer:Timer = new Timer(200, 1); // when this time elapses, sampling starts.
-			sampleTimer.addEventListener(TimerEvent.TIMER, sampleData);
-			sampleTimer.start();
-							  
-			if(controlsMVC.activePlayerIsRed){
-				controlsMVC.controlsRedMVC.stop();
-			} else {
-				controlsMVC.controlsGreenMVC.stop();
-			}
-			
-			//SpaceRaceTopBar.INSTANCE.setTrim("white");
-			promptTxt.text = "Sampling more data...";
-		}
-		
-		// resumes the normal turn structure.
-		public function finishTurnNeutral ( triggerEvent:Event = null):void{
-			if(controlsMVC.activePlayerIsRed){
-				startTurnGreen();
-			} else {
-				startTurnRed();
-			}
-		}
-		
 		public function prepareGuessRed( triggerEvent:Event = null):void{
 			controlsMVC.openInputCancelRed();
 			promptTxt.text = "Place your guess on the numberline, or type it in.";
@@ -134,6 +111,30 @@
 		public function prepareGuessGreen( triggerEvent:Event = null):void{
 			controlsMVC.openInputCancelGreen();
 			promptTxt.text = "Place your guess on the numberline, or type it in.";
+		}
+		
+		// this mode gets entered when more data has to be sampled
+		public function startDataSampling( triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_SAMPLE, true));
+			// this event will tell InferenceGames to start generating data.
+			
+			if(controlsMVC.activePlayerIsRed){
+				controlsMVC.controlsRedMVC.stop();
+				controlsMVC.hideGreen();
+			} else {
+				controlsMVC.controlsGreenMVC.stop();
+				controlsMVC.hideRed();
+			}			
+			promptTxt.text = "Sampling more data...";
+		}
+		
+		// resumes the normal turn structure.
+		public function finishDataSampling ( triggerEvent:Event = null):void{
+			if(controlsMVC.activePlayerIsRed){
+				startTurnGreen();
+			} else {
+				startTurnRed();
+			}
 		}
 		
 		
@@ -148,7 +149,8 @@
 			sampleTxt.text = "Sampling " + arg + " at a time.";
 		}
 				
-		// samples data of the chosen sample size.
+		// This method performs the actual sampling.
+		// both adding it visually to the screen, and returning all the values.
 		public function sampleData( triggerEvent:Event = null):Vector.<Number>{
 			var outputVector:Vector.<Number> = new Vector.<Number>();
 			for( var i:int = 0; i < main.sampleSize; i++){
@@ -256,62 +258,37 @@
 		
 		
 		// ---------- GUESSING FUNCTIONS --------------
+		public function set guess( arg:Number):void{
+			main.guess = arg;
+		}
 		
-		// places a guess based on the cursor's position. The distribution "wipes" on screen, then shows if it was correct or not.
-		public function makeGuess( guess:Number):void
+		// places a guess based on the set guess value. The distribution "wipes" on screen, then shows if it was correct or not.
+		public function makeGuess( triggerEvent:Event = null):void
 		{			
-			promptTxt.text = "";
-			main.guess = guess; 
-			trace(guess);
-			
-			// show the underlying distribution
-			distributionMVC.gotoAndStop("neutral");
+			trace(main.guess);
 			distributionMVC.alpha = 1;
+			distributionMVC.gotoAndStop("neutral");
 			
-			// wipe direction is based on where the median was. 
-			if (main.median < 50)
-				distributionMVC.curveMVC.gotoAndPlay("enterRight");
-			else
-				distributionMVC.curveMVC.gotoAndPlay("enterLeft");
+			distributionMVC.curveMVC.gotoAndStop("on");
+			var bounceTween:Tween = new Tween( distributionMVC, "scaleY", Elastic.easeOut, 0, distributionScaleY, 20);
+			revealAnswer();
 		}
 
-		// turns the distribution red (lose) or green (lose), based on the guess. Lose life if wrong, gain score if right.
-		private function revealAnswer( triggerEvent:Event, missedGuess:Boolean = true):void
+		// turns the distribution yellow (win) or white (lose), based on the guess.
+		private function revealAnswer( triggerEvent:Event = null):void
 		{
-			if ( Math.abs( main.guess - main.median) <= main.interval)
-			{
-				distributionMVC.gotoAndPlay(	missedGuess ? "win" : "won");
-				//main.earnPoint();
-				//main.dispatchEvent( new InferenceEvent( InferenceEvent.CORRECT_GUESS, true));
-			}
-			else
-			{
-				distributionMVC.gotoAndPlay(	missedGuess ? "lose" : "lost");
-				//main.loseLife();
-				//if( missedGuess)
-					//main.loseLife(); // missing a guess costs 2 life
+			if ( Math.abs( main.guess - main.median) <= main.interval){
+				distributionMVC.gotoAndStop("won");
+				dispatchEvent( new InferenceEvent( InferenceEvent.CORRECT_GUESS, true));
+			} else {
+				distributionMVC.gotoAndPlay("lost");
+				dispatchEvent( new InferenceEvent( InferenceEvent.INCORRECT_GUESS, true));
 			}
 		}
 		
-		
-		// ------------------  HELP SECTION ---------------
-		private function establishHelpButtons():void{
-			iqrMVC.iqrHelpMVC.buttonMode = false;
-			iqrMVC.iqrHelpMVC.addEventListener( MouseEvent.MOUSE_OVER, showTip);
-			iqrMVC.iqrHelpMVC.helpMVC.mouseEnabled = false;
-			iqrMVC.iqrHelpMVC.helpMVC.mouseChildren = false;
-			iqrMVC.iqrHelpMVC.helpMVC.helpMVC.helpTxt.text = IQR_HELP;
-			
-			intervalMVC.intervalHelpMVC.buttonMode = false;
-			intervalMVC.intervalHelpMVC.addEventListener( MouseEvent.MOUSE_OVER, showTip);
-			intervalMVC.intervalHelpMVC.helpMVC.mouseEnabled = false;
-			intervalMVC.intervalHelpMVC.helpMVC.mouseChildren = false;
-			intervalMVC.intervalHelpMVC.helpMVC.helpMVC.helpTxt.text = INTERVAL_HELP;
-		}
-		
-		// shows the IQR and interval tips on mouse over
-		private function showTip( triggerEvent:MouseEvent):void{
-			triggerEvent.target.helpMVC.gotoAndPlay(1);
+		// this method is a pass-thru. It takes the feedback info, and passes it to the controls where its displayed.
+		public function showFeedback( header:String, body:String = ""):void{
+			controlsMVC.showFeedback( header, body);
 		}
 	}
 }
