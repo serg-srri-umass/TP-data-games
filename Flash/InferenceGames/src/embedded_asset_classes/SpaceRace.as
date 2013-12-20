@@ -65,7 +65,6 @@
 		// start a new round. Give it an IQR, interval, the distribution median, & sample size.
 		public function newRound( iqr:int, interval:int, median:Number, sampleSize:int):void
 		{
-			trace("WE GOTS A NEW ROUND!!!!!!");
 			this.median = median;
 			this.sampleSize = sampleSize;
 			this.setIQR(iqr);

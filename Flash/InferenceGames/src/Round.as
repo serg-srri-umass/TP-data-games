@@ -65,11 +65,7 @@ package
 		public function Round( whichLevel:int ) {
 			DebugUtilities.assert( whichLevel >= 1 && whichLevel <= kLevelSettings.length, "whichLevel out of range" );
 			
-			//removing event listener from old round instance before we create a new one
-			if(_roundID != 0)
-
 			Round.currentRound = this;
-			
 			++_roundID;
 			
 			// setting IQR and Interval based on level
@@ -118,7 +114,7 @@ package
 			
 			trace("Population Median for new round: ", _median);
 			
-			
+			trace(Round.currentRound);
 			
 			ExpertAI.newRound( MathUtilities.IQR_to_SD(_IQR), _interval); // prepare the AI for the new round.
 		}
