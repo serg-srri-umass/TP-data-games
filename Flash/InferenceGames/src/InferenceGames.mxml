@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.12.20";
+			private static const kVersion:String = "v.2013.12.26";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -122,7 +122,7 @@
 			
 			//handles requestNewRound events from SpaceRace interface
 			private function newRoundHandler(e:Event):void{
-				endGame();
+				endRound(); // CDM: not endGame() where does endGame() go?
 				newRound();
 			}
 			
@@ -393,18 +393,21 @@
 				mDGInterface.sendLog( "newRound:"
 					+" round="+Round.currentRound.roundID
 					+" population-median="+Round.currentRound.populationMedian
-					+" expert-confidence-percent="+ExpertAI.confidenceIntervalPercent
-					+" expert-guess-N="+ExpertAI.guessNumSamples 
+					+" IQR="+Round.currentRound.IQR
+					+" interval="+Round.currentRound.interval
+					+" chunkSize="+Round.currentRound.chunkSize
+					//+" expert-confidence-percent="+ExpertAI.confidenceIntervalPercent
+					//+" expert-guess-N="+ExpertAI.guessNumSamples 
 				);
 				mDGInterface.openGameCase( kGamesCollectionName, getGameCaseValues());
 				mDGInterface.deletePreviousCaseData(); // deletes old graph data to reduce clutter
 				
 				//send new round info to Space Race
-				sSpaceRace.newRound(Round.currentRound.IQR, Round.currentRound.interval, Round.currentRound.populationMedian, Round.currentRound.chunkSize);
+				sSpaceRace.newRound( Round.currentRound.IQR, Round.currentRound.interval, Round.currentRound.populationMedian, Round.currentRound.chunkSize);
 			}
 			
-			// when the old round ends, we do the final update of the Round data sent to DG
-			public function closeRoundData():void{
+			// end the round started with newRound()
+			public function endRound():void{
 				
 				// update and close the old round data in DG
 				// closing the game case prevents further updating of the Round data.
@@ -442,9 +445,15 @@
 				
 				mDGInterface.sendLog( "newGame: GameNumber="+mGameSerialNum+" Level="+mGameLevel );
 				
-				//sSpaceRace.newGame( [8, 6, 4], 6, [6, 4, 2, 1], 4);
-				
-				newRound();
+				// set up the new game interface which calls this.newRoundHandler() which calls this.NewRound()
+				// TO-DO: modify this so newRound() can be called directly to de-tangle the calling logic.
+				// and probably the update of possibleIQRs and Intervals should happen every round instead?  (CDM 2012-12-26)
+				var possibleIQRs:Array = [8, 6, 4], 
+					startingIQR:Number = 6, 
+					possibleIntervals:Array = [6, 4, 2, 1], 
+					startingInterval:Number = 4;
+				sSpaceRace.newGame( possibleIQRs, startingIQR, possibleIntervals, startingInterval );
+				//newRound();
 			}
 
 			// called when 'end game' btn is clicked. Clears the stage, and resets the scores.
@@ -452,7 +461,7 @@
 				
 				// end the old round if there was one
 				if(Round.currentRound){
-					closeRoundData();
+					endRound();
 				}
 				
 				isInGame = false;
