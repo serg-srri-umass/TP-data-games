@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "v.1.01";
+			public static const  VERSION:String = "v.1.02";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -294,8 +294,9 @@
 					
 					// set up DG interface for when ChainSaw.swf is embedded in a DG html doc.
 					mDGInterface = new DGInterface( VersionChecker.isDebug );
-					this.sendCollectionData();		// send initGame data to TinkerPlots/DG
-					// NOTE: callback to restoreStateForDG() could happen here, which calls levelSelected() with new level, etc.
+					this.sendCollectionData();			// send initGame data to TinkerPlots/DG
+					// NOTE: callback from DG to restoreStateForDG() could happen here, which calls levelSelected() with new level, etc.
+					mDGInterface.createGraphIfNone();	// create a Graph view in DG, if not present already
 				} else {
 					recheckTimer.reset();
 					recheckTimer.start();
