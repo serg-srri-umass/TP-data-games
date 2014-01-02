@@ -102,17 +102,20 @@
 			}
 			
 			private function handleCorrectGuess( triggerEvent:Event = null):void{
-				sSpaceRace.bodyMVC.showFeedback("Hello, Good Job.", "testing.");	// bring up the feedback screen
 				if(sSpaceRace.activePlayerIsRed){
 					sSpaceRace.earnPointRed();
 				} else {
 					sSpaceRace.earnPointGreen();
 				}
+				var nextRoundText:String = "Next Round";
+				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE)
+					nextRoundText = "Okay";
+				sSpaceRace.bodyMVC.showFeedback("Hello, Good Job.", nextRoundText, "testing.");	// bring up the feedback screen
+
 			}
 			
 			
 			private function handleIncorrectGuess( triggerEvent:Event = null):void{
-				sSpaceRace.bodyMVC.showFeedback("Sorry Mate", "testing.");
 				if(sSpaceRace.activePlayerIsRed){
 					sSpaceRace.earnPointGreen();
 					sSpaceRace.earnPointGreen();
@@ -120,6 +123,10 @@
 					sSpaceRace.earnPointRed();
 					sSpaceRace.earnPointRed();
 				}
+				var nextRoundText:String = "Next Round";
+				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE)
+					nextRoundText = "Okay";
+				sSpaceRace.bodyMVC.showFeedback("Sorry Mate", nextRoundText, "testing.");
 			}
 			
 			
@@ -144,7 +151,7 @@
 				
 				sSpaceRace = new SpaceRace( staticStage, onClickLevelsButton, toggleAboutScreen, showVideo);
 				gameContainer.addChild(sSpaceRace);
-				sSpaceRace.playerNameGreen = "Nick";
+				sSpaceRace.playerNameGreen = "The Expert";
 				sSpaceRace.playerNameRed = "Erica";
 				
 				initVideoPlayer();
@@ -386,7 +393,7 @@
 				// make sure that old round is finished
 				if(Round.currentRound){
 					if(mDGInterface.isGameCaseOpen()) { throw new Error("Old game case not closed before new Round"); }
-					resetPlayers();
+					resetPlayers();	// MS: Is this old code?
 				}
 
 				// create the new round
@@ -455,7 +462,7 @@
 					startingIQR:Number = 6, 
 					possibleIntervals:Array = [6, 4, 2, 1], 
 					startingInterval:Number = 4;
-				sSpaceRace.newGame( possibleIQRs, startingIQR, possibleIntervals, startingInterval );
+				sSpaceRace.newGame( possibleIQRs, startingIQR, possibleIntervals, startingInterval, mGameLevel );
 				//newRound();
 			}
 

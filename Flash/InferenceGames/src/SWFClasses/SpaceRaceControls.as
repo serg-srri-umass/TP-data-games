@@ -9,6 +9,7 @@
 	import flash.ui.Keyboard;
 	import fl.transitions.Tween;
 	import fl.transitions.easing.*;
+	import flash.text.TextFormat;
 	
 	public class SpaceRaceControls extends MovieClip {
 		
@@ -16,7 +17,7 @@
 		public static var INSTANCE:SpaceRaceControls;
 		
 		public var activePlayerIsRed:Boolean;
-		private var updateTimer:Timer = new Timer(225, 1); // this timer is the delay between inputting text and the bar updating.
+		private var updateTimer:Timer = new Timer(300, 1); // this timer is the delay between inputting text and the bar updating.
 															// For example if a user types '44', the bar doesn't go to 4, then 44.
 		private var isDraggingInterval:Boolean = false;
 		
@@ -34,7 +35,7 @@
 			controlsGreenMVC.passBtn.addEventListener( MouseEvent.CLICK, passGreen);
 			controlsGreenMVC.inputMVC.okBtn.addEventListener( MouseEvent.CLICK, makeGuess);
 			
-			feedbackMVC.newRoundBtnGreen.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
+			//feedbackMVC.newRoundBtnGreen.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
 			feedbackMVC.newRoundBtnRed.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
 			feedbackMVC.visible = false;
 			
@@ -69,6 +70,7 @@
 			var t:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
 			draggingControlMVC.mouseEnabled = true;
 			draggingControlMVC.buttonMode = true;
+			barMVC.y = SpaceRaceBody.INSTANCE.numberlineY - (barMVC.width/2);
 			controlsRedMVC.gotoAndPlay("openInputCancel");
 		}
 		
@@ -106,6 +108,7 @@
 			var t:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
 			draggingControlMVC.mouseEnabled = true;
 			draggingControlMVC.buttonMode = true;
+			barMVC.y = SpaceRaceBody.INSTANCE.numberlineY - (barMVC.width/2);
 			controlsGreenMVC.gotoAndPlay("openInputCancel");
 		}
 		
@@ -157,20 +160,17 @@
 		}
 		
 		// this method shows the feedback & next round button that appear after playing a round
-		public function showFeedback(header:String, body:String = ""):void{
+		public function showFeedback(header:String, buttonText:String, body:String = ""):void{
 			hideGreen();
 			hideRed();
 			feedbackMVC.visible = true;
 			feedbackMVC.headerTxt.text = header;
 			feedbackMVC.bodyTxt.text = body;
 			
-			if(activePlayerIsRed){
-				feedbackMVC.newRoundBtnGreen.visible = false;
-				feedbackMVC.newRoundBtnRed.visible = true;
-			} else {
-				feedbackMVC.newRoundBtnGreen.visible = true;
-				feedbackMVC.newRoundBtnRed.visible = false;
-			}
+			var tf:TextFormat = new TextFormat();	// text format makes it bold
+			tf.bold = true;
+			feedbackMVC.newRoundBtnRed.buttonTxt.defaultTextFormat = tf;
+			feedbackMVC.newRoundBtnRed.buttonTxt.text = buttonText;
 		}
 		
 		public function hideFeedback( triggerEvent:Event = null):void{
@@ -241,6 +241,7 @@
 				SpaceRaceBody.INSTANCE.myStage.removeEventListener(MouseEvent.MOUSE_MOVE, updateGuess);
 				SpaceRaceBody.INSTANCE.myStage.removeEventListener( MouseEvent.MOUSE_UP, stopDragFunc);
 				barMVC.stopDrag();
+				updateGuess( triggerEvent);	// allow the player to 'snap' the guess to a specific point with a single click.
 				isDraggingInterval = false;
 			}
 		}
@@ -258,7 +259,6 @@
 				return 100;
 			return arg;
 		}
-		
 		
 		//draggingControlMVC runs across the entire numberline. Mousing over it highlights the interval bar.
 		private function highlightInterval( triggerEvent:Event):void{

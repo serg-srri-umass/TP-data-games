@@ -80,11 +80,12 @@
 		}
 		
 		// start a new game.
-		public function newGame( possibleIQRs:Array, startingIQR:Number, possibleIntervals:Array, startingInterval:Number):void{
+		public function newGame( possibleIQRs:Array, startingIQR:Number, possibleIntervals:Array, startingInterval:Number, levelNumber:int):void{
 			resetScore();
 			bodyMVC.setPossibleIQRs(possibleIQRs[0], possibleIQRs[1], possibleIQRs[2], possibleIQRs[3]);
 			bodyMVC.setPossibleIntervals(possibleIntervals[0], possibleIntervals[1], possibleIntervals[2], possibleIntervals[3]);
-			requestNewRound();
+			bodyMVC.showFeedback("Level " + levelNumber, "Start Game");
+			//requestNewRound();
 		}
 		
 		// ----------- GETTERS & SETTERS -------------

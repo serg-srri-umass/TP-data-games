@@ -115,7 +115,7 @@
 				controlsMVC.controlsGreenMVC.stop();
 				controlsMVC.hideRed();
 			}			
-			promptTxt.text = "Sampling more data...";
+			promptTxt.text = "Sampling data...";
 		}
 		
 		// resumes the normal turn structure.
@@ -278,8 +278,8 @@
 		}
 		
 		// this method is a pass-thru. It takes the feedback info, and passes it to the controls where its displayed.
-		public function showFeedback( header:String, body:String = ""):void{
-			controlsMVC.showFeedback( header, body);
+		public function showFeedback( header:String, buttonText:String, body:String = ""):void{
+			controlsMVC.showFeedback( header,  buttonText, body);
 		}
 	}
 }
