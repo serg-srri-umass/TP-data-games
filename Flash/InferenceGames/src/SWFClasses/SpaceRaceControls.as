@@ -18,7 +18,7 @@
 		public var activePlayerIsRed:Boolean;
 		private var updateTimer:Timer = new Timer(225, 1); // this timer is the delay between inputting text and the bar updating.
 															// For example if a user types '44', the bar doesn't go to 4, then 44.
-
+		private var isDraggingInterval:Boolean = false;
 		
 		public function establish() {
 			INSTANCE = this;
@@ -38,7 +38,11 @@
 			feedbackMVC.newRoundBtnRed.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
 			feedbackMVC.visible = false;
 			
+			draggingControlMVC.addEventListener( MouseEvent.MOUSE_OVER, highlightInterval);
+			draggingControlMVC.addEventListener( MouseEvent.MOUSE_OUT, unhighlightInterval);
 			barMVC.alpha = 0; // don't show the guessing bar.
+			draggingControlMVC.addEventListener( MouseEvent.MOUSE_DOWN, startDragFunc);
+			
 			controlsGreenMVC.inputMVC.inputTxt.restrict="0-9.";	// only allow 0-9 and .
 			controlsRedMVC.inputMVC.inputTxt.restrict="0-9.";
 			controlsGreenMVC.inputMVC.inputTxt.addEventListener( KeyboardEvent.KEY_DOWN, listenForEnter);
@@ -63,7 +67,8 @@
 		
 		public function openInputCancelRed( triggerEvent:Event = null):void{
 			var t:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
-			barMVC.mouseEnabled = true;
+			draggingControlMVC.mouseEnabled = true;
+			draggingControlMVC.buttonMode = true;
 			controlsRedMVC.gotoAndPlay("openInputCancel");
 		}
 		
@@ -74,6 +79,7 @@
 		
 		public function cancelInputRed( triggerEvent:Event = null):void{
 			controlsRedMVC.gotoAndPlay("closeInputCancel");
+			hideFeedback();
 			controlsRedMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnRed;
 		}
 		
@@ -98,7 +104,8 @@
 		
 		public function openInputCancelGreen( triggerEvent:Event = null):void{
 			var t:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
-			barMVC.mouseEnabled = true;
+			draggingControlMVC.mouseEnabled = true;
+			draggingControlMVC.buttonMode = true;
 			controlsGreenMVC.gotoAndPlay("openInputCancel");
 		}
 		
@@ -109,6 +116,7 @@
 		
 		public function cancelInputGreen( triggerEvent:Event = null):void{
 			controlsGreenMVC.gotoAndPlay("closeInputCancel");
+			hideFeedback();
 			controlsGreenMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnGreen;
 		}
 		
@@ -132,10 +140,7 @@
 			var myGuess:Number = validateGuess();
 			if( isNaN(myGuess))
 				return; // don't allow invalid guesses.
-			if( myGuess > 100)
-				myGuess = 100;
-			else if(myGuess < 0)
-				myGuess = 0;
+			myGuess = constrainMinMax( myGuess);
 				
 			SpaceRaceBody.INSTANCE.guess = myGuess; // set the guess value
 			SpaceRaceBody.INSTANCE.promptTxt.text = "";
@@ -170,7 +175,8 @@
 		
 		public function hideFeedback( triggerEvent:Event = null):void{
 			var t1:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 0, 12);
-			barMVC.mouseEnabled = false;
+			draggingControlMVC.mouseEnabled = false;
+			draggingControlMVC.buttonMode = false;
 			feedbackMVC.visible = false;
 		}
 		
@@ -220,14 +226,48 @@
 		
 		
 		
-		/*
-		private function dragGuessHandler( triggerEvent:MouseEvent):void{
-			barMVC.startDrag(true, new Rectangle( SpaceRaceBody.INSTANCE.startPoint, SpaceRaceBody.INSTANCE.numberlineY - 1, SpaceRaceBody.INSTANCE.endPoint - SpaceRaceBody.INSTANCE.startPoint, 0));
+		
+		private function startDragFunc( triggerEvent:MouseEvent):void{
+			if( !isDraggingInterval){
+				barMVC.startDrag(true, new Rectangle( SpaceRaceBody.INSTANCE.startPoint, SpaceRaceBody.INSTANCE.numberlineY - (barMVC.width/2), SpaceRaceBody.INSTANCE.endPoint - SpaceRaceBody.INSTANCE.startPoint, 0));
+				SpaceRaceBody.INSTANCE.myStage.addEventListener(MouseEvent.MOUSE_MOVE, updateGuess);
+				SpaceRaceBody.INSTANCE.myStage.addEventListener( MouseEvent.MOUSE_UP, stopDragFunc);
+				isDraggingInterval = true;
+			}
 		}
 		
-		private function stopDragGuessHandler( triggerEvent:MouseEvent):void{
-			barMVC.stopDrag();
-		}*/
+		private function stopDragFunc( triggerEvent:MouseEvent):void{
+			if( isDraggingInterval){
+				SpaceRaceBody.INSTANCE.myStage.removeEventListener(MouseEvent.MOUSE_MOVE, updateGuess);
+				SpaceRaceBody.INSTANCE.myStage.removeEventListener( MouseEvent.MOUSE_UP, stopDragFunc);
+				barMVC.stopDrag();
+				isDraggingInterval = false;
+			}
+		}
+		
+		private function updateGuess( triggerEvent:MouseEvent = null):void{
+			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
+			activeControls.inputMVC.inputTxt.text = String(	constrainMinMax( SpaceRaceBody.INSTANCE.stageToNumline( barMVC.x)).toFixed(1));
+		}
+		
+		// given a number, if < 100, return 100. If > 0, return 0. Otherwise, return number.
+		public function constrainMinMax( arg:Number):Number{
+			if( arg < 0)
+				return 0;
+			if( arg > 100)
+				return 100;
+			return arg;
+		}
+		
+		
+		//draggingControlMVC runs across the entire numberline. Mousing over it highlights the interval bar.
+		private function highlightInterval( triggerEvent:Event):void{
+			barMVC.gotoAndStop(2);
+		}
+		private function unhighlightInterval( triggerEvent:Event):void{
+			barMVC.gotoAndStop(1);
+		}
+		
 	}	
 	
 }

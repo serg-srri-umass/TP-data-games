@@ -17,7 +17,7 @@
 		private const INTERVAL_HELP:String = "The Interval is the size of your guessing range.";
 		
 		private var main:*; // the parent of SpaceRaceBody.
-		private var myStage:Stage;
+		public var myStage:Stage;
 		
 		// movie clip variables:
 		public var numberlineY:Number;			// the Y position of the number line
@@ -199,6 +199,7 @@
 		
 		// of the possible predefined intervals, selects the one with the given value
 		public function setActiveInterval( value:Number):Boolean{
+			controlsMVC.barMVC.width = ( widthOfNumber( value * 2));	// the width is 2x the interval.
 			return setActiveBar( intervalMVC, value);
 		}		
 		
