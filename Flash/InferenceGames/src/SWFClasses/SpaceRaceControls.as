@@ -30,10 +30,10 @@
 			controlsRedMVC.passBtn.addEventListener( MouseEvent.CLICK, passRed);
 			controlsRedMVC.inputMVC.okBtn.addEventListener( MouseEvent.CLICK, makeGuess);
 			
-			controlsGreenMVC.guessBtn.addEventListener( MouseEvent.CLICK, closeGuessPassGreen);
-			controlsGreenMVC.cancelBtn.addEventListener( MouseEvent.CLICK, cancelInputGreen);
-			controlsGreenMVC.passBtn.addEventListener( MouseEvent.CLICK, passGreen);
-			controlsGreenMVC.inputMVC.okBtn.addEventListener( MouseEvent.CLICK, makeGuess);
+			//controlsGreenMVC.guessMVC.addEventListener( MouseEvent.CLICK, closeGuessPassGreen);
+			//controlsGreenMVC.cancelBtn.addEventListener( MouseEvent.CLICK, cancelInputGreen);
+			//controlsGreenMVC.passMVC.addEventListener( MouseEvent.CLICK, passGreen);
+			//controlsGreenMVC.inputMVC.okBtn.addEventListener( MouseEvent.CLICK, makeGuess);
 			
 			//feedbackMVC.newRoundBtnGreen.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
 			feedbackMVC.newRoundBtnRed.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
@@ -41,14 +41,14 @@
 			
 			draggingControlMVC.addEventListener( MouseEvent.MOUSE_OVER, highlightInterval);
 			draggingControlMVC.addEventListener( MouseEvent.MOUSE_OUT, unhighlightInterval);
-			barMVC.alpha = 0; // don't show the guessing bar.
 			draggingControlMVC.addEventListener( MouseEvent.MOUSE_DOWN, startDragFunc);
+			barMVC.alpha = 0; // don't show the guessing bar.
 			
 			controlsGreenMVC.inputMVC.inputTxt.restrict="0-9.";	// only allow 0-9 and .
 			controlsRedMVC.inputMVC.inputTxt.restrict="0-9.";
 			controlsGreenMVC.inputMVC.inputTxt.addEventListener( KeyboardEvent.KEY_DOWN, listenForEnter);
 			controlsRedMVC.inputMVC.inputTxt.addEventListener( KeyboardEvent.KEY_DOWN, listenForEnter);
-			controlsGreenMVC.inputMVC.inputTxt.addEventListener( Event.CHANGE, updateGuessNumber);
+			//controlsGreenMVC.inputMVC.inputTxt.addEventListener( Event.CHANGE, updateGuessNumber);
 			controlsRedMVC.inputMVC.inputTxt.addEventListener( Event.CHANGE, updateGuessNumber);
 			
 			updateTimer.addEventListener(TimerEvent.TIMER, moveGuessToText);
@@ -87,7 +87,7 @@
 		
 		public function passRed( triggerEvent:Event = null):void{
 			controlsRedMVC.gotoAndPlay("closeGuessPass");
-			controlsRedMVC.queueFunction = SpaceRaceBody.INSTANCE.startDataSampling;
+			controlsRedMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnGreen;
 		}
 		
 		
@@ -106,8 +106,8 @@
 		
 		public function openInputCancelGreen( triggerEvent:Event = null):void{
 			var t:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
-			draggingControlMVC.mouseEnabled = true;
-			draggingControlMVC.buttonMode = true;
+			draggingControlMVC.mouseEnabled = false;
+			draggingControlMVC.buttonMode = false;
 			barMVC.y = SpaceRaceBody.INSTANCE.numberlineY - (barMVC.width/2);
 			controlsGreenMVC.gotoAndPlay("openInputCancel");
 		}
@@ -144,6 +144,9 @@
 			if( isNaN(myGuess))
 				return; // don't allow invalid guesses.
 			myGuess = constrainMinMax( myGuess);
+			
+			draggingControlMVC.mouseEnabled = false;	// once the guess has been placed, don't let them drag the interval any more
+			draggingControlMVC.buttonMode = false;
 				
 			SpaceRaceBody.INSTANCE.guess = myGuess; // set the guess value
 			SpaceRaceBody.INSTANCE.promptTxt.text = "";
@@ -210,7 +213,7 @@
 		}
 		
 		// this method moves the guess-interval to the text's position.
-		private function moveGuessToText( triggerEvent:Event = null):void{
+		public function moveGuessToText( triggerEvent:Event = null):void{
 			// if the keypress isn't "ENTER", we want to move the guess rect. to the guess' location
 			var guessLocation:Number = validateGuess();
 			if( guessLocation >= 0 && guessLocation <= 100){	// the bar goes from 0 - 100
@@ -223,9 +226,6 @@
 					var t3:Tween = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, SpaceRaceBody.INSTANCE.numlineToStage(100), 12);
 			}
 		}
-		
-		
-		
 		
 		private function startDragFunc( triggerEvent:MouseEvent):void{
 			if( !isDraggingInterval){
@@ -246,6 +246,7 @@
 			}
 		}
 		
+		// this method updates the guess text to reflect the position of the draggy-interval.
 		private function updateGuess( triggerEvent:MouseEvent = null):void{
 			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
 			activeControls.inputMVC.inputTxt.text = String(	constrainMinMax( SpaceRaceBody.INSTANCE.stageToNumline( barMVC.x)).toFixed(1));

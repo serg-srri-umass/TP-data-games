@@ -85,6 +85,7 @@
 			bodyMVC.setPossibleIQRs(possibleIQRs[0], possibleIQRs[1], possibleIQRs[2], possibleIQRs[3]);
 			bodyMVC.setPossibleIntervals(possibleIntervals[0], possibleIntervals[1], possibleIntervals[2], possibleIntervals[3]);
 			bodyMVC.showFeedback("Level " + levelNumber, "Start Game");
+			bodyMVC.promptTxt.text = "";
 			//requestNewRound();
 		}
 		
@@ -171,7 +172,8 @@
 		
 		public function prepareGuessGreen( triggerEvent:Event = null):void{
 			bodyMVC.controlsMVC.openInputCancelGreen();
-			bodyMVC.promptTxt.text = "Place your guess on the numberline, or type it in.";
+			bodyMVC.promptTxt.text = "";
+			bodyMVC.controlsMVC.dispatchEvent( new InferenceEvent( InferenceEvent.EXPERT_START_TYPING));
 			
 			var targetTxt:TextField = bodyMVC.controlsMVC.controlsGreenMVC.inputMVC.inputTxt;
 			InferenceGames.stage.focus = targetTxt;

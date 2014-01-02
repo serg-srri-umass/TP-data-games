@@ -17,8 +17,6 @@ package embedded_asset_classes
 		// --- COMMANDS ---
 		// ----------------
 		
-		internal var c1:Command = new Command( "E", "Expert is always wrong", true, expertIsWrong);
-		internal var c3:Command  = new Command( "G", "Guess for me", true, guessForMe);
 		internal var c4:Command  = new Command( "U", "Unlock all levels", false, unlockAllLevels);
 		internal var c5:Command = new Command( "M", "Show Population Median", false, showPopMedian);
 		internal var c6:Command = new Command("1", "Earn Point (User)", false, earnPointPlayer);
@@ -38,30 +36,13 @@ package embedded_asset_classes
 			
 		}
 		
-		private function expertIsWrong( on:Boolean):void{
-			ExpertAI.DEBUG_alwaysWrong = on;
-			
-			var rider:String = on ? "enabled" : "disabled";
-			println( "Expert Always Wrong: " + rider);
-		}
-		
-		private function guessForMe( on:Boolean):void{
-//			ControlsSWC.instance.DEBUG_autoGuess = on;
-			var rider:String = on ? "enabled" : "disabled";
-			println( "Auto Guess: " + rider);
-		}
-		
 		private function unlockAllLevels():void{
 			InferenceGames.instance.unlockedLevels = 6; // all levels are now unlocked.	
 			println("All levels unlocked.");
 		}
 		
 		private function showPopMedian():void{
-			if(InferenceGames.instance.isInGame)
-				println("Population Median: " + Round.currentRound.populationMedian);
-			else
-				println( "Must be in game to use this command");
-			
+			println("Population Median: " + Round.currentRound.populationMedian);
 		}
 		
 		

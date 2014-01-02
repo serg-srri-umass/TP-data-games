@@ -56,6 +56,7 @@
 
 			private var sDebugConsole:DebugConsoleSWC;
 			private var sSpaceRace:SpaceRace;
+			private var sExpertAI:ExpertAI;
 			private var videoPlayer:Object;	// The Youtube video player for the intro video
 			//private var mVideoButton:MovieClip = new videoMVC();  // the button on the top-bar that prompts you to watch the instructional video.
 
@@ -84,7 +85,8 @@
 				BrickWall.visible = false;
 				
 				initVisualElements();
-
+				sExpertAI = new ExpertAI(SpaceRaceControls.INSTANCE);
+				
 				mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
 				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
 				mDGInterface.createGraphIfNone();		// create a Graph view in DG, if not present already
@@ -96,7 +98,6 @@
 				sSpaceRace.addEventListener(InferenceEvent.INCORRECT_GUESS, handleIncorrectGuess);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_GREEN, sSpaceRace.prepareGuessGreen);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_RED, sSpaceRace.prepareGuessRed);
-				
 				
 				newGame();
 			}
@@ -138,21 +139,23 @@
 			
 			//handles requestSample events from SpaceRace interface
 			private function requestSampleHandler(e:Event):void{
-				InferenceGames.instance.sendEventData( sSpaceRace.sampleData(), sSpaceRace.getDataSpeed() ); //send vector of data to DG
+				var sampledData:Vector.<Number> = sSpaceRace.sampleData();
+				Round.currentRound.addData(sampledData);
+				InferenceGames.instance.sendEventData( sampledData, sSpaceRace.getDataSpeed() ); //send vector of data to DG
 			}
 			
 			private function initVisualElements():void{	
 				staticStage = systemManager.stage;
 				
+				sSpaceRace = new SpaceRace( staticStage, onClickLevelsButton, toggleAboutScreen, showVideo);
+				gameContainer.addChild(sSpaceRace);
+				sSpaceRace.playerNameGreen = "The Expert";
+				sSpaceRace.playerNameRed = "Cliff";
+				
 				sDebugConsole = new DebugConsoleSWC();
 				gameContainer.addChild(sDebugConsole);
 				sDebugConsole.x = 86;
 				sDebugConsole.y = 25;
-				
-				sSpaceRace = new SpaceRace( staticStage, onClickLevelsButton, toggleAboutScreen, showVideo);
-				gameContainer.addChild(sSpaceRace);
-				sSpaceRace.playerNameGreen = "The Expert";
-				sSpaceRace.playerNameRed = "Erica";
 				
 				initVideoPlayer();
 			}
@@ -458,10 +461,10 @@
 				// set up the new game interface which calls this.newRoundHandler() which calls this.NewRound()
 				// TO-DO: modify this so newRound() can be called directly to de-tangle the calling logic.
 				// and probably the update of possibleIQRs and Intervals should happen every round instead?  (CDM 2012-12-26)
-				var possibleIQRs:Array = [8, 6, 4], 
-					startingIQR:Number = 6, 
-					possibleIntervals:Array = [6, 4, 2, 1], 
-					startingInterval:Number = 4;
+				var possibleIQRs:Array = [7], 
+					startingIQR:Number = 7, 
+					possibleIntervals:Array = [1], 
+					startingInterval:Number = 1;
 				sSpaceRace.newGame( possibleIQRs, startingIQR, possibleIntervals, startingInterval, mGameLevel );
 				//newRound();
 			}

@@ -16,8 +16,11 @@
 		public static const LOSE_GAME:String = "loseGame";
 		public static const WIN_GAME:String = "winGame";
 		
+		public static const EXPERT_START_TURN:String = "startexpertturn";
+		public static const EXPERT_START_TYPING:String = "startexperttyping";
 		
-		public function InferenceEvent( type:String, bubbles:Boolean = false, cancelable:Boolean = false ){
+		
+		public function InferenceEvent( type:String, bubbles:Boolean = true, cancelable:Boolean = false ){
 			// constructor code
 			super( type, bubbles, cancelable);
 		}

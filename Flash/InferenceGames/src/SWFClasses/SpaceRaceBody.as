@@ -47,7 +47,7 @@
 			numberlineLength = endPoint - startPoint;
 			distributionScaleY = distributionMVC.scaleY;
 			
-			reactivateTimer.addEventListener(TimerEvent.TIMER, finishDataSampling);
+			reactivateTimer.addEventListener(TimerEvent.TIMER, startTurnRed);	// when data finishes sampling, the next turn is red.
 			distributionMVC.addEventListener("animate", revealAnswer);	// when the distribution finishes "wiping" onscreen, it reveals the answer.;
 			
 			controlsMVC.establish();
@@ -92,6 +92,7 @@
 			SpaceRaceTopBar.INSTANCE.setTrim("green");
 			controlsMVC.openGuessPassGreen();
 			promptTxt.text = "It's " + main.playerNameGreen + "'s turn.";
+			controlsMVC.dispatchEvent( new InferenceEvent( InferenceEvent.EXPERT_START_TURN));
 		}
 		
 		public function startTurnRed( triggerEvent:Event = null):void{
@@ -117,16 +118,6 @@
 			}			
 			promptTxt.text = "Sampling data...";
 		}
-		
-		// resumes the normal turn structure.
-		public function finishDataSampling ( triggerEvent:Event = null):void{
-			if(controlsMVC.activePlayerIsRed){
-				startTurnGreen();
-			} else {
-				startTurnRed();
-			}
-		}
-		
 		
 		// ------------ SAMPLING FUNCTIONS ------------------
 		
