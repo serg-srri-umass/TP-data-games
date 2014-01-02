@@ -65,14 +65,14 @@
 		// ---------- MOVIE CLIP MATH ---------------
 
 		// give this method a position on the numberline, and it will return a stage coordinate.
-		private function numlineToStage( arg:Number):Number
+		public function numlineToStage( arg:Number):Number
 		{
 			var percentageGain:Number = (arg / 100) * numberlineLength;
 			return startPoint + percentageGain;
 		}
 
 		// give this method a stage coordinate (X) and it will return a position on the numberline.
-		private function stageToNumline( arg:Number):Number
+		public function stageToNumline( arg:Number):Number
 		{
 			return (arg - startPoint) / numberlineLength * 100;
 		}		

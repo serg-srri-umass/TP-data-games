@@ -5,6 +5,10 @@
 	import flashx.textLayout.operations.MoveChildrenOperation;
 	import flash.utils.Timer;
 	import embedded_asset_classes.InferenceEvent;
+	import flash.geom.Rectangle;
+	import flash.ui.Keyboard;
+	import fl.transitions.Tween;
+	import fl.transitions.easing.*;
 	
 	public class SpaceRaceControls extends MovieClip {
 		
@@ -12,6 +16,9 @@
 		public static var INSTANCE:SpaceRaceControls;
 		
 		public var activePlayerIsRed:Boolean;
+		private var updateTimer:Timer = new Timer(225, 1); // this timer is the delay between inputting text and the bar updating.
+															// For example if a user types '44', the bar doesn't go to 4, then 44.
+
 		
 		public function establish() {
 			INSTANCE = this;
@@ -30,6 +37,16 @@
 			feedbackMVC.newRoundBtnGreen.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
 			feedbackMVC.newRoundBtnRed.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
 			feedbackMVC.visible = false;
+			
+			barMVC.alpha = 0; // don't show the guessing bar.
+			controlsGreenMVC.inputMVC.inputTxt.restrict="0-9.";	// only allow 0-9 and .
+			controlsRedMVC.inputMVC.inputTxt.restrict="0-9.";
+			controlsGreenMVC.inputMVC.inputTxt.addEventListener( KeyboardEvent.KEY_DOWN, listenForEnter);
+			controlsRedMVC.inputMVC.inputTxt.addEventListener( KeyboardEvent.KEY_DOWN, listenForEnter);
+			controlsGreenMVC.inputMVC.inputTxt.addEventListener( Event.CHANGE, updateGuessNumber);
+			controlsRedMVC.inputMVC.inputTxt.addEventListener( Event.CHANGE, updateGuessNumber);
+			
+			updateTimer.addEventListener(TimerEvent.TIMER, moveGuessToText);
 		}		
 				
 		public function hideRed( triggerEvent:Event = null):void{
@@ -45,6 +62,8 @@
 		}
 		
 		public function openInputCancelRed( triggerEvent:Event = null):void{
+			var t:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
+			barMVC.mouseEnabled = true;
 			controlsRedMVC.gotoAndPlay("openInputCancel");
 		}
 		
@@ -78,6 +97,8 @@
 		}
 		
 		public function openInputCancelGreen( triggerEvent:Event = null):void{
+			var t:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
+			barMVC.mouseEnabled = true;
 			controlsGreenMVC.gotoAndPlay("openInputCancel");
 		}
 		
@@ -111,6 +132,10 @@
 			var myGuess:Number = validateGuess();
 			if( isNaN(myGuess))
 				return; // don't allow invalid guesses.
+			if( myGuess > 100)
+				myGuess = 100;
+			else if(myGuess < 0)
+				myGuess = 0;
 				
 			SpaceRaceBody.INSTANCE.guess = myGuess; // set the guess value
 			SpaceRaceBody.INSTANCE.promptTxt.text = "";
@@ -143,10 +168,16 @@
 			}
 		}
 		
+		public function hideFeedback( triggerEvent:Event = null):void{
+			var t1:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 0, 12);
+			barMVC.mouseEnabled = false;
+			feedbackMVC.visible = false;
+		}
+		
 		// dispatch a request for the new round, and hide the 'new round button'
 		private function dispatchRequestNewRound(triggerEvent:Event = null):void{
 			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_NEW_ROUND, true));
-			feedbackMVC.visible = false;
+			hideFeedback();
 		}
 		
 		// dispatch a request for a green guess
@@ -158,6 +189,45 @@
 		private function dispatchRedGuessRequest(triggerEvent:Event = null):void{
 			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_RED, true));
 		}
-	}
+		
+		// if the player hits enter, while typing in the textbox, make the guess
+		private function listenForEnter( triggerEvent:KeyboardEvent):void{
+			if( triggerEvent.charCode == 13){ // enter
+				makeGuess();
+			}			
+		}
+		
+		
+		private function updateGuessNumber( triggerEvent:Event = null):void{
+			updateTimer.reset();
+			updateTimer.start();
+		}
+		
+		// this method moves the guess-interval to the text's position.
+		private function moveGuessToText( triggerEvent:Event = null):void{
+			// if the keypress isn't "ENTER", we want to move the guess rect. to the guess' location
+			var guessLocation:Number = validateGuess();
+			if( guessLocation >= 0 && guessLocation <= 100){	// the bar goes from 0 - 100
+				var newX:Number = SpaceRaceBody.INSTANCE.numlineToStage( guessLocation);
+				var t1:Tween = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, newX, 12);
+			} else {	// if the # is invalid, hide the bar.
+				if(guessLocation < 0)
+					var t2:Tween = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, SpaceRaceBody.INSTANCE.numlineToStage(0), 12);
+				if(guessLocation > 100)
+					var t3:Tween = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, SpaceRaceBody.INSTANCE.numlineToStage(100), 12);
+			}
+		}
+		
+		
+		
+		/*
+		private function dragGuessHandler( triggerEvent:MouseEvent):void{
+			barMVC.startDrag(true, new Rectangle( SpaceRaceBody.INSTANCE.startPoint, SpaceRaceBody.INSTANCE.numberlineY - 1, SpaceRaceBody.INSTANCE.endPoint - SpaceRaceBody.INSTANCE.startPoint, 0));
+		}
+		
+		private function stopDragGuessHandler( triggerEvent:MouseEvent):void{
+			barMVC.stopDrag();
+		}*/
+	}	
 	
 }

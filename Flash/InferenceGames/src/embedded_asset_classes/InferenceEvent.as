@@ -10,7 +10,6 @@
 		public static const REQUEST_GUESS_MODE_GREEN:String = "egmg";
 		
 		public static const SAMPLE:String = "sample";
-		public static const OVERDRAW:String = "overdraw";
 		public static const CORRECT_GUESS:String = "cguess";
 		public static const INCORRECT_GUESS:String = "iguess";
 			

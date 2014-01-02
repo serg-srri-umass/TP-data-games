@@ -6,6 +6,7 @@
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
+	import flash.text.TextField;
 	import flash.utils.Timer;
 
 	public class SpaceRace extends spaceRaceSWC
@@ -157,11 +158,25 @@
 		public function prepareGuessRed( triggerEvent:Event = null):void{
 			bodyMVC.controlsMVC.openInputCancelRed();
 			bodyMVC.promptTxt.text = "Place your guess on the numberline, or type it in.";
+			
+			// auto-set the focus of the textbox
+			// taken from http://reality-sucks.blogspot.com/2007/11/actionscript-3-adventures-setting-focus.html
+			var targetTxt:TextField = bodyMVC.controlsMVC.controlsRedMVC.inputMVC.inputTxt;
+			InferenceGames.stage.focus = targetTxt;
+			targetTxt.text = " ";
+			targetTxt.setSelection( targetTxt.length, targetTxt.length);
+			targetTxt.text = "";			
 		}
 		
 		public function prepareGuessGreen( triggerEvent:Event = null):void{
 			bodyMVC.controlsMVC.openInputCancelGreen();
 			bodyMVC.promptTxt.text = "Place your guess on the numberline, or type it in.";
+			
+			var targetTxt:TextField = bodyMVC.controlsMVC.controlsGreenMVC.inputMVC.inputTxt;
+			InferenceGames.stage.focus = targetTxt;
+			targetTxt.text = " ";
+			targetTxt.setSelection( targetTxt.length, targetTxt.length);
+			targetTxt.text = "";	
 		}
 		
 		// ----------- SCORING ------------------
