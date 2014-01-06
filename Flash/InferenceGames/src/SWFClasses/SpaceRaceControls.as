@@ -12,30 +12,27 @@
 	import flash.text.TextFormat;
 	
 	public class SpaceRaceControls extends MovieClip {
-		
+		//
+		// The SpaceRaceControls are the parts of SpaceRaceBody that players interact with.
+		// It includes the buttons, draggable interval, cancel button, etc.
+		// (It does NOT include the top bar.)
+		//
 		
 		public static var INSTANCE:SpaceRaceControls;
 		
-		public var activePlayerIsRed:Boolean;
+		public var activePlayerIsRed:Boolean;	// is the active player the red player?
 		private var updateTimer:Timer = new Timer(300, 1); // this timer is the delay between inputting text and the bar updating.
 															// For example if a user types '44', the bar doesn't go to 4, then 44.
-		private var isDraggingInterval:Boolean = false;
+		private var isDraggingInterval:Boolean = false;	// whether or not the player is dragging the guess - interval.
 		
+		// this method acts like a fake constructor. It has to be called before anything can be done with the SpaceRaceControls.
 		public function establish() {
 			INSTANCE = this;
 
-			// constructor code
 			controlsRedMVC.guessBtn.addEventListener( MouseEvent.CLICK, closeGuessPassRed);
 			controlsRedMVC.cancelBtn.addEventListener( MouseEvent.CLICK, cancelInputRed);
 			controlsRedMVC.passBtn.addEventListener( MouseEvent.CLICK, passRed);
 			controlsRedMVC.inputMVC.okBtn.addEventListener( MouseEvent.CLICK, makeGuess);
-			
-			//controlsGreenMVC.guessMVC.addEventListener( MouseEvent.CLICK, closeGuessPassGreen);
-			//controlsGreenMVC.cancelBtn.addEventListener( MouseEvent.CLICK, cancelInputGreen);
-			//controlsGreenMVC.passMVC.addEventListener( MouseEvent.CLICK, passGreen);
-			//controlsGreenMVC.inputMVC.okBtn.addEventListener( MouseEvent.CLICK, makeGuess);
-			
-			//feedbackMVC.newRoundBtnGreen.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
 			feedbackMVC.newRoundBtnRed.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
 			feedbackMVC.visible = false;
 			
@@ -44,28 +41,31 @@
 			draggingControlMVC.addEventListener( MouseEvent.MOUSE_DOWN, startDragFunc);
 			barMVC.alpha = 0; // don't show the guessing bar.
 			
-			controlsGreenMVC.inputMVC.inputTxt.restrict="0-9.";	// only allow 0-9 and .
-			controlsRedMVC.inputMVC.inputTxt.restrict="0-9.";
-			controlsGreenMVC.inputMVC.inputTxt.addEventListener( KeyboardEvent.KEY_DOWN, listenForEnter);
 			controlsRedMVC.inputMVC.inputTxt.addEventListener( KeyboardEvent.KEY_DOWN, listenForEnter);
-			//controlsGreenMVC.inputMVC.inputTxt.addEventListener( Event.CHANGE, updateGuessNumber);
 			controlsRedMVC.inputMVC.inputTxt.addEventListener( Event.CHANGE, updateGuessNumber);
+			controlsRedMVC.inputMVC.inputTxt.restrict="0-9."; // only allow numerals in the guessing box
 			
 			updateTimer.addEventListener(TimerEvent.TIMER, moveGuessToText);
 		}		
-				
+		
+		// --- RED SECTION ------------------------------------------------------------------------
+		// makes red controls invisible
 		public function hideRed( triggerEvent:Event = null):void{
 			controlsRedMVC.visible = false;
 		}
 		
+		// makes red controls visible.
 		public function showRed( triggerEvent:Event = null):void{
 			controlsRedMVC.visible = true;
 		}
 		
+		// opens the "primary controls". The red player has two buttons "Guess" and "Pass"
 		public function openGuessPassRed( triggerEvent:Event = null):void{
 			controlsRedMVC.gotoAndPlay("openGuessPass");
 		}
 		
+		// opens the "guessing controls". The red player has two options: Input a guess, or cancel.
+		// this also makes the guess-interval visible.
 		public function openInputCancelRed( triggerEvent:Event = null):void{
 			var t:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
 			draggingControlMVC.mouseEnabled = true;
@@ -74,23 +74,28 @@
 			controlsRedMVC.gotoAndPlay("openInputCancel");
 		}
 		
+		// this method closes the "guessing controls" and causes it to dispatch a guess request.
 		public function closeGuessPassRed( triggerEvent:Event = null):void{
 			controlsRedMVC.gotoAndPlay("closeGuessPass");
 			controlsRedMVC.queueFunction = dispatchRedGuessRequest;
 		}
 		
+		// cancel the "guessing controls" and return to the "primary controls".
 		public function cancelInputRed( triggerEvent:Event = null):void{
 			controlsRedMVC.gotoAndPlay("closeInputCancel");
 			hideFeedback();
 			controlsRedMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnRed;
 		}
 		
+		// red player passes. Next, the green player's turn starts.
 		public function passRed( triggerEvent:Event = null):void{
 			controlsRedMVC.gotoAndPlay("closeGuessPass");
 			controlsRedMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnGreen;
 		}
 		
 		
+		// --- GREEN SECTION ------------------------------------------------------------------------
+		// To-Do: Should the green player's controls no longer mirror the red player?
 		
 		public function hideGreen( triggerEvent:Event = null):void{
 			controlsGreenMVC.visible = false;
@@ -128,6 +133,9 @@
 			controlsGreenMVC.queueFunction = SpaceRaceBody.INSTANCE.startDataSampling;
 		}
 		
+		// ---------------------------------------------------------
+		// --- GUESSING SECTION ------------------------------------
+		
 		// checks if the currently entered guess is valid. If it is, it returns true. Otherwise, it returns false & promps the user
 		public function validateGuess( triggerEvent:Event = null):Number{
 			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
@@ -139,6 +147,8 @@
 			return textNum;
 		}
 		
+		// this method submits a guess. First, it validates the guess. If the guess is invalid (NaN, or out of range), nothing happens.
+		// otherwise, the guess is submitted.
 		public function makeGuess( triggerEvent:Event = null):void{
 			var myGuess:Number = validateGuess();
 			if( isNaN(myGuess))
@@ -148,8 +158,9 @@
 			draggingControlMVC.mouseEnabled = false;	// once the guess has been placed, don't let them drag the interval any more
 			draggingControlMVC.buttonMode = false;
 				
-			SpaceRaceBody.INSTANCE.guess = myGuess; // set the guess value
-			SpaceRaceBody.INSTANCE.promptTxt.text = "";
+			SpaceRaceBody.INSTANCE.guess = myGuess; // set the guess value.
+			SpaceRaceBody.INSTANCE.promptTxt.text = ""; // clear the text field.
+			
 			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
 			activeControls.gotoAndPlay("closeInputCancel");
 			activeControls.queueFunction = delayedMakeGuess;
@@ -176,27 +187,12 @@
 			feedbackMVC.newRoundBtnRed.buttonTxt.text = buttonText;
 		}
 		
+		// this method hides the feedback.
 		public function hideFeedback( triggerEvent:Event = null):void{
 			var t1:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 0, 12);
 			draggingControlMVC.mouseEnabled = false;
 			draggingControlMVC.buttonMode = false;
 			feedbackMVC.visible = false;
-		}
-		
-		// dispatch a request for the new round, and hide the 'new round button'
-		private function dispatchRequestNewRound(triggerEvent:Event = null):void{
-			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_NEW_ROUND, true));
-			hideFeedback();
-		}
-		
-		// dispatch a request for a green guess
-		private function dispatchGreenGuessRequest(triggerEvent:Event = null):void{
-			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_GREEN, true));
-		}
-		
-		// dispatch a request for a red guess
-		private function dispatchRedGuessRequest(triggerEvent:Event = null):void{
-			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_RED, true));
 		}
 		
 		// if the player hits enter, while typing in the textbox, make the guess
@@ -206,12 +202,6 @@
 			}			
 		}
 		
-		
-		private function updateGuessNumber( triggerEvent:Event = null):void{
-			updateTimer.reset();
-			updateTimer.start();
-		}
-		
 		// this method moves the guess-interval to the text's position.
 		public function moveGuessToText( triggerEvent:Event = null):void{
 			// if the keypress isn't "ENTER", we want to move the guess rect. to the guess' location
@@ -219,7 +209,7 @@
 			if( guessLocation >= 0 && guessLocation <= 100){	// the bar goes from 0 - 100
 				var newX:Number = SpaceRaceBody.INSTANCE.numlineToStage( guessLocation);
 				var t1:Tween = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, newX, 12);
-			} else {	// if the # is invalid, hide the bar.
+			} else {	// if the # is outside of the possible range, move it to the extreme value.
 				if(guessLocation < 0)
 					var t2:Tween = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, SpaceRaceBody.INSTANCE.numlineToStage(0), 12);
 				if(guessLocation > 100)
@@ -227,15 +217,17 @@
 			}
 		}
 		
+		// start dragging the interval rectangle.
 		private function startDragFunc( triggerEvent:MouseEvent):void{
 			if( !isDraggingInterval){
-				barMVC.startDrag(true, new Rectangle( SpaceRaceBody.INSTANCE.startPoint, SpaceRaceBody.INSTANCE.numberlineY - (barMVC.width/2), SpaceRaceBody.INSTANCE.endPoint - SpaceRaceBody.INSTANCE.startPoint, 0));
+				barMVC.startDrag(true, new Rectangle( SpaceRaceBody.INSTANCE.startPoint, SpaceRaceBody.INSTANCE.numberlineY - (barMVC.width/2), (SpaceRaceBody.INSTANCE.endPoint - SpaceRaceBody.INSTANCE.startPoint) + 1, 0));
 				SpaceRaceBody.INSTANCE.myStage.addEventListener(MouseEvent.MOUSE_MOVE, updateGuess);
 				SpaceRaceBody.INSTANCE.myStage.addEventListener( MouseEvent.MOUSE_UP, stopDragFunc);
 				isDraggingInterval = true;
 			}
 		}
 		
+		// stop dragging the interval rectangle.
 		private function stopDragFunc( triggerEvent:MouseEvent):void{
 			if( isDraggingInterval){
 				SpaceRaceBody.INSTANCE.myStage.removeEventListener(MouseEvent.MOUSE_MOVE, updateGuess);
@@ -250,6 +242,13 @@
 		private function updateGuess( triggerEvent:MouseEvent = null):void{
 			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
 			activeControls.inputMVC.inputTxt.text = String(	constrainMinMax( SpaceRaceBody.INSTANCE.stageToNumline( barMVC.x)).toFixed(1));
+		}
+		
+		// the guess-interval automatically updates when new text is typed in. This method acts as a buffer for typing.
+		// without this updateTimer delay, the guess-interval would jump around erratically.
+		private function updateGuessNumber( triggerEvent:Event = null):void{
+			updateTimer.reset();
+			updateTimer.start();
 		}
 		
 		// given a number, if < 100, return 100. If > 0, return 0. Otherwise, return number.
@@ -267,6 +266,24 @@
 		}
 		private function unhighlightInterval( triggerEvent:Event):void{
 			barMVC.gotoAndStop(1);
+		}
+		
+		
+		// --- EVENT DISPATCHING -------------
+		// dispatch a request for the new round, and hide the 'new round button'
+		private function dispatchRequestNewRound(triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_NEW_ROUND, true));
+			hideFeedback();
+		}
+		
+		// dispatch a request for a green guess
+		private function dispatchGreenGuessRequest(triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_GREEN, true));
+		}
+		
+		// dispatch a request for a red guess
+		private function dispatchRedGuessRequest(triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_RED, true));
 		}
 		
 	}	

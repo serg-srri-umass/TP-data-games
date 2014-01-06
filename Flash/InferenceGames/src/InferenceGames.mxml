@@ -396,7 +396,6 @@
 				// make sure that old round is finished
 				if(Round.currentRound){
 					if(mDGInterface.isGameCaseOpen()) { throw new Error("Old game case not closed before new Round"); }
-					resetPlayers();	// MS: Is this old code?
 				}
 
 				// create the new round
@@ -427,24 +426,9 @@
 				if( Round.currentRound && mDGInterface.isGameCaseOpen())
 					mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( DGInterface.kCloseCase ), DGInterface.kCloseCase );
 			}
-			
-			// when the old round ends, we reset the players here.
-			public function resetPlayers():void{
-				
-			}			
-			
-			// hit the buzzer, to bring up the recap.
-			public function hitBuzzer( user:Boolean = true):void{
-				Round.currentRound.calculateWinLose();
-				
-				// show result in DG
-				mDGInterface.sendLog( "hitBuzzer: Result='"+Round.currentRound.getResultsString()+"'");
-				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
-			}
 
 			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' display
 			public function winLoseGame( user:Boolean = true):void{
-//				sBottomBar.showWinner( user);
 				if(user && mGameLevel == unlockedLevels) // if the player beats their current level, unlock the next.
 					unlockedLevels++;
 			}
@@ -453,30 +437,29 @@
 			public function newGame():void {
 				++mGameSerialNum;
 				isInGame = true;
-				
-//				mGameLevel = LevelSelectSWC.instance.getSelectedLevelNumber();
-				
+								
 				mDGInterface.sendLog( "newGame: GameNumber="+mGameSerialNum+" Level="+mGameLevel );
 				
 				// set up the new game interface which calls this.newRoundHandler() which calls this.NewRound()
 				// TO-DO: modify this so newRound() can be called directly to de-tangle the calling logic.
-				// and probably the update of possibleIQRs and Intervals should happen every round instead?  (CDM 2012-12-26)
+				// and probably the update of possibleIQRs and Intervals should happen every round instead?  (CDM 2012-12-26)				
 				var possibleIQRs:Array = [7], 
 					startingIQR:Number = 7, 
 					possibleIntervals:Array = [1], 
 					startingInterval:Number = 1;
-				sSpaceRace.newGame( possibleIQRs, startingIQR, possibleIntervals, startingInterval, mGameLevel );
+				sSpaceRace.newGame( possibleIQRs, startingIQR, possibleIntervals, startingInterval, mGameLevel);
 				//newRound();
 			}
-
+			
+			// WARNING: This method was never being called.
 			// called when 'end game' btn is clicked. Clears the stage, and resets the scores.
 			public function endGame():void{      
-				
+				// Ms (1.6.13): Should the "<-" button end game, or merely bring up the level screen, and be cancel-able.
+			
 				// end the old round if there was one
 				if(Round.currentRound){
 					endRound();
 				}
-				
 				isInGame = false;
 			}
 			

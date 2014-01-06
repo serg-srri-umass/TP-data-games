@@ -86,7 +86,9 @@
 			bodyMVC.setPossibleIntervals(possibleIntervals[0], possibleIntervals[1], possibleIntervals[2], possibleIntervals[3]);
 			bodyMVC.showFeedback("Level " + levelNumber, "Start Game");
 			bodyMVC.promptTxt.text = "";
-			//requestNewRound();
+			
+			bodyMVC.controlsMVC.hideRed();		// Don't start with either player's controls showing.
+			bodyMVC.controlsMVC.hideGreen();
 		}
 		
 		// ----------- GETTERS & SETTERS -------------

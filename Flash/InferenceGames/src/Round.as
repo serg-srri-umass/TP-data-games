@@ -49,8 +49,6 @@ package
 		private var _minNumChunks:int = 3;
 		private var _maxNumChunks:int = 12;
 		
-		private var _guess:Number = 0;	// the auto-generated guess, based on the sample size.
-										// currently, the user & the bot use the auto-generated guess.
 		private var _accuracy:int; 		// the chances of guessing correctly at the current sample size.
 		
 		private var _isWon:Boolean = false; //whether or not this round has been won, calculated when we call for the results string
@@ -161,15 +159,6 @@ package
 			return _IQR;
 		}
 		
-		// get the automatically generated guess, based on the median of the sample data.
-		public function get guess():Number {
-			return _guess;
-		}
-		
-		public function set guess( arg:Number):void{
-			_guess = arg;
-		}
-		
 		public function get chunkSize():int{
 			return _chunkSize;
 		}
@@ -177,10 +166,6 @@ package
 		// get the accuracy of the current guess, based on the sample size:
 		public function get accuracy():Number {
 			return _accuracy;
-		}
-		
-		public function set accuracy(acc:Number):void{
-			_accuracy = acc;
 		}
 		
 		public function get isWon():Boolean{
@@ -200,16 +185,6 @@ package
 			}
 		}
 		
-		// true = win, false = lose
-		public function calculateWinLose():void{
-			// checking to see if the  round has been won, regardless of who stopped the clock
-			if(_guess >= (_median-_interval)  && _guess <= (_median + _interval)){
-				_isWon = true;
-			}else{
-				_isWon = false; 
-			}
-		}
-		
 		public function calculateSampleMean():Number{
 			var total:Number = 0;
 			for( var i:int = 0; i < _sample.length; i++){
@@ -218,26 +193,12 @@ package
 			var mean = total /= _sample.length;
 			return mean;
 		}
-		
+
+		// To-Do: Make this work, and/or move it into another class. (MS)
 		// get the result string showing who won or lost for this round
 		public function getResultsString():String {
-			calculateWinLose();
+			//calculateWinLose();
 			return("the lastBuzzer variable is not set to the player, or the bot");
-		}
-		
-		// Give points to the winner of the current round. 
-		// This is called from the results screen, when it finishes animating.
-		public function handlePoints():void{
-			
-		}
-		
-		// auto-generate a guess based on the median of the current sample.
-		public function calculateGuess():void {
-			if( ExpertAI.DEBUG_alwaysWrong) {
-				_guess = -100; // if the debug code has made the expert always wrong, guess this.
-			} else {
-				_guess = _sampleMedian; // Take the median of the data.
-			}
 		}
 		
 		// -----------------------
