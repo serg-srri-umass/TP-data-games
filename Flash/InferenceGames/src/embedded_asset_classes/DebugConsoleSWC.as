@@ -30,11 +30,11 @@ package embedded_asset_classes
 		// -------------------------
 		
 		private function earnPointPlayer():void{
-			
+			InferenceGames.instance.sSpaceRace.earnPointRed();
 		}
 		
 		private function earnPointBot():void{
-			
+			InferenceGames.instance.sSpaceRace.earnPointGreen();
 		}
 		
 		private function revealGuessAccuracy():void{

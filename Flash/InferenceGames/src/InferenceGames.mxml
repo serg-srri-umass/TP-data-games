@@ -35,27 +35,27 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.12.26";
+			private static const kVersion:String = "v.2014.01.06";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
-				"<b>Inference</b> is a <font color='#2C4877'><u><a href='http://www.srri.umass.edu/datagames' target='chainsawInfo'>Data Game</a></u></font> "+
-				"created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='chainsawInfo'>Statistics Education Research Group</a></u></font> "+
-				"at <font color='#2C4877'><u><a href='http://www.srri.umass.edu' target='shipInfo'>SRRI</a></u></font>. "+
+				"<b>Inference</b> is a <font color='#2C4877'><u><a href='http://www.srri.umass.edu/datagames' target='inferenceInfo'>Data Game</a></u></font> "+
+				"created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='inferenceInfo'>Statistics Education Research Group</a></u></font> "+
+				"at <font color='#2C4877'><u><a href='http://www.srri.umass.edu' target='inferenceInfo'>SRRI</a></u></font>. "+
 				"Contributers to the concept, design and development include the " +
 				"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong; "+
 				"Developers: Craig D. Miller; "+
 				"Student Programmers: Russ Phelan, Mike Salyh, Ryan McCann. "+
 				"Artist: Mike Salyh. "+
 				"Funded by the National Science Foundation, award "+
-				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='chainsawInfo'>DRL-0918653</a></u></font> (2009-2014). "+
-				"Chainsaw is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='chainsawInfo'>Github</a></u></font>. "+
+				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='inferenceInfo'>DRL-0918653</a></u></font> (2009-2014). "+
+				"Inference is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='inferenceInfo'>Github</a></u></font>. "+
 				"Copyright (c) 2013<span class='x'>-2014 by University of Massachusetts Amherst.";
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
 			private var sDebugConsole:DebugConsoleSWC;
-			private var sSpaceRace:SpaceRace;
+			public var sSpaceRace:SpaceRace;
 			private var sExpertAI:ExpertAI;
 			private var videoPlayer:Object;	// The Youtube video player for the intro video
 			//private var mVideoButton:MovieClip = new videoMVC();  // the button on the top-bar that prompts you to watch the instructional video.
@@ -67,6 +67,7 @@
 			public static var instance:InferenceGames = null;
 			public var randomizer:ParkMiller = null;
 			public var isInGame:Boolean = false; // whether there is a game currently going on.
+			[Bindable]
 			public var unlockedLevels:uint = 1; // how many levels the player has unlocked.
 			
 			// this method ensures that the flash player is a recent enough version to work.
@@ -114,13 +115,16 @@
 						feedbackBodyText = "The expert got lucky.";
 					sSpaceRace.earnPointGreen();
 				}
-				
-				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE)
-					nextRoundText = "Okay"; // the game is over.
-				else
-					nextRoundText = "Next Round";
-				
-				sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, nextRoundText, feedbackBodyText);	// bring up the feedback screen
+				var nextRoundText:String = "Next Round";
+				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE){
+					nextRoundText = "Okay";
+					if(sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE){
+						if(unlockedLevels <= Round.currentRound.level){
+							unlockedLevels = Round.currentRound.level + 1;
+						}
+					}
+				}
+				sSpaceRace.bodyMVC.showFeedback("Hello, Good Job.", nextRoundText, "testing.");	// bring up the feedback screen
 
 			}
 			
@@ -622,12 +626,14 @@
 		</s:backgroundFill>
 		<s:Label text="Levels" width="{levelScreen.width}" y="20" fontSize="22" textAlign="center"/>
 		
-		<s:Button id="lvl1Btn" label="Level 1   ( Interval: {Round.kLevelSettings[0].interval}, IQR: {Round.kLevelSettings[0].iqr} )" enabled="{unlockedLevels >= 1}" click="click_lvl1Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="50" />
-		<s:Button id="lvl2Btn" label="Level 2   ( Interval: {Round.kLevelSettings[1].interval}, IQR: {Round.kLevelSettings[1].iqr} )" enabled="{unlockedLevels >= 2}" click="click_lvl2Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl1Btn.y + 30}"/>
-		<s:Button id="lvl3Btn" label="Level 3   ( Interval: {Round.kLevelSettings[2].interval}, IQR: {Round.kLevelSettings[2].iqr} )" enabled="{unlockedLevels >= 3}" click="click_lvl3Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl2Btn.y + 30}"/>
-		<s:Button id="lvl4Btn" label="Level 4   ( Interval: {Round.kLevelSettings[3].interval}, IQR: {Round.kLevelSettings[3].iqr} )" enabled="{unlockedLevels >= 4}" click="click_lvl4Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl3Btn.y + 30}"/>
-		<s:Button id="lvl5Btn" label="Level 5   ( Interval: {Round.kLevelSettings[4].interval}, IQR: {Round.kLevelSettings[4].iqr} )" enabled="{unlockedLevels >= 5}" click="click_lvl5Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl4Btn.y + 30}"/>
-		<s:Button id="lvl6Btn" label="Level 6   ( Interval: {Round.kLevelSettings[5].interval}, IQR: {Round.kLevelSettings[5].iqr} )" enabled="{unlockedLevels >= 6}" click="click_lvl6Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl5Btn.y + 30}"/>
+		<s:Button id="lvl1Btn" label="Level 1   ( Interval: {Round.kLevelSettings.getItemAt(0).interval}, IQR: {Round.kLevelSettings.getItemAt(0).iqr} )" enabled="{unlockedLevels >= 1}" click="click_lvl1Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="50" />
+		<s:Button id="lvl2Btn" label="Level 2   ( Interval: {Round.kLevelSettings.getItemAt(1).interval}, IQR: {Round.kLevelSettings.getItemAt(1).iqr} )" enabled="{unlockedLevels >= 2}" click="click_lvl2Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl1Btn.y + 30}"/>
+		<s:Button id="lvl3Btn" label="Level 3   ( Interval: {Round.kLevelSettings.getItemAt(2).interval}, IQR: {Round.kLevelSettings.getItemAt(2).iqr} )" enabled="{unlockedLevels >= 3}" click="click_lvl3Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl2Btn.y + 30}"/>
+		<s:Button id="lvl4Btn" label="Level 4   ( Interval: {Round.kLevelSettings.getItemAt(3).interval}, IQR: {Round.kLevelSettings.getItemAt(3).iqr} )" enabled="{unlockedLevels >= 4}" click="click_lvl4Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl3Btn.y + 30}"/>
+		<s:Button id="lvl5Btn" label="Level 5   ( Interval: {Round.kLevelSettings.getItemAt(4).interval}, IQR: {Round.kLevelSettings.getItemAt(4).iqr} )" enabled="{unlockedLevels >= 5}" click="click_lvl5Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl4Btn.y + 30}"/>
+		<s:Button id="lvl6Btn" label="Level 6   ( Interval: {Round.kLevelSettings.getItemAt(5).interval}, IQR: {Round.kLevelSettings.getItemAt(5).iqr} )" enabled="{unlockedLevels >= 6}" click="click_lvl6Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl5Btn.y + 30}"/>
+		
+		<s:Button id="closeLevelsButton" x="405" y="215" width="90" height="30" label="Cancel" click="levelScreen.visible=false;" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 	
 	<!-- Contains Intro video -->

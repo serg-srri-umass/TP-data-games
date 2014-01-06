@@ -11,6 +11,8 @@ package
 	import flash.utils.Timer;
 	import flash.utils.getTimer;
 	
+	import mx.collections.ArrayCollection;
+	
 	public class Round
 	{
 		// ----------------------
@@ -19,14 +21,14 @@ package
 		public static const WINNING_SCORE:int = 6; 	// how many points a player needs to win the game.
 		public static var currentRound:Round; // the round object we're currently playing.
 		
-		public static const kLevelSettings:Array = [
+		public static const kLevelSettings:ArrayCollection = new ArrayCollection([
 			{ iqr:7,	/*sd:5.2,*/	    interval:1	}, // level 1
 			{ iqr:7,	/*sd:5.2,*/		interval:1	},
 			{ iqr:7,	/*sd:5.2,*/		interval:"?"},
 			{ iqr:"?",	/*sd:10,*/		interval:1	},
 			{ iqr:"?",	/*sd:20,*/		interval:"?"},
 			{ iqr:"?",	/*sd:15,*/		interval:"?"} // level 6
-		];
+		]);
 		
 		public static const kIntervalWidth:Array = [3, 2, 1, 3, 4, 4]; // variable interval widths for levels with ?
 		
