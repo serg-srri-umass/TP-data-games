@@ -55,7 +55,7 @@
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
 			private var sDebugConsole:DebugConsoleSWC;
-			private var sSpaceRace:SpaceRace;
+			public var sSpaceRace:SpaceRace;
 			private var sExpertAI:ExpertAI;
 			private var videoPlayer:Object;	// The Youtube video player for the intro video
 			//private var mVideoButton:MovieClip = new videoMVC();  // the button on the top-bar that prompts you to watch the instructional video.
@@ -110,8 +110,14 @@
 					sSpaceRace.earnPointGreen();
 				}
 				var nextRoundText:String = "Next Round";
-				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE)
+				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE){
 					nextRoundText = "Okay";
+					if(sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE){
+						if(unlockedLevels <= Round.currentRound.level){
+							unlockedLevels = Round.currentRound.level + 1;
+						}
+					}
+				}
 				sSpaceRace.bodyMVC.showFeedback("Hello, Good Job.", nextRoundText, "testing.");	// bring up the feedback screen
 
 			}
