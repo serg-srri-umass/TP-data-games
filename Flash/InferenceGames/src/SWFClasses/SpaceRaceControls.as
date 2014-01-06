@@ -20,6 +20,9 @@
 		
 		public static var INSTANCE:SpaceRaceControls;
 		
+		private var t1:Tween, t2:Tween, t3:Tween, t4:Tween, t5:Tween, t6:Tween, t7:Tween, t8:Tween, t9:Tween, t10:Tween; 
+		//Tweens should never be declaired in a method's scope, because they might be garbage collected before they complete.
+		
 		public var activePlayerIsRed:Boolean;	// is the active player the red player?
 		private var updateTimer:Timer = new Timer(300, 1); // this timer is the delay between inputting text and the bar updating.
 															// For example if a user types '44', the bar doesn't go to 4, then 44.
@@ -46,6 +49,10 @@
 			controlsRedMVC.inputMVC.inputTxt.restrict="0-9."; // only allow numerals in the guessing box
 			
 			updateTimer.addEventListener(TimerEvent.TIMER, moveGuessToText);
+			disableEndGameBtn();
+			
+			mainMenuMVC.newGameBtn.addEventListener( MouseEvent.CLICK, dispatchRequestNewGame);
+			mainMenuMVC.visible = false;
 		}		
 		
 		// --- RED SECTION ------------------------------------------------------------------------
@@ -62,12 +69,13 @@
 		// opens the "primary controls". The red player has two buttons "Guess" and "Pass"
 		public function openGuessPassRed( triggerEvent:Event = null):void{
 			controlsRedMVC.gotoAndPlay("openGuessPass");
+			enableEndGameBtn();
 		}
 		
 		// opens the "guessing controls". The red player has two options: Input a guess, or cancel.
 		// this also makes the guess-interval visible.
 		public function openInputCancelRed( triggerEvent:Event = null):void{
-			var t:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
+			t1 = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
 			draggingControlMVC.mouseEnabled = true;
 			draggingControlMVC.buttonMode = true;
 			barMVC.y = SpaceRaceBody.INSTANCE.numberlineY - (barMVC.width/2);
@@ -91,6 +99,7 @@
 		public function passRed( triggerEvent:Event = null):void{
 			controlsRedMVC.gotoAndPlay("closeGuessPass");
 			controlsRedMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnGreen;
+			disableEndGameBtn();
 		}
 		
 		
@@ -110,7 +119,7 @@
 		}
 		
 		public function openInputCancelGreen( triggerEvent:Event = null):void{
-			var t:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
+			t2 = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
 			draggingControlMVC.mouseEnabled = false;
 			draggingControlMVC.buttonMode = false;
 			barMVC.y = SpaceRaceBody.INSTANCE.numberlineY - (barMVC.width/2);
@@ -163,7 +172,8 @@
 			
 			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
 			activeControls.gotoAndPlay("closeInputCancel");
-			activeControls.queueFunction = delayedMakeGuess;
+			activeControls.queueFunction = delayedMakeGuess;			
+			disableEndGameBtn();
 		}
 		
 		// a delay occurs between when the guess prompt hides itself, and the answer is revealed.
@@ -178,6 +188,8 @@
 			hideGreen();
 			hideRed();
 			feedbackMVC.visible = true;
+			t10 = new Tween(feedbackMVC, "alpha", None.easeNone, 0, 1, 10); // fade-in in 10 frames
+			
 			feedbackMVC.headerTxt.text = header;
 			feedbackMVC.bodyTxt.text = body;
 			
@@ -189,7 +201,7 @@
 		
 		// this method hides the feedback.
 		public function hideFeedback( triggerEvent:Event = null):void{
-			var t1:Tween = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 0, 12);
+			t3 = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 0, 12); // fade-out in 10 frames
 			draggingControlMVC.mouseEnabled = false;
 			draggingControlMVC.buttonMode = false;
 			feedbackMVC.visible = false;
@@ -208,12 +220,12 @@
 			var guessLocation:Number = validateGuess();
 			if( guessLocation >= 0 && guessLocation <= 100){	// the bar goes from 0 - 100
 				var newX:Number = SpaceRaceBody.INSTANCE.numlineToStage( guessLocation);
-				var t1:Tween = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, newX, 12);
+				t4 = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, newX, 12); // move the X value of the interval bar over 12 frames
 			} else {	// if the # is outside of the possible range, move it to the extreme value.
 				if(guessLocation < 0)
-					var t2:Tween = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, SpaceRaceBody.INSTANCE.numlineToStage(0), 12);
+					t5 = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, SpaceRaceBody.INSTANCE.numlineToStage(0), 12); // move X value of interval bar
 				if(guessLocation > 100)
-					var t3:Tween = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, SpaceRaceBody.INSTANCE.numlineToStage(100), 12);
+					t6 = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, SpaceRaceBody.INSTANCE.numlineToStage(100), 12); // move X value of interval bar
 			}
 		}
 		
@@ -286,6 +298,37 @@
 			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_RED, true));
 		}
 		
+		// dispatch a request for a new game
+		private function dispatchRequestNewGame(triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_NEW_GAME, true));
+		}
+		
+		
+		
+		// --------- MAIN MENU CONTROLS ---------------
+		// (The main menu has the "New Game" and "Change Level" controls
+		
+		// this method shows the feedback & next round button that appear after playing a round
+		public function showMainMenu():void{
+			mainMenuMVC.visible = true;
+			t7 = new Tween(mainMenuMVC, "alpha", None.easeNone, 0, 1, 10); // fade in
+		}
+		
+		public function hideMainMenu():void{
+			mainMenuMVC.visible = false;
+		}
+		
+		public function enableEndGameBtn( triggerEvent:Event = null):void{
+			endGameBtn.enabled = true;
+			endGameBtn.mouseEnabled = true;
+			t8 = new Tween(endGameBtn, "alpha", None.easeNone, endGameBtn.alpha, 1, 10); // fade out
+		}
+		
+		public function disableEndGameBtn( triggerEvent:Event = null):void{
+			endGameBtn.enabled = false;
+			endGameBtn.mouseEnabled = false;
+			t9 = new Tween(endGameBtn, "alpha", None.easeNone, endGameBtn.alpha, 0.2, 10);
+		}
 	}	
 	
 }

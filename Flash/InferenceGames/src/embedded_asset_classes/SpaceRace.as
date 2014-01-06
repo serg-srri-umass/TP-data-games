@@ -12,16 +12,17 @@
 	public class SpaceRace extends spaceRaceSWC
 	{
 		
-		// debug
-		private var standAloneDebug:Boolean = true; // Turn FALSE, when integrated into the game.
 
 		// -----------------
 		// --- VARIABLES ---
 		// -----------------
 
 		// player variables:
-		private var _playerNameGreen:String; 
-		private var _playerNameRed:String; 
+		public const PLAYER_PHRASE:String = "Your turn";
+		public const EXPERT_PHRASE:String = "Expert's turn";
+		
+		private var _expertTurnString:String; // the string it says when it's the expert's turn.
+		private var _playerTurnString:String; // the string it says when its the player's turn.
 		
 		// round & guessing variables:
 		private var _median:Number;			// the _median of the distribution that is currently being sampled.
@@ -47,7 +48,6 @@
 		public function SpaceRace( stage:Stage, levelsFunc:Function, aboutFunc:Function, videoFunc:Function)
 		{
 			topBarMVC.setStage( stage);
-			topBarMVC.backFunction = levelsFunc;
 			topBarMVC.aboutFunction = aboutFunc;
 			topBarMVC.videoFunction = videoFunc;
 			
@@ -56,11 +56,12 @@
 			
 			// event listener section:
 			this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
+			bodyMVC.controlsMVC.endGameBtn.addEventListener( MouseEvent.CLICK, endGame);
 			newRoundTimer.addEventListener(TimerEvent.TIMER, requestNewRound);	// when the new round timer completes, the new round starts.;
+			
+			endGame(); // TO-DO: Make this start in level 1.
 		}
 
-		
-		
 		// ----------- NEW ROUND / NEW GAME --------------
 		
 		// start a new round. Give it an IQR, interval, the distribution median, & sample size.
@@ -81,38 +82,51 @@
 		
 		// start a new game.
 		public function newGame( possibleIQRs:Array, startingIQR:Number, possibleIntervals:Array, startingInterval:Number, levelNumber:int):void{
-			resetScore();
+			//resetScore();
+			
 			bodyMVC.setPossibleIQRs(possibleIQRs[0], possibleIQRs[1], possibleIQRs[2], possibleIQRs[3]);
 			bodyMVC.setPossibleIntervals(possibleIntervals[0], possibleIntervals[1], possibleIntervals[2], possibleIntervals[3]);
-			bodyMVC.showFeedback("Level " + levelNumber, "Start Game");
-			bodyMVC.promptTxt.text = "";
-			
+			//bodyMVC.showFeedback("Level " + levelNumber, "Start Game");
+			//bodyMVC.promptTxt.text = "";
+						
 			bodyMVC.controlsMVC.hideRed();		// Don't start with either player's controls showing.
 			bodyMVC.controlsMVC.hideGreen();
+			
+		}
+		
+		// ends the current game & shows  the main menu
+		public function endGame( triggerEvent:Event = null, newLevelUnlocked:Boolean = false):void{
+			bodyMVC.controlsMVC.disableEndGameBtn();
+			
+			bodyMVC.controlsMVC.hideRed();
+			bodyMVC.controlsMVC.hideGreen();
+			bodyMVC.controlsMVC.hideFeedback();
+			bodyMVC.promptTxt.text = "";
+			bodyMVC.distributionMVC.alpha = 0; // hide the distribution if it was being shown.
+			
+			resetScore();
+			topBarMVC.setTrim("white");
+			
+			bodyMVC.controlsMVC.showMainMenu();
+			bodyMVC.controlsMVC.mainMenuMVC.newLevelsTxt.text = (newLevelUnlocked ? "New level unlocked!" : "");
 		}
 		
 		// ----------- GETTERS & SETTERS -------------
 		
-		public function get playerNameGreen():String{	return _playerNameGreen;	}
-		public function get playerNameRed():String{		return _playerNameRed;	}
+		public function get playerTurnString():String{	return _playerTurnString;	}
+		public function get expertTurnString():String{	return _expertTurnString;	}
 		
 		public function get iqr():int{			return _IQR;		}
 		public function get interval():int{		return _interval;	}
 		public function get median():Number{	return _median;		}
 		public function get guess():Number{		return _guess;		}
 		public function get sampleSize():int{	return _sampleSize;	}
-
-		public function set playerNameGreen( arg:String):void{
-			_playerNameGreen = arg;
-		}
 		
-		public function set playerNameRed( arg:String):void{
-			_playerNameRed = arg;
-		}
-		
+		// set how many samples will be drawn per chunk.
 		public function set sampleSize( arg:int):void{
 			_sampleSize = arg;
-			bodyMVC.setSampleSizeText( arg);
+			_playerTurnString = PLAYER_PHRASE + ". Sampling " + arg + " at a time.";
+			_expertTurnString = EXPERT_PHRASE + ". Sampling " + arg + " at a time.";
 		}
 		
 		// WARNING: THIS DOES NOT MAKE A GUESS. IT MERELY RESETS THE POSITION OF THE LAST PLACED GUESS.

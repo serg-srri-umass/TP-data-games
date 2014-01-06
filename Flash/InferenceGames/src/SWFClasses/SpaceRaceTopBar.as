@@ -7,6 +7,9 @@
 	import flash.display.Stage;
 	
 	
+	// NOTE: The SPEAKER Mute button was NOT removed. It was pushed offstage.
+	// To bring it back, open up the .fla file, and pull it back onstage.
+	//
 	public class SpaceRaceTopBar extends MovieClip {
 		
 		public static var INSTANCE:SpaceRaceTopBar;
@@ -46,12 +49,12 @@
 			soundBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
 			aboutBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
 			aboutBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
-			backBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
-			backBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
+			//backBtn.addEventListener(MouseEvent.MOUSE_OVER, showHidePrompt);
+			//backBtn.addEventListener(MouseEvent.MOUSE_OUT, showHidePrompt);
 			
 			videoBtn.addEventListener(MouseEvent.CLICK, toggleVideo);
 			aboutBtn.addEventListener(MouseEvent.CLICK, toggleAbout);
-			backBtn.addEventListener(MouseEvent.CLICK, clickBack);
+			//backBtn.addEventListener(MouseEvent.CLICK, clickBack);
 		}
 		
 		// set a reference to the stage.
@@ -125,9 +128,9 @@
 			_aboutFunc = arg;
 		}
 		
-		public function set backFunction( arg:Function):void{
+		/*public function set backFunction( arg:Function):void{
 			_backFunc = arg;
-		}
+		}*/
 		
 		
 		// --------- PRIVATE METHODS ---------
@@ -162,10 +165,10 @@
 			_videoFunc();
 		}
 		
-		private function clickBack(e:MouseEvent = null):void{
+		/*private function clickBack(e:MouseEvent = null):void{
 			mouseOverHelp.visible = false;
 			_backFunc();
-		}
+		}*/
 		
 		// this method handles the pop-up help prompt. ("About", "Intro Video", etc)
 		private function showHidePrompt(e:MouseEvent = null):void{
@@ -188,10 +191,10 @@
 				} else if(e.target == aboutBtn){
 					mouseOverHelp.gotoAndStop("about");
 					mouseOverHelp.promptTxt.text = "About";
-				} else if(e.target == backBtn){
+				}/* else if(e.target == backBtn){
 					mouseOverHelp.gotoAndStop("back");
 					mouseOverHelp.promptTxt.text = "End Game";
-				}
+				}*/
 			}
 		}
 		

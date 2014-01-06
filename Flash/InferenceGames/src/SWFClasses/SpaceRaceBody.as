@@ -100,7 +100,7 @@
 			controlsMVC.hideRed();
 			SpaceRaceTopBar.INSTANCE.setTrim("green");
 			controlsMVC.openGuessPassGreen();
-			promptTxt.text = "It's " + main.playerNameGreen + "'s turn.";
+			promptTxt.text = main.expertTurnString;
 			controlsMVC.dispatchEvent( new InferenceEvent( InferenceEvent.EXPERT_START_TURN));
 		}
 		
@@ -110,13 +110,15 @@
 			controlsMVC.hideGreen();
 			SpaceRaceTopBar.INSTANCE.setTrim("red");
 			controlsMVC.openGuessPassRed();
-			promptTxt.text = "It's " + main.playerNameRed + "'s turn.";
+			promptTxt.text = main.playerTurnString;
 		}
 		
 		// this mode gets entered when more data has to be sampled
 		public function startDataSampling( triggerEvent:Event = null):void{
 			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_SAMPLE, true));
 			// this event will tell InferenceGames to start generating data.
+			
+			controlsMVC.disableEndGameBtn();
 			
 			if(controlsMVC.activePlayerIsRed){
 				controlsMVC.controlsRedMVC.stop();
@@ -132,11 +134,6 @@
 		
 		public function moveDistributionTo( arg:Number):void{
 			distributionMVC.x = numlineToStage( main.median);
-		}
-		
-		// sets the text that says how much sampling is going on
-		public function setSampleSizeText( arg:int):void{
-			sampleTxt.text = "Sampling " + arg + " at a time.";
 		}
 				
 		// This method performs the actual sampling.
@@ -172,7 +169,7 @@
 		}
 		
 		// ----------- IQR / INTERVAL SECTION ------------
-		public function setPossibleIQRs( iqr1:int, iqr2:int = 0, iqr3:int = 0, iqr4:int = 0):void{
+		public function setPossibleIQRs( iqr1:int = 0, iqr2:int = 0, iqr3:int = 0, iqr4:int = 0):void{
 			setBarLengthIQR( iqrMVC.barMVC1, iqr1);
 			setBarLengthIQR( iqrMVC.barMVC2, iqr2);
 			setBarLengthIQR( iqrMVC.barMVC3, iqr3);
@@ -181,7 +178,7 @@
 		}
 		
 		// set what possible intervals are allowed this game.
-		public function setPossibleIntervals( interval1:int, interval2:int = 0, interval3:int = 0, interval4:int = 0):void{
+		public function setPossibleIntervals( interval1:int = 0, interval2:int = 0, interval3:int = 0, interval4:int = 0):void{
 			setBarLengthInterval( intervalMVC.barMVC1, interval1);
 			setBarLengthInterval( intervalMVC.barMVC2, interval2);
 			setBarLengthInterval( intervalMVC.barMVC3, interval3);
@@ -257,10 +254,6 @@
 			distributionMVC.alpha = 1;
 			distributionMVC.gotoAndStop("neutral");
 			distributionMVC.curveMVC.gotoAndPlay("enterLeft");
-
-			//distributionMVC.curveMVC.gotoAndStop("on");
-			//var bounceTween:Tween = new Tween( distributionMVC, "scaleY", Elastic.easeOut, 0, distributionScaleY, 20);
-			//revealAnswer();
 		}
 
 		// turns the distribution yellow (win) or white (lose), based on the guess.
@@ -270,6 +263,7 @@
 				distributionMVC.gotoAndPlay("win");
 			} else {
 				distributionMVC.gotoAndPlay("lose");
+				// IMPORTANT: the distributionMVC dispatches the "GUESS_CORRECT" or Incorrect events when it's done animating.
 			}
 		}
 		
