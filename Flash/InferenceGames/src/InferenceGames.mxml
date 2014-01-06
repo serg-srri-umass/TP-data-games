@@ -100,6 +100,7 @@
 				sSpaceRace.addEventListener(InferenceEvent.INCORRECT_GUESS, handleIncorrectGuess);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_GREEN, sSpaceRace.prepareGuessGreen);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_RED, sSpaceRace.prepareGuessRed);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_CHANGE_LEVEL, onClickLevelsButton);
 			}
 			
 			private function handleCorrectGuess( triggerEvent:Event = null):void{
@@ -490,31 +491,30 @@
 				isInGame = false;
 			}
 			
-			// function called when clicking the levels button. WIP
+			// function called when clicking the levels button.
 			private function onClickLevelsButton(e:Event = null):void
 			{
 				levelScreen.visible = !levelScreen.visible;
 			}
 			
-			//WIP, we'll use a more elegant solution for the final levels screen
 			private function click_lvl1Btn(e:Event):void{
 				mGameLevel = 1;
-				newGame();
+				sSpaceRace.topBarMVC.setTitleMessage("LEVEL 1");
 				levelScreen.visible = false;
 			}
 			private function click_lvl2Btn(e:Event):void{
 				mGameLevel = 2;
-				newGame();
+				sSpaceRace.topBarMVC.setTitleMessage("LEVEL 2");
 				levelScreen.visible = false;
 			}
 			private function click_lvl3Btn(e:Event):void{
 				mGameLevel = 3;
-				newGame();
+				sSpaceRace.topBarMVC.setTitleMessage("LEVEL 3");
 				levelScreen.visible = false;
 			}
 			private function click_lvl4Btn(e:Event):void{
 				mGameLevel = 4;
-				newGame();
+				sSpaceRace.topBarMVC.setTitleMessage("LEVEL 4");
 				levelScreen.visible = false;
 			}
 			
