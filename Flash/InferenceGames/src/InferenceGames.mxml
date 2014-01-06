@@ -103,31 +103,51 @@
 			}
 			
 			private function handleCorrectGuess( triggerEvent:Event = null):void{
-				if(sSpaceRace.activePlayerIsRed){
+				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "";
+				if(sSpaceRace.activePlayerIsRed){ //you
+					feedbackHeaderText = "You guessed correctly!";
+					if( Round.currentRound.wasLucky())
+						feedbackBodyText = "You got lucky.";
 					sSpaceRace.earnPointRed();
-				} else {
+				} else { // expert
+					feedbackHeaderText = "The expert guessed correctly!";
+					if( Round.currentRound.wasLucky())
+						feedbackBodyText = "The expert got lucky.";
 					sSpaceRace.earnPointGreen();
 				}
-				var nextRoundText:String = "Next Round";
+				
 				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE)
-					nextRoundText = "Okay";
-				sSpaceRace.bodyMVC.showFeedback("Hello, Good Job.", nextRoundText, "testing.");	// bring up the feedback screen
+					nextRoundText = "Okay"; // the game is over.
+				else
+					nextRoundText = "Next Round";
+				
+				sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, nextRoundText, feedbackBodyText);	// bring up the feedback screen
 
 			}
 			
 			
 			private function handleIncorrectGuess( triggerEvent:Event = null):void{
+				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "";
 				if(sSpaceRace.activePlayerIsRed){
+					feedbackHeaderText = "You missed!";
+					if( Round.currentRound.wasUnlucky())
+						feedbackBodyText = "You were unlucky. Keep trying!";
 					sSpaceRace.earnPointGreen();
 					sSpaceRace.earnPointGreen();
 				} else {
+					feedbackHeaderText = "The expert missed!";
+					if( Round.currentRound.wasUnlucky())
+						feedbackBodyText = "The expert was unlucky.";
 					sSpaceRace.earnPointRed();
 					sSpaceRace.earnPointRed();
 				}
-				var nextRoundText:String = "Next Round";
+				
 				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE)
-					nextRoundText = "Okay";
-				sSpaceRace.bodyMVC.showFeedback("Sorry Mate", nextRoundText, "testing.");
+					nextRoundText = "Okay"; // the game is over.
+				else
+					nextRoundText = "Next Round";
+				
+				sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, nextRoundText, feedbackBodyText);	// bring up the feedback screen
 			}
 			
 			

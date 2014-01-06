@@ -256,20 +256,20 @@
 		{			
 			distributionMVC.alpha = 1;
 			distributionMVC.gotoAndStop("neutral");
-			distributionMVC.curveMVC.gotoAndStop("on");
-			var bounceTween:Tween = new Tween( distributionMVC, "scaleY", Elastic.easeOut, 0, distributionScaleY, 20);
-			revealAnswer();
+			distributionMVC.curveMVC.gotoAndPlay("enterLeft");
+
+			//distributionMVC.curveMVC.gotoAndStop("on");
+			//var bounceTween:Tween = new Tween( distributionMVC, "scaleY", Elastic.easeOut, 0, distributionScaleY, 20);
+			//revealAnswer();
 		}
 
 		// turns the distribution yellow (win) or white (lose), based on the guess.
 		private function revealAnswer( triggerEvent:Event = null):void
 		{
 			if ( Math.abs( main.guess - main.median) <= main.interval){
-				distributionMVC.gotoAndStop("won");
-				dispatchEvent( new InferenceEvent( InferenceEvent.CORRECT_GUESS, true));
+				distributionMVC.gotoAndPlay("win");
 			} else {
-				distributionMVC.gotoAndPlay("lost");
-				dispatchEvent( new InferenceEvent( InferenceEvent.INCORRECT_GUESS, true));
+				distributionMVC.gotoAndPlay("lose");
 			}
 		}
 		
