@@ -52,6 +52,7 @@
 			disableEndGameBtn();
 			
 			mainMenuMVC.newGameBtn.addEventListener( MouseEvent.CLICK, dispatchRequestNewGame);
+			mainMenuMVC.changeLevelBtn.addEventListener( MouseEvent.CLICK, dispatchRequestChangeLevels);
 			mainMenuMVC.visible = false;
 		}		
 		
@@ -78,7 +79,7 @@
 			t1 = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
 			draggingControlMVC.mouseEnabled = true;
 			draggingControlMVC.buttonMode = true;
-			barMVC.y = SpaceRaceBody.INSTANCE.numberlineY - (barMVC.width/2);
+			barMVC.y = SpaceRaceBody.INSTANCE.numberlineY; // - (barMVC.width/2);
 			controlsRedMVC.gotoAndPlay("openInputCancel");
 		}
 		
@@ -122,7 +123,7 @@
 			t2 = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
 			draggingControlMVC.mouseEnabled = false;
 			draggingControlMVC.buttonMode = false;
-			barMVC.y = SpaceRaceBody.INSTANCE.numberlineY - (barMVC.width/2);
+			barMVC.y = SpaceRaceBody.INSTANCE.numberlineY;// - (barMVC.width/2);
 			controlsGreenMVC.gotoAndPlay("openInputCancel");
 		}
 		
@@ -303,15 +304,17 @@
 			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_NEW_GAME, true));
 		}
 		
+		private function dispatchRequestChangeLevels(triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_CHANGE_LEVEL, true));
+		}
+		
 		
 		
 		// --------- MAIN MENU CONTROLS ---------------
-		// (The main menu has the "New Game" and "Change Level" controls
-		
 		// this method shows the feedback & next round button that appear after playing a round
 		public function showMainMenu():void{
 			mainMenuMVC.visible = true;
-			t7 = new Tween(mainMenuMVC, "alpha", None.easeNone, 0, 1, 10); // fade in
+			t7 = new Tween(mainMenuMVC, "alpha", None.easeNone, 0, 1, 10);
 		}
 		
 		public function hideMainMenu():void{
@@ -321,7 +324,7 @@
 		public function enableEndGameBtn( triggerEvent:Event = null):void{
 			endGameBtn.enabled = true;
 			endGameBtn.mouseEnabled = true;
-			t8 = new Tween(endGameBtn, "alpha", None.easeNone, endGameBtn.alpha, 1, 10); // fade out
+			t8 = new Tween(endGameBtn, "alpha", None.easeNone, endGameBtn.alpha, 1, 10);
 		}
 		
 		public function disableEndGameBtn( triggerEvent:Event = null):void{
