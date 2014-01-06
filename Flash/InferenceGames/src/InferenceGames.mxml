@@ -35,21 +35,21 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2013.12.26";
+			private static const kVersion:String = "v.2014.01.06";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
-				"<b>Inference</b> is a <font color='#2C4877'><u><a href='http://www.srri.umass.edu/datagames' target='chainsawInfo'>Data Game</a></u></font> "+
-				"created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='chainsawInfo'>Statistics Education Research Group</a></u></font> "+
-				"at <font color='#2C4877'><u><a href='http://www.srri.umass.edu' target='shipInfo'>SRRI</a></u></font>. "+
+				"<b>Inference</b> is a <font color='#2C4877'><u><a href='http://www.srri.umass.edu/datagames' target='inferenceInfo'>Data Game</a></u></font> "+
+				"created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='inferenceInfo'>Statistics Education Research Group</a></u></font> "+
+				"at <font color='#2C4877'><u><a href='http://www.srri.umass.edu' target='inferenceInfo'>SRRI</a></u></font>. "+
 				"Contributers to the concept, design and development include the " +
 				"Research and Activities team: Clifford Konold, Kosoom (Jang) Kreetong; "+
 				"Developers: Craig D. Miller; "+
 				"Student Programmers: Russ Phelan, Mike Salyh, Ryan McCann. "+
 				"Artist: Mike Salyh. "+
 				"Funded by the National Science Foundation, award "+
-				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='chainsawInfo'>DRL-0918653</a></u></font> (2009-2014). "+
-				"Chainsaw is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='chainsawInfo'>Github</a></u></font>. "+
+				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='inferenceInfo'>DRL-0918653</a></u></font> (2009-2014). "+
+				"Inference is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='inferenceInfo'>Github</a></u></font>. "+
 				"Copyright (c) 2013<span class='x'>-2014 by University of Massachusetts Amherst.";
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
