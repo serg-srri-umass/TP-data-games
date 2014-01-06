@@ -84,8 +84,8 @@
 		public function newGame( possibleIQRs:Array, startingIQR:Number, possibleIntervals:Array, startingInterval:Number, levelNumber:int):void{
 			//resetScore();
 			
-			bodyMVC.setPossibleIQRs(possibleIQRs[0], possibleIQRs[1], possibleIQRs[2], possibleIQRs[3]);
-			bodyMVC.setPossibleIntervals(possibleIntervals[0], possibleIntervals[1], possibleIntervals[2], possibleIntervals[3]);
+			bodyMVC.setPossibleIQRs(possibleIQRs[0], possibleIQRs[1], possibleIQRs[2], possibleIQRs[3], possibleIQRs[4]);
+			bodyMVC.setPossibleIntervals(possibleIntervals[0], possibleIntervals[1], possibleIntervals[2], possibleIntervals[3], possibleIntervals[4]);
 			//bodyMVC.showFeedback("Level " + levelNumber, "Start Game");
 			//bodyMVC.promptTxt.text = "";
 						

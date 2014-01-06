@@ -169,20 +169,22 @@
 		}
 		
 		// ----------- IQR / INTERVAL SECTION ------------
-		public function setPossibleIQRs( iqr1:int = 0, iqr2:int = 0, iqr3:int = 0, iqr4:int = 0):void{
+		public function setPossibleIQRs( iqr1:int = 0, iqr2:int = 0, iqr3:int = 0, iqr4:int = 0, iqr5:int = 0):void{
 			setBarLengthIQR( iqrMVC.barMVC1, iqr1);
 			setBarLengthIQR( iqrMVC.barMVC2, iqr2);
 			setBarLengthIQR( iqrMVC.barMVC3, iqr3);
 			setBarLengthIQR( iqrMVC.barMVC4, iqr4);
+			setBarLengthIQR( iqrMVC.barMVC5, iqr5);
 			setActiveIQR(iqr1);
 		}
 		
 		// set what possible intervals are allowed this game.
-		public function setPossibleIntervals( interval1:int = 0, interval2:int = 0, interval3:int = 0, interval4:int = 0):void{
+		public function setPossibleIntervals( interval1:int = 0, interval2:int = 0, interval3:int = 0, interval4:int = 0, interval5:int = 0):void{
 			setBarLengthInterval( intervalMVC.barMVC1, interval1);
 			setBarLengthInterval( intervalMVC.barMVC2, interval2);
 			setBarLengthInterval( intervalMVC.barMVC3, interval3);
 			setBarLengthInterval( intervalMVC.barMVC4, interval4);
+			setBarLengthInterval( intervalMVC.barMVC5, interval5);
 			setActiveInterval(interval1);
 		}
 		
@@ -229,7 +231,7 @@
 		// 'value' is the bar that will be selected. Note: if 2 bars are the same length, they will both select. If no bar matches the value, non will select.
 		private function setActiveBar( container:MovieClip, value:Number):Boolean{
 			var success:Boolean = false; // whether or not the value exists. 
-			for( var i:int = 1; i <= 4; i++){
+			for( var i:int = 1; i <= 5; i++){
 				if( container["barMVC" + i].lengthVar == value){
 					container["barMVC" + i].barMVC.gotoAndStop("on");
 					container["barMVC" + i].numberTxt.alpha = 1;
