@@ -85,8 +85,8 @@
 				this.randomizer = new ParkMiller(); // must instantiate just once to set random seed according to current date-time.
 				BrickWall.visible = false;
 				
-				initVisualElements();
-				sExpertAI = new ExpertAI(SpaceRaceControls.INSTANCE);
+				initVisualElements();				sExpertAI = new ExpertAI(SpaceRaceControls.INSTANCE);
+
 				
 				mDGInterface = new DGInterface( VersionChecker.isDebug && kDebugMode );
 				this.sendCollectionData();				// initialize the DG/TinkerPlots data interface (and set up Graph and Table parameters)
@@ -98,27 +98,27 @@
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_GAME, newGameHandler);
 				sSpaceRace.addEventListener(InferenceEvent.CORRECT_GUESS, handleCorrectGuess);
 				sSpaceRace.addEventListener(InferenceEvent.INCORRECT_GUESS, handleIncorrectGuess);
-				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_GREEN, sSpaceRace.prepareGuessGreen);
-				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_RED, sSpaceRace.prepareGuessRed);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_EXPERT, sSpaceRace.prepareGuessExpert);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_HUMAN, sSpaceRace.prepareGuessHuman);
 			}
 			
 			private function handleCorrectGuess( triggerEvent:Event = null):void{
 				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "";
-				if(sSpaceRace.activePlayerIsRed){ //you
+				if(sSpaceRace.activePlayerIsHuman){ //you
 					feedbackHeaderText = "You guessed correctly!";
 					if( Round.currentRound.wasLucky())
 						feedbackBodyText = "You got lucky.";
-					sSpaceRace.earnPointRed();
+					sSpaceRace.earnPointHuman();
 				} else { // expert
 					feedbackHeaderText = "The expert guessed correctly!";
 					if( Round.currentRound.wasLucky())
 						feedbackBodyText = "The expert got lucky.";
-					sSpaceRace.earnPointGreen();
+					sSpaceRace.earnPointExpert();
 				}
 				var nextRoundText:String = "Next Round";
-				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE){
+				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
 					nextRoundText = "Okay";
-					if(sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE){
+					if(sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
 						if(unlockedLevels <= Round.currentRound.level){
 							unlockedLevels = Round.currentRound.level + 1;
 						}
@@ -131,21 +131,21 @@
 			
 			private function handleIncorrectGuess( triggerEvent:Event = null):void{
 				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "";
-				if(sSpaceRace.activePlayerIsRed){
+				if(sSpaceRace.activePlayerIsHuman){
 					feedbackHeaderText = "You missed!";
 					if( Round.currentRound.wasUnlucky())
 						feedbackBodyText = "You were unlucky. Keep trying!";
-					sSpaceRace.earnPointGreen();
-					sSpaceRace.earnPointGreen();
+					sSpaceRace.earnPointExpert();
+					sSpaceRace.earnPointExpert();
 				} else {
 					feedbackHeaderText = "The expert missed!";
 					if( Round.currentRound.wasUnlucky())
 						feedbackBodyText = "The expert was unlucky.";
-					sSpaceRace.earnPointRed();
-					sSpaceRace.earnPointRed();
+					sSpaceRace.earnPointHuman();
+					sSpaceRace.earnPointHuman();
 				}
 				
-				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE)
+				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE)
 					nextRoundText = "Okay"; // the game is over.
 				else
 					nextRoundText = "Next Round";
@@ -316,8 +316,8 @@
 							inGame:		this.isInGame,
 							unlockedTo:	this.unlockedLevels,
 							roundID:	Round.currentRound.roundID,
-							redScore:		this.sSpaceRace.redScore,
-							greenScore:		this.sSpaceRace.greenScore
+							humanScore:		this.sSpaceRace.humanScore,
+							expertScore:		this.sSpaceRace.expertScore
 						}
 					};
 				return stateObj;
@@ -351,15 +351,15 @@
 					}
 					if( iState.score ) {
 //						Alert.show("s2 " +sSpaceRace.score);
-						sSpaceRace.redScore = iState.redScore;
-						for(var i:int=0; i<iState.redScore; i++){
-							sSpaceRace.earnPointRed();
+						sSpaceRace.humanScore = iState.humanScore;
+						for(var i:int=0; i<iState.humanScore; i++){
+							sSpaceRace.earnPointHuman();
 						}
 					}
 					if( iState.life ) {
-						sSpaceRace.greenScore = iState.greenScore;
-						for(var j:int=0; j<iState.greenScore; j++){
-							sSpaceRace.earnPointGreen();
+						sSpaceRace.expertScore = iState.expertScore;
+						for(var j:int=0; j<iState.expertScore; j++){
+							sSpaceRace.earnPointExpert();
 						}
 					}
 					result.success = true;

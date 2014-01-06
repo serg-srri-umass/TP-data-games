@@ -23,7 +23,7 @@
 		private var t1:Tween, t2:Tween, t3:Tween, t4:Tween, t5:Tween, t6:Tween, t7:Tween, t8:Tween, t9:Tween, t10:Tween; 
 		//Tweens should never be declaired in a method's scope, because they might be garbage collected before they complete.
 		
-		public var activePlayerIsRed:Boolean;	// is the active player the red player?
+		public var activePlayerIsHuman:Boolean;	// is the active player the human player?
 		private var updateTimer:Timer = new Timer(300, 1); // this timer is the delay between inputting text and the bar updating.
 															// For example if a user types '44', the bar doesn't go to 4, then 44.
 		private var isDraggingInterval:Boolean = false;	// whether or not the player is dragging the guess - interval.
@@ -32,11 +32,11 @@
 		public function establish() {
 			INSTANCE = this;
 
-			controlsRedMVC.guessBtn.addEventListener( MouseEvent.CLICK, closeGuessPassRed);
-			controlsRedMVC.cancelBtn.addEventListener( MouseEvent.CLICK, cancelInputRed);
-			controlsRedMVC.passBtn.addEventListener( MouseEvent.CLICK, passRed);
-			controlsRedMVC.inputMVC.okBtn.addEventListener( MouseEvent.CLICK, makeGuess);
-			feedbackMVC.newRoundBtnRed.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
+			controlsHumanMVC.guessBtn.addEventListener( MouseEvent.CLICK, closeGuessPassHuman);
+			controlsHumanMVC.cancelBtn.addEventListener( MouseEvent.CLICK, cancelInputHuman);
+			controlsHumanMVC.passBtn.addEventListener( MouseEvent.CLICK, passHuman);
+			controlsHumanMVC.inputMVC.okBtn.addEventListener( MouseEvent.CLICK, makeGuess);
+			feedbackMVC.newRoundBtnHuman.addEventListener( MouseEvent.CLICK, dispatchRequestNewRound);
 			feedbackMVC.visible = false;
 			
 			draggingControlMVC.addEventListener( MouseEvent.MOUSE_OVER, highlightInterval);
@@ -44,9 +44,12 @@
 			draggingControlMVC.addEventListener( MouseEvent.MOUSE_DOWN, startDragFunc);
 			barMVC.alpha = 0; // don't show the guessing bar.
 			
-			controlsRedMVC.inputMVC.inputTxt.addEventListener( KeyboardEvent.KEY_DOWN, listenForEnter);
-			controlsRedMVC.inputMVC.inputTxt.addEventListener( Event.CHANGE, updateGuessNumber);
-			controlsRedMVC.inputMVC.inputTxt.restrict="0-9."; // only allow numerals in the guessing box
+			controlsHumanMVC.inputMVC.inputTxt.addEventListener( KeyboardEvent.KEY_DOWN, listenForEnter);
+			controlsHumanMVC.inputMVC.inputTxt.addEventListener( Event.CHANGE, updateGuessNumber);
+			controlsHumanMVC.inputMVC.inputTxt.restrict="0-9."; // only allow numerals in the guessing box
+			
+			controlsHumanMVC.checkov.visible = false; // Proxy. Chekov doesn't belong in this game...
+			controlsExpertMVC.checkov.visible = false; // Proxy. Chekov doesn't belong in this game...
 			
 			updateTimer.addEventListener(TimerEvent.TIMER, moveGuessToText);
 			disableEndGameBtn();
@@ -56,91 +59,91 @@
 			mainMenuMVC.visible = false;
 		}		
 		
-		// --- RED SECTION ------------------------------------------------------------------------
-		// makes red controls invisible
-		public function hideRed( triggerEvent:Event = null):void{
-			controlsRedMVC.visible = false;
+		// --- HUMAN SECTION ------------------------------------------------------------------------
+		// makes human controls invisible
+		public function hideHuman( triggerEvent:Event = null):void{
+			controlsHumanMVC.visible = false;
 		}
 		
-		// makes red controls visible.
-		public function showRed( triggerEvent:Event = null):void{
-			controlsRedMVC.visible = true;
+		// makes human controls visible.
+		public function showHuman( triggerEvent:Event = null):void{
+			controlsHumanMVC.visible = true;
 		}
 		
-		// opens the "primary controls". The red player has two buttons "Guess" and "Pass"
-		public function openGuessPassRed( triggerEvent:Event = null):void{
-			controlsRedMVC.gotoAndPlay("openGuessPass");
+		// opens the "primary controls". The human player has two buttons "Guess" and "Pass"
+		public function openGuessPassHuman( triggerEvent:Event = null):void{
+			controlsHumanMVC.gotoAndPlay("openGuessPass");
 			enableEndGameBtn();
 		}
 		
-		// opens the "guessing controls". The red player has two options: Input a guess, or cancel.
+		// opens the "guessing controls". The human player has two options: Input a guess, or cancel.
 		// this also makes the guess-interval visible.
-		public function openInputCancelRed( triggerEvent:Event = null):void{
+		public function openInputCancelHuman( triggerEvent:Event = null):void{
 			t1 = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
 			draggingControlMVC.mouseEnabled = true;
 			draggingControlMVC.buttonMode = true;
 			barMVC.y = SpaceRaceBody.INSTANCE.numberlineY; // - (barMVC.width/2);
-			controlsRedMVC.gotoAndPlay("openInputCancel");
+			controlsHumanMVC.gotoAndPlay("openInputCancel");
 		}
 		
 		// this method closes the "guessing controls" and causes it to dispatch a guess request.
-		public function closeGuessPassRed( triggerEvent:Event = null):void{
-			controlsRedMVC.gotoAndPlay("closeGuessPass");
-			controlsRedMVC.queueFunction = dispatchRedGuessRequest;
+		public function closeGuessPassHuman( triggerEvent:Event = null):void{
+			controlsHumanMVC.gotoAndPlay("closeGuessPass");
+			controlsHumanMVC.queueFunction = dispatchHumanGuessRequest;
 		}
 		
 		// cancel the "guessing controls" and return to the "primary controls".
-		public function cancelInputRed( triggerEvent:Event = null):void{
-			controlsRedMVC.gotoAndPlay("closeInputCancel");
+		public function cancelInputHuman( triggerEvent:Event = null):void{
+			controlsHumanMVC.gotoAndPlay("closeInputCancel");
 			hideFeedback();
-			controlsRedMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnRed;
+			controlsHumanMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnHuman;
 		}
 		
-		// red player passes. Next, the green player's turn starts.
-		public function passRed( triggerEvent:Event = null):void{
-			controlsRedMVC.gotoAndPlay("closeGuessPass");
-			controlsRedMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnGreen;
+		// human player passes. Next, the expert player's turn starts.
+		public function passHuman( triggerEvent:Event = null):void{
+			controlsHumanMVC.gotoAndPlay("closeGuessPass");
+			controlsHumanMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnExpert;
 			disableEndGameBtn();
 		}
 		
 		
-		// --- GREEN SECTION ------------------------------------------------------------------------
-		// To-Do: Should the green player's controls no longer mirror the red player?
+		// --- EXPERT SECTION ------------------------------------------------------------------------
+		// To-Do: Should the expert player's controls no longer mirror the human player?
 		
-		public function hideGreen( triggerEvent:Event = null):void{
-			controlsGreenMVC.visible = false;
+		public function hideExpert( triggerEvent:Event = null):void{
+			controlsExpertMVC.visible = false;
 		}
 		
-		public function showGreen( triggerEvent:Event = null):void{
-			controlsGreenMVC.visible = true;
+		public function showExpert( triggerEvent:Event = null):void{
+			controlsExpertMVC.visible = true;
 		}
 		
-		public function openGuessPassGreen( triggerEvent:Event = null):void{
-			controlsGreenMVC.gotoAndPlay("openGuessPass");
+		public function openGuessPassExpert( triggerEvent:Event = null):void{
+			controlsExpertMVC.gotoAndPlay("openGuessPass");
 		}
 		
-		public function openInputCancelGreen( triggerEvent:Event = null):void{
+		public function openInputCancelExpert( triggerEvent:Event = null):void{
 			t2 = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
 			draggingControlMVC.mouseEnabled = false;
 			draggingControlMVC.buttonMode = false;
 			barMVC.y = SpaceRaceBody.INSTANCE.numberlineY;// - (barMVC.width/2);
-			controlsGreenMVC.gotoAndPlay("openInputCancel");
+			controlsExpertMVC.gotoAndPlay("openInputCancel");
 		}
 		
-		public function closeGuessPassGreen( triggerEvent:Event = null):void{
-			controlsGreenMVC.gotoAndPlay("closeGuessPass");
-			controlsGreenMVC.queueFunction = dispatchGreenGuessRequest;
+		public function closeGuessPassExpert( triggerEvent:Event = null):void{
+			controlsExpertMVC.gotoAndPlay("closeGuessPass");
+			controlsExpertMVC.queueFunction = dispatchExpertGuessRequest;
 		}
 		
-		public function cancelInputGreen( triggerEvent:Event = null):void{
-			controlsGreenMVC.gotoAndPlay("closeInputCancel");
+		public function cancelInputExpert( triggerEvent:Event = null):void{
+			controlsExpertMVC.gotoAndPlay("closeInputCancel");
 			hideFeedback();
-			controlsGreenMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnGreen;
+			controlsExpertMVC.queueFunction = SpaceRaceBody.INSTANCE.startTurnExpert;
 		}
 		
-		public function passGreen( triggerEvent:Event = null):void{
-			controlsGreenMVC.gotoAndPlay("closeGuessPass");
-			controlsGreenMVC.queueFunction = SpaceRaceBody.INSTANCE.startDataSampling;
+		public function passExpert( triggerEvent:Event = null):void{
+			controlsExpertMVC.gotoAndPlay("closeGuessPass");
+			controlsExpertMVC.queueFunction = SpaceRaceBody.INSTANCE.startDataSampling;
 		}
 		
 		// ---------------------------------------------------------
@@ -148,7 +151,7 @@
 		
 		// checks if the currently entered guess is valid. If it is, it returns true. Otherwise, it returns false & promps the user
 		public function validateGuess( triggerEvent:Event = null):Number{
-			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
+			var activeControls:MovieClip = (activePlayerIsHuman ? controlsHumanMVC : controlsExpertMVC);
 			var textNum:Number = Number( activeControls.inputMVC.inputTxt.text)
 			if ( isNaN( textNum ) || activeControls.inputMVC.inputTxt.text.length == 0){
 				activeControls.inputMVC.inputTxt.text = "";
@@ -171,7 +174,7 @@
 			SpaceRaceBody.INSTANCE.guess = myGuess; // set the guess value.
 			SpaceRaceBody.INSTANCE.promptTxt.text = ""; // clear the text field.
 			
-			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
+			var activeControls:MovieClip = (activePlayerIsHuman ? controlsHumanMVC : controlsExpertMVC);
 			activeControls.gotoAndPlay("closeInputCancel");
 			activeControls.queueFunction = delayedMakeGuess;			
 			disableEndGameBtn();
@@ -186,8 +189,8 @@
 		
 		// this method shows the feedback & next round button that appear after playing a round
 		public function showFeedback(header:String, buttonText:String, body:String = ""):void{
-			hideGreen();
-			hideRed();
+			hideExpert();
+			hideHuman();
 			feedbackMVC.visible = true;
 			t10 = new Tween(feedbackMVC, "alpha", None.easeNone, 0, 1, 10); // fade-in in 10 frames
 			
@@ -196,8 +199,8 @@
 			
 			var tf:TextFormat = new TextFormat();	// text format makes it bold
 			tf.bold = true;
-			feedbackMVC.newRoundBtnRed.buttonTxt.defaultTextFormat = tf;
-			feedbackMVC.newRoundBtnRed.buttonTxt.text = buttonText;
+			feedbackMVC.newRoundBtnHuman.buttonTxt.defaultTextFormat = tf;
+			feedbackMVC.newRoundBtnHuman.buttonTxt.text = buttonText;
 		}
 		
 		// this method hides the feedback.
@@ -233,7 +236,7 @@
 		// start dragging the interval rectangle.
 		private function startDragFunc( triggerEvent:MouseEvent):void{
 			if( !isDraggingInterval){
-				barMVC.startDrag(true, new Rectangle( SpaceRaceBody.INSTANCE.startPoint, SpaceRaceBody.INSTANCE.numberlineY - (barMVC.width/2), (SpaceRaceBody.INSTANCE.endPoint - SpaceRaceBody.INSTANCE.startPoint) + 1, 0));
+				barMVC.startDrag(true, new Rectangle( SpaceRaceBody.INSTANCE.startPoint, SpaceRaceBody.INSTANCE.numberlineY, (SpaceRaceBody.INSTANCE.endPoint - SpaceRaceBody.INSTANCE.startPoint) + 1, 0));
 				SpaceRaceBody.INSTANCE.myStage.addEventListener(MouseEvent.MOUSE_MOVE, updateGuess);
 				SpaceRaceBody.INSTANCE.myStage.addEventListener( MouseEvent.MOUSE_UP, stopDragFunc);
 				isDraggingInterval = true;
@@ -253,7 +256,7 @@
 		
 		// this method updates the guess text to reflect the position of the draggy-interval.
 		private function updateGuess( triggerEvent:MouseEvent = null):void{
-			var activeControls:MovieClip = (activePlayerIsRed ? controlsRedMVC : controlsGreenMVC);
+			var activeControls:MovieClip = (activePlayerIsHuman ? controlsHumanMVC : controlsExpertMVC);
 			activeControls.inputMVC.inputTxt.text = String(	constrainMinMax( SpaceRaceBody.INSTANCE.stageToNumline( barMVC.x)).toFixed(1));
 		}
 		
@@ -289,14 +292,14 @@
 			hideFeedback();
 		}
 		
-		// dispatch a request for a green guess
-		private function dispatchGreenGuessRequest(triggerEvent:Event = null):void{
-			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_GREEN, true));
+		// dispatch a request for a expert guess
+		private function dispatchExpertGuessRequest(triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_EXPERT, true));
 		}
 		
-		// dispatch a request for a red guess
-		private function dispatchRedGuessRequest(triggerEvent:Event = null):void{
-			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_RED, true));
+		// dispatch a request for a human guess
+		private function dispatchHumanGuessRequest(triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_HUMAN, true));
 		}
 		
 		// dispatch a request for a new game

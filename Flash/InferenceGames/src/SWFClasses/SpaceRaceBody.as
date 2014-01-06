@@ -53,7 +53,7 @@
 			distributionScaleY = distributionMVC.scaleY;
 			
 			// add listeners:
-			reactivateTimer.addEventListener(TimerEvent.TIMER, startTurnRed);	// when data finishes sampling, the next turn is red.
+			reactivateTimer.addEventListener(TimerEvent.TIMER, startTurnHuman);	// when data finishes sampling, the next turn is red.
 			distributionMVC.addEventListener("animate", revealAnswer);	// when the distribution finishes "wiping" onscreen, it reveals the answer.;
 			
 			controlsMVC.establish(); // Establish the SpaceRaceControls.
@@ -94,22 +94,22 @@
 		
 		
 		// ---------- TURN FUNCTIONS -----------------
-		public function startTurnGreen( triggerEvent:Event = null):void{
-			controlsMVC.activePlayerIsRed = false;
-			controlsMVC.showGreen();
-			controlsMVC.hideRed();
+		public function startTurnExpert( triggerEvent:Event = null):void{
+			controlsMVC.activePlayerIsHuman = false;
+			controlsMVC.showExpert();
+			controlsMVC.hideHuman();
 			SpaceRaceTopBar.INSTANCE.setTrim("green");
-			controlsMVC.openGuessPassGreen();
+			controlsMVC.openGuessPassExpert();
 			promptTxt.text = main.expertTurnString;
 			controlsMVC.dispatchEvent( new InferenceEvent( InferenceEvent.EXPERT_START_TURN));
 		}
 		
-		public function startTurnRed( triggerEvent:Event = null):void{
-			controlsMVC.activePlayerIsRed = true;
-			controlsMVC.showRed();
-			controlsMVC.hideGreen();
+		public function startTurnHuman( triggerEvent:Event = null):void{
+			controlsMVC.activePlayerIsHuman = true;
+			controlsMVC.showHuman();
+			controlsMVC.hideExpert();
 			SpaceRaceTopBar.INSTANCE.setTrim("red");
-			controlsMVC.openGuessPassRed();
+			controlsMVC.openGuessPassHuman();
 			promptTxt.text = main.playerTurnString;
 		}
 		
@@ -120,12 +120,12 @@
 			
 			controlsMVC.disableEndGameBtn();
 			
-			if(controlsMVC.activePlayerIsRed){
-				controlsMVC.controlsRedMVC.stop();
-				controlsMVC.hideGreen();
+			if(controlsMVC.activePlayerIsHuman){
+				controlsMVC.controlsHumanMVC.stop();
+				controlsMVC.hideExpert();
 			} else {
-				controlsMVC.controlsGreenMVC.stop();
-				controlsMVC.hideRed();
+				controlsMVC.controlsExpertMVC.stop();
+				controlsMVC.hideHuman();
 			}			
 			promptTxt.text = "Sampling data...";
 		}

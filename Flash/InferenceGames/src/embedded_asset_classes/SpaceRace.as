@@ -36,8 +36,8 @@
 
 		// scoring variables:
 		public const WINNING_SCORE:int = 6;
-		private var _greenScore:int = 0;
-		private var _redScore:int = 0;
+		private var _expertScore:int = 0;
+		private var _humanScore:int = 0;
 		
 	
 		// ----------------------
@@ -75,8 +75,8 @@
 			trace("The median is: " + median);
 			bodyMVC.moveDistributionTo(_median);
 			bodyMVC.distributionMVC.alpha = 0;
-			bodyMVC.controlsMVC.hideGreen();
-			bodyMVC.controlsMVC.hideRed();
+			bodyMVC.controlsMVC.hideExpert();
+			bodyMVC.controlsMVC.hideHuman();
 			bodyMVC.startDataSampling();
 		}
 		
@@ -89,8 +89,8 @@
 			//bodyMVC.showFeedback("Level " + levelNumber, "Start Game");
 			//bodyMVC.promptTxt.text = "";
 						
-			bodyMVC.controlsMVC.hideRed();		// Don't start with either player's controls showing.
-			bodyMVC.controlsMVC.hideGreen();
+			bodyMVC.controlsMVC.hideHuman();		// Don't start with either player's controls showing.
+			bodyMVC.controlsMVC.hideExpert();
 			
 		}
 		
@@ -98,8 +98,8 @@
 		public function endGame( triggerEvent:Event = null, newLevelUnlocked:Boolean = false):void{
 			bodyMVC.controlsMVC.disableEndGameBtn();
 			
-			bodyMVC.controlsMVC.hideRed();
-			bodyMVC.controlsMVC.hideGreen();
+			bodyMVC.controlsMVC.hideHuman();
+			bodyMVC.controlsMVC.hideExpert();
 			bodyMVC.controlsMVC.hideFeedback();
 			bodyMVC.promptTxt.text = "";
 			bodyMVC.distributionMVC.alpha = 0; // hide the distribution if it was being shown.
@@ -173,25 +173,25 @@
 		
 		
 		// ----------- GUESSING ----------------
-		public function prepareGuessRed( triggerEvent:Event = null):void{
-			bodyMVC.controlsMVC.openInputCancelRed();
+		public function prepareGuessHuman( triggerEvent:Event = null):void{
+			bodyMVC.controlsMVC.openInputCancelHuman();
 			bodyMVC.promptTxt.text = "Place your guess on the numberline, or type it in.";
 			
 			// auto-set the focus of the textbox
 			// taken from http://reality-sucks.blogspot.com/2007/11/actionscript-3-adventures-setting-focus.html
-			var targetTxt:TextField = bodyMVC.controlsMVC.controlsRedMVC.inputMVC.inputTxt;
+			var targetTxt:TextField = bodyMVC.controlsMVC.controlsHumanMVC.inputMVC.inputTxt;
 			InferenceGames.stage.focus = targetTxt;
 			targetTxt.text = " ";
 			targetTxt.setSelection( targetTxt.length, targetTxt.length);
 			targetTxt.text = "";			
 		}
 		
-		public function prepareGuessGreen( triggerEvent:Event = null):void{
-			bodyMVC.controlsMVC.openInputCancelGreen();
+		public function prepareGuessExpert( triggerEvent:Event = null):void{
+			bodyMVC.controlsMVC.openInputCancelExpert();
 			bodyMVC.promptTxt.text = "";
 			bodyMVC.controlsMVC.dispatchEvent( new InferenceEvent( InferenceEvent.EXPERT_START_TYPING));
 			
-			var targetTxt:TextField = bodyMVC.controlsMVC.controlsGreenMVC.inputMVC.inputTxt;
+			var targetTxt:TextField = bodyMVC.controlsMVC.controlsExpertMVC.inputMVC.inputTxt;
 			InferenceGames.stage.focus = targetTxt;
 			targetTxt.text = " ";
 			targetTxt.setSelection( targetTxt.length, targetTxt.length);
@@ -200,33 +200,33 @@
 		
 		// ----------- SCORING ------------------
 		
-		public function get greenScore():int{		return _greenScore;	}
-		public function get redScore():int{			return _redScore;	}
+		public function get expertScore():int{		return _expertScore;	}
+		public function get humanScore():int{			return _humanScore;	}
 		
-		public function set greenScore(arg:int):void { 	_greenScore = arg; 	}
-		public function set redScore(arg:int):void {	_redScore = arg;	}
+		public function set expertScore(arg:int):void { 	_expertScore = arg; 	}
+		public function set humanScore(arg:int):void {	_humanScore = arg;	}
 		
 		// lose a point of "life", when you guess incorrectly, or overdraw.
-		public function earnPointRed( triggerEvent:Event = null):void{
-			redScore++;
+		public function earnPointHuman( triggerEvent:Event = null):void{
+			humanScore++;
 			topBarMVC.earnPoint( true);
 		}
 		
 		
-		public function get activePlayerIsRed():Boolean{
-			return bodyMVC.controlsMVC.activePlayerIsRed;
+		public function get activePlayerIsHuman():Boolean{
+			return bodyMVC.controlsMVC.activePlayerIsHuman;
 		}
 		
 		// earn X points. This is pretty useless at the moment, because the score system shouldn't work like this.
-		public function earnPointGreen( triggerEvent:Event = null):void{
-			greenScore++;
+		public function earnPointExpert( triggerEvent:Event = null):void{
+			expertScore++;
 			topBarMVC.earnPoint( false);
 		}
 		
 		// reset the score to its starting value.
 		public function resetScore():void{
-			greenScore = 0;
-			redScore = 0;
+			expertScore = 0;
+			humanScore = 0;
 			topBarMVC.resetScore();
 		}
 		
