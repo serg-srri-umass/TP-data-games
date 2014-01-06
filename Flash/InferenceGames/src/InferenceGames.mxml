@@ -466,6 +466,9 @@
 			// function called when clicking the levels button. WIP
 			private function onClickLevelsButton(e:Event = null):void
 			{
+				for(var i:int=1; i<=6; i++) {
+					instance["lvl"+i+"Btn"].enabled = unlockedLevels >= i;
+				}
 				levelScreen.visible = !levelScreen.visible;
 			}
 			
@@ -608,6 +611,8 @@
 		<s:Button id="lvl4Btn" label="Level 4   ( Interval: {Round.kLevelSettings[3].interval}, IQR: {Round.kLevelSettings[3].iqr} )" enabled="{unlockedLevels >= 4}" click="click_lvl4Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl3Btn.y + 30}"/>
 		<s:Button id="lvl5Btn" label="Level 5   ( Interval: {Round.kLevelSettings[4].interval}, IQR: {Round.kLevelSettings[4].iqr} )" enabled="{unlockedLevels >= 5}" click="click_lvl5Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl4Btn.y + 30}"/>
 		<s:Button id="lvl6Btn" label="Level 6   ( Interval: {Round.kLevelSettings[5].interval}, IQR: {Round.kLevelSettings[5].iqr} )" enabled="{unlockedLevels >= 6}" click="click_lvl6Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl5Btn.y + 30}"/>
+		
+		<s:Button id="closeLevelsButton" x="405" y="215" width="90" height="30" label="Cancel" click="levelScreen.visible=false;" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
 	
 	<!-- Contains Intro video -->
