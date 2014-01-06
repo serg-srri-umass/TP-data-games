@@ -32,6 +32,9 @@ package
 		
 		public static const kIQR:Array = [7, 3, 1, 7, 9, 12]; // variable IQRs for levels with ?
 		
+		public static const luckyPercent:int = 30; // if you guess right at this percent or less, you got lucky
+		public static const unluckyPercent:int = 70; // if you guess wrong at this percent or more, you got unlucky 
+		
 		// ----------------------
 		// --- PUBLIC SECTION ---
 		// ----------------------
@@ -194,6 +197,16 @@ package
 		public function getResultsString():String {
 			//calculateWinLose();
 			return("the lastBuzzer variable is not set to the player, or the bot");
+		}
+		
+		// returns true if the current guess was lucky.
+		public function wasLucky():Boolean{
+			return _accuracy < luckyPercent;
+		}
+		
+		// returns true if the current guess was unlucky.
+		public function wasUnlucky():Boolean{
+			return _accuracy > unluckyPercent;
 		}
 		
 		// -----------------------

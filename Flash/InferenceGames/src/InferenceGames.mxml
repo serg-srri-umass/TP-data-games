@@ -95,18 +95,24 @@
 				//listen for events from Space Race Module 
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_ROUND, newRoundHandler);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_SAMPLE, requestSampleHandler);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_GAME, newGameHandler);
 				sSpaceRace.addEventListener(InferenceEvent.CORRECT_GUESS, handleCorrectGuess);
 				sSpaceRace.addEventListener(InferenceEvent.INCORRECT_GUESS, handleIncorrectGuess);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_GREEN, sSpaceRace.prepareGuessGreen);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_RED, sSpaceRace.prepareGuessRed);
-				
-				newGame();
 			}
 			
 			private function handleCorrectGuess( triggerEvent:Event = null):void{
-				if(sSpaceRace.activePlayerIsRed){
+				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "";
+				if(sSpaceRace.activePlayerIsRed){ //you
+					feedbackHeaderText = "You guessed correctly!";
+					if( Round.currentRound.wasLucky())
+						feedbackBodyText = "You got lucky.";
 					sSpaceRace.earnPointRed();
-				} else {
+				} else { // expert
+					feedbackHeaderText = "The expert guessed correctly!";
+					if( Round.currentRound.wasLucky())
+						feedbackBodyText = "The expert got lucky.";
 					sSpaceRace.earnPointGreen();
 				}
 				var nextRoundText:String = "Next Round";
@@ -124,24 +130,40 @@
 			
 			
 			private function handleIncorrectGuess( triggerEvent:Event = null):void{
+				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "";
 				if(sSpaceRace.activePlayerIsRed){
+					feedbackHeaderText = "You missed!";
+					if( Round.currentRound.wasUnlucky())
+						feedbackBodyText = "You were unlucky. Keep trying!";
 					sSpaceRace.earnPointGreen();
 					sSpaceRace.earnPointGreen();
 				} else {
+					feedbackHeaderText = "The expert missed!";
+					if( Round.currentRound.wasUnlucky())
+						feedbackBodyText = "The expert was unlucky.";
 					sSpaceRace.earnPointRed();
 					sSpaceRace.earnPointRed();
 				}
-				var nextRoundText:String = "Next Round";
+				
 				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE)
-					nextRoundText = "Okay";
-				sSpaceRace.bodyMVC.showFeedback("Sorry Mate", nextRoundText, "testing.");
+					nextRoundText = "Okay"; // the game is over.
+				else
+					nextRoundText = "Next Round";
+				
+				sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, nextRoundText, feedbackBodyText);	// bring up the feedback screen
 			}
 			
 			
 			//handles requestNewRound events from SpaceRace interface
-			private function newRoundHandler(e:Event):void{
+			private function newRoundHandler( triggerEvent:Event = null):void{
 				endRound(); // CDM: not endGame() where does endGame() go?
 				newRound();
+			}
+			
+			// handles the creation of a new game, by hiding the main menu first.
+			private function newGameHandler( triggerEvent:Event = null):void{
+				sSpaceRace.bodyMVC.controlsMVC.hideMainMenu();
+				newGame();
 			}
 			
 			//handles requestSample events from SpaceRace interface
@@ -156,8 +178,6 @@
 				
 				sSpaceRace = new SpaceRace( staticStage, onClickLevelsButton, toggleAboutScreen, showVideo);
 				gameContainer.addChild(sSpaceRace);
-				sSpaceRace.playerNameGreen = "The Expert";
-				sSpaceRace.playerNameRed = "Cliff";
 				
 				sDebugConsole = new DebugConsoleSWC();
 				gameContainer.addChild(sDebugConsole);
@@ -441,7 +461,7 @@
 			}
 			
 			// Start a new game.  Each game has multiple rounds
-			public function newGame():void {
+			public function newGame( triggerEvent:Event = null):void {
 				++mGameSerialNum;
 				isInGame = true;
 								
@@ -450,12 +470,12 @@
 				// set up the new game interface which calls this.newRoundHandler() which calls this.NewRound()
 				// TO-DO: modify this so newRound() can be called directly to de-tangle the calling logic.
 				// and probably the update of possibleIQRs and Intervals should happen every round instead?  (CDM 2012-12-26)				
-				var possibleIQRs:Array = [9,7,3,1], 
+				var possibleIQRs:Array = [12,9,7,3,1], 
 					startingIQR:Number = 7, 
 					possibleIntervals:Array = [4,3,2,1], 
 					startingInterval:Number = 1;
 				sSpaceRace.newGame( possibleIQRs, startingIQR, possibleIntervals, startingInterval, mGameLevel);
-				//newRound();
+				newRoundHandler();
 			}
 			
 			// WARNING: This method was never being called.

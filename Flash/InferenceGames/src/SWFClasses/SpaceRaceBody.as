@@ -100,7 +100,7 @@
 			controlsMVC.hideRed();
 			SpaceRaceTopBar.INSTANCE.setTrim("green");
 			controlsMVC.openGuessPassGreen();
-			promptTxt.text = "It's " + main.playerNameGreen + "'s turn.";
+			promptTxt.text = main.expertTurnString;
 			controlsMVC.dispatchEvent( new InferenceEvent( InferenceEvent.EXPERT_START_TURN));
 		}
 		
@@ -110,13 +110,15 @@
 			controlsMVC.hideGreen();
 			SpaceRaceTopBar.INSTANCE.setTrim("red");
 			controlsMVC.openGuessPassRed();
-			promptTxt.text = "It's " + main.playerNameRed + "'s turn.";
+			promptTxt.text = main.playerTurnString;
 		}
 		
 		// this mode gets entered when more data has to be sampled
 		public function startDataSampling( triggerEvent:Event = null):void{
 			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_SAMPLE, true));
 			// this event will tell InferenceGames to start generating data.
+			
+			controlsMVC.disableEndGameBtn();
 			
 			if(controlsMVC.activePlayerIsRed){
 				controlsMVC.controlsRedMVC.stop();
@@ -132,11 +134,6 @@
 		
 		public function moveDistributionTo( arg:Number):void{
 			distributionMVC.x = numlineToStage( main.median);
-		}
-		
-		// sets the text that says how much sampling is going on
-		public function setSampleSizeText( arg:int):void{
-			sampleTxt.text = "Sampling " + arg + " at a time.";
 		}
 				
 		// This method performs the actual sampling.
@@ -172,20 +169,22 @@
 		}
 		
 		// ----------- IQR / INTERVAL SECTION ------------
-		public function setPossibleIQRs( iqr1:int, iqr2:int = 0, iqr3:int = 0, iqr4:int = 0):void{
+		public function setPossibleIQRs( iqr1:int = 0, iqr2:int = 0, iqr3:int = 0, iqr4:int = 0, iqr5:int = 0):void{
 			setBarLengthIQR( iqrMVC.barMVC1, iqr1);
 			setBarLengthIQR( iqrMVC.barMVC2, iqr2);
 			setBarLengthIQR( iqrMVC.barMVC3, iqr3);
 			setBarLengthIQR( iqrMVC.barMVC4, iqr4);
+			setBarLengthIQR( iqrMVC.barMVC5, iqr5);
 			setActiveIQR(iqr1);
 		}
 		
 		// set what possible intervals are allowed this game.
-		public function setPossibleIntervals( interval1:int, interval2:int = 0, interval3:int = 0, interval4:int = 0):void{
+		public function setPossibleIntervals( interval1:int = 0, interval2:int = 0, interval3:int = 0, interval4:int = 0, interval5:int = 0):void{
 			setBarLengthInterval( intervalMVC.barMVC1, interval1);
 			setBarLengthInterval( intervalMVC.barMVC2, interval2);
 			setBarLengthInterval( intervalMVC.barMVC3, interval3);
 			setBarLengthInterval( intervalMVC.barMVC4, interval4);
+			setBarLengthInterval( intervalMVC.barMVC5, interval5);
 			setActiveInterval(interval1);
 		}
 		
@@ -232,7 +231,7 @@
 		// 'value' is the bar that will be selected. Note: if 2 bars are the same length, they will both select. If no bar matches the value, non will select.
 		private function setActiveBar( container:MovieClip, value:Number):Boolean{
 			var success:Boolean = false; // whether or not the value exists. 
-			for( var i:int = 1; i <= 4; i++){
+			for( var i:int = 1; i <= 5; i++){
 				if( container["barMVC" + i].lengthVar == value){
 					container["barMVC" + i].barMVC.gotoAndStop("on");
 					container["barMVC" + i].numberTxt.alpha = 1;
@@ -256,20 +255,17 @@
 		{			
 			distributionMVC.alpha = 1;
 			distributionMVC.gotoAndStop("neutral");
-			distributionMVC.curveMVC.gotoAndStop("on");
-			var bounceTween:Tween = new Tween( distributionMVC, "scaleY", Elastic.easeOut, 0, distributionScaleY, 20);
-			revealAnswer();
+			distributionMVC.curveMVC.gotoAndPlay("enterLeft");
 		}
 
 		// turns the distribution yellow (win) or white (lose), based on the guess.
 		private function revealAnswer( triggerEvent:Event = null):void
 		{
 			if ( Math.abs( main.guess - main.median) <= main.interval){
-				distributionMVC.gotoAndStop("won");
-				dispatchEvent( new InferenceEvent( InferenceEvent.CORRECT_GUESS, true));
+				distributionMVC.gotoAndPlay("win");
 			} else {
-				distributionMVC.gotoAndPlay("lost");
-				dispatchEvent( new InferenceEvent( InferenceEvent.INCORRECT_GUESS, true));
+				distributionMVC.gotoAndPlay("lose");
+				// IMPORTANT: the distributionMVC dispatches the "GUESS_CORRECT" or Incorrect events when it's done animating.
 			}
 		}
 		

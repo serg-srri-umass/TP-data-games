@@ -10,17 +10,18 @@ package embedded_asset_classes
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	
-	public class DebugConsoleSWC extends debugConsoleSWC implements ShowHideAPI
+	public class DebugConsoleSWC extends debugConsoleSWC
 	{
 		
 		// ----------------
 		// --- COMMANDS ---
 		// ----------------
 		
-		internal var c4:Command  = new Command( "U", "Unlock all levels", false, unlockAllLevels);
-		internal var c5:Command = new Command( "M", "Show Population Median", false, showPopMedian);
-		internal var c6:Command = new Command("1", "Earn Point (User)", false, earnPointPlayer);
-		internal var c7:Command = new Command("2", "Earn Point (Bot)", false, earnPointBot);
+		internal var c1:Command  = new Command( "U", "Unlock all levels", false, unlockAllLevels);
+		internal var c2:Command = new Command( "M", "Show Population Median", false, showPopMedian);
+		internal var c3:Command = new Command("1", "Earn Point (User)", false, earnPointPlayer);
+		internal var c4:Command = new Command("2", "Earn Point (Bot)", false, earnPointBot);
+		internal var c5:Command = new Command("A", "Reveal guess accuracy", false, revealGuessAccuracy);
 		
 		internal var LAST_COMMAND:Command  = new Command("Q", "Quit Console", false, hide);
 		
@@ -34,6 +35,13 @@ package embedded_asset_classes
 		
 		private function earnPointBot():void{
 			InferenceGames.instance.sSpaceRace.earnPointGreen();
+		}
+		
+		private function revealGuessAccuracy():void{
+			if(Round.currentRound)
+				trace("LAST GUESS ACCURACY: ", Round.currentRound.accuracy);
+			else
+				trace("MUST BE IN ROUND.");
 		}
 		
 		private function unlockAllLevels():void{

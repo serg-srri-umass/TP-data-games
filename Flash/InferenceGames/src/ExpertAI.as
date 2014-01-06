@@ -97,7 +97,7 @@ package
 			return expertDidGuess;
 		}
 		
-		// ------------ ANIMATION METHODS -------------------------
+		// ------------ GUESS INPUTTING METHODS -------------------------
 		
 		private var sGameControls:SpaceRaceControls; // the game controls the expert is interacting with.
 		private static const FULL_BOT_TYPE_DELAY:int = 1000; // how many miliseconds elapse before the bot starts typing its answer.
@@ -126,10 +126,10 @@ package
 			thinkingTimer.start();
 		}
 		
-		// how long does the Expert have to think about this choice?
-		// this logic should eventually be semi-complex. Ie, lower levels = more thinking time, because the player is new.
-		// higher levels = less thinking time, because the player knows how it works.
-		// also, if the % is close to guessing, the expert might take a longer time, to simulate mulling it over.
+		// How long the Expert has to think about this choice for.
+		// To-Do: lower levels = more thinking time, because the player is new.
+		// To-Do: higher levels = less thinking time, because the player knows how it works.
+		// Maybe: if the % is close to guessing, the expert might take a longer time, to simulate mulling it over.
 		private function getThinkingTime():int{
 			return 1000;	// to do: make this dynamic.
 		}
