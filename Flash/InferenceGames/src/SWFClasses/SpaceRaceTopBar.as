@@ -16,8 +16,8 @@
 		
 		private const WINNING_SCORE:int = 6;
 		
-		private var redScore:int = 1; 
-		private var greenScore:int = 1;
+		private var humanScore:int = 1; 
+		private var expertScore:int = 1;
 		
 		private var _stage:Stage; // a reference to the MXML's stage
 		private var _muted:Boolean = false;
@@ -31,8 +31,8 @@
 		public function SpaceRaceTopBar() {
 			INSTANCE = this;
 			
-			scoreMVC.redScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
-			scoreMVC.greenScoreMVC.bulbMVC1.gotoAndPlay("turnOn");			
+			scoreMVC.humanScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
+			scoreMVC.expertScoreMVC.bulbMVC1.gotoAndPlay("turnOn");			
 			
 			soundBtn.setClickFunctions( mute, unmute);
 			
@@ -64,26 +64,26 @@
 		}
 		
 		
-		// earns a point. If redPlayer is true, p1 earns the point. Otherwise, p2 ear
-		public function earnPoint( redPlayer:Boolean = true):void{
-			if( redPlayer)
-				earnRedPoint();
+		// earns a point. If humanPlayer is true, p1 earns the point. Otherwise, p2 ear
+		public function earnPoint( humanPlayer:Boolean = true):void{
+			if( humanPlayer)
+				earnHumanPoint();
 			else
-				earnGreenPoint();
+				earnExpertPoint();
 		}
 		
 		public function resetScore( triggerEvent:Event = null):void{
 			for( var i:int = 1; i <= WINNING_SCORE; i++){
-				if( redScore >= i)
-					scoreMVC.redScoreMVC["bulbMVC" + i].gotoAndPlay("turnOff"); // turn off the active bulbs
-				if ( greenScore >= i)
-					scoreMVC.greenScoreMVC["bulbMVC" + i].gotoAndPlay("turnOff"); // turn off the active bulbs
+				if( humanScore >= i)
+					scoreMVC.humanScoreMVC["bulbMVC" + i].gotoAndPlay("turnOff"); // turn off the active bulbs
+				if ( expertScore >= i)
+					scoreMVC.expertScoreMVC["bulbMVC" + i].gotoAndPlay("turnOff"); // turn off the active bulbs
 			}
 			
 			// reset the starting positions
-			greenScore = redScore = 1;
-			scoreMVC.redScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
-			scoreMVC.greenScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
+			expertScore = humanScore = 1;
+			scoreMVC.humanScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
+			scoreMVC.expertScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
 			
 			// make the bulb white and fade it out
 			scoreMVC.centerBulbMVC.gotoAndStop("white");
@@ -134,23 +134,23 @@
 		
 		
 		// --------- PRIVATE METHODS ---------
-		private function earnRedPoint( triggerEvent:Event = null):void{
-			if( redScore == WINNING_SCORE){	// when the score equals the # of bulbs a player has
+		private function earnHumanPoint( triggerEvent:Event = null):void{
+			if( humanScore == WINNING_SCORE){	// when the score equals the # of bulbs a player has
 				scoreMVC.centerBulbMVC.gotoAndStop("red");
 				scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOn");	// light up the center one
 			}else{
-				redScore++;
-				scoreMVC.redScoreMVC["bulbMVC" + redScore].gotoAndPlay("turnOn"); // otherwise, turn on the next bulb in sequence
+				humanScore++;
+				scoreMVC.humanScoreMVC["bulbMVC" + humanScore].gotoAndPlay("turnOn"); // otherwise, turn on the next bulb in sequence
 			}
 		}
 		
-		private function earnGreenPoint( triggerEvent:Event = null):void{
-			if( greenScore == WINNING_SCORE){	// when the score equals the # of bulbs a player has
+		private function earnExpertPoint( triggerEvent:Event = null):void{
+			if( expertScore == WINNING_SCORE){	// when the score equals the # of bulbs a player has
 				scoreMVC.centerBulbMVC.gotoAndStop("green");
 				scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOn");	// light up the center one
 			}else{
-				greenScore++;
-				scoreMVC.greenScoreMVC["bulbMVC" + greenScore].gotoAndPlay("turnOn"); // otherwise, turn on the next bulb in sequence
+				expertScore++;
+				scoreMVC.expertScoreMVC["bulbMVC" + expertScore].gotoAndPlay("turnOn"); // otherwise, turn on the next bulb in sequence
 			}
 		}
 		

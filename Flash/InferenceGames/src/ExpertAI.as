@@ -150,16 +150,16 @@ package
 		
 		// the expert has decided to pass:
 		private function doPass( triggerEvent:Event = null):void{
-			sGameControls.controlsGreenMVC.passMVC.play();
+			sGameControls.controlsExpertMVC.passMVC.play();
 			var passTimer:Timer = new Timer(350, 1);	// how long it holds on 'pause', before the action actually happens
-			passTimer.addEventListener( TimerEvent.TIMER, sGameControls.passGreen);
+			passTimer.addEventListener( TimerEvent.TIMER, sGameControls.passExpert);
 			passTimer.start();
 		}
 		
 		private function doGuess( triggerEvent:Event = null):void{
-			sGameControls.controlsGreenMVC.guessMVC.play();
+			sGameControls.controlsExpertMVC.guessMVC.play();
 			var openGuessTimer:Timer = new Timer(350, 1);	// how long it holds on 'pause', before the action actually happens
-			openGuessTimer.addEventListener( TimerEvent.TIMER, sGameControls.closeGuessPassGreen);
+			openGuessTimer.addEventListener( TimerEvent.TIMER, sGameControls.closeGuessPassExpert);
 			openGuessTimer.start();
 		}
 		
@@ -181,13 +181,13 @@ package
 			
 			if( _botEntryTimer.currentCount > sampleMedianString.length){ // the last character has been added. Hit the okay button.
 				_botEntryTimer.stop();
-				sGameControls.controlsGreenMVC.inputMVC.okMVC.play();
+				sGameControls.controlsExpertMVC.inputMVC.okMVC.play();
 				var enterGuessTimer:Timer = new Timer(350, 1);	// how long it holds on 'pause', before the action actually happens
 				enterGuessTimer.addEventListener( TimerEvent.TIMER, enterBotType);
 				enterGuessTimer.start();
 			} else {
 				var outChar:String = sampleMedianString.charAt( _botEntryTimer.currentCount - 1);
-				sGameControls.controlsGreenMVC.inputMVC.inputTxt.text += outChar; // add another character to the string
+				sGameControls.controlsExpertMVC.inputMVC.inputTxt.text += outChar; // add another character to the string
 				_botEntryTimer.delay = _botEntryTimer.delay / 2; // half the time it will take to enter the next character. Simulates the accelarating way we type.
 			}
 		}

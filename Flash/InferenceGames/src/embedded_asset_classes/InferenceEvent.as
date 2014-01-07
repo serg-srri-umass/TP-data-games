@@ -8,8 +8,8 @@
 		public static const REQUEST_NEW_GAME:String = "req_new_game";
 		public static const REQUEST_CHANGE_LEVEL:String = "req_cl";
 		
-		public static const REQUEST_GUESS_MODE_RED:String = "egm";
-		public static const REQUEST_GUESS_MODE_GREEN:String = "egmg";
+		public static const REQUEST_GUESS_MODE_HUMAN:String = "egm";
+		public static const REQUEST_GUESS_MODE_EXPERT:String = "egmg";
 		
 		public static const SAMPLE:String = "sample";
 		public static const CORRECT_GUESS:String = "cguess";

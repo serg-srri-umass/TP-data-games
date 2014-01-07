@@ -22,6 +22,7 @@ package embedded_asset_classes
 		internal var c3:Command = new Command("1", "Earn Point (User)", false, earnPointPlayer);
 		internal var c4:Command = new Command("2", "Earn Point (Bot)", false, earnPointBot);
 		internal var c5:Command = new Command("A", "Reveal guess accuracy", false, revealGuessAccuracy);
+		internal var c6:Command = new Command("S", "Soviet Science Mode", true, enterRussianMode); 
 		
 		internal var LAST_COMMAND:Command  = new Command("Q", "Quit Console", false, hide);
 		
@@ -30,18 +31,18 @@ package embedded_asset_classes
 		// -------------------------
 		
 		private function earnPointPlayer():void{
-			InferenceGames.instance.sSpaceRace.earnPointRed();
+			InferenceGames.instance.sSpaceRace.earnPointHuman();
 		}
 		
 		private function earnPointBot():void{
-			InferenceGames.instance.sSpaceRace.earnPointGreen();
+			InferenceGames.instance.sSpaceRace.earnPointExpert();
 		}
 		
 		private function revealGuessAccuracy():void{
 			if(Round.currentRound)
-				trace("LAST GUESS ACCURACY: ", Round.currentRound.accuracy);
+				println("LAST GUESS ACCURACY: "+ Round.currentRound.accuracy);
 			else
-				trace("MUST BE IN ROUND.");
+				println("MUST BE IN ROUND.");
 		}
 		
 		private function unlockAllLevels():void{
@@ -53,6 +54,10 @@ package embedded_asset_classes
 			println("Population Median: " + Round.currentRound.populationMedian);
 		}
 		
+		private function enterRussianMode( on:Boolean):void{
+			SpaceRaceControls.INSTANCE.controlsExpertMVC.checkov.visible = on;
+			SpaceRaceControls.INSTANCE.controlsHumanMVC.checkov.visible = on;
+		}
 		
 		
 		// ----------------------
