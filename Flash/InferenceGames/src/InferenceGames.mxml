@@ -104,7 +104,7 @@
 			}
 			
 			private function handleCorrectGuess( triggerEvent:Event = null):void{
-				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "";
+				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "Next Round";
 				if(sSpaceRace.activePlayerIsRed){ //you
 					feedbackHeaderText = "You guessed correctly!";
 					if( Round.currentRound.wasLucky())
@@ -116,7 +116,6 @@
 						feedbackBodyText = "The expert got lucky.";
 					sSpaceRace.earnPointGreen();
 				}
-				var nextRoundText:String = "Next Round";
 				if( sSpaceRace.greenScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE){
 					nextRoundText = "Okay";
 					if(sSpaceRace.redScore >= sSpaceRace.WINNING_SCORE){
