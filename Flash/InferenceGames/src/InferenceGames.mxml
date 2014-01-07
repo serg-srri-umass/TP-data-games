@@ -116,11 +116,13 @@
 				var feedbackHeaderText:String = "", feedbackBodyText:String = "";
 				if(sSpaceRace.activePlayerIsHuman){ //you
 					feedbackHeaderText = "You guessed correctly!";
+					Round.currentRound.resultString = "You Won";
 					if( Round.currentRound.wasLucky())
 						feedbackBodyText = "You got lucky.";
 					sSpaceRace.earnPointHuman();
 				} else { // expert
 					feedbackHeaderText = "The expert guessed correctly!";
+					Round.currentRound.resultString = "Expert won";
 					if( Round.currentRound.wasLucky())
 						feedbackBodyText = "The expert got lucky.";
 					sSpaceRace.earnPointExpert();
@@ -129,13 +131,9 @@
 				// unlocking levels:
 				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
 					if(sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
-						Round.currentRound.resultString = "You Won";
 						if(unlockedLevels <= Round.currentRound.level){
 							unlockedLevels = Round.currentRound.level + 1;
 						}
-					}
-					else {
-						Round.currentRound.resultString = "Expert won";
 					}
 				}
 				
@@ -152,25 +150,18 @@
 				var feedbackHeaderText:String = "", feedbackBodyText:String = "";
 				if(sSpaceRace.activePlayerIsHuman){
 					feedbackHeaderText = "You missed!";
+					Round.currentRound.resultString = "You lost";
 					if( Round.currentRound.wasUnlucky())
 						feedbackBodyText = "You were unlucky. Keep trying!";
 					sSpaceRace.earnPointExpert();
 					sSpaceRace.earnPointExpert();
 				} else {
 					feedbackHeaderText = "The expert missed!";
+					Round.currentRound.resultString = "Expert lost";
 					if( Round.currentRound.wasUnlucky())
 						feedbackBodyText = "The expert was unlucky.";
 					sSpaceRace.earnPointHuman();
 					sSpaceRace.earnPointHuman();
-				}
-				
-				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
-					if(sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
-						Round.currentRound.resultString = "Expert lost";
-					}
-					else {
-						Round.currentRound.resultString = "You lost";
-					}
 				}
 				
 				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
