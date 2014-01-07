@@ -108,6 +108,10 @@
 			
 			bodyMVC.controlsMVC.showMainMenu();
 			bodyMVC.controlsMVC.mainMenuMVC.newLevelsTxt.text = (newLevelUnlocked ? "New level unlocked!" : "");
+			
+			//hide the interval and IQR bars when ending game
+			bodyMVC.setPossibleIQRs();
+			bodyMVC.setPossibleIntervals();
 		}
 		
 		// ----------- GETTERS & SETTERS -------------
