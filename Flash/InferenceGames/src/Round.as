@@ -74,6 +74,8 @@ package
 				case 1:
 					_interval 	= kLevelSettings[ whichLevel-1 ].interval;
 					_IQR 		= kLevelSettings[ whichLevel-1 ].iqr;
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIntervals(kLevelSettings[0].interval); //only show 1 interval
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIQRs(kLevelSettings[0].iqr); //only show 1 IQR
 					InferenceGames.instance.sSpaceRace.setInterval(_interval);
 					InferenceGames.instance.sSpaceRace.setIQR(_IQR);
 					break;
@@ -81,6 +83,7 @@ package
 					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
 					_IQR = kLevelSettings[ whichLevel-1 ].iqr;
 					_interval = kIntervalWidth[_intervalIndex];
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIQRs(kLevelSettings[1].iqr); //only show 1 IQR
 					InferenceGames.instance.sSpaceRace.setInterval(_interval);
 					InferenceGames.instance.sSpaceRace.setIQR(_IQR);
 					break;
@@ -88,6 +91,7 @@ package
 					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
 					_interval = kLevelSettings[ whichLevel-1 ].interval;
 					_IQR	  = kIQR[_IQRIndex];
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIntervals(kLevelSettings[2].interval); //only show 1 interval
 					InferenceGames.instance.sSpaceRace.setInterval(_interval);
 					InferenceGames.instance.sSpaceRace.setIQR(_IQR);
 					break;
