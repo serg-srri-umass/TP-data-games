@@ -136,7 +136,7 @@
 		// --------- PRIVATE METHODS ---------
 		private function earnHumanPoint( triggerEvent:Event = null):void{
 			if( humanScore == WINNING_SCORE){	// when the score equals the # of bulbs a player has
-				scoreMVC.centerBulbMVC.gotoAndStop("red");
+				scoreMVC.centerBulbMVC.gotoAndStop("green");
 				scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOn");	// light up the center one
 			}else{
 				humanScore++;
@@ -146,7 +146,7 @@
 		
 		private function earnExpertPoint( triggerEvent:Event = null):void{
 			if( expertScore == WINNING_SCORE){	// when the score equals the # of bulbs a player has
-				scoreMVC.centerBulbMVC.gotoAndStop("green");
+				scoreMVC.centerBulbMVC.gotoAndStop("red");
 				scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOn");	// light up the center one
 			}else{
 				expertScore++;
