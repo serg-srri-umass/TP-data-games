@@ -56,7 +56,7 @@ package embedded_asset_classes
 		
 		private function enterRussianMode( on:Boolean):void{
 			SpaceRaceControls.INSTANCE.controlsExpertMVC.checkov.visible = on;
-			SpaceRaceControls.INSTANCE.controlsHumanMVC.checkov.visible = on;
+			SpaceRaceControls.INSTANCE.controlsExpertMVC.checkov2.visible = on;
 		}
 		
 		
