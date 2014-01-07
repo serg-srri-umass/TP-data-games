@@ -238,7 +238,7 @@
 					success = true;
 				} else {
 					container["barMVC" + i].barMVC.gotoAndStop("off");
-					container["barMVC" + i].numberTxt.alpha = 0.2;
+					container["barMVC" + i].numberTxt.alpha = 0.5;
 				}
 			}
 			return success;
