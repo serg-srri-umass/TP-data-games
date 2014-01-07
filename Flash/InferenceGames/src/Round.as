@@ -23,11 +23,9 @@ package
 		
 		public static const kLevelSettings:ArrayCollection = new ArrayCollection([
 			{ iqr:7,	/*sd:5.2,*/	    interval:1	}, // level 1
-			{ iqr:7,	/*sd:5.2,*/		interval:1	},
 			{ iqr:7,	/*sd:5.2,*/		interval:"?"},
 			{ iqr:"?",	/*sd:10,*/		interval:1	},
-			{ iqr:"?",	/*sd:20,*/		interval:"?"},
-			{ iqr:"?",	/*sd:15,*/		interval:"?"} // level 6
+			{ iqr:"?",	/*sd:20,*/		interval:"?"} // level 4
 		]);
 		
 		public static const kIntervalWidth:Array = [3, 2, 1, 3, 4, 4]; // variable interval widths for levels with ?
@@ -73,41 +71,36 @@ package
 			
 			// setting IQR and Interval based on level
 			switch(whichLevel){
-				case 3:
+				case 1:
+					_interval 	= kLevelSettings[ whichLevel-1 ].interval;
+					_IQR 		= kLevelSettings[ whichLevel-1 ].iqr;
+					InferenceGames.instance.sSpaceRace.setInterval(_interval);
+					InferenceGames.instance.sSpaceRace.setIQR(_IQR);
+					break;
+				case 2:
 					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
 					_IQR = kLevelSettings[ whichLevel-1 ].iqr;
 					_interval = kIntervalWidth[_intervalIndex];
-					//TODO update interval display
-					//TODO update IQR display
+					InferenceGames.instance.sSpaceRace.setInterval(_interval);
+					InferenceGames.instance.sSpaceRace.setIQR(_IQR);
 					break;
-				case 4:
+				case 3:
 					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
 					_interval = kLevelSettings[ whichLevel-1 ].interval;
 					_IQR	  = kIQR[_IQRIndex];
-					//TODO update interval display
-					//TODO update IQR display
+					InferenceGames.instance.sSpaceRace.setInterval(_interval);
+					InferenceGames.instance.sSpaceRace.setIQR(_IQR);
 					break;
-				case 5: 
+				case 4: 
 					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
 					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
 					_interval = kIntervalWidth[_intervalIndex];
 					_IQR	  = kIQR[_IQRIndex];
-					//TODO update interval display
-					//TODO update IQR display
-					break;
-				case 6:
-					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
-					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
-					_interval = kIntervalWidth[_intervalIndex];
-					_IQR	  = kIQR[_IQRIndex];
-					//TODO update interval display
-					//TODO update IQR display
+					InferenceGames.instance.sSpaceRace.setInterval(_interval);
+					InferenceGames.instance.sSpaceRace.setIQR(_IQR);
 					break;
 				default:
-					_interval 	= kLevelSettings[ whichLevel-1 ].interval;
-					_IQR 		= kLevelSettings[ whichLevel-1 ].iqr;
-					//TODO update interval display
-					//TODO update IQR display
+					break;
 			}
 			
 			_median 	= (Math.round(InferenceGames.instance.randomizer.uniformNtoM( 0, 100 ) * 10)/10);

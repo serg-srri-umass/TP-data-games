@@ -97,13 +97,16 @@
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_SAMPLE, requestSampleHandler);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_GAME, newGameHandler);
 				sSpaceRace.addEventListener(InferenceEvent.CORRECT_GUESS, handleCorrectGuess);
-				sSpaceRace.addEventListener(InferenceEvent.INCORRECT_GUESS, handleIncorrectGuess);
+				sSpaceRace.addEventListener(InferenceEvent.INCORRECT_GUESS, handleIncorrectGuess);				
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_EXPERT, sSpaceRace.prepareGuessExpert);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_HUMAN, sSpaceRace.prepareGuessHuman);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_CHANGE_LEVEL, onClickLevelsButton);
+
+				
 			}
 			
 			private function handleCorrectGuess( triggerEvent:Event = null):void{
-				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "";
+				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "Next Round";
 				if(sSpaceRace.activePlayerIsHuman){ //you
 					feedbackHeaderText = "You guessed correctly!";
 					if( Round.currentRound.wasLucky())
@@ -115,7 +118,6 @@
 						feedbackBodyText = "The expert got lucky.";
 					sSpaceRace.earnPointExpert();
 				}
-				var nextRoundText:String = "Next Round";
 				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
 					nextRoundText = "Okay";
 					if(sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
@@ -467,9 +469,12 @@
 								
 				mDGInterface.sendLog( "newGame: GameNumber="+mGameSerialNum+" Level="+mGameLevel );
 				
-				var possibleIQRs:Array = [7], // proxy!
+				// set up the new game interface which calls this.newRoundHandler() which calls this.NewRound()
+				// TO-DO: modify this so newRound() can be called directly to de-tangle the calling logic.
+				// and probably the update of possibleIQRs and Intervals should happen every round instead?  (CDM 2012-12-26)				
+				var possibleIQRs:Array = [12,9,7,3,1], 
 					startingIQR:Number = 7, 
-					possibleIntervals:Array = [1], 
+					possibleIntervals:Array = [4,3,2,1], 
 					startingInterval:Number = 1;
 				sSpaceRace.newGame( possibleIQRs, startingIQR, possibleIntervals, startingInterval, mGameLevel);
 				newRoundHandler();
@@ -487,41 +492,30 @@
 				isInGame = false;
 			}
 			
-			// function called when clicking the levels button. WIP
+			// function called when clicking the levels button.
 			private function onClickLevelsButton(e:Event = null):void
 			{
 				levelScreen.visible = !levelScreen.visible;
 			}
 			
-			//WIP, we'll use a more elegant solution for the final levels screen
 			private function click_lvl1Btn(e:Event):void{
 				mGameLevel = 1;
-				newGame();
+				sSpaceRace.topBarMVC.setTitleMessage("LEVEL 1");
 				levelScreen.visible = false;
 			}
 			private function click_lvl2Btn(e:Event):void{
 				mGameLevel = 2;
-				newGame();
+				sSpaceRace.topBarMVC.setTitleMessage("LEVEL 2");
 				levelScreen.visible = false;
 			}
 			private function click_lvl3Btn(e:Event):void{
 				mGameLevel = 3;
-				newGame();
+				sSpaceRace.topBarMVC.setTitleMessage("LEVEL 3");
 				levelScreen.visible = false;
 			}
 			private function click_lvl4Btn(e:Event):void{
 				mGameLevel = 4;
-				newGame();
-				levelScreen.visible = false;
-			}
-			private function click_lvl5Btn(e:Event):void{
-				mGameLevel = 5;
-				newGame();
-				levelScreen.visible = false;
-			}
-			private function click_lvl6Btn(e:Event):void{
-				mGameLevel = 6;
-				newGame();
+				sSpaceRace.topBarMVC.setTitleMessage("LEVEL 4");
 				levelScreen.visible = false;
 			}
 			
@@ -626,12 +620,10 @@
 		</s:backgroundFill>
 		<s:Label text="Levels" width="{levelScreen.width}" y="20" fontSize="22" textAlign="center"/>
 		
-		<s:Button id="lvl1Btn" label="Level 1   ( Interval: {Round.kLevelSettings.getItemAt(0).interval}, IQR: {Round.kLevelSettings.getItemAt(0).iqr} )" enabled="{unlockedLevels >= 1}" click="click_lvl1Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="50" />
-		<s:Button id="lvl2Btn" label="Level 2   ( Interval: {Round.kLevelSettings.getItemAt(1).interval}, IQR: {Round.kLevelSettings.getItemAt(1).iqr} )" enabled="{unlockedLevels >= 2}" click="click_lvl2Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl1Btn.y + 30}"/>
-		<s:Button id="lvl3Btn" label="Level 3   ( Interval: {Round.kLevelSettings.getItemAt(2).interval}, IQR: {Round.kLevelSettings.getItemAt(2).iqr} )" enabled="{unlockedLevels >= 3}" click="click_lvl3Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl2Btn.y + 30}"/>
-		<s:Button id="lvl4Btn" label="Level 4   ( Interval: {Round.kLevelSettings.getItemAt(3).interval}, IQR: {Round.kLevelSettings.getItemAt(3).iqr} )" enabled="{unlockedLevels >= 4}" click="click_lvl4Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl3Btn.y + 30}"/>
-		<s:Button id="lvl5Btn" label="Level 5   ( Interval: {Round.kLevelSettings.getItemAt(4).interval}, IQR: {Round.kLevelSettings.getItemAt(4).iqr} )" enabled="{unlockedLevels >= 5}" click="click_lvl5Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl4Btn.y + 30}"/>
-		<s:Button id="lvl6Btn" label="Level 6   ( Interval: {Round.kLevelSettings.getItemAt(5).interval}, IQR: {Round.kLevelSettings.getItemAt(5).iqr} )" enabled="{unlockedLevels >= 6}" click="click_lvl6Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl5Btn.y + 30}"/>
+		<s:Button id="lvl1Btn" label="Level 1   ( IQR: {Round.kLevelSettings.getItemAt(0).iqr}, Interval: {Round.kLevelSettings.getItemAt(0).interval} )" enabled="{unlockedLevels >= 1}" click="click_lvl1Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="70" />
+		<s:Button id="lvl2Btn" label="Level 2   ( IQR: {Round.kLevelSettings.getItemAt(1).iqr}, Interval: {Round.kLevelSettings.getItemAt(1).interval} )" enabled="{unlockedLevels >= 2}" click="click_lvl2Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl1Btn.y + 32}"/>
+		<s:Button id="lvl3Btn" label="Level 3   ( IQR: {Round.kLevelSettings.getItemAt(2).iqr}, Interval: {Round.kLevelSettings.getItemAt(2).interval} )" enabled="{unlockedLevels >= 3}" click="click_lvl3Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl2Btn.y + 32}"/>
+		<s:Button id="lvl4Btn" label="Level 4   ( IQR: {Round.kLevelSettings.getItemAt(3).iqr}, Interval: {Round.kLevelSettings.getItemAt(3).interval} )" enabled="{unlockedLevels >= 4}" click="click_lvl4Btn(event)" width="180" x="{(levelScreen.width-180)/2}" y="{lvl3Btn.y + 32}"/>
 		
 		<s:Button id="closeLevelsButton" x="405" y="215" width="90" height="30" label="Cancel" click="levelScreen.visible=false;" fontSize="12" fontWeight="bold"/>
 	</s:BorderContainer>
