@@ -98,7 +98,7 @@
 			controlsMVC.activePlayerIsHuman = false;
 			controlsMVC.showExpert();
 			controlsMVC.hideHuman();
-			SpaceRaceTopBar.INSTANCE.setTrim("green");
+			SpaceRaceTopBar.INSTANCE.setTrim("red");
 			controlsMVC.openGuessPassExpert();
 			promptTxt.text = main.expertTurnString;
 			controlsMVC.dispatchEvent( new InferenceEvent( InferenceEvent.EXPERT_START_TURN));
@@ -108,7 +108,7 @@
 			controlsMVC.activePlayerIsHuman = true;
 			controlsMVC.showHuman();
 			controlsMVC.hideExpert();
-			SpaceRaceTopBar.INSTANCE.setTrim("red");
+			SpaceRaceTopBar.INSTANCE.setTrim("green");
 			controlsMVC.openGuessPassHuman();
 			promptTxt.text = main.playerTurnString;
 		}
