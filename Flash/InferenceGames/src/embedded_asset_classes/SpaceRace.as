@@ -56,13 +56,12 @@
 			
 			// event listener section:
 			this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
-			bodyMVC.controlsMVC.endGameBtn.addEventListener( MouseEvent.CLICK, endGame);
 			newRoundTimer.addEventListener(TimerEvent.TIMER, requestNewRound);	// when the new round timer completes, the new round starts.;
 			
 			endGame(); // TO-DO: Make this start in level 1.
 		}
 
-		// ----------- NEW ROUND / NEW GAME --------------
+		// ----------- NEW ROUND / NEW GAME / END GAME --------------
 		
 		// start a new round. Give it an IQR, interval, the distribution median, & sample size.
 		public function newRound( iqr:int, interval:int, median:Number, sampleSize:int):void
@@ -74,7 +73,7 @@
 			
 			trace("The median is: " + median);
 			bodyMVC.moveDistributionTo(_median);
-			bodyMVC.distributionMVC.alpha = 0;
+			bodyMVC.hideAnswer();
 			bodyMVC.controlsMVC.hideExpert();
 			bodyMVC.controlsMVC.hideHuman();
 			bodyMVC.startDataSampling();
@@ -95,14 +94,14 @@
 		}
 		
 		// ends the current game & shows  the main menu
-		public function endGame( triggerEvent:Event = null, newLevelUnlocked:Boolean = false):void{
-			bodyMVC.controlsMVC.disableEndGameBtn();
+		public function endGame( newLevelUnlocked:Boolean = false):void{
+			bodyMVC.controlsMVC.disableAndHideEndGameBtn();
 			
 			bodyMVC.controlsMVC.hideHuman();
 			bodyMVC.controlsMVC.hideExpert();
 			bodyMVC.controlsMVC.hideFeedback();
 			bodyMVC.promptTxt.text = "";
-			bodyMVC.distributionMVC.alpha = 0; // hide the distribution if it was being shown.
+			bodyMVC.hideAnswer();; // hide the distribution if it was being shown.
 			
 			resetScore();
 			topBarMVC.setTrim("white");
