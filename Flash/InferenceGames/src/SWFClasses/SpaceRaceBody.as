@@ -98,7 +98,7 @@
 			controlsMVC.activePlayerIsHuman = false;
 			controlsMVC.showExpert();
 			controlsMVC.hideHuman();
-			SpaceRaceTopBar.INSTANCE.setTrim("green");
+			SpaceRaceTopBar.INSTANCE.setTrim("red");
 			controlsMVC.openGuessPassExpert();
 			promptTxt.text = main.expertTurnString;
 			controlsMVC.dispatchEvent( new InferenceEvent( InferenceEvent.EXPERT_START_TURN));
@@ -108,7 +108,7 @@
 			controlsMVC.activePlayerIsHuman = true;
 			controlsMVC.showHuman();
 			controlsMVC.hideExpert();
-			SpaceRaceTopBar.INSTANCE.setTrim("red");
+			SpaceRaceTopBar.INSTANCE.setTrim("green");
 			controlsMVC.openGuessPassHuman();
 			promptTxt.text = main.playerTurnString;
 		}
@@ -238,7 +238,7 @@
 					success = true;
 				} else {
 					container["barMVC" + i].barMVC.gotoAndStop("off");
-					container["barMVC" + i].numberTxt.alpha = 0.2;
+					container["barMVC" + i].numberTxt.alpha = 0.5;
 				}
 			}
 			return success;
