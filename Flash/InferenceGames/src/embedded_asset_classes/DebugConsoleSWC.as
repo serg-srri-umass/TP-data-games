@@ -47,6 +47,7 @@ package embedded_asset_classes
 		
 		private function unlockAllLevels():void{
 			InferenceGames.instance.unlockedLevels = 6; // all levels are now unlocked.	
+			InferenceGames.instance.sSpaceRace.showMainMenu( 6);
 			println("All levels unlocked.");
 		}
 		

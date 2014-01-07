@@ -45,7 +45,7 @@
 		// ----------------------
 
 		// constructor
-		public function SpaceRace( stage:Stage, levelsFunc:Function, aboutFunc:Function, videoFunc:Function)
+		public function SpaceRace( stage:Stage, aboutFunc:Function, videoFunc:Function)
 		{
 			topBarMVC.setStage( stage);
 			topBarMVC.aboutFunction = aboutFunc;
@@ -57,8 +57,15 @@
 			// event listener section:
 			this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
 			newRoundTimer.addEventListener(TimerEvent.TIMER, requestNewRound);	// when the new round timer completes, the new round starts.;
-			
-			endGame(); // TO-DO: Make this start in level 1.
+			showMainMenu( 1);
+		}
+		
+		public function establishLevels( ...rest):void{	// this method takes in any number of Arrays. The arrays should have 4 properties:
+														// Name:String, IQR:int, Interval:int, clickFunction:Function
+			for( var i:int = 0; i < rest.length; i++){
+				var myLevel:Array = rest[i];
+				SpaceRaceControls.INSTANCE.setLevelButton(i + 1, myLevel[0], myLevel[1], myLevel[2], myLevel[3]);
+			}
 		}
 
 		// ----------- NEW ROUND / NEW GAME / END GAME --------------
@@ -106,12 +113,27 @@
 			resetScore();
 			topBarMVC.setTrim("white");
 			
-			bodyMVC.controlsMVC.showMainMenu();
-			bodyMVC.controlsMVC.mainMenuMVC.newLevelsTxt.text = (newLevelUnlocked ? "New level unlocked!" : "");
+			//bodyMVC.controlsMVC.mainMenuMVC.newLevelsTxt.text = (newLevelUnlocked ? "New level unlocked!" : "");
 			
 			//hide the interval and IQR bars when ending game
 			bodyMVC.setPossibleIQRs();
 			bodyMVC.setPossibleIntervals();
+		}
+		
+		public function showMainMenu( unlockedLevels:int):void{
+			bodyMVC.controlsMVC.showMainMenu();
+			bodyMVC.controlsMVC.hideHuman();
+			bodyMVC.controlsMVC.hideExpert();
+			bodyMVC.controlsMVC.hideFeedback();
+			
+			for( var i:int = 1; i <= 4; i++){
+				if( i <= unlockedLevels){
+					bodyMVC.controlsMVC.unlockLevelButton(i);
+				} else {
+					bodyMVC.controlsMVC.lockLevelButton(i);
+				}
+			}
+			
 		}
 		
 		// ----------- GETTERS & SETTERS -------------
