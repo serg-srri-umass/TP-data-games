@@ -160,7 +160,7 @@
 			
 			//handles requestNewRound events from SpaceRace interface
 			private function newRoundHandler( triggerEvent:Event = null):void{
-				endRound(); // CDM: not endGame() where does endGame() go?
+				endRound();
 				newRound();
 			}
 			
@@ -431,6 +431,7 @@
 
 				// create the new round
 				var thisRound:Round = new Round( mGameLevel); // accessed via Round.currentRound from here forward.
+				setGameAndRoundLabel( mGameSerialNum, Round.currentRound.roundID );
 				
 				// update DG: open and send a new game case for each round
 				mDGInterface.sendLog( "newRound:"
@@ -456,6 +457,8 @@
 				// closing the game case prevents further updating of the Round data.
 				if( Round.currentRound && mDGInterface.isGameCaseOpen())
 					mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( DGInterface.kCloseCase ), DGInterface.kCloseCase );
+				
+				setGameAndRoundLabel(); // clear the label
 			}
 
 			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' display
@@ -491,7 +494,19 @@
 				if(Round.currentRound){
 					endRound();
 				}
+				setGameAndRoundLabel(); // clear the label
 				isInGame = false;
+			}
+			
+			// display the given Game and Round numbers, or hide the old number display if passed zeros. 
+			//		setGameAndRoundLabel(1,3) => "Game 1, Round 3"
+			//		setGameAndRoundLabel() => ""
+			public function setGameAndRoundLabel( gameNumber:int=0, roundNumber:int=0 ): void {
+				if( gameNumber < 1 || roundNumber < 1 ) {
+					mGameAndRoundLabel.text = "";
+				} else {
+					mGameAndRoundLabel.text = "Game "+gameNumber+", Round "+Round.currentRound.roundID;
+				}
 			}
 			
 			// function called when clicking the levels button.
@@ -603,9 +618,12 @@
 	<!-- the UI component that holds all the game's SWC's -->
 	<mx:UIComponent id="gameContainer" x="0" y="0"/>
 	
-	<s:Label id="mVersionLabel" x="{this.width-mVersionLabel.width-19}" y="50" width="100" height="50"
-			 color="0x8fa0c1" initialize="mVersionLabel.text=kVersion" 
-			 fontFamily="_sans" fontSize="9" textAlign="right" verticalAlign="top"/>
+	<s:Label id="mVersionLabel" x="{(this.width+mVersionLabel.width)/2}" y="5" width="100" height="50"
+			 color="0x777777" initialize="mVersionLabel.text=kVersion" 
+			 fontFamily="_sans" fontSize="9" textAlign="center" verticalAlign="top"/>
+	<s:Label id="mGameAndRoundLabel" x="14" y="23" width="100" height="50"
+			 color="0x8fa0c1"
+			 fontFamily="_sans" fontSize="9" textAlign="left" verticalAlign="top"/>
 	
 	<!-- Level Selection screen (temporary) -->
 	<s:BorderContainer id="levelScreen" x="{30}" y="{30}" width="{this.width-(2*levelScreen.x)}" height="{this.height-(2*levelScreen.y)}" cornerRadius="5" styleName="sansFontClass" visible="false" depth="800">
