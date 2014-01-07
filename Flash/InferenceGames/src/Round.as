@@ -18,7 +18,6 @@ package
 		// ----------------------
 		// --- STATIC SECTION ---
 		// ----------------------
-		public static const WINNING_SCORE:int = 6; 	// how many points a player needs to win the game.
 		public static var currentRound:Round; // the round object we're currently playing.
 		
 		public static const kLevelSettings:ArrayCollection = new ArrayCollection([
@@ -61,6 +60,8 @@ package
 		private const _dataDelayTime:int = 50; //delay time between sending points to DG in ms
 		
 		private var _expertGuessed:Boolean = false; 
+		
+		public var resultString:String = "";
 	
 		// constructor
 		public function Round( whichLevel:int ) {
@@ -196,11 +197,9 @@ package
 			return mean;
 		}
 
-		// To-Do: Make this work, and/or move it into another class. (MS)
 		// get the result string showing who won or lost for this round
 		public function getResultsString():String {
-			//calculateWinLose();
-			return("the lastBuzzer variable is not set to the player, or the bot");
+			return resultString;
 		}
 		
 		// returns true if the current guess was lucky.

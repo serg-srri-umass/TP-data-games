@@ -129,9 +129,13 @@
 				// unlocking levels:
 				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
 					if(sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
+						Round.currentRound.resultString = "You Won";
 						if(unlockedLevels <= Round.currentRound.level){
 							unlockedLevels = Round.currentRound.level + 1;
 						}
+					}
+					else {
+						Round.currentRound.resultString = "Expert won";
 					}
 				}
 				
@@ -158,6 +162,15 @@
 						feedbackBodyText = "The expert was unlucky.";
 					sSpaceRace.earnPointHuman();
 					sSpaceRace.earnPointHuman();
+				}
+				
+				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
+					if(sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
+						Round.currentRound.resultString = "Expert lost";
+					}
+					else {
+						Round.currentRound.resultString = "You lost";
+					}
 				}
 				
 				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
