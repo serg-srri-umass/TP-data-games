@@ -95,11 +95,16 @@
 				//listen for events from Space Race Module 
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_ROUND, newRoundHandler);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_SAMPLE, requestSampleHandler);
+
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_NEW_GAME, newGameHandler);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_END_GAME, endGame);
+				
 				sSpaceRace.addEventListener(InferenceEvent.CORRECT_GUESS, handleCorrectGuess);
 				sSpaceRace.addEventListener(InferenceEvent.INCORRECT_GUESS, handleIncorrectGuess);				
+
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_EXPERT, sSpaceRace.prepareGuessExpert);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_HUMAN, sSpaceRace.prepareGuessHuman);
+
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_CHANGE_LEVEL, onClickLevelsButton);
 
 				//hide interval & IQR bars on startup
@@ -108,7 +113,7 @@
 			}
 			
 			private function handleCorrectGuess( triggerEvent:Event = null):void{
-				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "Next Round";
+				var feedbackHeaderText:String = "", feedbackBodyText:String = "";
 				if(sSpaceRace.activePlayerIsHuman){ //you
 					feedbackHeaderText = "You guessed correctly!";
 					if( Round.currentRound.wasLucky())
@@ -120,21 +125,27 @@
 						feedbackBodyText = "The expert got lucky.";
 					sSpaceRace.earnPointExpert();
 				}
+				
+				// unlocking levels:
 				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
-					nextRoundText = "Okay";
 					if(sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
 						if(unlockedLevels <= Round.currentRound.level){
 							unlockedLevels = Round.currentRound.level + 1;
 						}
 					}
 				}
-				sSpaceRace.bodyMVC.showFeedback("Hello, Good Job.", nextRoundText, "testing.");	// bring up the feedback screen
+				
+				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
+					sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, feedbackBodyText, false);	// bring up the feedback screen
+				}else{
+					sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, feedbackBodyText, true, "Next Round");
+				}
 
 			}
 			
 			
 			private function handleIncorrectGuess( triggerEvent:Event = null):void{
-				var feedbackHeaderText:String = "", feedbackBodyText:String = "", nextRoundText:String = "";
+				var feedbackHeaderText:String = "", feedbackBodyText:String = "";
 				if(sSpaceRace.activePlayerIsHuman){
 					feedbackHeaderText = "You missed!";
 					if( Round.currentRound.wasUnlucky())
@@ -149,12 +160,11 @@
 					sSpaceRace.earnPointHuman();
 				}
 				
-				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE)
-					nextRoundText = "Okay"; // the game is over.
-				else
-					nextRoundText = "Next Round";
-				
-				sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, nextRoundText, feedbackBodyText);	// bring up the feedback screen
+				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
+					sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, feedbackBodyText, false);	// bring up the feedback screen
+				}else{
+					sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, feedbackBodyText, true, "Next Round");
+				}
 			}
 			
 			
@@ -485,17 +495,15 @@
 				newRoundHandler();
 			}
 			
-			// WARNING: This method was never being called.
 			// called when 'end game' btn is clicked. Clears the stage, and resets the scores.
-			public function endGame():void{      
-				// Ms (1.6.13): Should the "<-" button end game, or merely bring up the level screen, and be cancel-able.
-			
+			public function endGame( triggerEvent:Event = null):void{      			
 				// end the old round if there was one
 				if(Round.currentRound){
 					endRound();
 				}
 				setGameAndRoundLabel(); // clear the label
 				isInGame = false;
+				sSpaceRace.endGame();
 			}
 			
 			// display the given Game and Round numbers, or hide the old number display if passed zeros. 

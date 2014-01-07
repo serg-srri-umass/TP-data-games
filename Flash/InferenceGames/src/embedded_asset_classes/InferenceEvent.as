@@ -5,8 +5,10 @@
 		
 		public static const REQUEST_SAMPLE:String = "req_sample";
 		public static const REQUEST_NEW_ROUND:String = "req_new_round";
+		public static const REQUEST_CHANGE_LEVEL:String = "req_change_level";
+		
 		public static const REQUEST_NEW_GAME:String = "req_new_game";
-		public static const REQUEST_CHANGE_LEVEL:String = "req_cl";
+		public static const REQUEST_END_GAME:String = "req_end_game";
 		
 		public static const REQUEST_GUESS_MODE_HUMAN:String = "egm";
 		public static const REQUEST_GUESS_MODE_EXPERT:String = "egmg";

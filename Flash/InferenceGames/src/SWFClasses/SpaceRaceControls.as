@@ -52,7 +52,9 @@
 			controlsExpertMVC.checkov2.visible = false; // Chekov doesn't belong in this game...
 			
 			updateTimer.addEventListener(TimerEvent.TIMER, moveGuessToText);
-			disableEndGameBtn();
+			
+			endGameBtn.setClickFunctions( dispatchRequestEndGame, dispatchRequestEndGame);
+			disableAndHideEndGameBtn();
 			
 			mainMenuMVC.newGameBtn.addEventListener( MouseEvent.CLICK, dispatchRequestNewGame);
 			mainMenuMVC.changeLevelBtn.addEventListener( MouseEvent.CLICK, dispatchRequestChangeLevels);
@@ -188,24 +190,34 @@
 		}
 		
 		// this method shows the feedback & next round button that appear after playing a round
-		public function showFeedback(header:String, buttonText:String, body:String = ""):void{
+		public function showFeedback(headerText:String, bodyText:String, allowNextRound:Boolean, nextRoundButtonText:String = ""):void{
 			hideExpert();
 			hideHuman();
 			feedbackMVC.visible = true;
 			t10 = new Tween(feedbackMVC, "alpha", None.easeNone, 0, 1, 10); // fade-in in 10 frames
 			
-			feedbackMVC.headerTxt.text = header;
-			feedbackMVC.bodyTxt.text = body;
+			feedbackMVC.headerTxt.text = headerText;
+			feedbackMVC.bodyTxt.text = bodyText;
 			
-			var tf:TextFormat = new TextFormat();	// text format makes it bold
-			tf.bold = true;
-			feedbackMVC.newRoundBtnHuman.buttonTxt.defaultTextFormat = tf;
-			feedbackMVC.newRoundBtnHuman.buttonTxt.text = buttonText;
+			if( allowNextRound){
+				var tf:TextFormat = new TextFormat();	// text format makes it bold
+				tf.bold = true;
+				feedbackMVC.newRoundBtnHuman.buttonTxt.defaultTextFormat = tf;
+				feedbackMVC.newRoundBtnHuman.buttonTxt.text = nextRoundButtonText;
+				feedbackMVC.newRoundBtnHuman.visible = true;
+				endGameBtn.look = 0;
+			} else {
+				feedbackMVC.newRoundBtnHuman.visible = false;
+				endGameBtn.look = 1;
+			}
+			
+			enableEndGameBtn();
 		}
 		
 		// this method hides the feedback.
 		public function hideFeedback( triggerEvent:Event = null):void{
 			t3 = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 0, 12); // fade-out in 10 frames
+			endGameBtn.look = 0; // the endgame button returns to saying "End Game". Feedback sometimes makes it say "Continue"
 			draggingControlMVC.mouseEnabled = false;
 			draggingControlMVC.buttonMode = false;
 			feedbackMVC.visible = false;
@@ -294,21 +306,25 @@
 		
 		// dispatch a request for a expert guess
 		private function dispatchExpertGuessRequest(triggerEvent:Event = null):void{
-			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_EXPERT, true));
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_EXPERT));
 		}
 		
 		// dispatch a request for a human guess
 		private function dispatchHumanGuessRequest(triggerEvent:Event = null):void{
-			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_HUMAN, true));
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_GUESS_MODE_HUMAN));
 		}
 		
 		// dispatch a request for a new game
 		private function dispatchRequestNewGame(triggerEvent:Event = null):void{
-			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_NEW_GAME, true));
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_NEW_GAME));
 		}
 		
 		private function dispatchRequestChangeLevels(triggerEvent:Event = null):void{
-			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_CHANGE_LEVEL, true));
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_CHANGE_LEVEL));
+		}
+		
+		private function dispatchRequestEndGame( triggerEvent:Event = null):void{
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_END_GAME));
 		}
 		
 		
@@ -334,6 +350,12 @@
 			endGameBtn.enabled = false;
 			endGameBtn.mouseEnabled = false;
 			t9 = new Tween(endGameBtn, "alpha", None.easeNone, endGameBtn.alpha, 0.2, 10);
+		}
+		
+		public function disableAndHideEndGameBtn( triggerEvent:Event = null):void{
+			endGameBtn.enabled = false;
+			endGameBtn.mouseEnabled = false;
+			endGameBtn.alpha = 0;
 		}
 	}	
 	

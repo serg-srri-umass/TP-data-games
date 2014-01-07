@@ -55,6 +55,8 @@
 			// add listeners:
 			reactivateTimer.addEventListener(TimerEvent.TIMER, startTurnHuman);	// when data finishes sampling, the next turn is red.
 			distributionMVC.addEventListener("animate", revealAnswer);	// when the distribution finishes "wiping" onscreen, it reveals the answer.;
+			distributionMVC.addEventListener( InferenceEvent.CORRECT_GUESS, turnIntervalYellow);
+			distributionMVC.addEventListener( InferenceEvent.INCORRECT_GUESS, turnIntervalWhite);
 			
 			controlsMVC.establish(); // Establish the SpaceRaceControls.
 		}
@@ -245,6 +247,7 @@
 		}
 		
 		
+		
 		// ---------- GUESSING FUNCTIONS --------------
 		public function set guess( arg:Number):void{
 			main.guess = arg;
@@ -268,10 +271,27 @@
 				// IMPORTANT: the distributionMVC dispatches the "GUESS_CORRECT" or Incorrect events when it's done animating.
 			}
 		}
+
+		// hides the distribution
+		public function hideAnswer( triggerEvent:Event = null):void{
+			distributionMVC.alpha = 0;
+			turnIntervalWhite();
+		}
+		
+		// turns the draggable interval yellow -glowing
+		public function turnIntervalYellow( triggerEvent:Event = null):void{
+			controlsMVC.barMVC.gotoAndStop("glow");
+		}
+		
+		// turns the draggable interval to white
+		public function turnIntervalWhite( triggerEvent:Event = null):void{
+			controlsMVC.barMVC.gotoAndStop("off");
+		}
+		
 		
 		// this method is a pass-thru. It takes the feedback info, and passes it to the controls where its displayed.
-		public function showFeedback( header:String, buttonText:String, body:String = ""):void{
-			controlsMVC.showFeedback( header,  buttonText, body);
+		public function showFeedback(headerText:String, bodyText:String, allowNextRound:Boolean, nextRoundButtonText:String = ""):void{
+			controlsMVC.showFeedback( headerText,  bodyText, allowNextRound, nextRoundButtonText);
 		}
 	}
 }
