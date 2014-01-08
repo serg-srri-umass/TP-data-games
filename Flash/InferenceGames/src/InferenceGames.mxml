@@ -112,6 +112,7 @@
 				sSpaceRace.bodyMVC.setPossibleIntervals();
 			}
 			
+			// called after Human or Expert guess is made, to end the round, see also handleIncorrectGuess()
 			private function handleCorrectGuess( triggerEvent:Event = null):void{
 				var feedbackHeaderText:String = "", feedbackBodyText:String = "";
 				if(sSpaceRace.activePlayerIsHuman){ //you
@@ -146,10 +147,11 @@
 				}else{
 					sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, feedbackBodyText, true, "Next Round");
 				}
-
+				
+				endRound();
 			}
 			
-			
+			// called after Human or Expert guess is made, to end the round, see also handleCorrectGuess()		
 			private function handleIncorrectGuess( triggerEvent:Event = null):void{
 				var feedbackHeaderText:String = "", feedbackBodyText:String = "";
 				if(sSpaceRace.activePlayerIsHuman){
@@ -182,12 +184,17 @@
 				}else{
 					sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, feedbackBodyText, true, "Next Round");
 				}
+				
+				endRound();
 			}
 			
 			
 			//handles requestNewRound events from SpaceRace interface
 			private function newRoundHandler( triggerEvent:Event = null):void{
-				endRound();
+				// end the old round if there was one
+				if(Round.currentRound){
+					endRound();
+				}
 				newRound();
 			}
 			
@@ -482,8 +489,6 @@
 				// closing the game case prevents further updating of the Round data.
 				if( Round.currentRound && mDGInterface.isGameCaseOpen())
 					mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( DGInterface.kCloseCase ), DGInterface.kCloseCase );
-				
-				setGameAndRoundLabel(); // clear the label
 			}
 
 			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' display
