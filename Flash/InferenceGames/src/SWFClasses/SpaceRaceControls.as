@@ -56,8 +56,8 @@
 			endGameBtn.setClickFunctions( dispatchRequestEndGame, dispatchRequestEndGame);
 			disableAndHideEndGameBtn();
 			
-			mainMenuMVC.newGameBtn.addEventListener( MouseEvent.CLICK, dispatchRequestNewGame);
-			mainMenuMVC.changeLevelBtn.addEventListener( MouseEvent.CLICK, dispatchRequestChangeLevels);
+			//mainMenuMVC.newGameBtn.addEventListener( MouseEvent.CLICK, dispatchRequestNewGame);
+			//mainMenuMVC.changeLevelBtn.addEventListener( MouseEvent.CLICK, dispatchRequestChangeLevels);
 			mainMenuMVC.visible = false;
 		}		
 		
@@ -333,11 +333,13 @@
 		// this method shows the feedback & next round button that appear after playing a round
 		public function showMainMenu():void{
 			mainMenuMVC.visible = true;
+			SpaceRaceBody.INSTANCE.hideNumberline();
 			t7 = new Tween(mainMenuMVC, "alpha", None.easeNone, 0, 1, 10);
 		}
 		
 		public function hideMainMenu():void{
 			mainMenuMVC.visible = false;
+			SpaceRaceBody.INSTANCE.showNumberline();
 		}
 		
 		public function enableEndGameBtn( triggerEvent:Event = null):void{
@@ -356,6 +358,37 @@
 			endGameBtn.enabled = false;
 			endGameBtn.mouseEnabled = false;
 			endGameBtn.alpha = 0;
+		}
+		
+		
+		
+		private var level1Func:Function, level2Func:Function, level3Func:Function, level4Func:Function;
+		public function setLevelButton( number:int, name:String, iqr:String, interval:String, clickFunction:Function){
+			var myBtn:MovieClip = mainMenuMVC["level" + number + "Btn"];
+			trace(clickFunction);
+			myBtn.addEventListener( MouseEvent.CLICK, clickFunction);
+			myBtn.nameTxt.text = name;
+			myBtn.iqrIntervalTxt.text = "(IQR: " + iqr + ", Interval: " + interval + ")";
+		}
+		
+		public function lockLevelButton( arg:int):void{
+			if( arg < 0 || arg > 4)
+				throw new Error("Only 4 levels exist.");
+			var myBtn:MovieClip = mainMenuMVC["level" + arg + "Btn"];
+			myBtn.enabled = false;
+			myBtn.buttonMode = false;
+			myBtn.mouseEnabled = false;
+			myBtn.alpha = 0.1;
+		}
+		
+		public function unlockLevelButton( arg:int):void{
+			if( arg < 0 || arg > 4)
+				throw new Error("Only 4 levels exist.");
+			var myBtn:MovieClip = mainMenuMVC["level" + arg + "Btn"];
+			myBtn.enabled = true;
+			myBtn.buttonMode = true;
+			myBtn.mouseEnabled = true;
+			myBtn.alpha = 1;
 		}
 	}	
 	

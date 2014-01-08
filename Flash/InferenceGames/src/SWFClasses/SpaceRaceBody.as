@@ -4,7 +4,7 @@
 	import flash.display.Stage;
 	import flash.utils.Timer;
 	import fl.transitions.Tween;
-	import fl.transitions.easing.Elastic;
+	import fl.transitions.easing.*;
 	import embedded_asset_classes.InferenceEvent;
 
 	import common.ParkMiller;
@@ -39,7 +39,7 @@
 		
 		//timers
 		private var reactivateTimer:Timer = new Timer(900, 1); // half second delay between when the data finishes streaming and the buttons turn back on
-		
+		private var t1:Tween;
 		
 		// ---------- CONSTRUCTOR ---------------
 		public function SpaceRaceBody(){
@@ -178,6 +178,9 @@
 			setBarLengthIQR( iqrMVC.barMVC4, iqr4);
 			setBarLengthIQR( iqrMVC.barMVC5, iqr5);
 			setActiveIQR(iqr1);
+			
+			// if no values are provided, hide the word "IQR"
+			iqrMVC.textMVC.visible = (iqr1 > 0);
 		}
 		
 		// set what possible intervals are allowed this game.
@@ -188,6 +191,9 @@
 			setBarLengthInterval( intervalMVC.barMVC4, interval4);
 			setBarLengthInterval( intervalMVC.barMVC5, interval5);
 			setActiveInterval(interval1);
+			
+			// if no values are provided, hide the word "Interval"
+			intervalMVC.textMVC.visible = (interval1 > 0);
 		}
 		
 		// of the predefined possible IQRs, selects the one who matches the given value
@@ -292,6 +298,14 @@
 		// this method is a pass-thru. It takes the feedback info, and passes it to the controls where its displayed.
 		public function showFeedback(headerText:String, bodyText:String, allowNextRound:Boolean, nextRoundButtonText:String = ""):void{
 			controlsMVC.showFeedback( headerText,  bodyText, allowNextRound, nextRoundButtonText);
+		}
+		
+		public function hideNumberline():void{
+			t1 = new Tween( numberlineMVC, "alpha", None.easeNone, numberlineMVC.alpha, 0, 12);
+		}
+		
+		public function showNumberline():void{
+			t1 = new Tween( numberlineMVC, "alpha", None.easeNone, numberlineMVC.alpha, 1, 12);
 		}
 	}
 }
