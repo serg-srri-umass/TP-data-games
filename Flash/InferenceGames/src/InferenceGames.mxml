@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2014.01.08";
+			private static const kVersion:String = "v.1.0";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -370,7 +370,9 @@
 						this.unlockedLevels = iState.unlockedTo; // OK if unlockedTo is above Round.kLevelSettings.length
 					}
 					if( iState.roundID && iState.roundID >= 1 ) {
-						// TO-DO: Round.currentRound.setRoundID( iState.roundID );
+						//restore roundID
+						Round.currentRound = new Round( mGameLevel);
+						Round.currentRound.roundID = iState.roundID;
 					}
 					if( iState.gameNumber ) {
 						this.mGameSerialNum = iState.gameNumber;
@@ -378,22 +380,25 @@
 					}
 					if( iState.gameLevel) {
 						if( iState.gameLevel >= 0 && iState.gameLevel < Round.kLevelSettings.length ) { // must be a valid level for this version
-							// TO-DO: set the level (make sure we are at the start of a game)
-							// LevelSelectSWC.instance.getSelectedLevelNumber();
+							//restore game level and the level label
+							mGameLevel = iState.gameLevel;
+							sSpaceRace.topBarMVC.setTitleMessage("LEVEL " + mGameLevel);
+							
+							sSpaceRace.showMainMenu(unlockedLevels);
 						}
 						// else ignore invalid levels
 					}
 					if( iState.humanScore ) {
-						sSpaceRace.humanScore = iState.humanScore;
-						for(var i:int=0; i<iState.humanScore; i++){
-							sSpaceRace.earnPointHuman();
-						}
+//						sSpaceRace.humanScore = iState.humanScore;
+//						for(var i:int=0; i<iState.humanScore; i++){
+//							sSpaceRace.earnPointHuman();
+//						}
 					}
 					if( iState.expertScore ) {
-						sSpaceRace.expertScore = iState.expertScore;
-						for(var j:int=0; j<iState.expertScore; j++){
-							sSpaceRace.earnPointExpert();
-						}
+//						sSpaceRace.expertScore = iState.expertScore;
+//						for(var j:int=0; j<iState.expertScore; j++){
+//							sSpaceRace.earnPointExpert();
+//						}
 					}
 					result.success = true;
 				}
