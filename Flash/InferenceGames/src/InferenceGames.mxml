@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2014.01.07";
+			private static const kVersion:String = "v.2014.01.08";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -435,11 +435,12 @@
 				
 				var count:int = 0;
 				function sendSingleDataPoint(e:Event):void {
-					if(count >= convertArray.length) {
+					if( count < convertArray.length) {
+						mDGInterface.createEventCases( kEventsCollectionName, [convertArray[count]] );
+						count++;
+					} else {
 						timer.stop();
 					}
-					mDGInterface.createEventCases( kEventsCollectionName, [convertArray[count]] );
-					count++;
 				}
 				
 				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
@@ -522,6 +523,7 @@
 				// end the old round if there was one
 				if(Round.currentRound){
 					endRound();
+					Round.currentRound.roundID = 0; // first round of new game is round 1
 				}
 				setGameAndRoundLabel(); // clear the label
 				isInGame = false;
