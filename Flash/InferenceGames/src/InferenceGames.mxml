@@ -134,10 +134,13 @@
 						if(unlockedLevels <= Round.currentRound.level){
 							unlockedLevels = Round.currentRound.level + 1;
 						}
+						feedbackHeaderText = "You win!";
+					}
+					else{
+						feedbackHeaderText = "The expert wins";
 					}
 				}
 				
-				//sSpaceRace.bodyMVC.controlsMVC.feedbackMVC.fubarTxt.text = "You win Text could go here." // be sure to set it back to blank when you want to clear it.
 				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
 					sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, feedbackBodyText, false);	// bring up the feedback screen
 				}else{
@@ -163,6 +166,15 @@
 						feedbackBodyText = "The expert was unlucky.";
 					sSpaceRace.earnPointHuman();
 					sSpaceRace.earnPointHuman();
+				}
+				
+				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
+					if(sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
+						feedbackHeaderText = "You win!";
+					}
+					else{
+						feedbackHeaderText = "The expert wins";
+					}
 				}
 				
 				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){

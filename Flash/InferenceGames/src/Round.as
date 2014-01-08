@@ -31,7 +31,7 @@ package
 		
 		public static const kIQR:Array = [7, 3, 1, 7, 9, 12]; // variable IQRs for levels with ?
 		
-		public static const luckyPercent:int = 30; // if you guess right at this percent or less, you got lucky
+		public static const luckyPercent:int = 49; // if you guess right at this percent or less, you got lucky
 		public static const unluckyPercent:int = 70; // if you guess wrong at this percent or more, you got unlucky 
 		
 		// ----------------------
