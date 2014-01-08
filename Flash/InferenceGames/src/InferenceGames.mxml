@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.2014.01.07";
+			private static const kVersion:String = "v.2014.01.08";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -352,8 +352,8 @@
 							inGame:		this.isInGame,
 							unlockedTo:	this.unlockedLevels,
 							roundID:	Round.currentRound.roundID,
-							humanScore:		this.sSpaceRace.humanScore,
-							expertScore:		this.sSpaceRace.expertScore
+							humanScore:	this.sSpaceRace.humanScore,
+							expertScore:this.sSpaceRace.expertScore
 						}
 					};
 				return stateObj;
@@ -385,14 +385,13 @@
 						}
 						// else ignore invalid levels
 					}
-					if( iState.score ) {
-//						Alert.show("s2 " +sSpaceRace.score);
+					if( iState.humanScore ) {
 						sSpaceRace.humanScore = iState.humanScore;
 						for(var i:int=0; i<iState.humanScore; i++){
 							sSpaceRace.earnPointHuman();
 						}
 					}
-					if( iState.life ) {
+					if( iState.expertScore ) {
 						sSpaceRace.expertScore = iState.expertScore;
 						for(var j:int=0; j<iState.expertScore; j++){
 							sSpaceRace.earnPointExpert();
