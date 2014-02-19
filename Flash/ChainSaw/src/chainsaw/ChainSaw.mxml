@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "v.1.02";
+			public static const  VERSION:String = "v.1.03";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -65,6 +65,12 @@
 			public var dynamicLog2:MovieClip;
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
+			
+			//Embedded Youtube video
+			private static const kYouTubeVideoID:String = "51C8VcXNggQ"; // ChainSaw Intro Movie, https://www.youtube.com/watch?v=51C8VcXNggQ on https://www.youtube.com/user/sergsrri
+			private static const kYouTubePlayerURL:String = "http://www.youtube.com/apiplayer?version=3";
+			private static const kYouTubeAssetsURL1:String = "youtube.com";
+			private static const kYouTubeAssetsURL2:String = "s.ytimg.com";
 			
 			public static const kTimeLimit:Number		= 20;		// Number of seconds player has to cut logs.
 			public static const kUpdatesPerSecond:Number= 4;		// Fuel tank updates per second.
@@ -334,16 +340,13 @@
 				
 				systemManager.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave);
 				
-				//Embedded Youtube video
-				var videoID:String = "UjjfK0Mb3dg";
-				
-				Security.allowDomain("youtube.com"); //Allow flash to load assets from youtube
-				Security.allowDomain("s.ytimg.com");
+				Security.allowDomain( kYouTubeAssetsURL1 ); //Allow flash to load assets from youtube
+				Security.allowDomain( kYouTubeAssetsURL2 );
 				
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
-				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
-				//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
+				loader.load(new URLRequest(kYouTubePlayerURL));
+				//loader.load(new URLRequest("http://www.youtube.com/v/"+kYouTubeVideoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
 				
 				function onLoaderInit(event:Event):void {
 					videoHolder.addChild(loader);
@@ -351,7 +354,7 @@
 					function onPlayerReady(event:Event):void {
 						videoPlayer = loader.content;
 						videoPlayer.setSize(570, 360);
-						videoPlayer.loadVideoById(videoID);
+						videoPlayer.loadVideoById( kYouTubeVideoID);
 						videoPlayer.pauseVideo();
 						videoPlayer.addEventListener("onStateChange", onVideoStateChange);
 					}
