@@ -47,7 +47,7 @@
 			
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.1.01";
+			private static const kVersion:String = "v.1.02";
 			private static const kAboutTextHTML:String = 
 				"<b>Ship Odyssey</b> is a <font color='#2C4877'><u><a href='http://www.srri.umass.edu/datagames' target='shipInfo'>Data Game</a></u></font>"+
 				" created by the <font color='#2C4877'><u><a href='http://www.srri.umass.edu/serg' target='shipInfo'>Statistics Education Research Group</a></u></font> "+
@@ -61,6 +61,12 @@
 				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='shipInfo'>DRL-0918653</a></u></font> (2009-2014). "+
 				"Ship Odyssey is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='shipInfo'>Github</a></u></font>. "+
 				"Copyright (c) 2011<span class='x'>-2014 by University of Massachusetts Amherst.";
+			
+			// Embedded Youtube video
+			private static const kYouTubeVideoID:String = "ZAKzzs2nnlM"; // Ship Odyssey Introduction movie, https://www.youtube.com/watch?v=ZAKzzs2nnlM on https://www.youtube.com/user/sergsrri
+			private static const kYouTubePlayerURL:String = "http://www.youtube.com/apiplayer?version=3";
+			private static const kYouTubeAssetsURL1:String = "youtube.com";
+			private static const kYouTubeAssetsURL2:String = "s.ytimg.com";
 						
 			// ********** TREASURE HUNT CONSTANTS AND VARIABLES ********** :variables:
 			
@@ -208,26 +214,21 @@
 			}
 			
 			private function embedYoutubeVideo():void{
-				//Embedded Youtube video
-				var videoID:String = "dDJ0oicZi1k";
-				// to add a new video:
-				// upload it to youtube using serg.srri.umass@gmail.com account
-				// copy the 11 digit ID string which is in the URL and embed code
 				
-				Security.allowDomain("http://youtube.com"); //Allow flash to load assets from youtube
-				Security.allowDomain("http://s.ytimg.com");
+				Security.allowDomain( kYouTubeAssetsURL1); //Allow flash to load assets from youtube
+				Security.allowDomain( kYouTubeAssetsURL2);
 				
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
-				loader.load(new URLRequest("http://www.youtube.com/apiplayer?version=3"));
-				//loader.load(new URLRequest("http://www.youtube.com/v/"+videoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
+				loader.load(new URLRequest( kYouTubePlayerURL));
+				//loader.load(new URLRequest("http://www.youtube.com/v/"+kYouTubeVideoID+"?version=3&modestbranding=1&showinfo=1")); //player with controls
 				function onLoaderInit(event:Event):void {
 					videoHolder.addChild(loader);
 					loader.content.addEventListener("onReady", onPlayerReady);
 					function onPlayerReady(event:Event):void {
 						videoPlayer = loader.content;
 						videoPlayer.setSize(518, 308);
-						videoPlayer.loadVideoById(videoID);
+						videoPlayer.loadVideoById( kYouTubeVideoID);
 						videoPlayer.pauseVideo();
 						videoPlayer.addEventListener("onStateChange", onVideoStateChange);
 					}

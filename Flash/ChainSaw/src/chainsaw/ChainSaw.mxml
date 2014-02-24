@@ -66,7 +66,7 @@
 			public var dynamicLog3:MovieClip;
 			public var dynamicLog4:MovieClip;
 			
-			//Embedded Youtube video
+			// Embedded Youtube video
 			private static const kYouTubeVideoID:String = "51C8VcXNggQ"; // ChainSaw Intro Movie, https://www.youtube.com/watch?v=51C8VcXNggQ on https://www.youtube.com/user/sergsrri
 			private static const kYouTubePlayerURL:String = "http://www.youtube.com/apiplayer?version=3";
 			private static const kYouTubeAssetsURL1:String = "youtube.com";
