@@ -36,14 +36,14 @@ package
 		
 		public static const kChunkSizeProbs:ArrayCollection = new ArrayCollection([
 			{ chunks:2, percent:3		}, // probability of chunk size 2 is 3%
-			{ chunks:3, percent:23	},
-			{ chunks:4, percent:33	},
-			{ chunks:5, percent:18	},
-			{ chunks:6, percent:12	},
+			{ chunks:3, percent:23		},
+			{ chunks:4, percent:33		},
+			{ chunks:5, percent:18		},
+			{ chunks:6, percent:12		},
 			{ chunks:7, percent:5		},
 			{ chunks:8, percent:3		},
 			{ chunks:9, percent:2		},
-			{ chunks:10, percent:1	}, // total of percents adds up to 100
+			{ chunks:10, percent:1		}, // total of percents adds up to 100
 		]);
 		
 		// ----------------------
@@ -73,7 +73,7 @@ package
 		
 		private var _expertGuessed:Boolean = false; 
 		
-		private var resultString:String = "";
+		private var resultString:String = ""; // Result of round: "You won/lost", "Expert won/lost", etc, for DG results attribute
 	
 		// constructor
 		public function Round( whichLevel:int ) {

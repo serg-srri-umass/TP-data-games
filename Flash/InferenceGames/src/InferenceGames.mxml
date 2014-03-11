@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.1.0";
+			private static const kVersion:String = "v.1.01";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -163,7 +163,7 @@
 				
 				// get end of round feedback and score points
 				if(sSpaceRace.activePlayerIsHuman){
-					headerText = "You missed!";
+					headerText = "You missed";
 					Round.currentRound.setResultString("You lost");
 					if( Round.currentRound.wasUnlucky())
 						bodyText = "You were unlucky. Keep trying";
@@ -318,11 +318,15 @@
 								attrs:[
 									{ name: "Game", type: "numeric", precision: 0, description: "Sequential Game Number" },
 									{ name: "Round", type: "numeric", precision: 0, description: "Sequential Round Number" },
+									{ name: "Level", type: "numeric", precision: 0, description: "Level of difficulty" },
 									{ name: "Interval", type: "numeric", precision: 0, description: "How close a guess has to be to the true value" },
 									{ name: "IQR", type: "numeric", precision: 0, description: "Inter-Quartile Range (IQR) of distribution" }, 
 									{ name: "SampleSize", type: "numeric", precision: 0, description: "Number of data values generated (sampled) during the round" },
 									{ name: "Result", type: "nominal", description: "Who guessed and whether they won or lost." },
-									{ name: "ProbWin", type: "numeric", precision: 0, description: "Probability of winning"}
+									{ name: "ProbWin", type: "numeric", precision: 0, description: "Probability of winning"},
+									{ name: "PopMedian", type: "numeric", precision: 2, description: "median of the population we sample data from"},
+									{ name: "SampleMedian", type: "numeric", precision: 2, description: "median of the sample data"},
+									{ name: "Guess", type: "numeric", precision: 2, description: "guess value entered by you or expert"}
 								] ,
 								childAttrName: "Events_Record"
 							},
@@ -443,10 +447,14 @@
 					mGameSerialNum, // Game number starting with 1 since launch of application.
 					Round.currentRound.roundID,
 					Round.currentRound.interval,
+					Round.currentRound.level,
 					Round.currentRound.IQR,
 					Round.currentRound.numDataSoFar,
 					(iIsRoundOver ? Round.currentRound.getResultString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
-					(iIsRoundOver ? Round.currentRound.accuracy : "") // if game is over, submit accuracy with current sample size. Otherwise, submit the empty string. 
+					(iIsRoundOver ? Round.currentRound.accuracy : ""), // if round is over, submit accuracy with current sample size. Otherwise, submit the empty string. 
+					(iIsRoundOver ? Round.currentRound.populationMedian : ""), // if round is over, show original population median
+					(iIsRoundOver ? Round.currentRound.sampleMedian : ""),
+					(iIsRoundOver ? sSpaceRace.guess : "")
 				];
 			}
 
