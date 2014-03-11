@@ -21,15 +21,20 @@ package
 		public static var currentRound:Round; // the round object we're currently playing.
 		
 		public static const kLevelSettings:ArrayCollection = new ArrayCollection([
-			{ iqr:7,	/*sd:5.2,*/	    interval:1	}, // level 1
-			{ iqr:7,	/*sd:5.2,*/		interval:"?"},
-			{ iqr:"?",	/*sd:10,*/		interval:1	},
-			{ iqr:"?",	/*sd:20,*/		interval:"?"} // level 4
+			{ sd:5,	    tolerance:1	}, // level 1: +/- 1 standard deviation = 5 units, tolerance of guess, +/- 1 unit.
+			{ sd:5,		tolerance:"?"},
+			{ sd:"?",	tolerance:1	},
+			{ sd:"?",	tolerance:"?"} // level 4
 		]);
+		public static const kLevel2tolerances:Array = [3, 2, 1, 3, 4];
+		public static const kLevel3stDev:Array = [5, 2, 1, 5, 7, 10];
+		public static const kLevel4tolerances:Array = [4, 4, 3, 2,  1, 3];
+		public static const kLevel4stDev:Array      = [1, 5, 7, 10, 5, 2];
 		
-		public static const kIntervalWidth:Array = [3, 2, 1, 3, 4, 4]; // variable interval widths for levels with ?
-		
-		public static const kIQR:Array = [7, 3, 1, 7, 9, 12]; // variable IQRs for levels with ?
+		public static const kPossibleStDevs:Array = [10,7,5,2,1];
+		public static const kStartingStDev:Number = 7; 
+		public static const kPossibleTolerances:Array = [4,3,2,1];
+		public static const kStartingTolerance:Number = 1;
 		
 		public static const luckyPercent:int = 49; // if you guess right at this percent or less, you got lucky
 		public static const unluckyPercent:int = 70; // if you guess wrong at this percent or more, you got unlucky 
@@ -51,29 +56,26 @@ package
 		// ----------------------
 		
 		private static var _roundID:int = 0;		// ID number for this round
-		private static var _intervalIndex:int = -1; // inc'd each round to set next interval on level 3. Neg so first inc brings to 0.
-		private static var _IQRIndex:int = -1; // inc'd each round to set next IQR on leve 4. Neg so first inc brings to 0.
+		private static var _nextToleranceIndex:int = -1; // inc'd each round to set next tolerance on level 3. Neg so first inc brings to 0.
+		private static var _nextStDevIndex:int = -1; 	// inc'd each round to set next StDev on leve 4. Neg so first inc brings to 0.
 		
 		private var _sample:Vector.<Number> = new Vector.<Number>(); // array of numeric values generated for this round
-		private var _sampleMedian:Number;		
-		private var _median:Number; 		// population median
-		private var _interval:Number;
-		private var _IQR:Number; 		// population inter-quartile range	
+		private var _sampleMean:Number;		
+		private var _popMean:Number; 	// population median
+		private var _tolerance:Number;
+		private var _StDev:Number; 		// population standard deviation	
 		private var _chunkSize:int;
-		//private var _minNumChunks:int = 3;
-		//private var _maxNumChunks:int = 12;
+		private var _accuracy:int; 		// the chances of guessing correctly at the current sample size (range 0-100)
+		private var _resultString:String = ""; // Result of round: "You won/lost", "Expert won/lost", etc, for DG results attribute
+		private var _minOfRange:int = 0;	// lower end of guessing range for this round, 0 for means in 0-100, 100 for means in 100-200, etc.
 		
-		private var _accuracy:int; 		// the chances of guessing correctly at the current sample size.
-		
-		private var _isWon:Boolean = false; //whether or not this round has been won, calculated when we call for the results string
+		private var _isWon:Boolean = false; // whether or not this round has been won, calculated when we call for the results string
+		private var _expertGuessed:Boolean = false;	// true if the expert has guessed during this round
 		private var _level:int = 0; //level of this round
 		
 		private var dataTimer:Timer;
 		private const _dataDelayTime:int = 50; //delay time between sending points to DG in ms
 		
-		private var _expertGuessed:Boolean = false; 
-		
-		private var resultString:String = ""; // Result of round: "You won/lost", "Expert won/lost", etc, for DG results attribute
 	
 		// constructor
 		public function Round( whichLevel:int ) {
@@ -85,50 +87,50 @@ package
 			// setting IQR and Interval based on level
 			switch(whichLevel){
 				case 1:
-					_interval 	= kLevelSettings[ whichLevel-1 ].interval;
-					_IQR 		= kLevelSettings[ whichLevel-1 ].iqr;
-					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIntervals(kLevelSettings[0].interval); //only show 1 interval
-					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIQRs(kLevelSettings[0].iqr); //only show 1 IQR
-					InferenceGames.instance.sSpaceRace.setInterval(_interval);
-					InferenceGames.instance.sSpaceRace.setIQR(_IQR);
+					_tolerance 	= kLevelSettings[ whichLevel-1 ].tolerance;
+					_StDev 		= kLevelSettings[ whichLevel-1 ].sd;
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIntervals(kLevelSettings[0].tolerance); //only show 1 tolerance
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIQRs(kLevelSettings[0].sd); //only show 1 StDev
+					InferenceGames.instance.sSpaceRace.setInterval(_tolerance);
+					InferenceGames.instance.sSpaceRace.setIQR(_StDev);
 					break;
 				case 2:
-					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
-					_IQR = kLevelSettings[ whichLevel-1 ].iqr;
-					_interval = kIntervalWidth[_intervalIndex];
-					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIQRs(kLevelSettings[1].iqr); //only show 1 IQR
-					InferenceGames.instance.sSpaceRace.setInterval(_interval);
-					InferenceGames.instance.sSpaceRace.setIQR(_IQR);
+					_nextToleranceIndex = (_nextToleranceIndex + 1) % kLevel2tolerances.length; // next index in bounds
+					_StDev = kLevelSettings[ whichLevel-1 ].sd;
+					_tolerance = kLevel2tolerances[_nextToleranceIndex];
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIQRs(kLevelSettings[1].sd); //only show 1 StDev
+					InferenceGames.instance.sSpaceRace.setInterval(_tolerance);
+					InferenceGames.instance.sSpaceRace.setIQR(_StDev);
 					break;
 				case 3:
-					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
-					_interval = kLevelSettings[ whichLevel-1 ].interval;
-					_IQR	  = kIQR[_IQRIndex];
-					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIntervals(kLevelSettings[2].interval); //only show 1 interval
-					InferenceGames.instance.sSpaceRace.setInterval(_interval);
-					InferenceGames.instance.sSpaceRace.setIQR(_IQR);
+					_nextStDevIndex = (_nextStDevIndex + 1) % kLevel3stDev.length; // next index in bounds
+					_tolerance = kLevelSettings[ whichLevel-1 ].tolerance;
+					_StDev	  = kLevel3stDev[_nextStDevIndex];
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIntervals(kLevelSettings[2].tolerance); //only show 1 tolerance
+					InferenceGames.instance.sSpaceRace.setInterval(_tolerance);
+					InferenceGames.instance.sSpaceRace.setIQR(_StDev);
 					break;
 				case 4: 
-					_intervalIndex = (_intervalIndex + 1) % kIntervalWidth.length; // next index in bounds
-					_IQRIndex = (_IQRIndex + 1) % kIQR.length; // next index in bounds
-					_interval = kIntervalWidth[_intervalIndex];
-					_IQR	  = kIQR[_IQRIndex];
-					InferenceGames.instance.sSpaceRace.setInterval(_interval);
-					InferenceGames.instance.sSpaceRace.setIQR(_IQR);
+					_nextToleranceIndex = (_nextToleranceIndex + 1) % kLevel4tolerances.length; // next index in bounds
+					_nextStDevIndex = (_nextStDevIndex + 1) % kLevel4stDev.length; // next index in bounds
+					_tolerance = kLevel4tolerances[_nextToleranceIndex];
+					_StDev	  = kLevel4stDev[_nextStDevIndex];
+					InferenceGames.instance.sSpaceRace.setInterval(_tolerance);
+					InferenceGames.instance.sSpaceRace.setIQR(_StDev);
 					break;
 				default:
 					break;
 			}
 			
-			_median 	= (Math.round(InferenceGames.instance.randomizer.uniformNtoM( 0, 100 ) * 10)/10);
-			_sampleMedian = 0;
+			_popMean 	= (Math.round(InferenceGames.instance.randomizer.uniformNtoM( 0, 100 ) * 10)/10);
+			_minOfRange = 100 * Math.floor( _popMean / 100 );
+			_sampleMean = 0;
 			_level = whichLevel; 
 			
-			trace("Population Median for new round: ", _median);
-			
+			trace("Population Mean for new round: "+_popMean+" range: "+_minOfRange+"-"+(_minOfRange+100));
 			trace(Round.currentRound);
 			
-			ExpertAI.newRound( MathUtilities.IQR_to_SD(_IQR), _interval); // prepare the AI for the new round.
+			ExpertAI.newRound( _StDev, _tolerance); // prepare the AI for the new round.
 		}
 		
 		//sets size of data chunks to be sent to DG. Called at beginning of new round
@@ -152,6 +154,13 @@ package
 			trace("Chunk Size set to: " + _chunkSize + " Number of chunks ~ " + numChunks);
 		}
 		
+		// when the next round comes, start using the 1st StDev and Tolerance values, if this level
+		//		has variable StDev/Tolerance in each round. See Round().
+		public static function resetNextRoundParams():void {
+			_nextToleranceIndex = -1;
+			_nextStDevIndex = -1;
+		}
+		
 		public function get numDataSoFar():int{
 			return _sample.length;
 		}
@@ -159,7 +168,7 @@ package
 		public function addData( data:Vector.<Number>):void{
 			_sample = _sample.concat( data);
 			_accuracy = calculateAccuracy();
-			_sampleMedian = calculateSampleMean();	// TO-DO: Use sample median.
+			_sampleMean = calculateSampleMean();	// TO-DO: Use sample median.
 		}
 		
 		public function get roundID():int {
@@ -170,20 +179,20 @@ package
 			_roundID = newID;
 		}		
 		
-		public function get sampleMedian():Number{	// median of samples generated by AddData()
-			return _sampleMedian;
+		public function get sampleMean():Number{	// median of samples generated by AddData()
+			return _sampleMean;
 		}
 		
-		public function get populationMedian():Number{  // median of 'population' used by random number generator
-			return _median;
+		public function get populationMean():Number{  // median of 'population' used by random number generator
+			return _popMean;
 		}
 		
-		public function get interval():Number {
-			return _interval;
+		public function get tolerance():Number {
+			return _tolerance;
 		}
 		
-		public function get IQR():Number {
-			return _IQR;
+		public function get StDev():Number {
+			return _StDev;
 		}
 		
 		public function get chunkSize():int{
@@ -203,12 +212,12 @@ package
 			return _level;
 		}
 		
-		// generates an accuracy %, based on the sample size.
+		// generates an accuracy %, based on the sample size (range 0-100)
 		public function calculateAccuracy():Number {
 			if(numDataSoFar == 0){
-				return _interval * 2; // if no samples, calculate chance of randomly guessing proper median given interval 
+				return _tolerance * 2; // if no samples, calculate chance of randomly guessing proper median given tolerance 
 			}else{
-				return MathUtilities.calculateAreaUnderBellCurve( interval * 2, numDataSoFar, MathUtilities.IQR_to_SD(IQR)) * 100;
+				return 100 * MathUtilities.calculateAreaUnderBellCurve( tolerance * 2, numDataSoFar, _StDev );
 			}
 		}
 		
@@ -223,11 +232,11 @@ package
 
 		// get the result string showing who won or lost for this round
 		public function getResultString():String {
-			return resultString;
+			return _resultString;
 		}
 		
 		public function setResultString( s:String ):void {
-			resultString = s;
+			_resultString = s;
 		}
 		
 		// returns true if the current guess was lucky.

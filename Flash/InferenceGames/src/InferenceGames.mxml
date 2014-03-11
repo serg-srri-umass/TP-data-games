@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.1.01";
+			private static const kVersion:String = "v.1.03";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -105,7 +105,7 @@
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_EXPERT, sSpaceRace.prepareGuessExpert);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_HUMAN, sSpaceRace.prepareGuessHuman);
 
-				//hide interval & IQR bars on startup
+				//hide StDev & tolerance bars on startup
 				sSpaceRace.bodyMVC.setPossibleIQRs();
 				sSpaceRace.bodyMVC.setPossibleIntervals();
 			}
@@ -239,10 +239,10 @@
 				sSpaceRace = new SpaceRace( staticStage, toggleAboutScreen, showVideo);
 				gameContainer.addChild(sSpaceRace);
 				sSpaceRace.establishLevels( 
-					["Level 1", Round.kLevelSettings.getItemAt(0).iqr, "±"+Round.kLevelSettings.getItemAt(0).interval,  click_lvl1Btn],
-					["Level 2", Round.kLevelSettings.getItemAt(1).iqr, Round.kLevelSettings.getItemAt(1).interval,  click_lvl2Btn],
-					["Level 3", Round.kLevelSettings.getItemAt(2).iqr, "±"+Round.kLevelSettings.getItemAt(2).interval,  click_lvl3Btn],
-					["Level 4", Round.kLevelSettings.getItemAt(3).iqr, Round.kLevelSettings.getItemAt(3).interval,  click_lvl4Btn]);
+					["Level 1", "±"+Round.kLevelSettings.getItemAt(0).sd, "±"+Round.kLevelSettings.getItemAt(0).tolerance,  click_lvl1Btn],
+					["Level 2", "±"+Round.kLevelSettings.getItemAt(1).sd, Round.kLevelSettings.getItemAt(1).tolerance,  	click_lvl2Btn],
+					["Level 3", Round.kLevelSettings.getItemAt(2).sd, "±"+Round.kLevelSettings.getItemAt(2).tolerance,  click_lvl3Btn],
+					["Level 4", Round.kLevelSettings.getItemAt(3).sd, Round.kLevelSettings.getItemAt(3).tolerance,  	click_lvl4Btn]);
 				
 				sDebugConsole = new DebugConsoleSWC();
 				gameContainer.addChild(sDebugConsole);
@@ -254,26 +254,6 @@
 			
 			// init the 'play video' button & prompt.
 			private function initVideoPlayer():void {
-				/*
-				videoBtnContainer.addChild(mVideoButton);
-				mVideoButton.x = 600;
-				mVideoButton.y = 15;
-				
-				// all the things that will make the 'click here' prompt go away go here.
-				// they need matching 'removeEventListeners' in the closePrompt method.
-				
-				this.systemManager.stage.addEventListener(MouseEvent.MOUSE_DOWN, closePrompt);
-				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OVER, showHidePrompt);
-				mVideoButton.videoBtn.addEventListener( MouseEvent.MOUSE_OUT, showHidePrompt);
-				mVideoButton.aboutBtn.addEventListener( MouseEvent.MOUSE_OVER, hideBouncePrompt);
-				mVideoButton.aboutBtn.addEventListener( MouseEvent.CLICK, showHideAboutScreen);
-				mVideoButton.muteMVC.visible = false;
-				
-				// this is the method that will be called when the button is clicked on.
-				mVideoButton.videoBtn.addEventListener( MouseEvent.CLICK, showVideo);
-				*/
-				
-				//systemManager.stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave);
 				
 				//Embedded Youtube video
 				var videoID:String = "RnjgJVm4GX0";  // youtube.com video ID (v=) on https://www.youtube.com/user/sergsrri
@@ -319,13 +299,13 @@
 									{ name: "Game", type: "numeric", precision: 0, description: "Sequential Game Number" },
 									{ name: "Round", type: "numeric", precision: 0, description: "Sequential Round Number" },
 									{ name: "Level", type: "numeric", precision: 0, description: "Level of difficulty" },
-									{ name: "Interval", type: "numeric", precision: 0, description: "How close a guess has to be to the true value" },
-									{ name: "IQR", type: "numeric", precision: 0, description: "Inter-Quartile Range (IQR) of distribution" }, 
+									{ name: "StDev", type: "numeric", precision: 0, description: "Standard Deviation of distribution" }, 
+									{ name: "Tolerance", type: "numeric", precision: 0, description: "How close a guess has to be to the true value" },
 									{ name: "SampleSize", type: "numeric", precision: 0, description: "Number of data values generated (sampled) during the round" },
 									{ name: "Result", type: "nominal", description: "Who guessed and whether they won or lost." },
 									{ name: "ProbWin", type: "numeric", precision: 0, description: "Probability of winning"},
-									{ name: "PopMedian", type: "numeric", precision: 2, description: "median of the population we sample data from"},
-									{ name: "SampleMedian", type: "numeric", precision: 2, description: "median of the sample data"},
+									{ name: "PopMean", type: "numeric", precision: 2, description: "mean of the population we sample data from"},
+									{ name: "SampleMean", type: "numeric", precision: 2, description: "mean of the sample data"},
 									{ name: "Guess", type: "numeric", precision: 2, description: "guess value entered by you or expert"}
 								] ,
 								childAttrName: "Events_Record"
@@ -446,14 +426,14 @@
 				return [
 					mGameSerialNum, // Game number starting with 1 since launch of application.
 					Round.currentRound.roundID,
-					Round.currentRound.interval,
 					Round.currentRound.level,
-					Round.currentRound.IQR,
+					Round.currentRound.StDev,
+					Round.currentRound.tolerance,
 					Round.currentRound.numDataSoFar,
 					(iIsRoundOver ? Round.currentRound.getResultString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
 					(iIsRoundOver ? Round.currentRound.accuracy : ""), // if round is over, submit accuracy with current sample size. Otherwise, submit the empty string. 
-					(iIsRoundOver ? Round.currentRound.populationMedian : ""), // if round is over, show original population median
-					(iIsRoundOver ? Round.currentRound.sampleMedian : ""),
+					(iIsRoundOver ? Round.currentRound.populationMean : ""), // if round is over, show original population mean
+					(iIsRoundOver ? Round.currentRound.sampleMean : ""),
 					(iIsRoundOver ? sSpaceRace.guess : "")
 				];
 			}
@@ -510,9 +490,9 @@
 				// update DG: open and send a new game case for each round
 				mDGInterface.sendLog( "newRound:"
 					+" round="+Round.currentRound.roundID
-					+" population-median="+Round.currentRound.populationMedian
-					+" IQR="+Round.currentRound.IQR
-					+" interval="+Round.currentRound.interval
+					+" population-median="+Round.currentRound.populationMean
+					+" StDev="+Round.currentRound.StDev
+					+" tolerance="+Round.currentRound.tolerance
 					+" chunkSize="+Round.currentRound.chunkSize
 					//+" expert-confidence-percent="+ExpertAI.confidenceIntervalPercent
 					//+" expert-guess-N="+ExpertAI.guessNumSamples 
@@ -521,7 +501,7 @@
 				mDGInterface.deletePreviousCaseData(); // deletes old graph data to reduce clutter
 				
 				//send new round info to Space Race
-				sSpaceRace.newRound( Round.currentRound.IQR, Round.currentRound.interval, Round.currentRound.populationMedian, Round.currentRound.chunkSize);
+				sSpaceRace.newRound( Round.currentRound.StDev, Round.currentRound.tolerance, Round.currentRound.populationMean, Round.currentRound.chunkSize );
 			}
 			
 			// end the round started with newRound()
@@ -544,12 +524,8 @@
 				
 				// set up the new game interface which calls this.newRoundHandler() which calls this.NewRound()
 				// TO-DO: modify this so newRound() can be called directly to de-tangle the calling logic.
-				// and probably the update of possibleIQRs and Intervals should happen every round instead?  (CDM 2012-12-26)				
-				var possibleIQRs:Array = [12,9,7,3,1], 
-					startingIQR:Number = 7, 
-					possibleIntervals:Array = [4,3,2,1], 
-					startingInterval:Number = 1;
-				sSpaceRace.newGame( possibleIQRs, startingIQR, possibleIntervals, startingInterval, mGameLevel);
+				// and probably the update of possibleIQRs and Intervals should happen every round instead?  (CDM 2012-12-26)	
+				sSpaceRace.newGame( Round.kPossibleStDevs, Round.kStartingStDev, Round.kPossibleTolerances, Round.kStartingTolerance, mGameLevel);
 				newRoundHandler();
 			}
 			
@@ -578,19 +554,25 @@
 			}
 			
 			private function click_lvl1Btn(e:Event):void{
+				if( mGameLevel != 1 ) 
+					Round.resetNextRoundParams();
 				mGameLevel = 1;
 				sSpaceRace.topBarMVC.setTitleMessage("LEVEL 1");
 				newGame();
 			}
 			private function click_lvl2Btn(e:Event):void{
 				if(unlockedLevels >= 2){	// this is a band-aid. For some reason, the disabled level buttons are still able to be clicked on. So, don't let the method execute unless level 2 is really unlocked.
+					if( mGameLevel != 2 ) // if new to this level, restart the sequence of level 2 variable StDev/Tolerances 
+						Round.resetNextRoundParams();
 					mGameLevel = 2;
 					sSpaceRace.topBarMVC.setTitleMessage("LEVEL 2");
 					newGame();
 				}
 			}
 			private function click_lvl3Btn(e:Event):void{
-				if(unlockedLevels >= 3){
+				if(unlockedLevels >= 3 ){
+					if( mGameLevel != 3 )  // if new to this level, restart the sequence of level 3 variable StDev/Tolerances 
+						Round.resetNextRoundParams();
 					mGameLevel = 3;
 					sSpaceRace.topBarMVC.setTitleMessage("LEVEL 3");
 					newGame();
@@ -598,6 +580,8 @@
 			}
 			private function click_lvl4Btn(e:Event):void{
 				if(unlockedLevels >= 4){
+					if( mGameLevel != 4 ) // if new to this levle, restart the sequence of level 4 variable StDev/Tolerances 
+						Round.resetNextRoundParams();
 					mGameLevel = 4;
 					sSpaceRace.topBarMVC.setTitleMessage("LEVEL 4");
 					newGame();

@@ -52,7 +52,7 @@ package embedded_asset_classes
 		}
 		
 		private function showPopMedian():void{
-			println("Population Median: " + Round.currentRound.populationMedian);
+			println("Population Mean: " + Round.currentRound.populationMean);
 		}
 		
 		private function enterRussianMode( on:Boolean):void{

@@ -164,7 +164,7 @@ package
 		}
 		
 		private function enterGuess( triggerEvent:Event = null):void{
-			trace("EXPERT WILL START TYPING... (Num.Samples="+Round.currentRound.numDataSoFar+", Pop. Median="+Round.currentRound.populationMedian+")");
+			trace("EXPERT WILL START TYPING... (Num.Samples="+Round.currentRound.numDataSoFar+", Pop. Mean="+Round.currentRound.populationMean+")");
 			_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
 			_botEntryTimer.reset();
 			_botEntryTimer.start();
@@ -172,22 +172,22 @@ package
 		
 		
 		private function handleBotType( e:TimerEvent):void{
-			var sampleMedianString:String = String(Round.currentRound.sampleMedian.toFixed(1));
+			var sampleMeanString:String = String(Round.currentRound.sampleMean.toFixed(1));
 			
-			if( _botEntryTimer.currentCount == sampleMedianString.length){	// wait a full delay before hitting the okay button.
+			if( _botEntryTimer.currentCount == sampleMeanString.length){	// wait a full delay before hitting the okay button.
 				_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
 				sGameControls.moveGuessToText(); 	// when the bot finishes typing, move his guess interval into place.
 			}
 			
-			if( _botEntryTimer.currentCount > sampleMedianString.length){ // the last character has been added. Hit the okay button.
-				trace( "EXPERT TYPED (sample median of) "+sampleMedianString );
+			if( _botEntryTimer.currentCount > sampleMeanString.length){ // the last character has been added. Hit the okay button.
+				trace( "EXPERT TYPED (sample mean of) "+sampleMeanString );
 				_botEntryTimer.stop();
 				sGameControls.controlsExpertMVC.inputMVC.okMVC.play();
 				var enterGuessTimer:Timer = new Timer(350, 1);	// how long it holds on 'pause', before the action actually happens
 				enterGuessTimer.addEventListener( TimerEvent.TIMER, enterBotType);
 				enterGuessTimer.start();
 			} else {
-				var outChar:String = sampleMedianString.charAt( _botEntryTimer.currentCount - 1);
+				var outChar:String = sampleMeanString.charAt( _botEntryTimer.currentCount - 1);
 				sGameControls.controlsExpertMVC.inputMVC.inputTxt.text += outChar; // add another character to the string
 				_botEntryTimer.delay = _botEntryTimer.delay / 2; // half the time it will take to enter the next character. Simulates the accelarating way we type.
 			}
