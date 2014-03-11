@@ -73,7 +73,7 @@ package
 		
 		private var _expertGuessed:Boolean = false; 
 		
-		public var resultString:String = "";
+		private var resultString:String = "";
 	
 		// constructor
 		public function Round( whichLevel:int ) {
@@ -222,8 +222,12 @@ package
 		}
 
 		// get the result string showing who won or lost for this round
-		public function getResultsString():String {
+		public function getResultString():String {
 			return resultString;
+		}
+		
+		public function setResultString( s:String ):void {
+			resultString = s;
 		}
 		
 		// returns true if the current guess was lucky.
@@ -240,8 +244,8 @@ package
 		// --- PRIVATE SECTION ---
 		// -----------------------
 		//returns random number within range passed to function
-		private function randomRange(max:Number, min:Number = 0):Number{
-			return Math.random() * (max - min) + min;
-		}
+		//private function randomRange(max:Number, min:Number = 0):Number{
+		//	return Math.random() * (max - min) + min;
+		//}
 	}
 }

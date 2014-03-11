@@ -112,38 +112,46 @@
 			
 			// called after Human or Expert guess is made, to end the round, see also handleIncorrectGuess()
 			private function handleCorrectGuess( triggerEvent:Event = null):void{
-				var feedbackHeaderText:String = "", feedbackBodyText:String = "";
+				var headerText:String = "", bodyText:String = "";
+				
+				// get end of round feedback and score points
 				if(sSpaceRace.activePlayerIsHuman){ //you
-					feedbackHeaderText = "You guessed correctly!";
-					Round.currentRound.resultString = "You Won";
+					headerText = "You guessed correctly";
+					Round.currentRound.setResultString("You won");
 					if( Round.currentRound.wasLucky())
-						feedbackBodyText = "You got lucky.";
+						bodyText = "You got lucky";
 					sSpaceRace.earnPointHuman();
 				} else { // expert
-					feedbackHeaderText = "The expert guessed correctly!";
-					Round.currentRound.resultString = "Expert won";
+					headerText = "The expert guessed correctly";
+					Round.currentRound.setResultString("Expert won");
 					if( Round.currentRound.wasLucky())
-						feedbackBodyText = "The expert got lucky.";
+						bodyText = "The expert got lucky";
 					sSpaceRace.earnPointExpert();
 				}
 				
-				// unlocking levels:
-				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
-					if(sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
-						if(unlockedLevels <= Round.currentRound.level){
-							unlockedLevels = Round.currentRound.level + 1;
+				// get end of Game feedback and possibly unlock levels
+				var isExpertWin:Boolean = (sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE),
+					isUserWin:Boolean =   (sSpaceRace.humanScore  >= sSpaceRace.WINNING_SCORE);
+				if( isExpertWin || isUserWin ){
+					if(isUserWin){
+						headerText = "Correct, you won the game";
+						if( checkAndUnlockLevel( isUserWin )) {
+							if( mGameLevel == Round.kLevelSettings.length ) 
+								bodyText = "and completed all levels";
+							else
+								bodyText = "and unlocked level "+unlockedLevels;
 						}
-						feedbackHeaderText = "You win!";
 					}
 					else{
-						feedbackHeaderText = "The expert wins";
+						headerText = "The expert guessed correctly and won the game";
 					}
 				}
 				
-				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
-					sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, feedbackBodyText, false);	// bring up the feedback screen
+				// set messages and buttons
+				if( isExpertWin || isUserWin ){
+					sSpaceRace.bodyMVC.showFeedback( headerText, bodyText, false);	// bring up the feedback screen
 				}else{
-					sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, feedbackBodyText, true, "Next Round");
+					sSpaceRace.bodyMVC.showFeedback( headerText, bodyText, true, "Next Round");
 				}
 				
 				endRound();
@@ -151,39 +159,61 @@
 			
 			// called after Human or Expert guess is made, to end the round, see also handleCorrectGuess()		
 			private function handleIncorrectGuess( triggerEvent:Event = null):void{
-				var feedbackHeaderText:String = "", feedbackBodyText:String = "";
+				var headerText:String = "", bodyText:String = "";
+				
+				// get end of round feedback and score points
 				if(sSpaceRace.activePlayerIsHuman){
-					feedbackHeaderText = "You missed!";
-					Round.currentRound.resultString = "You lost";
+					headerText = "You missed!";
+					Round.currentRound.setResultString("You lost");
 					if( Round.currentRound.wasUnlucky())
-						feedbackBodyText = "You were unlucky. Keep trying!";
+						bodyText = "You were unlucky. Keep trying";
 					sSpaceRace.earnPointExpert();
 					sSpaceRace.earnPointExpert();
 				} else {
-					feedbackHeaderText = "The expert missed!";
-					Round.currentRound.resultString = "Expert lost";
+					headerText = "The expert missed";
+					Round.currentRound.setResultString("Expert lost");
 					if( Round.currentRound.wasUnlucky())
-						feedbackBodyText = "The expert was unlucky.";
+						bodyText = "The expert was unlucky";
 					sSpaceRace.earnPointHuman();
 					sSpaceRace.earnPointHuman();
 				}
 				
-				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
-					if(sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
-						feedbackHeaderText = "You win!";
+				// get end of Game feedback and possibly unlock levels
+				var isExpertWin:Boolean = (sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE),
+					isUserWin:Boolean =   (sSpaceRace.humanScore  >= sSpaceRace.WINNING_SCORE);
+				if( isExpertWin || isUserWin){
+					if(isUserWin){
+						headerText = "Expert missed, you won the game";
+						if( checkAndUnlockLevel( isUserWin )) {
+							if( mGameLevel == Round.kLevelSettings.length ) 
+								bodyText = "and completed all levels";
+							else
+								bodyText = "and unlocked level "+unlockedLevels;
+						}
 					}
 					else{
-						feedbackHeaderText = "The expert wins";
+						headerText = "You missed, the expert won the game";
 					}
 				}
 				
-				if( sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE || sSpaceRace.humanScore >= sSpaceRace.WINNING_SCORE){
-					sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, feedbackBodyText, false);	// bring up the feedback screen
+				// set messages and buttons
+				if( isExpertWin || isUserWin ){
+					sSpaceRace.bodyMVC.showFeedback( headerText, bodyText, false);	// bring up the feedback screen
 				}else{
-					sSpaceRace.bodyMVC.showFeedback(feedbackHeaderText, feedbackBodyText, true, "Next Round");
+					sSpaceRace.bodyMVC.showFeedback( headerText, bodyText, true, "Next round");
 				}
 				
 				endRound();
+			}
+			
+			// check for and if needed unlock the next level.  To be called when the score reaches WINNING_SCORE.
+			public function checkAndUnlockLevel( isUserWin:Boolean = true):Boolean{
+				var wantLevelUnlocked:Boolean = ( isUserWin && mGameLevel == unlockedLevels);
+				if( wantLevelUnlocked) { 
+					// if the player beats their current level, unlock the next.
+					unlockedLevels++;
+				}
+				return wantLevelUnlocked;
 			}
 			
 			
@@ -208,9 +238,10 @@
 				
 				sSpaceRace = new SpaceRace( staticStage, toggleAboutScreen, showVideo);
 				gameContainer.addChild(sSpaceRace);
-				sSpaceRace.establishLevels( ["Level 1", Round.kLevelSettings.getItemAt(0).iqr, Round.kLevelSettings.getItemAt(0).interval,  click_lvl1Btn],
+				sSpaceRace.establishLevels( 
+					["Level 1", Round.kLevelSettings.getItemAt(0).iqr, "±"+Round.kLevelSettings.getItemAt(0).interval,  click_lvl1Btn],
 					["Level 2", Round.kLevelSettings.getItemAt(1).iqr, Round.kLevelSettings.getItemAt(1).interval,  click_lvl2Btn],
-					["Level 3", Round.kLevelSettings.getItemAt(2).iqr, Round.kLevelSettings.getItemAt(2).interval,  click_lvl3Btn],
+					["Level 3", Round.kLevelSettings.getItemAt(2).iqr, "±"+Round.kLevelSettings.getItemAt(2).interval,  click_lvl3Btn],
 					["Level 4", Round.kLevelSettings.getItemAt(3).iqr, Round.kLevelSettings.getItemAt(3).interval,  click_lvl4Btn]);
 				
 				sDebugConsole = new DebugConsoleSWC();
@@ -414,7 +445,7 @@
 					Round.currentRound.interval,
 					Round.currentRound.IQR,
 					Round.currentRound.numDataSoFar,
-					(iIsRoundOver ? Round.currentRound.getResultsString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
+					(iIsRoundOver ? Round.currentRound.getResultString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
 					(iIsRoundOver ? Round.currentRound.accuracy : "") // if game is over, submit accuracy with current sample size. Otherwise, submit the empty string. 
 				];
 			}
@@ -492,12 +523,6 @@
 				// closing the game case prevents further updating of the Round data.
 				if( Round.currentRound && mDGInterface.isGameCaseOpen())
 					mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( DGInterface.kCloseCase ), DGInterface.kCloseCase );
-			}
-
-			// this method is called when the score reaches 6. Shows the 'you win' // 'expert wins' display
-			public function winLoseGame( user:Boolean = true):void{
-				if(user && mGameLevel == unlockedLevels) // if the player beats their current level, unlock the next.
-					unlockedLevels++;
 			}
 			
 			// Start a new game.  Each game has multiple rounds

@@ -164,7 +164,7 @@ package
 		}
 		
 		private function enterGuess( triggerEvent:Event = null):void{
-			trace("EXPERT WILL START TYPING...");
+			trace("EXPERT WILL START TYPING... (Num.Samples="+Round.currentRound.numDataSoFar+", Pop. Median="+Round.currentRound.populationMedian+")");
 			_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
 			_botEntryTimer.reset();
 			_botEntryTimer.start();
@@ -180,6 +180,7 @@ package
 			}
 			
 			if( _botEntryTimer.currentCount > sampleMedianString.length){ // the last character has been added. Hit the okay button.
+				trace( "EXPERT TYPED (sample median of) "+sampleMedianString );
 				_botEntryTimer.stop();
 				sGameControls.controlsExpertMVC.inputMVC.okMVC.play();
 				var enterGuessTimer:Timer = new Timer(350, 1);	// how long it holds on 'pause', before the action actually happens
