@@ -108,8 +108,8 @@
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_HUMAN, sSpaceRace.prepareGuessHuman);
 
 				//hide StDev & tolerance bars on startup
-				sSpaceRace.bodyMVC.setPossibleIQRs();
-				sSpaceRace.bodyMVC.setPossibleIntervals();
+				sSpaceRace.bodyMVC.setPossibleSDs();
+				sSpaceRace.bodyMVC.setPossibleTolerances();
 			}
 			
 			// called after Human or Expert guess is made, to end the round, see also handleIncorrectGuess()

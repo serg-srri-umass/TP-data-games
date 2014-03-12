@@ -90,8 +90,8 @@
 		public function newGame( possibleIQRs:Array, startingIQR:Number, possibleIntervals:Array, startingInterval:Number, levelNumber:int):void{
 			//resetScore();
 			
-			bodyMVC.setPossibleIQRs(possibleIQRs[0], possibleIQRs[1], possibleIQRs[2], possibleIQRs[3], possibleIQRs[4]);
-			bodyMVC.setPossibleIntervals(possibleIntervals[0], possibleIntervals[1], possibleIntervals[2], possibleIntervals[3], possibleIntervals[4]);
+			bodyMVC.setPossibleSDs(possibleIQRs[0], possibleIQRs[1], possibleIQRs[2], possibleIQRs[3], possibleIQRs[4]);
+			bodyMVC.setPossibleTolerances(possibleIntervals[0], possibleIntervals[1], possibleIntervals[2], possibleIntervals[3], possibleIntervals[4]);
 			//bodyMVC.showFeedback("Level " + levelNumber, "Start Game");
 			//bodyMVC.promptTxt.text = "";
 						
@@ -116,8 +116,8 @@
 			//bodyMVC.controlsMVC.mainMenuMVC.newLevelsTxt.text = (newLevelUnlocked ? "New level unlocked!" : "");
 			
 			//hide the interval and IQR bars when ending game
-			bodyMVC.setPossibleIQRs();
-			bodyMVC.setPossibleIntervals();
+			bodyMVC.setPossibleSDs();
+			bodyMVC.setPossibleTolerances();
 		}
 		
 		public function showMainMenu( unlockedLevels:int, completedLevels:int ):void{
@@ -169,7 +169,7 @@
 		public function setIQR( arg:int):void
 		{
 			_IQR = arg;
-			bodyMVC.setActiveIQR(arg);
+			bodyMVC.setActiveSD(arg);
 		}
 
 		// sets the length of the Interval

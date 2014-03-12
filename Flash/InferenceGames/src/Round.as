@@ -89,8 +89,8 @@ package
 				case 1:
 					_tolerance 	= kLevelSettings[ whichLevel-1 ].tolerance;
 					_StDev 		= kLevelSettings[ whichLevel-1 ].sd;
-					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIntervals(kLevelSettings[0].tolerance); //only show 1 tolerance
-					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIQRs(kLevelSettings[0].sd); //only show 1 StDev
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleTolerances(kLevelSettings[0].tolerance); //only show 1 tolerance
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleSDs(kLevelSettings[0].sd); //only show 1 StDev
 					InferenceGames.instance.sSpaceRace.setInterval(_tolerance);
 					InferenceGames.instance.sSpaceRace.setIQR(_StDev);
 					break;
@@ -98,7 +98,7 @@ package
 					_nextToleranceIndex = (_nextToleranceIndex + 1) % kLevel2tolerances.length; // next index in bounds
 					_StDev = kLevelSettings[ whichLevel-1 ].sd;
 					_tolerance = kLevel2tolerances[_nextToleranceIndex];
-					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIQRs(kLevelSettings[1].sd); //only show 1 StDev
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleSDs(kLevelSettings[1].sd); //only show 1 StDev
 					InferenceGames.instance.sSpaceRace.setInterval(_tolerance);
 					InferenceGames.instance.sSpaceRace.setIQR(_StDev);
 					break;
@@ -106,7 +106,7 @@ package
 					_nextStDevIndex = (_nextStDevIndex + 1) % kLevel3stDev.length; // next index in bounds
 					_tolerance = kLevelSettings[ whichLevel-1 ].tolerance;
 					_StDev	  = kLevel3stDev[_nextStDevIndex];
-					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleIntervals(kLevelSettings[2].tolerance); //only show 1 tolerance
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleTolerances(kLevelSettings[2].tolerance); //only show 1 tolerance
 					InferenceGames.instance.sSpaceRace.setInterval(_tolerance);
 					InferenceGames.instance.sSpaceRace.setIQR(_StDev);
 					break;

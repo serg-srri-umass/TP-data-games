@@ -8,6 +8,7 @@
 	import embedded_asset_classes.InferenceEvent;
 
 	import common.ParkMiller;
+	import common.MathUtilities;
 	
 	public class SpaceRaceBody extends MovieClip{
 		
@@ -170,21 +171,21 @@
 			}
 		}
 		
-		// ----------- IQR / INTERVAL SECTION ------------
-		public function setPossibleIQRs( iqr1:int = 0, iqr2:int = 0, iqr3:int = 0, iqr4:int = 0, iqr5:int = 0):void{
-			setBarLengthIQR( iqrMVC.barMVC1, iqr1);
-			setBarLengthIQR( iqrMVC.barMVC2, iqr2);
-			setBarLengthIQR( iqrMVC.barMVC3, iqr3);
-			setBarLengthIQR( iqrMVC.barMVC4, iqr4);
-			setBarLengthIQR( iqrMVC.barMVC5, iqr5);
-			setActiveIQR(iqr1);
+		// ----------- StDev / Tolerance SECTION ------------
+		public function setPossibleSDs( iqr1:int = 0, iqr2:int = 0, iqr3:int = 0, iqr4:int = 0, iqr5:int = 0):void{
+			setBarLengthSD( iqrMVC.barMVC1, iqr1);
+			setBarLengthSD( iqrMVC.barMVC2, iqr2);
+			setBarLengthSD( iqrMVC.barMVC3, iqr3);
+			setBarLengthSD( iqrMVC.barMVC4, iqr4);
+			setBarLengthSD( iqrMVC.barMVC5, iqr5);
+			setActiveSD(iqr1);
 			
-			// if no values are provided, hide the word "IQR"
+			// if no values are provided, hide the word "St.Dev."
 			iqrMVC.textMVC.visible = (iqr1 > 0);
 		}
 		
 		// set what possible intervals are allowed this game.
-		public function setPossibleIntervals( interval1:int = 0, interval2:int = 0, interval3:int = 0, interval4:int = 0, interval5:int = 0):void{
+		public function setPossibleTolerances( interval1:int = 0, interval2:int = 0, interval3:int = 0, interval4:int = 0, interval5:int = 0):void{
 			setBarLengthInterval( intervalMVC.barMVC1, interval1);
 			setBarLengthInterval( intervalMVC.barMVC2, interval2);
 			setBarLengthInterval( intervalMVC.barMVC3, interval3);
@@ -196,9 +197,10 @@
 			intervalMVC.textMVC.visible = (interval1 > 0);
 		}
 		
-		// of the predefined possible IQRs, selects the one who matches the given value
-		public function setActiveIQR( value:Number):Boolean{
-			distributionMVC.width = (numlineToStage(value) - startPoint) * 3.472;  // the distribution is 3.472 times widers than its IQR
+		// of the predefined possible SDs, selects the one who matches the given value
+		public function setActiveSD( value:Number):Boolean {
+			const kShadedAreaProportion:Number = 3.5555; // the ratio of +/- 1 St.Dev. shaded area to total image width is about 3.5555.
+			distributionMVC.width = widthOfNumber( value ) * 2 * kShadedAreaProportion; // convert from 1 SD to width of distribution image in pixels 
 			return setActiveBar( iqrMVC, value);
 		}
 		
@@ -208,28 +210,30 @@
 			return setActiveBar( intervalMVC, value);
 		}		
 		
-		// sets the length of a bar mvc (either interval or IQR) to the given length. If length = 0, hide the bar.
-		private function setBarLengthIQR( bar:MovieClip, length:Number):void{
-			bar.lengthVar = length; // this lets the bar remember its length.
-			if( length <= 0){
-				bar.visible = false;
-			} else {
-				bar.visible = true;
-				bar.barMVC.width = widthOfNumber( length);
-				bar.numberTxt.x = bar.barMVC.width + 10;
-				bar.numberTxt.text = String(length);
-			}
-		}
-		
-		// sets the length of a bar mvc (interval) to the given length. If length = 0, hide the bar.
-		private function setBarLengthInterval( bar:MovieClip, length:Number):void{
+		// sets the length of a bar mvc to match the Standard Deviation.  The bar length is actually twice the SD. If length = 0, hide the bar.
+		private function setBarLengthSD( bar:MovieClip, length:Number):void{
+			const kTextSpacer:int = 10;
 			bar.lengthVar = length; // this lets the bar remember its length.
 			if( length <= 0){
 				bar.visible = false;
 			} else {
 				bar.visible = true;
 				bar.barMVC.width = widthOfNumber( length * 2);
-				bar.numberTxt.x = bar.barMVC.width + 35;
+				bar.numberTxt.x = bar.barMVC.width + kTextSpacer;
+				bar.numberTxt.text = "±" + String(length);
+			}
+		}
+		
+		// sets the length of a bar mvc to the given Tolerance. The bar length is actually twice the tolerance. If length = 0, hide the bar.
+		private function setBarLengthInterval( bar:MovieClip, length:Number):void{
+			const kTextSpacer:int = 35;
+			bar.lengthVar = length; // this lets the bar remember its length.
+			if( length <= 0){
+				bar.visible = false;
+			} else {
+				bar.visible = true;
+				bar.barMVC.width = widthOfNumber( length * 2);
+				bar.numberTxt.x = bar.barMVC.width + kTextSpacer;
 				bar.numberTxt.text = "±" + String(length);
 			}
 		}
