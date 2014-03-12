@@ -75,6 +75,9 @@ package
 		
 		private var dataTimer:Timer;
 		private const _dataDelayTime:int = 50; //delay time between sending points to DG in ms
+		private const kMinMean:Number = 0;
+		private const kMaxMean:Number = 1000;
+		private const kScaleWdith:Number = 100;
 		
 	
 		// constructor
@@ -98,6 +101,7 @@ package
 					_nextToleranceIndex = (_nextToleranceIndex + 1) % kLevel2tolerances.length; // next index in bounds
 					_StDev = kLevelSettings[ whichLevel-1 ].sd;
 					_tolerance = kLevel2tolerances[_nextToleranceIndex];
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleTolerances(kPossibleTolerances[0], kPossibleTolerances[1], kPossibleTolerances[2], kPossibleTolerances[3]);
 					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleSDs(kLevelSettings[1].sd); //only show 1 StDev
 					InferenceGames.instance.sSpaceRace.setInterval(_tolerance);
 					InferenceGames.instance.sSpaceRace.setIQR(_StDev);
@@ -107,6 +111,7 @@ package
 					_tolerance = kLevelSettings[ whichLevel-1 ].tolerance;
 					_StDev	  = kLevel3stDev[_nextStDevIndex];
 					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleTolerances(kLevelSettings[2].tolerance); //only show 1 tolerance
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleSDs(kPossibleStDevs[0],kPossibleStDevs[1],kPossibleStDevs[2],kPossibleStDevs[3],kPossibleStDevs[4]);
 					InferenceGames.instance.sSpaceRace.setInterval(_tolerance);
 					InferenceGames.instance.sSpaceRace.setIQR(_StDev);
 					break;
@@ -115,6 +120,8 @@ package
 					_nextStDevIndex = (_nextStDevIndex + 1) % kLevel4stDev.length; // next index in bounds
 					_tolerance = kLevel4tolerances[_nextToleranceIndex];
 					_StDev	  = kLevel4stDev[_nextStDevIndex];
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleTolerances(kPossibleTolerances[0], kPossibleTolerances[1], kPossibleTolerances[2], kPossibleTolerances[3]);
+					InferenceGames.instance.sSpaceRace.bodyMVC.setPossibleSDs(kPossibleStDevs[0],kPossibleStDevs[1],kPossibleStDevs[2],kPossibleStDevs[3],kPossibleStDevs[4]);
 					InferenceGames.instance.sSpaceRace.setInterval(_tolerance);
 					InferenceGames.instance.sSpaceRace.setIQR(_StDev);
 					break;
@@ -122,8 +129,8 @@ package
 					break;
 			}
 			
-			_popMean 	= (Math.round(InferenceGames.instance.randomizer.uniformNtoM( 0, 100 ) * 10)/10);
-			_minOfRange = 100 * Math.floor( _popMean / 100 );
+			_popMean 	= (Math.round(InferenceGames.instance.randomizer.uniformNtoM( kMinMean, kMaxMean ) * 10)/10);
+			_minOfRange = kScaleWdith * Math.floor( _popMean / kScaleWdith );
 			_sampleMean = 0;
 			_level = whichLevel; 
 			
@@ -163,6 +170,11 @@ package
 		
 		public function get numDataSoFar():int{
 			return _sample.length;
+		}
+		
+		// get the lower endpoint of the visible scale (0-100, 100-200, etc).
+		public function get minOfRange():int{
+			return _minOfRange;
 		}
 		
 		public function addData( data:Vector.<Number>):void{

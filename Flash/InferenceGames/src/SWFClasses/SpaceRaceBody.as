@@ -79,20 +79,20 @@
 		// give this method a position on the numberline, and it will return a stage coordinate.
 		public function numlineToStage( arg:Number):Number
 		{
-			var percentageGain:Number = (arg / 100) * numberlineLength;
+			var percentageGain:Number = ((arg - main.minOfRange) / 100) * numberlineLength;
 			return startPoint + percentageGain;
 		}
 
 		// give this method a stage coordinate (X) and it will return a position on the numberline.
 		public function stageToNumline( arg:Number):Number
 		{
-			return (arg - startPoint) / numberlineLength * 100;
+			return ((arg - startPoint) / numberlineLength * 100) + main.minOfRange;
 		}		
 		
 		// give this method a length, and it will return how many px it is long on the numberline
 		private function widthOfNumber( arg:Number):Number
 		{
-			return numlineToStage( arg) - startPoint;
+			return arg * numberlineLength / 100;
 		}
 		
 		

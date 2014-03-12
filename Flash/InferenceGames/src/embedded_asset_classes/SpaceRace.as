@@ -30,6 +30,7 @@
 		private var _interval:int; 			// GUESS INTERVAL
 		private var _IQR:int; 				// DISTRIBUTION IQR
 		private var _sampleSize:int;		// how many samples are drawn each time the sample button is clicked.
+		private var _minOfRange:int;		// lower endpoint of scale (e.g. 100 for 100-200 scale)
 
 		// timers:
 		public var newRoundTimer:Timer = new Timer(500, 1); // one second delay between old round finishing & new round being requested.
@@ -53,6 +54,7 @@
 			
 			bodyMVC.setStage( stage);
 			bodyMVC.setSpaceRace( this);
+			bodyMVC.controlsMVC.setSpaceRace( this);
 			
 			// event listener section:
 			this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
@@ -71,12 +73,13 @@
 		// ----------- NEW ROUND / NEW GAME / END GAME --------------
 		
 		// start a new round. Give it an IQR, interval, the distribution median, & sample size.
-		public function newRound( iqr:int, interval:int, median:Number, sampleSize:int):void
+		public function newRound( iqr:int, interval:int, median:Number, sampleSize:int, min:int ):void
 		{
 			this.median = median;
 			this.sampleSize = sampleSize;
 			this.setIQR(iqr);
 			this.setInterval(interval);
+			_minOfRange = min;
 			
 			trace("The median is: " + median);
 			bodyMVC.moveDistributionTo(_median);
@@ -84,14 +87,22 @@
 			bodyMVC.controlsMVC.hideExpert();
 			bodyMVC.controlsMVC.hideHuman();
 			bodyMVC.startDataSampling();
+
+			// set the endpoints of the numberline to the correct range
+			trace("The range starts at "+ minOfRange );
+			bodyMVC.numberlineMVC.minOfRangeTxt.text = String(minOfRange);
+			bodyMVC.numberlineMVC.maxOfRangeTxt.text = String(minOfRange+100);
+
+			// move the tolerance bar to a known place, otherwise it will be in an arbitrary spot at the start of the round
+			bodyMVC.controlsMVC.setToleranceBarOnNumberline( minOfRange );
 		}
 		
 		// start a new game.
 		public function newGame( possibleIQRs:Array, startingIQR:Number, possibleIntervals:Array, startingInterval:Number, levelNumber:int):void{
 			//resetScore();
 			
-			bodyMVC.setPossibleSDs(possibleIQRs[0], possibleIQRs[1], possibleIQRs[2], possibleIQRs[3], possibleIQRs[4]);
-			bodyMVC.setPossibleTolerances(possibleIntervals[0], possibleIntervals[1], possibleIntervals[2], possibleIntervals[3], possibleIntervals[4]);
+			//bodyMVC.setPossibleSDs(possibleIQRs[0], possibleIQRs[1], possibleIQRs[2], possibleIQRs[3], possibleIQRs[4]);
+			//bodyMVC.setPossibleTolerances(possibleIntervals[0], possibleIntervals[1], possibleIntervals[2], possibleIntervals[3], possibleIntervals[4]);
 			//bodyMVC.showFeedback("Level " + levelNumber, "Start Game");
 			//bodyMVC.promptTxt.text = "";
 						
@@ -152,6 +163,7 @@
 		public function get median():Number{	return _median;		}
 		public function get guess():Number{		return _guess;		}
 		public function get sampleSize():int{	return _sampleSize;	}
+		public function get minOfRange():int{	return _minOfRange;	}
 		
 		// set how many samples will be drawn per chunk.
 		public function set sampleSize( arg:int):void{

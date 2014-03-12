@@ -19,6 +19,7 @@
 		//
 		
 		public static var INSTANCE:SpaceRaceControls;
+		private var main:*; // to access SpaceRace.as.
 		
 		private var t1:Tween, t2:Tween, t3:Tween, t4:Tween, t5:Tween, t6:Tween, t7:Tween, t8:Tween, t9:Tween, t10:Tween; 
 		//Tweens should never be declaired in a method's scope, because they might be garbage collected before they complete.
@@ -59,7 +60,12 @@
 			//mainMenuMVC.newGameBtn.addEventListener( MouseEvent.CLICK, dispatchRequestNewGame);
 			//mainMenuMVC.changeLevelBtn.addEventListener( MouseEvent.CLICK, dispatchRequestChangeLevels);
 			mainMenuMVC.visible = false;
-		}		
+		}
+		
+		// save a reference to SpaceRace.as
+		public function setSpaceRace( arg:*):void{
+			main = arg;
+		}
 		
 		// --- HUMAN SECTION ------------------------------------------------------------------------
 		// makes human controls invisible
@@ -234,15 +240,8 @@
 		public function moveGuessToText( triggerEvent:Event = null):void{
 			// if the keypress isn't "ENTER", we want to move the guess rect. to the guess' location
 			var guessLocation:Number = validateGuess();
-			if( guessLocation >= 0 && guessLocation <= 100){	// the bar goes from 0 - 100
-				var newX:Number = SpaceRaceBody.INSTANCE.numlineToStage( guessLocation);
-				t4 = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, newX, 12); // move the X value of the interval bar over 12 frames
-			} else {	// if the # is outside of the possible range, move it to the extreme value.
-				if(guessLocation < 0)
-					t5 = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, SpaceRaceBody.INSTANCE.numlineToStage(0), 12); // move X value of interval bar
-				if(guessLocation > 100)
-					t6 = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, SpaceRaceBody.INSTANCE.numlineToStage(100), 12); // move X value of interval bar
-			}
+			var newX:Number = SpaceRaceBody.INSTANCE.numlineToStage( guessLocation);
+			t4 = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, newX, 12); // move the X value of the interval bar over 12 frames
 		}
 		
 		// start dragging the interval rectangle.
@@ -279,12 +278,12 @@
 			updateTimer.start();
 		}
 		
-		// given a number, if < 100, return 100. If > 0, return 0. Otherwise, return number.
+		// given a number on numberline, clip to min and max of range (e.g. 0-100)
 		public function constrainMinMax( arg:Number):Number{
-			if( arg < 0)
-				return 0;
-			if( arg > 100)
-				return 100;
+			if( arg < (main.minOfRange+0))
+				return main.minOfRange;
+			if( arg > (main.minOfRange+100))
+				return main.minOfRange+100;
 			return arg;
 		}
 		
@@ -294,6 +293,11 @@
 		}
 		private function unhighlightInterval( triggerEvent:Event):void{
 			barMVC.gotoAndStop(1);
+		}
+		
+		// move the Tolerance bar to the given position on the numberline
+		public function setToleranceBarOnNumberline( axisValue:Number ):void{
+			barMVC.x = SpaceRaceBody.INSTANCE.numlineToStage( axisValue);
 		}
 		
 		
