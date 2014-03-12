@@ -57,7 +57,7 @@
 			// event listener section:
 			this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
 			newRoundTimer.addEventListener(TimerEvent.TIMER, requestNewRound);	// when the new round timer completes, the new round starts.;
-			showMainMenu( 1);
+			showMainMenu( 1, 0 );
 		}
 		
 		public function establishLevels( ...rest):void{	// this method takes in any number of Arrays. The arrays should have 4 properties:
@@ -120,17 +120,23 @@
 			bodyMVC.setPossibleIntervals();
 		}
 		
-		public function showMainMenu( unlockedLevels:int):void{
+		public function showMainMenu( unlockedLevels:int, completedLevels:int ):void{
 			bodyMVC.controlsMVC.showMainMenu();
 			bodyMVC.controlsMVC.hideHuman();
 			bodyMVC.controlsMVC.hideExpert();
 			bodyMVC.controlsMVC.hideFeedback();
 			
+			// unlock and check the individual levels
 			for( var i:int = 1; i <= 4; i++){
 				if( i <= unlockedLevels){
 					bodyMVC.controlsMVC.unlockLevelButton(i);
 				} else {
 					bodyMVC.controlsMVC.lockLevelButton(i);
+				}
+				if( i <= completedLevels) {
+					bodyMVC.controlsMVC.checkLevelButton(i);
+				} else {
+					bodyMVC.controlsMVC.uncheckLevelButton(i);
 				}
 			}
 			

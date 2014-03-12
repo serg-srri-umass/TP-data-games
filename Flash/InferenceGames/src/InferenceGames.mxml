@@ -51,6 +51,7 @@
 				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='inferenceInfo'>DRL-0918653</a></u></font> (2009-2014). "+
 				"Inference is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='inferenceInfo'>Github</a></u></font>. "+
 				"Copyright (c) 2013<span class='x'>-2014 by University of Massachusetts Amherst.";
+			private static const kGameDescriptionText:String = "Inference Game descrption goes here!";
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
@@ -68,7 +69,8 @@
 			public var randomizer:ParkMiller = null;
 			public var isInGame:Boolean = false; // whether there is a game currently going on.
 			[Bindable]
-			public var unlockedLevels:uint = 1; // how many levels the player has unlocked.
+			public var unlockedLevels:uint = 1; // the player has unlocked levels <= this value.
+			public var completedLevels:uint = 0; // the player has completed levels <= this value.
 			
 			// this method ensures that the flash player is a recent enough version to work.
 			private function testFlashPlayer():void {
@@ -213,6 +215,9 @@
 					// if the player beats their current level, unlock the next.
 					unlockedLevels++;
 				}
+				if( isUserWin && completedLevels < mGameLevel ) {
+					completedLevels = mGameLevel;
+				}
 				return wantLevelUnlocked;
 			}
 			
@@ -243,6 +248,7 @@
 					["Level 2", "±"+Round.kLevelSettings.getItemAt(1).sd, Round.kLevelSettings.getItemAt(1).tolerance,  	click_lvl2Btn],
 					["Level 3", Round.kLevelSettings.getItemAt(2).sd, "±"+Round.kLevelSettings.getItemAt(2).tolerance,  click_lvl3Btn],
 					["Level 4", Round.kLevelSettings.getItemAt(3).sd, Round.kLevelSettings.getItemAt(3).tolerance,  	click_lvl4Btn]);
+				sSpaceRace.bodyMVC.controlsMVC.mainMenuMVC.gameDescriptionTxt.text = kGameDescriptionText;
 				
 				sDebugConsole = new DebugConsoleSWC();
 				gameContainer.addChild(sDebugConsole);
@@ -364,6 +370,7 @@
 							gameLevel:	this.mGameLevel,
 							inGame:		this.isInGame,
 							unlockedTo:	this.unlockedLevels,
+							completedTo:this.completedLevels,
 							roundID:	Round.currentRound.roundID,
 							humanScore:	this.sSpaceRace.humanScore,
 							expertScore:this.sSpaceRace.expertScore
@@ -384,6 +391,9 @@
 					if( iState.unlockedTo && iState.unlockedTo >= 1 ) {
 						this.unlockedLevels = iState.unlockedTo; // OK if unlockedTo is above Round.kLevelSettings.length
 					}
+					if( iState.completedTo && iState.completedTo >= 1 ) {
+						this.completedLevels = iState.completedTo;
+					}
 					if( iState.roundID && iState.roundID >= 1 ) {
 						//restore roundID
 						Round.currentRound = new Round( mGameLevel);
@@ -399,7 +409,7 @@
 							mGameLevel = iState.gameLevel;
 							sSpaceRace.topBarMVC.setTitleMessage("LEVEL " + mGameLevel);
 							
-							sSpaceRace.showMainMenu(unlockedLevels);
+							sSpaceRace.showMainMenu( unlockedLevels, completedLevels );
 						}
 						// else ignore invalid levels
 					}
@@ -529,7 +539,7 @@
 				newRoundHandler();
 			}
 			
-			// called when 'end game' btn is clicked. Clears the stage, and resets the scores.
+			// called when 'end game'/'continue' btn is clicked. Clears the stage, and resets the scores.
 			public function endGame( triggerEvent:Event = null):void{      			
 				// end the old round if there was one
 				if(Round.currentRound){
@@ -539,7 +549,7 @@
 				setGameAndRoundLabel(); // clear the label
 				isInGame = false;
 				sSpaceRace.endGame();
-				sSpaceRace.showMainMenu( unlockedLevels);
+				sSpaceRace.showMainMenu( unlockedLevels, completedLevels );
 			}
 			
 			// display the given Game and Round numbers, or hide the old number display if passed zeros. 

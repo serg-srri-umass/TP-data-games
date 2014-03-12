@@ -361,35 +361,52 @@
 		}
 		
 		
-		
 		private var level1Func:Function, level2Func:Function, level3Func:Function, level4Func:Function;
+		
+		// set the text for the Level selection button
 		public function setLevelButton( number:int, name:String, iqr:String, interval:String, clickFunction:Function){
 			var myBtn:MovieClip = mainMenuMVC["level" + number + "Btn"];
 			trace(clickFunction);
 			myBtn.addEventListener( MouseEvent.CLICK, clickFunction);
 			myBtn.nameTxt.text = name;
-			myBtn.iqrIntervalTxt.text = "(IQR: " + iqr + ", Interval: " + interval + ")";
+			myBtn.iqrIntervalTxt.text = "St.Dev. " + iqr + ", Tolerance " + interval;
 		}
 		
-		public function lockLevelButton( arg:int):void{
-			if( arg < 0 || arg > 4)
+		public function lockLevelButton( whichLevel:int):void{
+			if( whichLevel < 0 || whichLevel > 4)
 				throw new Error("Only 4 levels exist.");
-			var myBtn:MovieClip = mainMenuMVC["level" + arg + "Btn"];
+			var myBtn:MovieClip = mainMenuMVC["level" + whichLevel + "Btn"];
 			myBtn.enabled = false;
 			myBtn.buttonMode = false;
 			myBtn.mouseEnabled = false;
 			myBtn.alpha = 0.1;
 		}
 		
-		public function unlockLevelButton( arg:int):void{
-			if( arg < 0 || arg > 4)
+		public function unlockLevelButton( whichLevel:int):void{
+			if( whichLevel < 0 || whichLevel > 4)
 				throw new Error("Only 4 levels exist.");
-			var myBtn:MovieClip = mainMenuMVC["level" + arg + "Btn"];
+			var myBtn:MovieClip = mainMenuMVC["level" + whichLevel + "Btn"];
 			myBtn.enabled = true;
 			myBtn.buttonMode = true;
 			myBtn.mouseEnabled = true;
 			myBtn.alpha = 1;
 		}
+		
+		// show the check next to the given level in the main menu
+		public function checkLevelButton( whichLevel:int):void{
+			if( whichLevel < 0 || whichLevel > 4)
+				throw new Error("Only 4 levels exist.");
+			var myBtn:MovieClip = mainMenuMVC["level" + whichLevel + "Btn"];
+			myBtn.checkmarkMVC.visible = true;
+		}
+		
+		// hide the check next to the given level in the main menu
+		public function uncheckLevelButton( whichLevel:int):void{
+			if( whichLevel < 0 || whichLevel > 4)
+				throw new Error("Only 4 levels exist.");
+			var myBtn:MovieClip = mainMenuMVC["level" + whichLevel + "Btn"];
+			myBtn.checkmarkMVC.visible = false;
+		}		
 	}	
 	
 }
