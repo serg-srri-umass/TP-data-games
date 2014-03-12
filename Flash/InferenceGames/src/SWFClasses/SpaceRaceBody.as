@@ -10,6 +10,21 @@
 	import common.ParkMiller;
 	import common.MathUtilities;
 	
+	/*
+		This code is used by SpaceRaceSWC.swc, which is built by Flash CS6 (not flash builder).
+		This means that each code change requires that SpaceRaceSWC.fla be loaded then published.
+		How publish a Flash .fla:
+			0. Save changes in .as file in Flash Builder
+			1. Open .fla and Use File:Publish to create new .swc used in Flash Builder
+			2. if errors
+				check File: Publish Settings,
+				check “ActionScript Settings” by clicking Wrench in upper-right, add local source path, because paths cannot be relative.  
+					We kept Mike's paths and added Craig's paths, with “+” then “folder” to pick the equivalent path to Mike's.
+				check output file: click on “swc” and look at path for output file.
+			3. After .fla publish then use Project : Clean in Flash Builder,
+			4. Then build or debug in Flash Builder.
+	*/
+	
 	public class SpaceRaceBody extends MovieClip{
 		
 		//
