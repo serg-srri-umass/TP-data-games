@@ -151,7 +151,7 @@
 		// ------------ SAMPLING FUNCTIONS ------------------
 		
 		public function moveDistributionTo( arg:Number):void{
-			distributionMVC.x = numlineToStage( main.median);
+			distributionMVC.x = numlineToStage( main.mean);
 		}
 				
 		// This method performs the actual sampling.
@@ -159,7 +159,7 @@
 		public function sampleData( triggerEvent:Event = null):Vector.<Number>{
 			var outputVector:Vector.<Number> = new Vector.<Number>();
 			for( var i:int = 0; i < main.sampleSize; i++){
-				var numToPush:Number =  pm.normalWithMeanIQR( main.median, main.iqr);
+				var numToPush:Number =  pm.normalWithMeanSD( main.mean, main.stdev);
 				dataBladder.push( numToPush);
 				outputVector.push( numToPush);
 			}
@@ -221,7 +221,7 @@
 		
 		// of the possible predefined intervals, selects the one with the given value
 		public function setActiveInterval( value:Number):Boolean{
-			controlsMVC.barMVC.width = ( widthOfNumber( value * 2));	// the width is 2x the interval.
+			controlsMVC.barMVC.width = ( widthOfNumber( value * 2));	// the width is 2x the tolerance.
 			return setActiveBar( intervalMVC, value);
 		}		
 		
@@ -289,7 +289,7 @@
 		// turns the distribution yellow (win) or white (lose), based on the guess.
 		private function revealAnswer( triggerEvent:Event = null):void
 		{
-			if ( Math.abs( main.guess - main.median) <= main.interval){
+			if ( Math.abs( main.guess - main.mean) <= main.tolerance){
 				distributionMVC.gotoAndPlay("win");
 			} else {
 				distributionMVC.gotoAndPlay("lose");
@@ -303,12 +303,12 @@
 			turnIntervalWhite();
 		}
 		
-		// turns the draggable interval yellow -glowing
+		// turns the draggable tolerance yellow -glowing
 		public function turnIntervalYellow( triggerEvent:Event = null):void{
 			controlsMVC.barMVC.gotoAndStop("glow");
 		}
 		
-		// turns the draggable interval to white
+		// turns the draggable tolerance to white
 		public function turnIntervalWhite( triggerEvent:Event = null):void{
 			controlsMVC.barMVC.gotoAndStop("off");
 		}

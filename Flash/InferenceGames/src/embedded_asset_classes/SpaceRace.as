@@ -25,10 +25,10 @@
 		private var _playerTurnString:String; // the string it says when its the player's turn.
 		
 		// round & guessing variables:
-		private var _median:Number;			// the _median of the distribution that is currently being sampled.
+		private var _mean:Number;			// mean of the distribution that is being sampled.
 		private var _guess:Number = -100; 	// The guess #. Valid guesses range from 0 - 100. 
-		private var _interval:int; 			// GUESS INTERVAL
-		private var _IQR:int; 				// DISTRIBUTION IQR
+		private var _tolerance:int; 		// tolerance for guesses
+		private var _StDev:int; 			// Standard Deviation of the distribution that is being sampled
 		private var _sampleSize:int;		// how many samples are drawn each time the sample button is clicked.
 		private var _minOfRange:int;		// lower endpoint of scale (e.g. 100 for 100-200 scale)
 
@@ -72,17 +72,17 @@
 
 		// ----------- NEW ROUND / NEW GAME / END GAME --------------
 		
-		// start a new round. Give it an IQR, interval, the distribution median, & sample size.
-		public function newRound( iqr:int, interval:int, median:Number, sampleSize:int, min:int ):void
+		// start a new round. Give it a Standard Deviation, tolerance, the distribution mean, & sample size.
+		public function newRound( stdev:int, tolerance:int, mean:Number, sampleSize:int, min:int ):void
 		{
-			this.median = median;
+			this.mean = mean;
 			this.sampleSize = sampleSize;
-			this.setIQR(iqr);
-			this.setInterval(interval);
+			this.setStDev(stdev);
+			this.setTolerance(tolerance);
 			_minOfRange = min;
 			
-			trace("The median is: " + median);
-			bodyMVC.moveDistributionTo(_median);
+			trace("The mean is: " + mean);
+			bodyMVC.moveDistributionTo(_mean);
 			bodyMVC.hideAnswer();
 			bodyMVC.controlsMVC.hideExpert();
 			bodyMVC.controlsMVC.hideHuman();
@@ -126,7 +126,7 @@
 			
 			//bodyMVC.controlsMVC.mainMenuMVC.newLevelsTxt.text = (newLevelUnlocked ? "New level unlocked!" : "");
 			
-			//hide the interval and IQR bars when ending game
+			//hide the tolerance and IQR bars when ending game
 			bodyMVC.setPossibleSDs();
 			bodyMVC.setPossibleTolerances();
 		}
@@ -158,9 +158,9 @@
 		public function get playerTurnString():String{	return _playerTurnString;	}
 		public function get expertTurnString():String{	return _expertTurnString;	}
 		
-		public function get iqr():int{			return _IQR;		}
-		public function get interval():int{		return _interval;	}
-		public function get median():Number{	return _median;		}
+		public function get stdev():int{			return _StDev;		}
+		public function get tolerance():int{	return _tolerance;	}
+		public function get mean():Number{	return _mean;		}
 		public function get guess():Number{		return _guess;		}
 		public function get sampleSize():int{	return _sampleSize;	}
 		public function get minOfRange():int{	return _minOfRange;	}
@@ -177,22 +177,22 @@
 			_guess = arg;
 		}
 		
-		// sets the length of the IQR
-		public function setIQR( arg:int):void
+		// sets population Standard Deviation
+		public function setStDev( arg:int):void
 		{
-			_IQR = arg;
+			_StDev = arg;
 			bodyMVC.setActiveSD(arg);
 		}
 
-		// sets the length of the Interval
-		public function setInterval( arg:int, hidden:Boolean = false):void
+		// sets the allowable tolerance value for guesses
+		public function setTolerance( arg:int, hidden:Boolean = false):void
 		{
-			_interval = arg;
+			_tolerance = arg;
 			bodyMVC.setActiveInterval(arg);
 		}
 		
-		public function set median( arg:Number):void{
-			_median = arg;
+		public function set mean( arg:Number):void{
+			_mean = arg;
 		}
 		
 		

@@ -14,7 +14,7 @@
 	public class SpaceRaceControls extends MovieClip {
 		//
 		// The SpaceRaceControls are the parts of SpaceRaceBody that players interact with.
-		// It includes the buttons, draggable interval, cancel button, etc.
+		// It includes the buttons, draggable tolerance, cancel button, etc.
 		// (It does NOT include the top bar.)
 		//
 		
@@ -27,7 +27,7 @@
 		public var activePlayerIsHuman:Boolean;	// is the active player the human player?
 		private var updateTimer:Timer = new Timer(300, 1); // this timer is the delay between inputting text and the bar updating.
 															// For example if a user types '44', the bar doesn't go to 4, then 44.
-		private var isDraggingInterval:Boolean = false;	// whether or not the player is dragging the guess - interval.
+		private var isDraggingInterval:Boolean = false;	// whether or not the player is dragging the guess - tolerance.
 		
 		// this method acts like a fake constructor. It has to be called before anything can be done with the SpaceRaceControls.
 		public function establish() {
@@ -85,7 +85,7 @@
 		}
 		
 		// opens the "guessing controls". The human player has two options: Input a guess, or cancel.
-		// this also makes the guess-interval visible.
+		// this also makes the guess-tolerance visible.
 		public function openInputCancelHuman( triggerEvent:Event = null):void{
 			t1 = new Tween( barMVC, "alpha", None.easeNone, barMVC.alpha, 1, 12); 
 			draggingControlMVC.mouseEnabled = true;
@@ -176,7 +176,7 @@
 				return; // don't allow invalid guesses.
 			myGuess = constrainMinMax( myGuess);
 			
-			draggingControlMVC.mouseEnabled = false;	// once the guess has been placed, don't let them drag the interval any more
+			draggingControlMVC.mouseEnabled = false;	// once the guess has been placed, don't let them drag the tolerance any more
 			draggingControlMVC.buttonMode = false;
 				
 			SpaceRaceBody.INSTANCE.guess = myGuess; // set the guess value.
@@ -236,15 +236,15 @@
 			}			
 		}
 		
-		// this method moves the guess-interval to the text's position.
+		// this method moves the guess-tolerance to the text's position.
 		public function moveGuessToText( triggerEvent:Event = null):void{
 			// if the keypress isn't "ENTER", we want to move the guess rect. to the guess' location
 			var guessLocation:Number = validateGuess();
 			var newX:Number = SpaceRaceBody.INSTANCE.numlineToStage( guessLocation);
-			t4 = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, newX, 12); // move the X value of the interval bar over 12 frames
+			t4 = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, newX, 12); // move the X value of the tolerance bar over 12 frames
 		}
 		
-		// start dragging the interval rectangle.
+		// start dragging the tolerance rectangle.
 		private function startDragFunc( triggerEvent:MouseEvent):void{
 			if( !isDraggingInterval){
 				barMVC.startDrag(true, new Rectangle( SpaceRaceBody.INSTANCE.startPoint, SpaceRaceBody.INSTANCE.numberlineY, (SpaceRaceBody.INSTANCE.endPoint - SpaceRaceBody.INSTANCE.startPoint) + 1, 0));
@@ -254,7 +254,7 @@
 			}
 		}
 		
-		// stop dragging the interval rectangle.
+		// stop dragging the tolerance rectangle.
 		private function stopDragFunc( triggerEvent:MouseEvent):void{
 			if( isDraggingInterval){
 				SpaceRaceBody.INSTANCE.myStage.removeEventListener(MouseEvent.MOUSE_MOVE, updateGuess);
@@ -265,14 +265,14 @@
 			}
 		}
 		
-		// this method updates the guess text to reflect the position of the draggy-interval.
+		// this method updates the guess text to reflect the position of the draggy-tolerance.
 		private function updateGuess( triggerEvent:MouseEvent = null):void{
 			var activeControls:MovieClip = (activePlayerIsHuman ? controlsHumanMVC : controlsExpertMVC);
 			activeControls.inputMVC.inputTxt.text = String(	constrainMinMax( SpaceRaceBody.INSTANCE.stageToNumline( barMVC.x)).toFixed(1));
 		}
 		
-		// the guess-interval automatically updates when new text is typed in. This method acts as a buffer for typing.
-		// without this updateTimer delay, the guess-interval would jump around erratically.
+		// the guess-tolerance automatically updates when new text is typed in. This method acts as a buffer for typing.
+		// without this updateTimer delay, the guess-tolerance would jump around erratically.
 		private function updateGuessNumber( triggerEvent:Event = null):void{
 			updateTimer.reset();
 			updateTimer.start();
@@ -287,7 +287,7 @@
 			return arg;
 		}
 		
-		//draggingControlMVC runs across the entire numberline. Mousing over it highlights the interval bar.
+		//draggingControlMVC runs across the entire numberline. Mousing over it highlights the tolerance bar.
 		private function highlightInterval( triggerEvent:Event):void{
 			barMVC.gotoAndStop(2);
 		}
@@ -368,12 +368,12 @@
 		private var level1Func:Function, level2Func:Function, level3Func:Function, level4Func:Function;
 		
 		// set the text for the Level selection button
-		public function setLevelButton( number:int, name:String, iqr:String, interval:String, clickFunction:Function){
+		public function setLevelButton( number:int, name:String, stdev:String, tolerance:String, clickFunction:Function){
 			var myBtn:MovieClip = mainMenuMVC["level" + number + "Btn"];
 			trace(clickFunction);
 			myBtn.addEventListener( MouseEvent.CLICK, clickFunction);
 			myBtn.nameTxt.text = name;
-			myBtn.iqrIntervalTxt.text = "St.Dev. " + iqr + ", Tolerance " + interval;
+			myBtn.iqrIntervalTxt.text = "St.Dev. " + stdev + ", Tolerance " + tolerance;
 		}
 		
 		public function lockLevelButton( whichLevel:int):void{
