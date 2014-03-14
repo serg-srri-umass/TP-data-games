@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.1.04";
+			private static const kVersion:String = "v.1.05";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -502,7 +502,7 @@
 				// update DG: open and send a new game case for each round
 				mDGInterface.sendLog( "newRound:"
 					+" round="+Round.currentRound.roundID
-					+" population-median="+Round.currentRound.populationMean
+					+" population-mean="+Round.currentRound.populationMean
 					+" StDev="+Round.currentRound.StDev
 					+" tolerance="+Round.currentRound.tolerance
 					+" chunkSize="+Round.currentRound.chunkSize
