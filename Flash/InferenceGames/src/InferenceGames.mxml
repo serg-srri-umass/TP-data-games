@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.1.06";
+			private static const kVersion:String = "v.1.07";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -490,6 +490,8 @@
 			// start a new round as requested
 			public function newRound():void{
 				
+				trace("==========newRound()===========");
+				
 				// make sure that old round is finished
 				if(Round.currentRound){
 					if(mDGInterface.isGameCaseOpen()) { throw new Error("Old game case not closed before new Round"); }
@@ -505,7 +507,7 @@
 					+" population-mean="+Round.currentRound.populationMean
 					+" StDev="+Round.currentRound.StDev
 					+" tolerance="+Round.currentRound.tolerance
-					+" chunkSize="+Round.currentRound.chunkSize
+					+" sampleSize="+Round.currentRound.sampleSize
 					//+" expert-confidence-percent="+ExpertAI.confidenceIntervalPercent
 					//+" expert-guess-N="+ExpertAI.guessNumSamples 
 				);
@@ -515,7 +517,7 @@
 				//send new round info to Space Race
 				sSpaceRace.newRound( 
 					Round.currentRound.StDev, Round.currentRound.tolerance, Round.currentRound.populationMean, 
-					Round.currentRound.chunkSize, Round.currentRound.minOfRange );
+					Round.currentRound.sampleSize, Round.currentRound.minOfRange );
 			}
 			
 			// end the round started with newRound()

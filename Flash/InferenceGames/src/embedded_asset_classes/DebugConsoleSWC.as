@@ -18,11 +18,13 @@ package embedded_asset_classes
 		// ----------------
 		
 		internal var c1:Command  = new Command( "U", "Unlock all levels", false, unlockAllLevels);
-		internal var c2:Command = new Command( "M", "Show Population Median", false, showPopMedian);
+		internal var c2:Command = new Command( "P", "Show Population Mean", false, showPopMedian);
 		internal var c3:Command = new Command("1", "Earn Point (User)", false, earnPointPlayer);
 		internal var c4:Command = new Command("2", "Earn Point (Bot)", false, earnPointBot);
 		internal var c5:Command = new Command("A", "Reveal guess accuracy", false, revealGuessAccuracy);
 		internal var c6:Command = new Command("S", "Soviet Science Mode", true, enterRussianMode); 
+		internal var c7:Command = new Command("C", "Sample Size=100", false, updateSampleSize100); 
+		internal var c8:Command = new Command("M", "Sample Size=1000", false, updateSampleSize1000); 
 		
 		internal var LAST_COMMAND:Command  = new Command("Q", "Quit Console", false, hide);
 		
@@ -58,6 +60,18 @@ package embedded_asset_classes
 		private function enterRussianMode( on:Boolean):void{
 			SpaceRaceControls.INSTANCE.controlsExpertMVC.checkov.visible = on;
 			SpaceRaceControls.INSTANCE.controlsExpertMVC.checkov2.visible = on;
+		}
+		
+		private function updateSampleSize100():void{
+			// NOTE: Round.currentRound.sampleSize is not changed, does not seem to be used anywhere except to set sSpaceRace.sampleSize
+			InferenceGames.instance.sSpaceRace.sampleSize = 100;
+			println("Sample size is now 100 for round.");
+		}
+		
+		private function updateSampleSize1000():void{
+			// NOTE: Round.currentRound.sampleSize is not changed, does not seem to be used anywhere except to set sSpaceRace.sampleSize
+			InferenceGames.instance.sSpaceRace.sampleSize = 1000;
+			println("Sample size is now 1000 for round.");
 		}
 		
 		

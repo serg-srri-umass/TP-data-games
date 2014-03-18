@@ -40,6 +40,8 @@
 		private var _expertScore:int = 0;
 		private var _humanScore:int = 0;
 		
+		private static var wantNormalWidth:Boolean = false;
+		
 	
 		// ----------------------
 		// --- PUBLIC METHODS ---
@@ -60,6 +62,8 @@
 			this.addEventListener( Event.ENTER_FRAME, handleEnterFrame);
 			newRoundTimer.addEventListener(TimerEvent.TIMER, requestNewRound);	// when the new round timer completes, the new round starts.;
 			showMainMenu( 1, 0 );
+			
+			bodyMVC.initDistribution();
 		}
 		
 		public function establishLevels( ...rest):void{	// this method takes in any number of Arrays. The arrays should have 4 properties:
@@ -74,7 +78,7 @@
 		
 		// start a new round. Give it a Standard Deviation, tolerance, the distribution mean, & sample size.
 		public function newRound( stdev:int, tolerance:int, mean:Number, sampleSize:int, min:int ):void
-		{
+		{			
 			this.mean = mean;
 			this.sampleSize = sampleSize;
 			this.setStDev(stdev);
@@ -82,7 +86,12 @@
 			_minOfRange = min;
 			
 			trace("The mean is: " + mean);
-			bodyMVC.moveDistributionTo(_mean);
+			bodyMVC.moveDistributionTo( _mean);
+			bodyMVC.setActiveTolerance( tolerance);
+			bodyMVC.setActiveSD( _StDev );
+			bodyMVC.setNumberlineTolerance( tolerance );
+			bodyMVC.setDistributionSD( _StDev, wantNormalWidth);
+			wantNormalWidth = true; // hack for fixing unknown SD scaling bug on first call to setDistributionSD(). CDM 2014-03-18
 			bodyMVC.hideAnswer();
 			bodyMVC.controlsMVC.hideExpert();
 			bodyMVC.controlsMVC.hideHuman();
@@ -119,7 +128,7 @@
 			bodyMVC.controlsMVC.hideExpert();
 			bodyMVC.controlsMVC.hideFeedback();
 			bodyMVC.promptTxt.text = "";
-			bodyMVC.hideAnswer();; // hide the distribution if it was being shown.
+			bodyMVC.hideAnswer(); // hide the distribution if it was being shown.
 			
 			resetScore();
 			topBarMVC.setTrim("white");
@@ -181,14 +190,12 @@
 		public function setStDev( arg:int):void
 		{
 			_StDev = arg;
-			bodyMVC.setActiveSD(arg);
 		}
 
 		// sets the allowable tolerance value for guesses
 		public function setTolerance( arg:int, hidden:Boolean = false):void
 		{
 			_tolerance = arg;
-			bodyMVC.setActiveInterval(arg);
 		}
 		
 		public function set mean( arg:Number):void{

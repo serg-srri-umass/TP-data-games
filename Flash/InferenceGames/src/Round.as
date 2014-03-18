@@ -64,7 +64,7 @@ package
 		private var _popMean:Number; 	// population mean
 		private var _tolerance:Number;
 		private var _StDev:Number; 		// population standard deviation	
-		private var _chunkSize:int;
+		private var _sampleSize:int;		// number of values to sample at a time (at start of round and each time user passes) (1+)
 		private var _accuracy:int; 		// the chances of guessing correctly at the current sample size (range 0-100)
 		private var _resultString:String = ""; // Result of round: "You won/lost", "Expert won/lost", etc, for DG results attribute
 		private var _minOfRange:int = 0;	// lower end of guessing range for this round, 0 for means in 0-100, 100 for means in 100-200, etc.
@@ -137,7 +137,8 @@ package
 			trace("Population Mean for new round: "+_popMean+" range: "+_minOfRange+"-"+(_minOfRange+100));
 			trace(Round.currentRound);
 			
-			ExpertAI.newRound( _StDev, _tolerance); // prepare the AI for the new round.
+			ExpertAI.calculateGuessN( _StDev, _tolerance ); // prepare the expert AI for the new round.
+			setChunkSize(); // set the chunk size which is dependent on the ExpertAI.calculateGuessN()
 		}
 		
 		//sets size of data chunks to be sent to DG. Called at beginning of new round
@@ -154,11 +155,11 @@ package
 					break;
 				}
 			}
-			// calc the chunk size
-			_chunkSize = ExpertAI.guessNumSamples / numChunks;
-			if(_chunkSize == 0)
-				_chunkSize = 1;
-			trace("Chunk Size set to: " + _chunkSize + " Number of chunks ~ " + numChunks);
+			// calc the sampleSize size
+			_sampleSize = ExpertAI.guessNumSamples / numChunks;
+			if(_sampleSize == 0)
+				_sampleSize = 1;
+			trace("Sample size set to: " + _sampleSize + " Number of chunks before expert guesses ~ " + numChunks);
 		}
 		
 		// when the next round comes, start using the 1st StDev and Tolerance values, if this level
@@ -207,8 +208,8 @@ package
 			return _StDev;
 		}
 		
-		public function get chunkSize():int{
-			return _chunkSize;
+		public function get sampleSize():int{
+			return _sampleSize;
 		}
 		
 		// get the accuracy of the current guess, based on the sample size:

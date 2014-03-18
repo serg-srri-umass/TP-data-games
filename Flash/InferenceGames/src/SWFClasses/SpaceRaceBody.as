@@ -45,7 +45,7 @@
 		public var numberlineLength:Number;		// the length of the number line in px
 		public var startPoint:Number;			// the X position of 0 on the number line
 		public var endPoint:Number;				// the X pos of 100 on the number line
-		public var distributionScaleY:Number;	// the scaleY of the distribution
+		//public var distributionScaleY:Number;	// the scaleY of the distribution
 		
 		// datapoint variables:
 		public var dataPopSpeed:Number = 3;	// determines how much time occurs between the arrival of data pops.
@@ -66,7 +66,7 @@
 			startPoint = start.x;
 			endPoint = end.x;
 			numberlineLength = endPoint - startPoint;
-			distributionScaleY = distributionMVC.scaleY;
+			//distributionScaleY = distributionMVC.scaleY;
 			
 			// add listeners:
 			reactivateTimer.addEventListener(TimerEvent.TIMER, startTurnHuman);	// when data finishes sampling, the next turn is red.
@@ -86,6 +86,15 @@
 		// this method takes in the parent.
 		public function setSpaceRace( arg:*):void{
 			main = arg;
+		}
+		
+		public function initDistribution():void
+		{
+			// tests to try to fix bug where distribution width does not scale correctly on first call to setActiveSD()
+			//distributionMVC.x = 100;
+			//distributionMVC.width = 100;
+			//distributionMVC.scaleX = 1;
+			//distributionMVC.curveMVC.scaleX = 1;
 		}
 		
 		
@@ -206,24 +215,36 @@
 			setBarLengthInterval( intervalMVC.barMVC3, interval3);
 			setBarLengthInterval( intervalMVC.barMVC4, interval4);
 			setBarLengthInterval( intervalMVC.barMVC5, interval5);
-			setActiveInterval(interval1);
+			setActiveTolerance(interval1);
 			
 			// if no values are provided, hide the word "Interval"
 			intervalMVC.textMVC.visible = (interval1 > 0);
 		}
 		
+		// set the Standard Deviation width on the distribution curve
+		public function setDistributionSD( value:Number, wantNormalWidth:Boolean ):Boolean {
+			var kShadedAreaProportion:Number = (wantNormalWidth ? 3.018360514 : 3.5555); //3.5555; // the ratio of +/- 1 St.Dev. shaded area to total image width is about 3.5555.
+			var tWidth:Number = widthOfNumber( value ) * 2 * kShadedAreaProportion; // convert from 1 SD to width of distribution image in pixels 
+			distributionMVC.width = tWidth;
+			trace("SetActiveSD() SD="+value+" width="+tWidth+" kShadedAreaProportion="+kShadedAreaProportion);
+			return true;
+		}
+		
 		// of the predefined possible SDs, selects the one who matches the given value
-		public function setActiveSD( value:Number):Boolean {
-			const kShadedAreaProportion:Number = 3.5555; // the ratio of +/- 1 St.Dev. shaded area to total image width is about 3.5555.
-			distributionMVC.width = widthOfNumber( value ) * 2 * kShadedAreaProportion; // convert from 1 SD to width of distribution image in pixels 
+		public function setActiveSD( value:Number ):Boolean {
 			return setActiveBar( iqrMVC, value);
 		}
 		
-		// of the possible predefined intervals, selects the one with the given value
-		public function setActiveInterval( value:Number):Boolean{
+		// set the Tolerance bar length on the Numberline
+		public function setNumberlineTolerance( value:Number):Boolean{
 			controlsMVC.barMVC.width = ( widthOfNumber( value * 2));	// the width is 2x the tolerance.
+			return true;
+		}
+		
+		// of the possible predefined intervals, selects the one with the given value
+		public function setActiveTolerance( value:Number):Boolean{
 			return setActiveBar( intervalMVC, value);
-		}		
+		}	
 		
 		// sets the length of a bar mvc to match the Standard Deviation.  The bar length is actually twice the SD. If length = 0, hide the bar.
 		private function setBarLengthSD( bar:MovieClip, length:Number):void{
