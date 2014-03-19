@@ -240,7 +240,8 @@
 		public function moveGuessToText( triggerEvent:Event = null):void{
 			// if the keypress isn't "ENTER", we want to move the guess rect. to the guess' location
 			var guessLocation:Number = validateGuess();
-			var newX:Number = SpaceRaceBody.INSTANCE.numlineToStage( guessLocation);
+			const kHackToAlignToleranceBar:Number = 1.0;
+			var newX:Number = kHackToAlignToleranceBar + SpaceRaceBody.INSTANCE.numlineToStage( guessLocation);
 			t4 = new Tween( barMVC, "x", Regular.easeOut, barMVC.x, newX, 12); // move the X value of the tolerance bar over 12 frames
 		}
 		

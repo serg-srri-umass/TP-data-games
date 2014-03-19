@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.1.07";
+			private static const kVersion:String = "v.1.08";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -235,9 +235,9 @@
 			
 			//handles requestSample events from SpaceRace interface
 			private function requestSampleHandler(e:Event):void{
-				var sampledData:Vector.<Number> = sSpaceRace.sampleData();
-				Round.currentRound.addData(sampledData);
-				InferenceGames.instance.sendEventData( sampledData, sSpaceRace.getDataSpeed() ); //send vector of data to DG
+				var sampledData:Vector.<Number> = sSpaceRace.sampleData(); // generate the random samples
+				Round.currentRound.addData(sampledData); // send data to current round so sample statistics can be calculated
+				InferenceGames.instance.sendEventData( sampledData ); // send vector of data to DG for plot and table
 			}
 			
 			private function initVisualElements():void{	
@@ -454,7 +454,7 @@
 			// 		Event data "data point generated" events, with one array value per Event attribute
 			// 		caseValueArrays is an array of cases, and each case is a array of attribute values for that case (corresponding to the attributes previously sent)
 			//		dataSpeed is the time between single cases in milliseconds; we want sending of data to match data appearance in game
-			public function sendEventData( caseValueArrays:Vector.<Number>, dataSpeedinMS:uint ):void {
+			public function sendEventData( caseValueArrays:Vector.<Number> ):void {
 				
 				//converts number vector from SpaceRace into array for DG
 				var convertArray:Array = new Array();
@@ -462,21 +462,26 @@
 					convertArray.push([Round.currentRound.roundID, elem]);
 				}
 				
-				var timer:Timer = new Timer(dataSpeedinMS);
+				// create a timer to send individual data points to DG
+				// use the same speed as the points are shown in the Game, so graph/table matches that speed
+				var caseCount:int = 0;
+				var timer:Timer = new Timer( sSpaceRace.getDataSpeed() );
 				timer.addEventListener(TimerEvent.TIMER, sendSingleDataPoint);
 				timer.start();
 				
-				var count:int = 0;
 				function sendSingleDataPoint(e:Event):void {
-					if( count < convertArray.length) {
-						mDGInterface.createEventCases( kEventsCollectionName, [convertArray[count]] );
-						count++;
+					if( timer.currentCount < sSpaceRace.getDataInitialPauseCount() ) {
+						trace("data initial pause "+timer.currentCount);
+						// wait
+					} else if( caseCount < convertArray.length) {
+						// send one more point
+						mDGInterface.createEventCases( kEventsCollectionName, [convertArray[caseCount]] );
+						caseCount++;
 					} else {
+						mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
 						timer.stop();
 					}
 				}
-				
-				mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
 			}
 			
 			// ----------------------

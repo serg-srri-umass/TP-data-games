@@ -92,15 +92,15 @@ package
 		}
 
 		// this method is called whenever data is added. The expert considers whether or not he wants to guess, and may guess.
-		public static function judgeData( sampleLength:int):Boolean {
-			var expertDidGuess:Boolean = ( sampleLength >= _guessNumSamples );
-			return expertDidGuess;
-		}
+		//public static function judgeData( sampleLength:int):Boolean {
+		//	var expertDidGuess:Boolean = ( sampleLength >= _guessNumSamples );
+		//	return expertDidGuess;
+		//}
 		
 		// ------------ GUESS INPUTTING METHODS -------------------------
 		
 		private var sGameControls:SpaceRaceControls; // the game controls the expert is interacting with.
-		private static const FULL_BOT_TYPE_DELAY:int = 1000; // how many miliseconds elapse before the bot starts typing its answer.
+		private static const FULL_BOT_TYPE_DELAY:int = 700; // how many miliseconds elapse before the bot starts typing its answer.
 
 		private var thinkingTimer:Timer; // how many ms the expert has to think about whether to guess or not.
 		private var _botEntryTimer:Timer = new Timer(FULL_BOT_TYPE_DELAY, 0); // used to simulate the opponent typing his answer.
@@ -119,9 +119,8 @@ package
 		}
 		
 		public function startExpertTurn( triggerEvent:InferenceEvent):void{
-			trace("STARTING EXPERT TURN...");
 			thinkingTimer.delay = getThinkingTime();
-			trace(thinkingTimer.delay, "ms delay");
+			trace( "expert turn start, with "+thinkingTimer.delay, "ms delay");
 			thinkingTimer.reset();
 			thinkingTimer.start();
 		}
@@ -136,14 +135,12 @@ package
 		
 		// the expert decides whether or not to guess this turn
 		private function decideGuessPass( triggerEvent:Event = null):void{
-			trace("The expert is deciding whether to guess or pass...");
-			trace("expert will guess @ " + _guessNumSamples);
-			trace("current num samples: " + Round.currentRound.numDataSoFar);
-			
-			var willGuess:Boolean = judgeData( Round.currentRound.numDataSoFar);
+			var willGuess:Boolean = ( Round.currentRound.numDataSoFar >= _guessNumSamples );
 			if( willGuess){
+				trace("expert turn, GUESSES with "+Round.currentRound.numDataSoFar+" samples, guess at >="+_guessNumSamples );
 				doGuess();
 			} else {
+				trace("expert turn, PASSES with "+Round.currentRound.numDataSoFar+" samples, guess at >="+_guessNumSamples );
 				doPass();
 			}
 		}
@@ -164,7 +161,7 @@ package
 		}
 		
 		private function enterGuess( triggerEvent:Event = null):void{
-			trace("EXPERT WILL START TYPING... (Num.Samples="+Round.currentRound.numDataSoFar+", Pop. Mean="+Round.currentRound.populationMean+")");
+			trace("expert will start typing... (Num.Samples="+Round.currentRound.numDataSoFar+", Pop. Mean="+Round.currentRound.populationMean+")");
 			_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
 			_botEntryTimer.reset();
 			_botEntryTimer.start();
@@ -180,7 +177,7 @@ package
 			}
 			
 			if( _botEntryTimer.currentCount > sampleMeanString.length){ // the last character has been added. Hit the okay button.
-				trace( "EXPERT TYPED (sample mean of) "+sampleMeanString );
+				trace( "expert typed (sample mean of) "+sampleMeanString );
 				_botEntryTimer.stop();
 				sGameControls.controlsExpertMVC.inputMVC.okMVC.play();
 				var enterGuessTimer:Timer = new Timer(350, 1);	// how long it holds on 'pause', before the action actually happens

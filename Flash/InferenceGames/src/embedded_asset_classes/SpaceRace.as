@@ -85,7 +85,7 @@
 			this.setTolerance(tolerance);
 			_minOfRange = min;
 			
-			trace("The mean is: " + mean);
+			//trace("The mean is: " + mean);
 			bodyMVC.moveDistributionTo( _mean);
 			bodyMVC.setActiveTolerance( tolerance);
 			bodyMVC.setActiveSD( _StDev );
@@ -98,7 +98,7 @@
 			bodyMVC.startDataSampling();
 
 			// set the endpoints of the numberline to the correct range
-			trace("The range starts at "+ minOfRange );
+			//trace("The range starts at "+ minOfRange );
 			bodyMVC.numberlineMVC.minOfRangeTxt.text = String(minOfRange);
 			bodyMVC.numberlineMVC.maxOfRangeTxt.text = String(minOfRange+100);
 
@@ -177,8 +177,8 @@
 		// set how many samples will be drawn per chunk.
 		public function set sampleSize( arg:int):void{
 			_sampleSize = arg;
-			_playerTurnString = PLAYER_PHRASE + ". Sampling " + arg + " at a time.";
-			_expertTurnString = EXPERT_PHRASE + ". Sampling " + arg + " at a time.";
+			_playerTurnString = PLAYER_PHRASE + ", sampling " + arg + " at a time.";
+			_expertTurnString = EXPERT_PHRASE + ", sampling " + arg + " at a time.";
 		}
 		
 		// WARNING: THIS DOES NOT MAKE A GUESS. IT MERELY RESETS THE POSITION OF THE LAST PLACED GUESS.
@@ -211,18 +211,20 @@
 			return null;
 		}
 		
-		// call this method when the player attempts to draw too much data
-		//public function overdraw( triggerEvent:Event = null):void{
-//			mainMVC.overdraw( triggerEvent);
-		//}
-		
 		// return time between single data samples in milliseconds
 		public function getDataSpeed():uint {
 			return (1000 / 24) * bodyMVC.dataPopSpeed; // (1000ms / 24 frames) * frames per sample
 		}
 		
+		// return time to pause, as a multiple of data speed (e.g. 8 samples pause)
+		public function getDataInitialPauseCount():int {
+			return bodyMVC.dataPopInitialPause / bodyMVC.dataPopSpeed;
+		}
 		
+	
 		// ----------- GUESSING ----------------
+		
+		
 		public function prepareGuessHuman( triggerEvent:Event = null):void{
 			bodyMVC.controlsMVC.openInputCancelHuman();
 			bodyMVC.promptTxt.text = "Place your guess on the numberline, or type it in.";

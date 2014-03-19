@@ -265,9 +265,5 @@ package
 		// -----------------------
 		// --- PRIVATE SECTION ---
 		// -----------------------
-		//returns random number within range passed to function
-		//private function randomRange(max:Number, min:Number = 0):Number{
-		//	return Math.random() * (max - min) + min;
-		//}
 	}
 }

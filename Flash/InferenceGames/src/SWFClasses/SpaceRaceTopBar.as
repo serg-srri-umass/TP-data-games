@@ -138,6 +138,7 @@
 			if( humanScore == WINNING_SCORE){	// when the score equals the # of bulbs a player has
 				scoreMVC.centerBulbMVC.gotoAndStop("green");
 				scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOn");	// light up the center one
+				setTrim("green"); // swipe from white to green to highlight human win
 			}else{
 				humanScore++;
 				scoreMVC.humanScoreMVC["bulbMVC" + humanScore].gotoAndPlay("turnOn"); // otherwise, turn on the next bulb in sequence
@@ -148,6 +149,7 @@
 			if( expertScore == WINNING_SCORE){	// when the score equals the # of bulbs a player has
 				scoreMVC.centerBulbMVC.gotoAndStop("red");
 				scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOn");	// light up the center one
+				setTrim("red");  // swipe from white to red to highlight expert win
 			}else{
 				expertScore++;
 				scoreMVC.expertScoreMVC["bulbMVC" + expertScore].gotoAndPlay("turnOn"); // otherwise, turn on the next bulb in sequence

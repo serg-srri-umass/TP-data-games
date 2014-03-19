@@ -48,7 +48,8 @@
 		//public var distributionScaleY:Number;	// the scaleY of the distribution
 		
 		// datapoint variables:
-		public var dataPopSpeed:Number = 3;	// determines how much time occurs between the arrival of data pops.
+		public var dataPopInitialPause = 12;	// 12 frame (half-second) pause time after start of sampling, before first of data pops
+		public var dataPopSpeed:Number = 3;		// 3 frame (1/8 second) interval between data pops (individual samples).
 		public var ticker:int = 0;				// used to handle the animation of data pops 
 		private var pm:ParkMiller = new ParkMiller();	// park miller generates a random normal.
 		private var dataBladder:Vector.<Number> = new Vector.<Number>(); // holds data points that havent been drawn to screen yet.
@@ -125,7 +126,7 @@
 			controlsMVC.activePlayerIsHuman = false;
 			controlsMVC.showExpert();
 			controlsMVC.hideHuman();
-			SpaceRaceTopBar.INSTANCE.setTrim("red");
+			//SpaceRaceTopBar.INSTANCE.setTrim("red");
 			controlsMVC.openGuessPassExpert();
 			promptTxt.text = main.expertTurnString;
 			controlsMVC.dispatchEvent( new InferenceEvent( InferenceEvent.EXPERT_START_TURN));
@@ -135,15 +136,16 @@
 			controlsMVC.activePlayerIsHuman = true;
 			controlsMVC.showHuman();
 			controlsMVC.hideExpert();
-			SpaceRaceTopBar.INSTANCE.setTrim("green");
+			//SpaceRaceTopBar.INSTANCE.setTrim("green");
 			controlsMVC.openGuessPassHuman();
 			promptTxt.text = main.playerTurnString;
 		}
 		
 		// this mode gets entered when more data has to be sampled
 		public function startDataSampling( triggerEvent:Event = null):void{
-			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_SAMPLE, true));
-			// this event will tell InferenceGames to start generating data.
+			
+			ticker = 0; // reset ticker to time delay before first data value appears
+			dispatchEvent( new InferenceEvent( InferenceEvent.REQUEST_SAMPLE, true)); // tell InferenceGames to start generating data
 			
 			controlsMVC.disableEndGameBtn();
 			
@@ -179,7 +181,7 @@
 		public function handleEnterFrame( triggerEvent:Event):void{
 			if (dataBladder.length) // do any pops need to be added?
 			{
-				if ( ticker % dataPopSpeed == 0)
+				if ( ticker >= dataPopInitialPause && ticker % dataPopSpeed == 0)
 				{
 					var d:DataPop = new DataPop();
 					addChild(d);
