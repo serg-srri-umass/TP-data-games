@@ -45,7 +45,6 @@
 		public var numberlineLength:Number;		// the length of the number line in px
 		public var startPoint:Number;			// the X position of 0 on the number line
 		public var endPoint:Number;				// the X pos of 100 on the number line
-		//public var distributionScaleY:Number;	// the scaleY of the distribution
 		
 		// datapoint variables:
 		public var dataPopInitialPause = 12;	// 12 frame (half-second) pause time after start of sampling, before first of data pops
@@ -67,7 +66,10 @@
 			startPoint = start.x;
 			endPoint = end.x;
 			numberlineLength = endPoint - startPoint;
-			//distributionScaleY = distributionMVC.scaleY;
+			
+			promptHumanTxt.text = "";
+			promptExpertTxt.text = "";
+			promptSampleTxt.text = "";
 			
 			// add listeners:
 			reactivateTimer.addEventListener(TimerEvent.TIMER, startTurnHuman);	// when data finishes sampling, the next turn is red.
@@ -128,7 +130,10 @@
 			controlsMVC.hideHuman();
 			//SpaceRaceTopBar.INSTANCE.setTrim("red");
 			controlsMVC.openGuessPassExpert();
-			promptTxt.text = main.expertTurnString;
+			promptHumanTxt.text = "";
+			promptExpertTxt.text = main.EXPERT_PHRASE;
+			setSampleSizePrompt();
+			
 			controlsMVC.dispatchEvent( new InferenceEvent( InferenceEvent.EXPERT_START_TURN));
 		}
 		
@@ -138,7 +143,9 @@
 			controlsMVC.hideExpert();
 			//SpaceRaceTopBar.INSTANCE.setTrim("green");
 			controlsMVC.openGuessPassHuman();
-			promptTxt.text = main.playerTurnString;
+			promptHumanTxt.text = main.PLAYER_PHRASE;
+			promptExpertTxt.text = "";
+			setSampleSizePrompt();
 		}
 		
 		// this mode gets entered when more data has to be sampled
@@ -155,8 +162,14 @@
 			} else {
 				controlsMVC.controlsExpertMVC.stop();
 				controlsMVC.hideHuman();
-			}			
-			promptTxt.text = "Sampling data...";
+			}
+			promptHumanTxt.text = "";
+			promptExpertTxt.text = "";
+			promptSampleTxt.text = "Sampling "+main.sampleSize+" at a time...";
+		}
+		
+		public function setSampleSizePrompt():void{
+			promptSampleTxt.text = "Sampling "+main.sampleSize+" at a time";
 		}
 		
 		// ------------ SAMPLING FUNCTIONS ------------------

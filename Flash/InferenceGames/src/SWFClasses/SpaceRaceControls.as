@@ -180,7 +180,9 @@
 			draggingControlMVC.buttonMode = false;
 				
 			SpaceRaceBody.INSTANCE.guess = myGuess; // set the guess value.
-			SpaceRaceBody.INSTANCE.promptTxt.text = ""; // clear the text field.
+			SpaceRaceBody.INSTANCE.promptSampleTxt.text = "";
+			SpaceRaceBody.INSTANCE.promptHumanTxt.text = "";
+			SpaceRaceBody.INSTANCE.promptExpertTxt.text = "";
 			
 			var activeControls:MovieClip = (activePlayerIsHuman ? controlsHumanMVC : controlsExpertMVC);
 			activeControls.gotoAndPlay("closeInputCancel");

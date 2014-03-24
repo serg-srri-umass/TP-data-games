@@ -21,8 +21,8 @@
 		public const PLAYER_PHRASE:String = "Your turn";
 		public const EXPERT_PHRASE:String = "Expert's turn";
 		
-		private var _expertTurnString:String; // the string it says when it's the expert's turn.
-		private var _playerTurnString:String; // the string it says when its the player's turn.
+		//private var _expertTurnString:String; // the string it says when it's the expert's turn.
+		//private var _playerTurnString:String; // the string it says when its the player's turn.
 		
 		// round & guessing variables:
 		private var _mean:Number;			// mean of the distribution that is being sampled.
@@ -127,7 +127,9 @@
 			bodyMVC.controlsMVC.hideHuman();
 			bodyMVC.controlsMVC.hideExpert();
 			bodyMVC.controlsMVC.hideFeedback();
-			bodyMVC.promptTxt.text = "";
+			bodyMVC.promptSampleTxt.text = "";
+			bodyMVC.promptHumanTxt.text = "";
+			bodyMVC.promptExpertTxt.text = "";
 			bodyMVC.hideAnswer(); // hide the distribution if it was being shown.
 			
 			resetScore();
@@ -164,8 +166,8 @@
 		
 		// ----------- GETTERS & SETTERS -------------
 		
-		public function get playerTurnString():String{	return _playerTurnString;	}
-		public function get expertTurnString():String{	return _expertTurnString;	}
+		//public function get playerTurnString():String{	return _playerTurnString;	}
+		//public function get expertTurnString():String{	return _expertTurnString;	}
 		
 		public function get stdev():int{			return _StDev;		}
 		public function get tolerance():int{	return _tolerance;	}
@@ -177,8 +179,7 @@
 		// set how many samples will be drawn per chunk.
 		public function set sampleSize( arg:int):void{
 			_sampleSize = arg;
-			_playerTurnString = PLAYER_PHRASE + ", sampling " + arg + " at a time.";
-			_expertTurnString = EXPERT_PHRASE + ", sampling " + arg + " at a time.";
+			bodyMVC.setSampleSizePrompt();
 		}
 		
 		// WARNING: THIS DOES NOT MAKE A GUESS. IT MERELY RESETS THE POSITION OF THE LAST PLACED GUESS.
@@ -227,7 +228,10 @@
 		
 		public function prepareGuessHuman( triggerEvent:Event = null):void{
 			bodyMVC.controlsMVC.openInputCancelHuman();
-			bodyMVC.promptTxt.text = "Place your guess on the numberline, or type it in.";
+			
+			bodyMVC.promptSampleTxt.text = "Place your guess on the numberline, or type it in";
+			//bodyMVC.promptHumanTxt.text = "";
+			bodyMVC.promptExpertTxt.text = "";
 			
 			// auto-set the focus of the textbox
 			// taken from http://reality-sucks.blogspot.com/2007/11/actionscript-3-adventures-setting-focus.html
@@ -240,7 +244,11 @@
 		
 		public function prepareGuessExpert( triggerEvent:Event = null):void{
 			bodyMVC.controlsMVC.openInputCancelExpert();
-			bodyMVC.promptTxt.text = "";
+			
+			bodyMVC.promptSampleTxt.text = "";
+			bodyMVC.promptHumanTxt.text = "";
+			//bodyMVC.promptExpertTxt.text = "";
+
 			bodyMVC.controlsMVC.dispatchEvent( new InferenceEvent( InferenceEvent.EXPERT_START_TYPING));
 			
 			var targetTxt:TextField = bodyMVC.controlsMVC.controlsExpertMVC.inputMVC.inputTxt;
