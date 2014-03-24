@@ -100,7 +100,7 @@ package
 		// ------------ GUESS INPUTTING METHODS -------------------------
 		
 		private var sGameControls:SpaceRaceControls; // the game controls the expert is interacting with.
-		private static const FULL_BOT_TYPE_DELAY:int = 700; // how many miliseconds elapse before the bot starts typing its answer.
+		private static const FULL_BOT_TYPE_DELAY:int = 500; // how many miliseconds elapse before the bot starts typing its answer.
 
 		private var thinkingTimer:Timer; // how many ms the expert has to think about whether to guess or not.
 		private var _botEntryTimer:Timer = new Timer(FULL_BOT_TYPE_DELAY, 0); // used to simulate the opponent typing his answer.

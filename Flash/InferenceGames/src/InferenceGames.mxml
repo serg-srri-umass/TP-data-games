@@ -169,7 +169,7 @@
 					headerText = "You missed";
 					Round.currentRound.setResultString("You lost");
 					if( Round.currentRound.wasUnlucky())
-						bodyText = "You were unlucky. Keep trying";
+						bodyText = "You were unlucky, keep trying";
 					sSpaceRace.earnPointExpert();
 					sSpaceRace.earnPointExpert();
 				} else {

@@ -1,10 +1,13 @@
 ﻿package  {
 	
 	import flash.display.MovieClip;
+	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	import flash.media.*;
-	import flash.display.Stage;
+	import flash.events.TimerEvent;
+	import flash.media.SoundMixer;
+	import flash.media.SoundTransform;
+	import flash.utils.Timer;
 	
 	
 	// NOTE: The SPEAKER Mute button was NOT removed. It was pushed offstage.
@@ -55,6 +58,8 @@
 			videoBtn.addEventListener(MouseEvent.CLICK, toggleVideo);
 			aboutBtn.addEventListener(MouseEvent.CLICK, toggleAbout);
 			//backBtn.addEventListener(MouseEvent.CLICK, clickBack);
+			
+			bulbTimer.addEventListener( TimerEvent.TIMER, animateBulbs);
 		}
 		
 		// set a reference to the stage.
@@ -82,13 +87,13 @@
 			
 			// reset the starting positions
 			expertScore = humanScore = 1;
+			stopAnimatingBulbs();
 			scoreMVC.humanScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
 			scoreMVC.expertScoreMVC.bulbMVC1.gotoAndPlay("turnOn");
 			
 			// make the bulb white and fade it out
 			scoreMVC.centerBulbMVC.gotoAndStop("white");
 			scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOff");	// turn off centre bulb
-			
 		}
 		
 		public function setTitleMessage( arg:String):void{
@@ -134,11 +139,50 @@
 		
 		
 		// --------- PRIVATE METHODS ---------
+		
+		// animate the bulbs that show human and expert score (e.g. at end of game to show win)
+		private var bulbTimer:Timer = new Timer( 1000, 0); // 1 second (1000ms) between toggle on/off, 0 means it repeats indefinitely
+		private var bulbsForHuman:Boolean;
+		private var bulbsAreLit:Boolean;
+		
+		private function delayedStartAnimatingBulbs( isHumanWin:Boolean ):void{
+			bulbsForHuman = isHumanWin;
+			
+			var delayBulbStartTimer:Timer = new Timer( 1000, 1); // delay time
+			delayBulbStartTimer.addEventListener(TimerEvent.TIMER, startAnimatingBulbs);
+			delayBulbStartTimer.start();
+		}
+		private function startAnimatingBulbs( triggerEvent:Event = null ):void{
+			bulbsAreLit = true;
+			bulbTimer.start();
+		}
+		private function stopAnimatingBulbs():void{
+			bulbTimer.stop();
+			bulbTimer.reset();
+		}
+
+		// change the bulb animation by one frame.  Triggered by startAnimatingBulbs()
+		private function animateBulbs( triggerEvent:Event = null):void{
+			var onOrOff:String = ( bulbsAreLit ? "turnOff" : "turnOn");
+			var whichBulbs:String = ( bulbsForHuman ? "humanScoreMVC" : "expertScoreMVC" );
+			
+			scoreMVC[whichBulbs].bulbMVC1.gotoAndPlay(onOrOff);
+			scoreMVC[whichBulbs].bulbMVC2.gotoAndPlay(onOrOff);
+			scoreMVC[whichBulbs].bulbMVC3.gotoAndPlay(onOrOff);
+			scoreMVC[whichBulbs].bulbMVC4.gotoAndPlay(onOrOff);
+			scoreMVC[whichBulbs].bulbMVC5.gotoAndPlay(onOrOff);
+			scoreMVC[whichBulbs].bulbMVC6.gotoAndPlay(onOrOff);
+			scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay(onOrOff);
+			bulbsAreLit = !bulbsAreLit;	
+		}
+		
+		
 		private function earnHumanPoint( triggerEvent:Event = null):void{
 			if( humanScore == WINNING_SCORE){	// when the score equals the # of bulbs a player has
 				scoreMVC.centerBulbMVC.gotoAndStop("green");
 				scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOn");	// light up the center one
-				setTrim("green"); // swipe from white to green to highlight human win
+				setTrim("green"); 					// swipe from white to green to highlight human win
+				delayedStartAnimatingBulbs( true );	// flash bulbs
 			}else{
 				humanScore++;
 				scoreMVC.humanScoreMVC["bulbMVC" + humanScore].gotoAndPlay("turnOn"); // otherwise, turn on the next bulb in sequence
@@ -150,6 +194,7 @@
 				scoreMVC.centerBulbMVC.gotoAndStop("red");
 				scoreMVC.centerBulbMVC.bulbMVC.gotoAndPlay("turnOn");	// light up the center one
 				setTrim("red");  // swipe from white to red to highlight expert win
+				delayedStartAnimatingBulbs( false );	// flash bulbs
 			}else{
 				expertScore++;
 				scoreMVC.expertScoreMVC["bulbMVC" + expertScore].gotoAndPlay("turnOn"); // otherwise, turn on the next bulb in sequence
