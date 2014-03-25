@@ -55,6 +55,9 @@ package
 			{ confPerc: 90,	prob: 0.04,	z: 1.64	}
 		];
 		
+		private static const FULL_BOT_TYPE_DELAY:int = 1000; // how many miliseconds elapse before the bot starts typing its answer.
+		private static const FULL_BOT_THINK_DELAY:int = 1500; // how many miliseconds elapse before the bot selects pass or guess
+
 		private static var _alwaysWrong:Boolean = false; // debug. When true, the expert will always guess incorrectly.
 		
 		private static var _confidenceIntervalPercent:int;	// the confidence interval percent at which the expert will guess.
@@ -77,31 +80,18 @@ package
 					break;
 				}
 			}
+			
+			// compute number of sample cases need for expert to guess
 			_confidenceIntervalPercent = kExpertCallProbs[probIndex].confPerc;
+			_guessNumSamples = Math.round((Math.pow(((kExpertCallProbs[probIndex].z * standardDeviation)/interval), 2)));
 			
-			//calculating 'N' to guess at if you want to guess with confidence interval implied by 'z'. 
-			//expert does not guess on level 1
-			//if(Round.currentRound.level == 1){
-				//_guessNumSamples = int.MAX_VALUE;
-			//} else{
-				_guessNumSamples = Math.round((Math.pow(((kExpertCallProbs[probIndex].z * standardDeviation)/interval), 2)));
-			//}
-			
-			trace("confidence interval %: " + _confidenceIntervalPercent + ", expert will guess at N samples: " + _guessNumSamples);
-			trace(standardDeviation, " ", interval);
+			trace("expert confidence interval %: " + _confidenceIntervalPercent + ", expert will guess at N samples: " + _guessNumSamples +
+					" for StDev="+ standardDeviation, " tolerance=", interval);
 		}
-
-		// this method is called whenever data is added. The expert considers whether or not he wants to guess, and may guess.
-		//public static function judgeData( sampleLength:int):Boolean {
-		//	var expertDidGuess:Boolean = ( sampleLength >= _guessNumSamples );
-		//	return expertDidGuess;
-		//}
 		
 		// ------------ GUESS INPUTTING METHODS -------------------------
 		
 		private var sGameControls:SpaceRaceControls; // the game controls the expert is interacting with.
-		private static const FULL_BOT_TYPE_DELAY:int = 500; // how many miliseconds elapse before the bot starts typing its answer.
-
 		private var thinkingTimer:Timer; // how many ms the expert has to think about whether to guess or not.
 		private var _botEntryTimer:Timer = new Timer(FULL_BOT_TYPE_DELAY, 0); // used to simulate the opponent typing his answer.
 		
@@ -130,7 +120,7 @@ package
 		// To-Do: higher levels = less thinking time, because the player knows how it works.
 		// Maybe: if the % is close to guessing, the expert might take a longer time, to simulate mulling it over.
 		private function getThinkingTime():int{
-			return 1000;	// to do: make this dynamic.
+			return FULL_BOT_THINK_DELAY;	// to do: make this dynamic.
 		}
 		
 		// the expert decides whether or not to guess this turn

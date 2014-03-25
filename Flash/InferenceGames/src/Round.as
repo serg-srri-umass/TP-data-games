@@ -27,17 +27,17 @@ package
 			{ sd:"?",	tolerance:"?"} // level 4
 		]);
 		public static const kLevel2tolerances:Array = [3, 2, 1, 3, 4];
-		public static const kLevel3stDev:Array = [5, 2, 1, 5, 7, 10];
-		public static const kLevel4tolerances:Array = [4, 4, 3, 2,  1, 3];
-		public static const kLevel4stDev:Array      = [1, 5, 7, 10, 5, 2];
-		
-		public static const kPossibleStDevs:Array = [10,7,5,2,1];
+		public static const kLevel3stDev:Array 		= [5, 2, 1, 5, 7, 10];
+		public static const kLevel4stDev:Array      = [7, 10, 1, 7, 10, 5, 2, 10, 5, 7, 2, 1];
+		public static const kLevel4tolerances:Array = [3,  1, 2, 1,  4, 1, 3,  2, 3, 2, 1, 4];
+
+		public static const kPossibleStDevs:Array = [10,7,5,2,1];   // display of SDs for levels with multiple SDs
 		public static const kStartingStDev:Number = 7; 
-		public static const kPossibleTolerances:Array = [4,3,2,1];
+		public static const kPossibleTolerances:Array = [4,3,2,1];	// display of Tolerances for levels with multiple Tolerances
 		public static const kStartingTolerance:Number = 1;
 		
-		public static const luckyPercent:int = 49; // if you guess right at this percent or less, you got lucky
-		public static const unluckyPercent:int = 70; // if you guess wrong at this percent or more, you got unlucky 
+		public static const luckyPercent:int	= 49; // if you guess right at this percent or less, you got lucky
+		public static const unluckyPercent:int	= 70; // if you guess wrong at this percent or more, you got unlucky 
 		
 		public static const kChunkSizeProbs:ArrayCollection = new ArrayCollection([
 			{ chunks:2, percent:3		}, // probability of chunk size 2 is 3%
@@ -159,7 +159,7 @@ package
 			_sampleSize = ExpertAI.guessNumSamples / numChunks;
 			if(_sampleSize == 0)
 				_sampleSize = 1;
-			trace("Sample size set to: " + _sampleSize + " Number of chunks before expert guesses ~ " + numChunks);
+			trace("Sample size set to: " + _sampleSize + " to approximate target of "+numChunks+" chunks before expert guesses (random pick="+randomPercent+"%)");
 		}
 		
 		// when the next round comes, start using the 1st StDev and Tolerance values, if this level
