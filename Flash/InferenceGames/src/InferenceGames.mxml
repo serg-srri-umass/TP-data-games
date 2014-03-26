@@ -17,6 +17,9 @@
 		<![CDATA[
 			import com.adobe.serialization.json.JSON;
 			
+			import flash.external.ExternalInterface;
+			import flash.utils.Timer;
+			
 			import common.DGInterface;
 			import common.ParkMiller;
 			import common.ScriptInterface;
@@ -26,16 +29,13 @@
 			import embedded_asset_classes.InferenceEvent;
 			import embedded_asset_classes.SpaceRace;
 			
-			import flash.external.ExternalInterface;
-			import flash.utils.Timer;
-			
 			// ----------------------
 			// --- PRIVATE SECTION ---
 			// ----------------------
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.1.10";
+			private static const kVersion:String = "v.1.11";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -435,18 +435,20 @@
 			// get the game case data to send to DG, 
 			// returned as an array for use by sendGameDataOpen(),..Update(),...Close().
 			public function getGameCaseValues( iIsRoundOver:Boolean = false ):Array {
+				var isGameWon:Boolean = Round.currentRound.isWon,
+					isGameCanceled:Boolean = iIsRoundOver && (!isGameWon);
 				return [
 					mGameSerialNum, // Game number starting with 1 since launch of application.
 					Round.currentRound.roundID,
 					Round.currentRound.level,
 					Round.currentRound.StDev,
 					Round.currentRound.tolerance,
-					Round.currentRound.numDataSoFar,
-					(iIsRoundOver ? Round.currentRound.getResultString() : ""), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
-					(iIsRoundOver ? Round.currentRound.accuracy : ""), // if round is over, submit accuracy with current sample size. Otherwise, submit the empty string. 
-					(iIsRoundOver ? Round.currentRound.populationMean : ""), // if round is over, show original population mean
-					(iIsRoundOver ? Round.currentRound.sampleMean : ""),
-					(iIsRoundOver ? sSpaceRace.guess : "")
+					(isGameCanceled ? "" : Round.currentRound.numDataSoFar),
+					(isGameCanceled ? "game canceled" : Round.currentRound.getResultString()), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
+					(isGameWon ? Round.currentRound.accuracy : ""), // if round is over, submit accuracy with current sample size. Otherwise, submit the empty string. 
+					(isGameWon ? Round.currentRound.populationMean : ""), // if round is over, show original population mean
+					(isGameWon ? Round.currentRound.sampleMean : ""),
+					(isGameWon ? sSpaceRace.guess : "")
 				];
 			}
 
@@ -530,8 +532,11 @@
 				
 				// update and close the old round data in DG
 				// closing the game case prevents further updating of the Round data.
-				if( Round.currentRound && mDGInterface.isGameCaseOpen())
-					mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues( DGInterface.kCloseCase ), DGInterface.kCloseCase );
+				if( Round.currentRound && mDGInterface.isGameCaseOpen()) {
+					var roundData:Array = getGameCaseValues( DGInterface.kCloseCase );
+					mDGInterface.updateOrCloseGameCase( kGamesCollectionName, roundData, DGInterface.kCloseCase );
+					trace( "endRound: "+roundData );
+				}
 			}
 			
 			// Start a new game.  Each game has multiple rounds
@@ -694,7 +699,7 @@
 	<s:Label id="mVersionLabel" x="{(this.width+mVersionLabel.width)/2}" y="5" width="100" height="50"
 			 color="0x777777" initialize="mVersionLabel.text=kVersion" 
 			 fontFamily="_sans" fontSize="9" textAlign="center" verticalAlign="top"/>
-	<s:Label id="mGameAndRoundLabel" x="14" y="23" width="100" height="50"
+	<s:Label id="mGameAndRoundLabel" x="14" y="22" width="100" height="50"
 			 color="0x8fa0c1"
 			 fontFamily="_sans" fontSize="9" textAlign="left" verticalAlign="top"/>
 	

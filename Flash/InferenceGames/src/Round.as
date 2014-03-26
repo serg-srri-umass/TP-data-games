@@ -132,7 +132,9 @@ package
 			_popMean 	= (Math.round(InferenceGames.instance.randomizer.uniformNtoM( kMinMean, kMaxMean ) * 10)/10);
 			_minOfRange = kScaleWdith * Math.floor( _popMean / kScaleWdith );
 			_sampleMean = 0;
-			_level = whichLevel; 
+			_level = whichLevel;
+			_resultString = "";
+			_isWon = false;  // false until someone wins this round.
 			
 			trace("Population Mean for new round: "+_popMean+" range: "+_minOfRange+"-"+(_minOfRange+100));
 			trace(Round.currentRound);
@@ -250,6 +252,7 @@ package
 		
 		public function setResultString( s:String ):void {
 			_resultString = s;
+			_isWon = true;  // once result string is won we consider this round has been won by Player or Expert (points scoring is handled independently)
 		}
 		
 		// returns true if the current guess was lucky.

@@ -148,7 +148,7 @@
 		private function delayedStartAnimatingBulbs( isHumanWin:Boolean ):void{
 			bulbsForHuman = isHumanWin;
 			
-			var delayBulbStartTimer:Timer = new Timer( 1000, 1); // delay time
+			var delayBulbStartTimer:Timer = new Timer( 700, 1); // delay time 0.7 seconds
 			delayBulbStartTimer.addEventListener(TimerEvent.TIMER, startAnimatingBulbs);
 			delayBulbStartTimer.start();
 		}
