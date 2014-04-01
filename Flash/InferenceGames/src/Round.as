@@ -51,13 +51,21 @@ package
 			{ chunks:10, percent:1		}, // total of percents adds up to 100
 		]);
 		
-		// ----------------------
-		// --- PUBLIC SECTION ---
-		// ----------------------
-		
 		private static var _roundID:int = 0;		// ID number for this round
 		private static var _nextToleranceIndex:int = -1; // inc'd each round to set next tolerance on level 3. Neg so first inc brings to 0.
 		private static var _nextStDevIndex:int = -1; 	// inc'd each round to set next StDev on leve 4. Neg so first inc brings to 0.
+		
+		// controls for allowable range of the randomly picked population mean
+		private static const kMinMean:Number = 0;
+		private static const kMaxMean:Number = 1000;
+		private static const kRangeWidth:Number = 100;  // the numberline lower value will be set to floor(mean/kRangeWidth)
+		
+		public static var debugSampleSizeIs100:Boolean = false;
+		public static var debugSampleSizeIs1000:Boolean = false;
+		
+		// ----------------------------
+		// --- INSTANCE VAR SECTION ---
+		// ----------------------------
 		
 		private var _sample:Vector.<Number> = new Vector.<Number>(); // array of numeric values generated for this round
 		private var _sampleMean:Number;		
@@ -74,10 +82,7 @@ package
 		private var _level:int = 0; //level of this round
 		
 		private var dataTimer:Timer;
-		private const _dataDelayTime:int = 50; //delay time between sending points to DG in ms
-		private const kMinMean:Number = 0;
-		private const kMaxMean:Number = 1000;
-		private const kScaleWdith:Number = 100;
+
 		
 	
 		// constructor
@@ -130,7 +135,7 @@ package
 			}
 			
 			_popMean 	= (Math.round(InferenceGames.instance.randomizer.uniformNtoM( kMinMean, kMaxMean ) * 10)/10);
-			_minOfRange = kScaleWdith * Math.floor( _popMean / kScaleWdith );
+			_minOfRange = kRangeWidth * Math.floor( _popMean / kRangeWidth );
 			_sampleMean = 0;
 			_level = whichLevel;
 			_resultString = "";
@@ -159,8 +164,13 @@ package
 			}
 			// calc the sampleSize size
 			_sampleSize = ExpertAI.guessNumSamples / numChunks;
-			if(_sampleSize == 0)
+			if( _sampleSize < 1)
 				_sampleSize = 1;
+			if( debugSampleSizeIs1000 )
+				_sampleSize = 1000;
+			else if ( debugSampleSizeIs100 )
+				_sampleSize = 100;
+
 			trace("Sample size set to: " + _sampleSize + " to approximate target of "+numChunks+" chunks before expert guesses (random pick="+randomPercent+"%)");
 		}
 		

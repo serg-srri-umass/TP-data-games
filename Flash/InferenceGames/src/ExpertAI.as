@@ -1,10 +1,13 @@
 ﻿// This singleton class handles the AI of the "Statistician Expert"
 package 
 {	
-	import common.MathUtilities;
-	import embedded_asset_classes.InferenceEvent;
-	import flash.events.*;
+	import flash.events.Event;
+	import flash.events.TimerEvent;
 	import flash.utils.Timer;
+	
+	import common.MathUtilities;
+	
+	import embedded_asset_classes.InferenceEvent;
 
 	public class ExpertAI
 	{
@@ -62,26 +65,28 @@ package
 		
 		private static var _confidenceIntervalPercent:int;	// the confidence interval percent at which the expert will guess.
 		private static var _guessNumSamples:int;	// number of samples at which expert will guess 
-		
-		
-		public static function calculateGuessN(standardDeviation:Number, interval:Number):void{
-			var prob:Number = 0;
-			var lastProb:Number;
+
+			
+		// randomly generate a confidence percentage from the array of weighted probabilities for each. returned as an index to the array kExpertCallProbs. 
+		private static function getWeightedRandomCallProbIndex():int{
 			var probIndex:int = 0;
+			var prob:Number = 0;
 			var rand:Number = Math.random();
 			
-			//randomly generate a confidence percentage. returned as an index to the array kExpertCallProbs. 
 			for(var i:int = 0; i < kExpertCallProbs.length; i++){
-				lastProb = prob; 
-				prob += kExpertCallProbs[i].prob; 
-				
-				if(rand >= lastProb && rand < prob){
+				prob += kExpertCallProbs[i].prob;
+				if( rand < prob){
 					probIndex = i;
 					break;
 				}
 			}
+			return probIndex;
+		}
 			
-			// compute number of sample cases need for expert to guess
+		// compute number of sample cases need for expert to guess, based on kExpertCallProbs
+		public static function calculateGuessN(standardDeviation:Number, interval:Number):void{		
+			var probIndex:int = getWeightedRandomCallProbIndex();
+			
 			_confidenceIntervalPercent = kExpertCallProbs[probIndex].confPerc;
 			_guessNumSamples = Math.round((Math.pow(((kExpertCallProbs[probIndex].z * standardDeviation)/interval), 2)));
 			
@@ -100,12 +105,12 @@ package
 		public function ExpertAI( controls:SpaceRaceControls):void{
 			sGameControls = controls;
 			sGameControls.addEventListener( InferenceEvent.EXPERT_START_TURN, startExpertTurn);		// the controls dispatch an event when they enter the expert's turn.
-			sGameControls.addEventListener( InferenceEvent.EXPERT_START_TYPING, enterGuess);		// the controls dispatch an event when they enter the expert's turn.
+			sGameControls.addEventListener( InferenceEvent.EXPERT_START_TYPING, startExpertTypeGuess);		// the controls dispatch an event when they enter the expert's turn.
 			
 			thinkingTimer = new Timer(100, 1);
 			thinkingTimer.addEventListener(TimerEvent.TIMER, decideGuessPass);
 			
-			_botEntryTimer.addEventListener( TimerEvent.TIMER, handleBotType);
+			_botEntryTimer.addEventListener( TimerEvent.TIMER, handleExpertType);
 		}
 		
 		public function startExpertTurn( triggerEvent:InferenceEvent):void{
@@ -150,37 +155,41 @@ package
 			openGuessTimer.start();
 		}
 		
-		private function enterGuess( triggerEvent:Event = null):void{
-			trace("expert will start typing... (Num.Samples="+Round.currentRound.numDataSoFar+", Pop. Mean="+Round.currentRound.populationMean+")");
+		// start the timer that "types" the expert guess
+		private function startExpertTypeGuess( triggerEvent:Event = null):void{
+			//trace("expert is starting to type, n="+Round.currentRound.numDataSoFar+", Pop. Mean="+Round.currentRound.populationMean);
 			_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
 			_botEntryTimer.reset();
 			_botEntryTimer.start();
 		}
 		
-		
-		private function handleBotType( e:TimerEvent):void{
+		// handle one frame of expert "typing" animation, including the finish of timer
+		private function handleExpertType( e:TimerEvent):void{
 			var sampleMeanString:String = String(Round.currentRound.sampleMean.toFixed(1));
 			
-			if( _botEntryTimer.currentCount == sampleMeanString.length){	// wait a full delay before hitting the okay button.
-				_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
-				sGameControls.moveGuessToText(); 	// when the bot finishes typing, move his guess interval into place.
-			}
-			
-			if( _botEntryTimer.currentCount > sampleMeanString.length){ // the last character has been added. Hit the okay button.
-				trace( "expert typed (sample mean of) "+sampleMeanString );
-				_botEntryTimer.stop();
-				sGameControls.controlsExpertMVC.inputMVC.okMVC.play();
-				var enterGuessTimer:Timer = new Timer(350, 1);	// how long it holds on 'pause', before the action actually happens
-				enterGuessTimer.addEventListener( TimerEvent.TIMER, enterBotType);
-				enterGuessTimer.start();
-			} else {
+			if( _botEntryTimer.currentCount <= sampleMeanString.length ) {
+				// add another character to the "typed" string.
 				var outChar:String = sampleMeanString.charAt( _botEntryTimer.currentCount - 1);
 				sGameControls.controlsExpertMVC.inputMVC.inputTxt.text += outChar; // add another character to the string
 				_botEntryTimer.delay = _botEntryTimer.delay / 2; // half the time it will take to enter the next character. Simulates the accelarating way we type.
+				if( _botEntryTimer.currentCount == sampleMeanString.length ) {
+					// we've just added the last character
+					_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
+					sGameControls.moveGuessToText(); 	// when the bot finishes typing, move his guess interval into place.
+				}
+			} else {
+				// stop the timer and submit the guess
+				trace( "expert typed: "+sampleMeanString );
+				_botEntryTimer.stop();
+				sGameControls.controlsExpertMVC.inputMVC.okMVC.play();
+				var enterGuessTimer:Timer = new Timer(350, 1);	// how long it holds on 'pause', before the action actually happens
+				enterGuessTimer.addEventListener( TimerEvent.TIMER, submitExpertGuess);
+				enterGuessTimer.start();
 			}
 		}
 		
-		private function enterBotType( e:Event):void{
+		// called when the expert has finished typing to submit the guess and see if it is correct, show the distribution curve, etc.
+		private function submitExpertGuess( e:Event):void{
 			sGameControls.makeGuess();
 		}
 	}

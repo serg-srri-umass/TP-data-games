@@ -331,6 +331,7 @@
 				distributionMVC.gotoAndPlay("lose");
 				// IMPORTANT: the distributionMVC dispatches the "GUESS_CORRECT" or Incorrect events when it's done animating.
 			}
+			//trace("revealAnswer() -- tolerance bar is at x="+controlsMVC.barMVC.x);
 		}
 
 		// hides the distribution
