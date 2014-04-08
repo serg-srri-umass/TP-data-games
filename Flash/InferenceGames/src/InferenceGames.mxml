@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.1.12";
+			private static const kVersion:String = "v.1.13";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -370,9 +370,10 @@
 							stateVersion: 1, // increment only if needed by restoreStateForDG()
 							gameNumber:	this.mGameSerialNum,
 							gameLevel:	this.mGameLevel,
-							inGame:		this.isInGame,
 							unlockedTo:	this.unlockedLevels,
 							completedTo:this.completedLevels,
+							// note: these probably are not needed because we don't restore the current game; but future versions of restore may want them.
+							inGame:		this.isInGame,
 							roundID:	Round.currentRound.roundID,
 							humanScore:	this.sSpaceRace.humanScore,
 							expertScore:this.sSpaceRace.expertScore
@@ -396,36 +397,37 @@
 					if( iState.completedTo && iState.completedTo >= 1 ) {
 						this.completedLevels = iState.completedTo;
 					}
-					if( iState.roundID && iState.roundID >= 1 ) {
-						//restore roundID
-						Round.currentRound = new Round( mGameLevel);
-						Round.currentRound.roundID = iState.roundID;
-					}
 					if( iState.gameNumber ) {
 						this.mGameSerialNum = iState.gameNumber;
-						// TO-DO: check isInGame and do something different if in game?
+						// note that we assume a new game will start after restore
 					}
+					/*
+					if( iState.roundID && iState.roundID >= 1 ) {
+						//restore roundID
+						Round.currentRound = new Round( iState.gameLevel, iState.gameNumber);
+						Round.currentRound.roundID = iState.roundID;
+					}
+					if( iState.humanScore ) {
+						sSpaceRace.humanScore = iState.humanScore;
+						for(var i:int=0; i<iState.humanScore; i++){
+							sSpaceRace.earnPointHuman();
+						}
+					}
+					if( iState.expertScore ) {
+						sSpaceRace.expertScore = iState.expertScore;
+						for(var j:int=0; j<iState.expertScore; j++){
+							sSpaceRace.earnPointExpert();
+						}
+					}
+					*/
 					if( iState.gameLevel) {
 						if( iState.gameLevel >= 0 && iState.gameLevel < Round.kLevelSettings.length ) { // must be a valid level for this version
-							//restore game level and the level label
+							// restore game level and the level label
 							mGameLevel = iState.gameLevel;
 							sSpaceRace.topBarMVC.setTitleMessage("LEVEL " + mGameLevel);
-							
 							sSpaceRace.showMainMenu( unlockedLevels, completedLevels );
 						}
 						// else ignore invalid levels
-					}
-					if( iState.humanScore ) {
-//						sSpaceRace.humanScore = iState.humanScore;
-//						for(var i:int=0; i<iState.humanScore; i++){
-//							sSpaceRace.earnPointHuman();
-//						}
-					}
-					if( iState.expertScore ) {
-//						sSpaceRace.expertScore = iState.expertScore;
-//						for(var j:int=0; j<iState.expertScore; j++){
-//							sSpaceRace.earnPointExpert();
-//						}
 					}
 					result.success = true;
 				}
@@ -505,7 +507,7 @@
 				}
 
 				// create the new round
-				var thisRound:Round = new Round( mGameLevel); // accessed via Round.currentRound from here forward.
+				var thisRound:Round = new Round( mGameLevel, mGameSerialNum ); // accessed via Round.currentRound from here forward.
 				setGameAndRoundLabel( mGameSerialNum, Round.currentRound.roundID );
 				
 				// update DG: open and send a new game case for each round
@@ -696,9 +698,9 @@
 	<!-- the UI component that holds all the game's SWC's -->
 	<mx:UIComponent id="gameContainer" x="0" y="0"/>
 	
-	<s:Label id="mVersionLabel" x="462" y="6" width="50" height="18"
-			 color="0xdfd4e7" initialize="mVersionLabel.text=kVersion" 
-			 fontFamily="_sans" fontSize="9" textAlign="center" verticalAlign="middle"/>
+	<s:Label id="mVersionLabel" x="{(this.width+mVersionLabel.width)/2}" y="5" width="100" height="50"
+			 color="0x777777" initialize="mVersionLabel.text=kVersion" 
+			 fontFamily="_sans" fontSize="9" textAlign="center" verticalAlign="top"/>
 	<s:Label id="mGameAndRoundLabel" x="14" y="22" width="100" height="50"
 			 color="0x8fa0c1"
 			 fontFamily="_sans" fontSize="9" textAlign="left" verticalAlign="top"/>

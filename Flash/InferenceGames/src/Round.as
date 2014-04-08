@@ -80,17 +80,28 @@ package
 		private var _isWon:Boolean = false; // whether or not this round has been won, calculated when we call for the results string
 		private var _expertGuessed:Boolean = false;	// true if the expert has guessed during this round
 		private var _level:int = 0; //level of this round
+		private var _learningSlowdownFactor:Number = 1.0; // slow down animation by this much when user is learning interface, 1+, 1.0=no slowdown.
 		
 		private var dataTimer:Timer;
 
 		
 	
 		// constructor
-		public function Round( whichLevel:int ) {
+		public function Round( whichLevel:int, whichGame:int ) {
 			DebugUtilities.assert( whichLevel >= 1 && whichLevel <= kLevelSettings.length, "whichLevel out of range" );
 			
 			Round.currentRound = this;
 			++_roundID;
+			
+			// reset Learning Slowdown Factor, which causes expert to play at half speed for initial rounds
+			// we can't tell who is a new user, but we can tell if playing first rounds of the first game of the first level
+			const kNumSlowdownRounds:int = 3;
+			if( whichLevel==1 && whichGame==1 && _roundID >= 1 && _roundID <= kNumSlowdownRounds) {
+				_learningSlowdownFactor = 2.0; // half speed
+			} else {
+				_learningSlowdownFactor = 1.0; // normal speed
+			}
+			trace("Round slowdown factor="+_learningSlowdownFactor);
 			
 			// setting IQR and Interval based on level
 			switch(whichLevel){
@@ -235,6 +246,10 @@ package
 		
 		public function get level():int{
 			return _level;
+		}
+		
+		public function get learningSlowdownFactor():Number{
+			return _learningSlowdownFactor;
 		}
 		
 		// generates an accuracy %, based on the sample size (range 0-100)

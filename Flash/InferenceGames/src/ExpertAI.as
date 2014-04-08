@@ -58,8 +58,9 @@ package
 			{ confPerc: 90,	prob: 0.04,	z: 1.64	}
 		];
 		
-		private static const FULL_BOT_TYPE_DELAY:int = 1000; // how many miliseconds elapse before the bot starts typing its answer.
-		private static const FULL_BOT_THINK_DELAY:int = 1500; // how many miliseconds elapse before the bot selects pass or guess
+		private static const kExpertThinkDelay:int = 1000; // how many miliseconds elapse before the bot selects pass or guess
+		private static const kExpertTypeDelay:int = 1000; // how many miliseconds elapse before the bot starts typing its answer.
+		private static const kExpertTypeAcceleration:Number = 1.75; // each keystroke is this many times faster than last when entering guess
 
 		private static var _alwaysWrong:Boolean = false; // debug. When true, the expert will always guess incorrectly.
 		
@@ -98,7 +99,7 @@ package
 		
 		private var sGameControls:SpaceRaceControls; // the game controls the expert is interacting with.
 		private var thinkingTimer:Timer; // how many ms the expert has to think about whether to guess or not.
-		private var _botEntryTimer:Timer = new Timer(FULL_BOT_TYPE_DELAY, 0); // used to simulate the opponent typing his answer.
+		private var _botEntryTimer:Timer = new Timer(kExpertTypeDelay, 0); // used to simulate the opponent typing his answer.
 		
 		
 		// constructor
@@ -120,12 +121,16 @@ package
 			thinkingTimer.start();
 		}
 		
-		// How long the Expert has to think about this choice for.
-		// To-Do: lower levels = more thinking time, because the player is new.
-		// To-Do: higher levels = less thinking time, because the player knows how it works.
-		// Maybe: if the % is close to guessing, the expert might take a longer time, to simulate mulling it over.
+		// Expert's pause time before chosing pass or guess, in milliseconds
+		// This is dynamic to give new users more time to see how expert play works.
 		private function getThinkingTime():int{
-			return FULL_BOT_THINK_DELAY;	// to do: make this dynamic.
+			return kExpertThinkDelay * Round.currentRound.learningSlowdownFactor;
+		}
+		
+		// Time between expert's keystrokes, in milliseconds, when "typing" a guess.
+		// This is dynamic to give new users more time to see how expert play works.
+		private function getTypingTime():int{
+			return kExpertTypeDelay * Round.currentRound.learningSlowdownFactor;
 		}
 		
 		// the expert decides whether or not to guess this turn
@@ -158,7 +163,7 @@ package
 		// start the timer that "types" the expert guess
 		private function startExpertTypeGuess( triggerEvent:Event = null):void{
 			//trace("expert is starting to type, n="+Round.currentRound.numDataSoFar+", Pop. Mean="+Round.currentRound.populationMean);
-			_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
+			_botEntryTimer.delay = getTypingTime();
 			_botEntryTimer.reset();
 			_botEntryTimer.start();
 		}
@@ -171,10 +176,10 @@ package
 				// add another character to the "typed" string.
 				var outChar:String = sampleMeanString.charAt( _botEntryTimer.currentCount - 1);
 				sGameControls.controlsExpertMVC.inputMVC.inputTxt.text += outChar; // add another character to the string
-				_botEntryTimer.delay = _botEntryTimer.delay / 2; // half the time it will take to enter the next character. Simulates the accelarating way we type.
+				_botEntryTimer.delay = _botEntryTimer.delay / kExpertTypeAcceleration; // Simulates the accelarating way we type.
 				if( _botEntryTimer.currentCount == sampleMeanString.length ) {
 					// we've just added the last character
-					_botEntryTimer.delay = FULL_BOT_TYPE_DELAY;
+					_botEntryTimer.delay = getTypingTime();
 					sGameControls.moveGuessToText(); 	// when the bot finishes typing, move his guess interval into place.
 				}
 			} else {
