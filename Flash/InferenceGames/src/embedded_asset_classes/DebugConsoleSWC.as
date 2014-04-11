@@ -22,7 +22,6 @@ package embedded_asset_classes
 		internal var c5:Command = new Command("A", "Reveal guess accuracy", false, revealGuessAccuracy);
 		internal var c3:Command = new Command("1", "Earn Point (User)", false, earnPointPlayer);
 		internal var c4:Command = new Command("2", "Earn Point (Bot)", false, earnPointBot);
-		internal var c6:Command = new Command("S", "Show/Hide Checkov", true, showHideCheckov); 
 		internal var c7:Command = new Command("C", "Sample Size=100", true, updateSampleSize100); 
 		internal var c8:Command = new Command("M", "Sample Size=1000", false, updateSampleSize1000); 
 		
@@ -55,11 +54,6 @@ package embedded_asset_classes
 		
 		private function showPopMedian():void{
 			println("Population Mean: " + Round.currentRound.populationMean);
-		}
-		
-		private function showHideCheckov( on:Boolean):void{
-			SpaceRaceControls.INSTANCE.controlsExpertMVC.checkov.visible = on;
-			SpaceRaceControls.INSTANCE.controlsExpertMVC.checkov2.visible = on;
 		}
 		
 		private function updateSampleSize100( on:Boolean ):void{

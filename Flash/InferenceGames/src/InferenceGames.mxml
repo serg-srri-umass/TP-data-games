@@ -137,6 +137,7 @@
 				var isExpertWin:Boolean = (sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE),
 					isUserWin:Boolean =   (sSpaceRace.humanScore  >= sSpaceRace.WINNING_SCORE);
 				if( isExpertWin || isUserWin ){
+					showEndOfGameExpert( isUserWin);
 					if(isUserWin){
 						headerText = "Correct, you won the game!";
 						bodyText = "";
@@ -187,6 +188,7 @@
 				var isExpertWin:Boolean = (sSpaceRace.expertScore >= sSpaceRace.WINNING_SCORE),
 					isUserWin:Boolean =   (sSpaceRace.humanScore  >= sSpaceRace.WINNING_SCORE);
 				if( isExpertWin || isUserWin){
+					showEndOfGameExpert( isUserWin);
 					if(isUserWin){
 						headerText = "Expert missed, you won the game";
 						bodyText = "";
@@ -210,6 +212,28 @@
 				}
 				
 				endRound();
+			}
+		
+			// Makes the expert movie clip pop up. Used at the end of games.
+			private function showEndOfGameExpert( isUserWin:Boolean ):void{
+				
+				if( isUserWin){
+					if( sSpaceRace.expertScore < 2){
+						// show defeated expert
+						sSpaceRace.bodyMVC.popupExpertMVC.gotoAndPlay("show");
+						sSpaceRace.bodyMVC.popupExpertMVC.checkovMVC.gotoAndStop("sad");
+					}
+					// else down show expert
+				} else {
+					sSpaceRace.bodyMVC.popupExpertMVC.gotoAndPlay("show");
+					if( sSpaceRace.humanScore < 2){
+						// show happy face
+						sSpaceRace.bodyMVC.popupExpertMVC.checkovMVC.gotoAndStop("happy");
+					} else {
+						// show neutral face
+						sSpaceRace.bodyMVC.popupExpertMVC.checkovMVC.gotoAndStop("neutral");
+					}
+				}
 			}
 			
 			// check for and if needed unlock the next level.  To be called when the score reaches WINNING_SCORE.
@@ -570,6 +594,11 @@
 				isInGame = false;
 				sSpaceRace.endGame();
 				sSpaceRace.showMainMenu( unlockedLevels, completedLevels );
+				
+				// check if the expert is up. If he is, hide him.
+				if( sSpaceRace.bodyMVC.popupExpertMVC.currentFrame != 1){
+					sSpaceRace.bodyMVC.popupExpertMVC.gotoAndPlay("hide");
+				}
 			}
 			
 			// display the given Game and Round numbers, or hide the old number display if passed zeros. 
