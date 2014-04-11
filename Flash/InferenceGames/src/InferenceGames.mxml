@@ -106,6 +106,8 @@
 
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_EXPERT, sSpaceRace.prepareGuessExpert);
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_HUMAN, sSpaceRace.prepareGuessHuman);
+				
+				sSpaceRace.addEventListener(InferenceEvent.REMOVE_FOCUS, sSpaceRace.removeFocus);
 
 				//hide StDev & tolerance bars on startup
 				sSpaceRace.bodyMVC.setPossibleSDs();

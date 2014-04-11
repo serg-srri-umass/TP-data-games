@@ -242,6 +242,11 @@
 			targetTxt.text = "";			
 		}
 		
+		// set the game's focus to the stage. Use this to remove focus from the input text box.
+		public function removeFocus( triggerEvent:Event = null):void{
+			InferenceGames.stage.focus = InferenceGames.stage;
+		}
+		
 		public function prepareGuessExpert( triggerEvent:Event = null):void{
 			bodyMVC.controlsMVC.openInputCancelExpert();
 			

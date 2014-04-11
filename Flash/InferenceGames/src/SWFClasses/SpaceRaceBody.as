@@ -165,7 +165,7 @@
 			}
 			promptHumanTxt.text = "";
 			promptExpertTxt.text = "";
-			promptSampleTxt.text = "Sampling "+main.sampleSize+" at a time...";
+			//promptSampleTxt.text = "Sampling "+main.sampleSize+" at a time...";
 		}
 		
 		public function setSampleSizePrompt():void{
