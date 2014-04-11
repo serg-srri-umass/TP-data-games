@@ -22,6 +22,7 @@
 		
 		public static const EXPERT_START_TURN:String = "startexpertturn";
 		public static const EXPERT_START_TYPING:String = "startexperttyping";
+		public static const REQUEST_HUMAN_CURSOR:String = "starthumanturn";
 		
 		public static const REMOVE_FOCUS:String = "removefocus"; // to hide input cursor
 		

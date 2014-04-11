@@ -59,7 +59,7 @@
 			public var sSpaceRace:SpaceRace;
 			private var sExpertAI:ExpertAI;
 			private var videoPlayer:Object;	// The Youtube video player for the intro video
-			//private var mVideoButton:MovieClip = new videoMVC();  // the button on the top-bar that prompts you to watch the instructional video.
+			private var sThinkingCursor:ThinkingCursor;
 
 			private var mDGInterface:DGInterface = null;	// interface to Data Games container application (if present)	
 			private var mGameSerialNum:int	= 0; // first game starts with serial number 1.
@@ -108,6 +108,8 @@
 				sSpaceRace.addEventListener(InferenceEvent.REQUEST_GUESS_MODE_HUMAN, sSpaceRace.prepareGuessHuman);
 				
 				sSpaceRace.addEventListener(InferenceEvent.REMOVE_FOCUS, sSpaceRace.removeFocus);
+				sSpaceRace.addEventListener(InferenceEvent.EXPERT_START_TURN, showExpertCursor);
+				sSpaceRace.addEventListener(InferenceEvent.REQUEST_HUMAN_CURSOR, showHumanCursor);
 
 				//hide StDev & tolerance bars on startup
 				sSpaceRace.bodyMVC.setPossibleSDs();
@@ -116,6 +118,8 @@
 			
 			// called after Human or Expert guess is made, to end the round, see also handleIncorrectGuess()
 			private function handleCorrectGuess( triggerEvent:Event = null):void{
+				showHumanCursor();
+				
 				var headerText:String = "", bodyText:String = "";
 				
 				// get end of round feedback and score points
@@ -165,6 +169,8 @@
 			
 			// called after Human or Expert guess is made, to end the round, see also handleCorrectGuess()		
 			private function handleIncorrectGuess( triggerEvent:Event = null):void{
+				showHumanCursor();
+				
 				var headerText:String = "", bodyText:String = "";
 				
 				// get end of round feedback and score points
@@ -282,8 +288,32 @@
 				gameContainer.addChild(sDebugConsole);
 				sDebugConsole.x = 86;
 				sDebugConsole.y = 25;
+
+				// set up the cursor for when the expert is thinking
+				sThinkingCursor = new ThinkingCursor();
+				gameContainer.addChild( sThinkingCursor);
+				sThinkingCursor.visible = false;
+				sThinkingCursor.mouseEnabled = false;
+				sThinkingCursor.mouseChildren = false;
+				staticStage.addEventListener( MouseEvent.MOUSE_MOVE, mouseMoveHandler);
 				
 				initVideoPlayer();
+			}
+
+			private function showExpertCursor( triggerEvent:Event = null):void{
+				Mouse.hide();
+				sThinkingCursor.visible = true;
+			}
+			
+			private function showHumanCursor( triggerEvent:Event = null):void{
+				Mouse.show();
+				sThinkingCursor.visible = false;
+			}
+			
+			// moves the custom cursor to the mouse's position.
+			private function mouseMoveHandler( triggerEvent:MouseEvent):void{
+				sThinkingCursor.x = triggerEvent.stageX;
+				sThinkingCursor.y = triggerEvent.stageY;
 			}
 			
 			// init the 'play video' button & prompt.
@@ -594,6 +624,8 @@
 				isInGame = false;
 				sSpaceRace.endGame();
 				sSpaceRace.showMainMenu( unlockedLevels, completedLevels );
+				
+				showHumanCursor(); // ensure that cursor is visible at end of game
 				
 				// check if the expert is up. If he is, hide him.
 				if( sSpaceRace.bodyMVC.popupExpertMVC.currentFrame != 1){
