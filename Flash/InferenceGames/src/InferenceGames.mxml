@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.1.13";
+			private static const kVersion:String = "v.1.14";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -124,13 +124,13 @@
 				
 				// get end of round feedback and score points
 				if(sSpaceRace.activePlayerIsHuman){ //you
-					headerText = "You guessed correctly";
+					headerText = "Your guess was correct";
 					Round.currentRound.setResultString("You won");
 					if( Round.currentRound.wasLucky())
 						bodyText = "You got lucky";
 					sSpaceRace.earnPointHuman();
 				} else { // expert
-					headerText = "The expert guessed correctly";
+					headerText = "The expert's guess was correct";
 					Round.currentRound.setResultString("Expert won");
 					if( Round.currentRound.wasLucky())
 						bodyText = "The expert got lucky";
@@ -153,7 +153,7 @@
 						}
 					}
 					else{
-						headerText = "The expert guessed correctly and won the game";
+						headerText = "The expert was correct and won the game";
 					}
 				}
 				
@@ -312,8 +312,8 @@
 			
 			// moves the custom cursor to the mouse's position.
 			private function mouseMoveHandler( triggerEvent:MouseEvent):void{
-				sThinkingCursor.x = triggerEvent.stageX;
-				sThinkingCursor.y = triggerEvent.stageY;
+				sThinkingCursor.x = 442; //triggerEvent.stageX;
+				sThinkingCursor.y = 206; //triggerEvent.stageY;
 			}
 			
 			// init the 'play video' button & prompt.
