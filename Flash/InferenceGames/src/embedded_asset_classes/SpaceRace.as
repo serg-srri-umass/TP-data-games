@@ -95,6 +95,7 @@
 			bodyMVC.hideAnswer();
 			bodyMVC.controlsMVC.hideExpert();
 			bodyMVC.controlsMVC.hideHuman();
+			bodyMVC.initDataSpeed();
 			bodyMVC.startDataSampling();
 
 			// set the endpoints of the numberline to the correct range
@@ -212,14 +213,14 @@
 			return null;
 		}
 		
-		// return time between single data samples in milliseconds
+		// time between single data samples, as number of 1/24sec frames
 		public function getDataSpeed():uint {
-			return (1000 / 24) * bodyMVC.dataPopSpeed; // (1000ms / 24 frames) * frames per sample
+			return bodyMVC.dataPopSpeed;
 		}
 		
-		// return time to pause, as a multiple of data speed (e.g. 8 samples pause)
-		public function getDataInitialPauseCount():int {
-			return bodyMVC.dataPopInitialPause / bodyMVC.dataPopSpeed;
+		// time to pause, as number of 1/24sec frames
+		public function getDataInitialPause():int {
+			return bodyMVC.dataPopInitialPause;
 		}
 		
 	

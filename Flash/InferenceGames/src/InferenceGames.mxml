@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.1.14";
+			private static const kVersion:String = "v.1.15b";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -51,7 +51,7 @@
 				"<font color='#2C4877'><u><a href='http://www.nsf.gov/awardsearch/showAward?AWD_ID=0918653&amp;HistoricalAwards=false' target='inferenceInfo'>DRL-0918653</a></u></font> (2009-2014). "+
 				"Inference is open source on <font color='#2C4877'><u><a href='https://github.com/serg-srri-umass/TP-data-games/wiki' target='inferenceInfo'>Github</a></u></font>. "+
 				"Copyright (c) 2013<span class='x'>-2014 by University of Massachusetts Amherst.";
-			private static const kGameDescriptionText:String = "Guess the population mean from samples, using the allowable tolerance and standard deviation as your guide.";
+			private static const kGameDescriptionText:String = "Guess the population mean from samples. Use the allowable tolerance and standard deviation as your guide.";
 			
 			private static var staticStage:Stage; // a reference to the stage of this MXML file.
 
@@ -501,8 +501,8 @@
 					Round.currentRound.level,
 					Round.currentRound.StDev,
 					Round.currentRound.tolerance,
-					(isGameCanceled ? "" : Round.currentRound.numDataSoFar),
-					(isGameCanceled ? "game canceled" : Round.currentRound.getResultString()), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
+					Round.currentRound.numDataSoFar,
+					(isGameCanceled ? "Game canceled" : Round.currentRound.getResultString()), // Result string, "You Won!/You Lost!", "Expert Won!/Expert Lost!" 
 					(isGameWon ? Round.currentRound.accuracy : ""), // if round is over, submit accuracy with current sample size. Otherwise, submit the empty string. 
 					(isGameWon ? Round.currentRound.populationMean : ""), // if round is over, show original population mean
 					(isGameWon ? Round.currentRound.sampleMean : ""),
@@ -515,30 +515,46 @@
 			// 		caseValueArrays is an array of cases, and each case is a array of attribute values for that case (corresponding to the attributes previously sent)
 			//		dataSpeed is the time between single cases in milliseconds; we want sending of data to match data appearance in game
 			public function sendEventData( caseValueArrays:Vector.<Number> ):void {
+
+				const kFramesPerSecond:int=24;  		// frame rate used by Flash
+				const kTargetBatchesPerSecond:int = 4;	// send 4 batches of cases per second, instead of individually, to maintain speed when using high cases-per-second rate
 				
-				//converts number vector from SpaceRace into array for DG
-				var convertArray:Array = new Array();
-				for each (var elem:Number in caseValueArrays) {
-					convertArray.push([Round.currentRound.roundID, elem]);
+				function framesToMS( numFrames:int ):Number {
+					// convert 1/24sec frame rate to milliseconds (1/1000 second)
+					return (numFrames * 1000) / kFramesPerSecond;
 				}
 				
 				// create a timer to send individual data points to DG
-				// use the same speed as the points are shown in the Game, so graph/table matches that speed
+				// 	use the same speed as the points are shown in the Game, so graph/table matches Game speed (see SpaceRace.getDataSpeed())
+				//  use 'casesAtATime' to send cases in batches to match Game speed (is > 1 case only at fast speeds)
 				var caseCount:int = 0;
-				var timer:Timer = new Timer( sSpaceRace.getDataSpeed() );
+				var casesToSend:Array = new Array();
+				var casesAtATime:int = Math.max( 1, Math.round(( kFramesPerSecond / sSpaceRace.getDataSpeed()) / kTargetBatchesPerSecond ));
+				
+				var timer:Timer = new Timer( framesToMS( sSpaceRace.getDataSpeed())); // timer trigger
 				timer.addEventListener(TimerEvent.TIMER, sendSingleDataPoint);
 				timer.start();
 				
 				function sendSingleDataPoint(e:Event):void {
-					if( timer.currentCount < sSpaceRace.getDataInitialPauseCount() ) {
-						trace("data initial pause "+timer.currentCount);
-						// wait
-					} else if( caseCount < convertArray.length) {
-						// send one more point
-						mDGInterface.createEventCases( kEventsCollectionName, [convertArray[caseCount]] );
+					// note: these are calibrated to match speeds of SpaceRaceBody.dataPopSpeed.
+					if( timer.currentCount < (sSpaceRace.getDataInitialPause() / sSpaceRace.getDataSpeed()) ) {
+						// do nothing, to make a pause between button press and first point appearance, so user has time to look at display before points appear.
+						trace("data initial pause "+timer.currentCount+" speed "+sSpaceRace.getDataSpeed());
+					} else if( caseCount < caseValueArrays.length) {
+						// one more point has appeared, queue it to send
+						casesToSend.push( [Round.currentRound.roundID, caseValueArrays[caseCount]]);
 						caseCount++;
-					} else {
-						mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues());
+						// send to DG?
+						if( (casesToSend.length >= casesAtATime) || 	// if we have a batch of cases queued
+							( caseCount >= caseValueArrays.length && casesToSend.length > 0)  // or the last case(s) are ready, less than a batch
+						  ) { 
+							mDGInterface.createEventCases( kEventsCollectionName, casesToSend );
+							casesToSend = [];
+						}
+					} 
+					if( caseCount >= caseValueArrays.length ) {
+						// all points sent, now finish
+						mDGInterface.updateOrCloseGameCase( kGamesCollectionName, getGameCaseValues()); // update number of cases sent in Table
 						timer.stop();
 					}
 				}
