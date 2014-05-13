@@ -36,7 +36,7 @@
 			import spark.events.TextOperationEvent;
 			
 			private static const MINIMUM_REQUIREMENTS:Number = 11.4; // the oldest version of flash player you can play this game on.	
-			public static const  VERSION:String = "v.1.03";
+			public static const  VERSION:String = "v.1.04";
 			private function getVersion():String {
 				return( VERSION );
 			}
@@ -1593,9 +1593,9 @@
 	</s:BorderContainer>
 	
 	<!-- Contains Intro video -->
-	<s:BorderContainer id="IntroVideo" x="0" y="25" width="{this.minWidth}" height="{this.minHeight-25}" visible="false" backgroundColor="#dcd0c0" borderVisible="false" depth="1000">
-		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="0"/>
-		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-25}">
+	<s:BorderContainer id="IntroVideo" x="5" y="0" width="{this.minWidth-10}" height="{this.minHeight}" visible="false" backgroundColor="#dcd0c0" borderVisible="false" depth="1000">
+		<mx:UIComponent	id="videoHolder" x="{(this.minWidth-570)/2}" y="10"/>
+		<s:Group id="videoControlsContainer" x="{(this.minWidth-this.videoControlsContainer.width)/2}" y="{this.minHeight-this.videoControlsContainer.height-5}">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
 			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width + 5}"/>
 			<s:Button id="closeVideoBtn" label="Close" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />

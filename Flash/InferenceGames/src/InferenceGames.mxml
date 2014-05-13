@@ -35,7 +35,7 @@
 						
 			private static const kMinimumRequiredVersion:Number = 11.6;	// the oldest version of flash player you can play this game on.
 			private static const kDebugMode:Boolean = true; 			// set this to false, and the debug version will behave exactly like the release version.
-			private static const kVersion:String = "v.1.16";
+			private static const kVersion:String = "v.1.17";
 			private static const kEventsCollectionName:String = "Events";
 			private static const kGamesCollectionName:String = "Games";
 			private static const kCreditsTextHTML:String = 
@@ -340,7 +340,7 @@
 					loader.content.addEventListener("onReady", onPlayerReady);
 					function onPlayerReady(event:Event):void {
 						videoPlayer = loader.content;
-						videoPlayer.setSize(570, 360);
+						videoPlayer.setSize(575-2,325-2); // width="575" height="325", minus 2 for 1-pixel gray border on "IntroVideo"
 						videoPlayer.loadVideoById(kYouTubeVideoID);
 						videoPlayer.pauseVideo();
 						videoPlayer.addEventListener("onStateChange", onVideoStateChange);
@@ -790,9 +790,9 @@
 			 fontFamily="_sans" fontSize="9" textAlign="left" verticalAlign="top"/>
 	
 	<!-- Contains Intro video -->
-	<s:BorderContainer id="IntroVideo" x="0" y="25" width="{this.width}" height="{this.height-25}" visible="false" backgroundColor="#dcd0c0" styleName="sansFontClass" borderVisible="false" depth="700">
-		<mx:UIComponent	id="videoHolder" x="{(this.width-570)/2}" y="0"/>
-		<s:Group id="videoControlsContainer" x="{(this.width-this.videoControlsContainer.width)/2}" y="{this.height-this.videoControlsContainer.height-25}">
+	<s:BorderContainer id="IntroVideo" x="0" y="0" width="{this.width}" height="{this.height}" visible="false" backgroundColor="#dcd0c0" styleName="sansFontClass" borderVisible="true" depth="700">
+		<mx:UIComponent	id="videoHolder" x="0" y="0"/>
+		<s:Group id="videoControlsContainer" x="{(this.width-this.videoControlsContainer.width)/2}" y="{this.height-this.videoControlsContainer.height-5}">
 			<s:Button id="playPauseBtn" label="Pause" click="playPauseVideo()" x="0" />
 			<s:Button id="replayBtn" label="Replay" click="replayVideo()" x="{playPauseBtn.width + 5}"/>
 			<s:Button id="closeVideoBtn" label="Close" click="hideVideo()" x="{playPauseBtn.width+replayBtn.width+20}" />
